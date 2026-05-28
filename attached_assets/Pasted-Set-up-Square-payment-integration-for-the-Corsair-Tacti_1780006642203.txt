@@ -1,0 +1,209 @@
+Set up Square payment integration for the Corsair Tactical Solutions website.
+
+Current repo:
+thefsts/Corsair-Tactical-Solutions
+
+Current site:
+https://corsair-tactical-solutions.vercel.app/en
+
+====================
+PRIMARY GOAL
+============
+
+Add a Square payment system that matches the Corsair Tactical Solutions website design and course booking flow.
+
+Use Square securely.
+
+Do NOT hardcode Square tokens into the repo.
+
+Do NOT commit secrets.
+
+====================
+SQUARE DASHBOARD
+================
+
+Square payment dashboard:
+https://app.squareup.com/dashboard/items/library
+
+The developer should create or match course items/products from Square’s item library if available.
+
+====================
+ENVIRONMENT VARIABLES
+=====================
+
+Use Vercel environment variables:
+
+SQUARE_ACCESS_TOKEN=
+SQUARE_LOCATION_ID=
+SQUARE_APPLICATION_ID=
+SQUARE_ENVIRONMENT=sandbox or production
+
+Optional:
+SQUARE_WEBHOOK_SIGNATURE_KEY=
+
+Do not print these values.
+Do not commit these values.
+Do not expose the access token to the browser.
+
+====================
+PAYMENT FLOW
+============
+
+Course booking flow should be:
+
+1. User selects course
+2. User clicks “Reserve Your Spot” or “Book Training”
+3. User completes required registration info
+4. User signs training waiver
+5. User proceeds to Square payment
+6. Payment success sends user to confirmation page
+7. Payment failure shows retry message
+
+====================
+IMPLEMENTATION REQUIREMENTS
+===========================
+
+Use Square Web Payments SDK on the frontend.
+
+Use a secure backend route to create/process payments.
+
+Suggested routes:
+
+/api/square/create-payment
+/api/square/webhook
+
+Frontend should only use:
+
+* Square Application ID
+* Square Location ID
+
+Backend should use:
+
+* Square Access Token
+
+====================
+COURSE PAYMENT DATA
+===================
+
+Each course should support:
+
+* course name
+* course slug
+* price
+* selected class date if available
+* student name
+* student email
+* student phone
+* waiver signed status
+* payment status
+
+If no database is connected yet:
+
+* build the payment UI and API structure
+* pass course info into payment metadata/reference_id
+* add TODO for storing registration and waiver in database later
+
+Recommended future DB:
+
+* Supabase
+  or
+* Neon/Postgres
+
+====================
+SQUARE ITEM LIBRARY OPTION
+==========================
+
+If possible, map website courses to Square item IDs from the Square Item Library.
+
+Use this structure:
+
+course.squareItemId
+course.squareVariationId
+course.priceMoney
+course.currency = "USD"
+
+If Square item IDs are not available yet:
+
+* use website course price data
+* create TODO comments for adding Square item IDs later
+
+====================
+DESIGN REQUIREMENTS
+===================
+
+Payment page/section must match Corsair style:
+
+* white/navy/red
+* clean professional cards
+* red primary CTA buttons
+* navy trust/security panels
+* mature firearms/security training brand
+* mobile responsive
+
+Button labels:
+
+* Continue to Payment
+* Pay Securely with Square
+* Complete Registration
+
+====================
+SECURITY REQUIREMENTS
+=====================
+
+Do:
+
+* validate payment amount server-side
+* validate course slug/server-side price
+* use idempotency keys
+* sanitize form input
+* store secrets only in environment variables
+* use webhook verification if webhooks are added
+
+Do NOT:
+
+* trust frontend price values
+* expose access token
+* commit .env
+* log payment tokens
+* log access tokens
+
+====================
+CONFIRMATION PAGE
+=================
+
+Update /confirmation to show:
+
+* course name
+* payment status
+* registration status
+* next steps
+* bring valid ID
+* bring eye/ear protection if required
+* contact Corsair with questions
+
+====================
+COOKIE / ANALYTICS NOTE
+=======================
+
+Payment tracking/analytics must still respect cookie consent.
+
+Do not load analytics scripts unless user has accepted the proper cookie category.
+
+====================
+FINAL QA
+========
+
+Before pushing:
+
+* Square env vars are documented in .env.example
+* no secrets are committed
+* payment UI matches site design
+* course payment amount is validated server-side
+* waiver-to-payment flow works
+* success/failure states work
+* confirmation page works
+* mobile layout works
+* build passes
+
+Commit author must be:
+Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)
