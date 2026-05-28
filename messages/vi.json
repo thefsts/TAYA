@@ -302,11 +302,11 @@
       "legalUseOfForce": "Legal Use of Force",
       "permitlessCarry": "Constitutional / Permitless Carry",
       "texasLtcCertification": "Chứng nhận Giấy phép Mang theo Súng Texas (LTC)",
-      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
-      "level34Bundle": "Level III + IV Complete Package",
-      "nonLethalDefense": "Non-Lethal Defense Training",
-      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
-      "armedFirstResponder": "Armed First Responder"
+      "concealedCarryHomeDefense": "Mang Súng Ẩn và Phòng Thủ Tại Nhà",
+      "level34Bundle": "Gói Hoàn Chỉnh Cấp III + IV",
+      "nonLethalDefense": "Đào Tạo Phòng Thủ Không Gây Chết Người",
+      "firearmsRequalification": "Tái Chứng Nhận Thành Thạo Súng",
+      "armedFirstResponder": "Người Ứng Phó Đầu Tiên Có Vũ Trang"
     },
     "testimonialsSection": {
       "label": "Student Reviews",

@@ -302,11 +302,11 @@
       "legalUseOfForce": "Legal Use of Force",
       "permitlessCarry": "Constitutional / Permitless Carry",
       "texasLtcCertification": "德州持枪证 (LTC) 认证",
-      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
-      "level34Bundle": "Level III + IV Complete Package",
-      "nonLethalDefense": "Non-Lethal Defense Training",
-      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
-      "armedFirstResponder": "Armed First Responder"
+      "concealedCarryHomeDefense": "隐蔽携带与家庭防卫",
+      "level34Bundle": "III + IV级完整套餐",
+      "nonLethalDefense": "非致命防御训练",
+      "firearmsRequalification": "枪支熟练度重新认证",
+      "armedFirstResponder": "武装急救响应者"
     },
     "testimonialsSection": {
       "label": "Student Reviews",

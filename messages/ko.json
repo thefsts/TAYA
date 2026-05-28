@@ -302,11 +302,11 @@
       "legalUseOfForce": "Legal Use of Force",
       "permitlessCarry": "Constitutional / Permitless Carry",
       "texasLtcCertification": "텍사스 소지 허가(LTC) 인증",
-      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
-      "level34Bundle": "Level III + IV Complete Package",
-      "nonLethalDefense": "Non-Lethal Defense Training",
-      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
-      "armedFirstResponder": "Armed First Responder"
+      "concealedCarryHomeDefense": "은닉 휴대 및 가정 방어",
+      "level34Bundle": "레벨 III + IV 완전 패키지",
+      "nonLethalDefense": "비치명적 방어 훈련",
+      "firearmsRequalification": "총기 숙련도 재자격 취득",
+      "armedFirstResponder": "무장 초기 대응자"
     },
     "testimonialsSection": {
       "label": "Student Reviews",

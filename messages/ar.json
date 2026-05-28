@@ -302,11 +302,11 @@
       "legalUseOfForce": "Legal Use of Force",
       "permitlessCarry": "Constitutional / Permitless Carry",
       "texasLtcCertification": "شهادة رخصة حمل السلاح في تكساس (LTC)",
-      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
-      "level34Bundle": "Level III + IV Complete Package",
-      "nonLethalDefense": "Non-Lethal Defense Training",
-      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
-      "armedFirstResponder": "Armed First Responder"
+      "concealedCarryHomeDefense": "حمل المسدس المخفي والدفاع عن المنزل",
+      "level34Bundle": "الحزمة الكاملة للمستوى الثالث والرابع",
+      "nonLethalDefense": "تدريب الدفاع غير المميت",
+      "firearmsRequalification": "إعادة تأهيل كفاءة الأسلحة النارية",
+      "armedFirstResponder": "المستجيب الأول المسلح"
     },
     "testimonialsSection": {
       "label": "Student Reviews",

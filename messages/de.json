@@ -302,11 +302,11 @@
       "legalUseOfForce": "Legal Use of Force",
       "permitlessCarry": "Constitutional / Permitless Carry",
       "texasLtcCertification": "Texas License to Carry (LTC) Zertifizierung",
-      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
-      "level34Bundle": "Level III + IV Complete Package",
-      "nonLethalDefense": "Non-Lethal Defense Training",
-      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
-      "armedFirstResponder": "Armed First Responder"
+      "concealedCarryHomeDefense": "Verdecktes Tragen & Heimverteidigung",
+      "level34Bundle": "Komplettpaket Level III + IV",
+      "nonLethalDefense": "Training zur nicht-tödlichen Verteidigung",
+      "firearmsRequalification": "Erneute Schusswaffenkompetenz-Qualifikation",
+      "armedFirstResponder": "Bewaffneter Ersthelfer"
     },
     "testimonialsSection": {
       "label": "Student Reviews",
