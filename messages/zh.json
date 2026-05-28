@@ -231,22 +231,22 @@
         "price": "From $100"
       },
       "concealedCarryHomeDefense": {
-        "title": "Concealed Carry Home Defense",
-        "description": "Learn firearm handling, situational awareness, ammunition, and home defense. This 6.5-hour class includes live range time with instructors.",
+        "title": "隐蔽携带与家庭防卫",
+        "description": "学习枪支操作、情景感知、弹药和家庭防卫。这堂6.5小时的课程包含与教练一起的实弹射击训练时间。",
         "duration": "6.5 hrs",
         "level": "Beginner",
         "price": "From $150"
       },
       "level34Bundle": {
-        "title": "Level III + IV Complete Package",
-        "description": "Complete bundle: Level III Commissioned Officer, Level IV Personal Protection, and Texas LTC — all in one. The best value in professional security training.",
+        "title": "III + IV级完整套餐",
+        "description": "完整套餐：III级委任警察官、IV级个人防护及德州LTC——三合一。专业安保培训中的最高性价比之选。",
         "duration": "5–7 days",
         "level": "Advanced",
         "price": "From $400"
       },
       "armedFirstResponder": {
-        "title": "Armed First Responder",
-        "description": "Advanced 3-day certification for Texas LTC holders who serve as armed first responders in churches, schools, or organizations.",
+        "title": "武装急救响应者",
+        "description": "面向在教堂、学校或组织中担任武装急救响应者的德州LTC持有者的高级3天认证课程。",
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"

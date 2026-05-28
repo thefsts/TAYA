@@ -231,22 +231,22 @@
         "price": "From $100"
       },
       "concealedCarryHomeDefense": {
-        "title": "Concealed Carry Home Defense",
-        "description": "Learn firearm handling, situational awareness, ammunition, and home defense. This 6.5-hour class includes live range time with instructors.",
+        "title": "Mang Súng Ẩn và Phòng Thủ Tại Nhà",
+        "description": "Học cách xử lý súng, nhận thức tình huống, đạn dược và phòng thủ tại nhà. Lớp học 6,5 giờ này bao gồm thời gian bắn thực địa cùng giảng viên.",
         "duration": "6.5 hrs",
         "level": "Beginner",
         "price": "From $150"
       },
       "level34Bundle": {
-        "title": "Level III + IV Complete Package",
-        "description": "Complete bundle: Level III Commissioned Officer, Level IV Personal Protection, and Texas LTC — all in one. The best value in professional security training.",
+        "title": "Gói Hoàn Chỉnh Cấp III + IV",
+        "description": "Gói hoàn chỉnh: Sĩ quan Cấp III, Bảo vệ Cá nhân Cấp IV và Texas LTC — tất cả trong một. Giá trị tốt nhất trong đào tạo bảo vệ chuyên nghiệp.",
         "duration": "5–7 days",
         "level": "Advanced",
         "price": "From $400"
       },
       "armedFirstResponder": {
-        "title": "Armed First Responder",
-        "description": "Advanced 3-day certification for Texas LTC holders who serve as armed first responders in churches, schools, or organizations.",
+        "title": "Người Ứng Phó Đầu Tiên Có Vũ Trang",
+        "description": "Chứng nhận nâng cao 3 ngày dành cho người có Texas LTC phục vụ với tư cách người ứng phó đầu tiên có vũ trang trong các nhà thờ, trường học hoặc tổ chức.",
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"

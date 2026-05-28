@@ -231,22 +231,22 @@
         "price": "From $100"
       },
       "concealedCarryHomeDefense": {
-        "title": "Concealed Carry Home Defense",
-        "description": "Learn firearm handling, situational awareness, ammunition, and home defense. This 6.5-hour class includes live range time with instructors.",
+        "title": "Port Dissimulé et Défense à Domicile",
+        "description": "Apprenez la manipulation des armes à feu, la conscience situationnelle, les munitions et la défense à domicile. Ce cours de 6,5 heures comprend du temps de tir réel avec des instructeurs.",
         "duration": "6.5 hrs",
         "level": "Beginner",
         "price": "From $150"
       },
       "level34Bundle": {
-        "title": "Level III + IV Complete Package",
-        "description": "Complete bundle: Level III Commissioned Officer, Level IV Personal Protection, and Texas LTC — all in one. The best value in professional security training.",
+        "title": "Pack Complet Niveau III + IV",
+        "description": "Pack complet : Officier Commissionnaire Niveau III, Protection Personnelle Niveau IV et Texas LTC — tout en un. Le meilleur rapport qualité-prix de la formation en sécurité professionnelle.",
         "duration": "5–7 days",
         "level": "Advanced",
         "price": "From $400"
       },
       "armedFirstResponder": {
-        "title": "Armed First Responder",
-        "description": "Advanced 3-day certification for Texas LTC holders who serve as armed first responders in churches, schools, or organizations.",
+        "title": "Premier Intervenant Armé",
+        "description": "Certification avancée de 3 jours pour les titulaires du Texas LTC qui servent en tant que premiers intervenants armés dans les églises, les écoles ou les organisations.",
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"

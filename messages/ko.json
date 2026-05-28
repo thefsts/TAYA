@@ -231,22 +231,22 @@
         "price": "From $100"
       },
       "concealedCarryHomeDefense": {
-        "title": "Concealed Carry Home Defense",
-        "description": "Learn firearm handling, situational awareness, ammunition, and home defense. This 6.5-hour class includes live range time with instructors.",
+        "title": "은닉 휴대 및 가정 방어",
+        "description": "총기 취급, 상황 인식, 탄약 및 가정 방어를 배우세요. 이 6.5시간 수업에는 강사와 함께하는 실시간 사격 훈련이 포함됩니다.",
         "duration": "6.5 hrs",
         "level": "Beginner",
         "price": "From $150"
       },
       "level34Bundle": {
-        "title": "Level III + IV Complete Package",
-        "description": "Complete bundle: Level III Commissioned Officer, Level IV Personal Protection, and Texas LTC — all in one. The best value in professional security training.",
+        "title": "레벨 III + IV 완전 패키지",
+        "description": "완전 패키지: 레벨 III 위촉 경찰관, 레벨 IV 개인 보호 및 텍사스 LTC — 모두 포함. 전문 보안 교육에서 최고의 가성비를 자랑합니다.",
         "duration": "5–7 days",
         "level": "Advanced",
         "price": "From $400"
       },
       "armedFirstResponder": {
-        "title": "Armed First Responder",
-        "description": "Advanced 3-day certification for Texas LTC holders who serve as armed first responders in churches, schools, or organizations.",
+        "title": "무장 초기 대응자",
+        "description": "교회, 학교 또는 단체에서 무장 초기 대응자로 활동하는 텍사스 LTC 소지자를 위한 고급 3일 인증 과정입니다.",
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"
