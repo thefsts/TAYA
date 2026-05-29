@@ -1,0 +1,163 @@
+Square integration QA and webhook status check.
+
+We are trying to get Corsair Tactical Solutions ready for production QA today.
+
+Repo:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Commit author must be:
+Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)
+
+====================
+PRIMARY QUESTIONS
+=================
+
+Please confirm:
+
+1. Have the Square API links been added to the website?
+2. Is the website connected to Square Sandbox?
+3. Is the Square Application ID being used on the frontend only?
+4. Is the Square Access Token being used only on the server/backend?
+5. Is the Square Location ID connected?
+6. Are course/service prices matched between the website and Square?
+7. Are Square Orders being created?
+8. Are Square Payments being created?
+9. Is the webhook route created?
+10. Has webhook verification been implemented?
+11. Is there a sandbox test payment working end-to-end?
+12. Is the confirmation page receiving real payment status?
+13. Are booking/registration records being stored anywhere yet?
+14. Are confirmation emails implemented yet?
+15. Are instructor/admin notification emails implemented yet?
+
+====================
+WEBHOOK REQUIREMENT
+===================
+
+Yes, we need Square webhook setup before production live.
+
+Please confirm whether this route exists:
+
+/api/square/webhook
+
+Webhook should handle Square events such as:
+
+* payment.created
+* payment.updated
+* order.created
+* order.updated
+* refund.created
+* refund.updated
+
+Webhook must verify the Square webhook signature using:
+
+SQUARE_WEBHOOK_SIGNATURE_KEY
+
+Do not log sensitive payment/token data.
+
+====================
+SQUARE DASHBOARD WEBHOOK SETUP
+==============================
+
+If webhook route is ready, provide the exact Square Dashboard setup instructions.
+
+Production webhook endpoint should be:
+
+https://corsairtacticalsolutions.com/api/square/webhook
+
+Sandbox webhook endpoint for testing should be:
+
+https://corsair-tactical-solutions.vercel.app/api/square/webhook
+
+or the correct current Vercel preview/production URL if different.
+
+In Square Developer Dashboard:
+
+* Open the Square app
+* Go to Webhooks
+* Add webhook subscription
+* Add endpoint URL
+* Select required events
+* Copy webhook signature key
+* Add it to Vercel as:
+  SQUARE_WEBHOOK_SIGNATURE_KEY
+
+====================
+ENVIRONMENT VARIABLES TO VERIFY
+===============================
+
+Confirm these are documented and required in Vercel.
+
+Frontend public:
+
+* NEXT_PUBLIC_SQUARE_APPLICATION_ID
+* NEXT_PUBLIC_SQUARE_LOCATION_ID
+* NEXT_PUBLIC_SQUARE_ENVIRONMENT=sandbox or production
+
+Server secret:
+
+* SQUARE_ACCESS_TOKEN
+* SQUARE_LOCATION_ID
+* SQUARE_ENVIRONMENT=sandbox or production
+* SQUARE_WEBHOOK_SIGNATURE_KEY
+
+Do not commit real values.
+
+====================
+PRICE MATCHING QA
+=================
+
+Before production, verify all payable courses/services have matching Square prices.
+
+Website should not trust frontend prices.
+
+Server must validate:
+
+* item slug
+* item active status
+* item price
+* currency
+* Square catalog/item mapping if used
+
+If an item is Contact for Pricing, it should not show Pay Now.
+
+====================
+READY FOR QA CHECKLIST
+======================
+
+Before we go live today, confirm:
+
+* Square Sandbox payment form loads
+* Square Sandbox test card works
+* successful payment creates Square payment
+* failed payment shows error
+* webhook receives event
+* webhook signature verification passes
+* confirmation page shows correct course/payment info
+* no secrets are exposed in browser
+* no Square token is committed
+* all prices are from one central source
+* course/service prices match Square
+* build passes
+* deployment is live on Vercel
+
+====================
+DO NOT SWITCH TO PRODUCTION YET
+===============================
+
+Do not switch to live Square production payments until:
+
+* sandbox checkout passes
+* webhook passes
+* price matching passes
+* confirmation page passes
+* email confirmations pass or are clearly marked pending
+* we approve production env vars in Vercel
+
+Please reply with a clear status report:
+
+* Done
+* Not done
+* Blocked
+* Files/routes created
+* What still needs QA
