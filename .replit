@@ -41,12 +41,12 @@ waitForPort = 8081
 name = "visual-regression"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @workspace/visual-regression run test"
-
 [workflows.workflow.metadata]
 isValidation = true
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/run-visual-tests.sh"
 
 [agent]
 stack = "PNPM_WORKSPACE"
