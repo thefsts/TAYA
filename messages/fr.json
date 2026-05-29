@@ -187,85 +187,6 @@
       "description": "Structured training for every skill level — from your first time on the range to professional security certification.",
       "viewAllCourses": "View All Courses"
     },
-    "courses": {
-      "ltc": {
-        "title": "Texas License to Carry / Basic Handgun",
-        "description": "LTC certification plus handgun fundamentals — two courses combined into one day. Great value for new gun owners.",
-        "duration": "8–10 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "firstShots": {
-        "title": "First Shots Basic Firearm Training",
-        "description": "The perfect first class for brand-new shooters. Learn safety, handling, and take your first shots in a supportive group environment.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "defensiveShooting": {
-        "title": "Defensive Shooting Skills",
-        "description": "Build real-world defensive skills with holster work, movement, situational awareness, and controlled shooting drills at the range.",
-        "duration": "4–6 hrs",
-        "level": "Intermediate",
-        "price": "From $50"
-      },
-      "basicHandgun": {
-        "title": "Basic Handgun Skills (Personal 1:1)",
-        "description": "Private one-on-one handgun training personalized to your skill level. Learn grip, stance, sight alignment, and fundamentals.",
-        "duration": "1.5 hrs",
-        "level": "Beginner",
-        "price": "From $70"
-      },
-      "level3Security": {
-        "title": "Level 3 Armed Security Officer",
-        "description": "Texas DPS Level III commissioned armed security certification. Classroom, use of force law, defensive tactics, and live-fire range qualification.",
-        "duration": "3–5 days",
-        "level": "Intermediate",
-        "price": "From $130"
-      },
-      "texasLtcCertification": {
-        "title": "Certification Texas License to Carry",
-        "description": "Certification LTC du Texas approuvée par l’État avec cours en salle, formation juridique et qualification au tir réel.",
-        "duration": "6–8 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "concealedCarryHomeDefense": {
-        "title": "Port Dissimulé et Défense à Domicile",
-        "description": "Apprenez la manipulation des armes à feu, la conscience situationnelle, les munitions et la défense à domicile. Ce cours de 6,5 heures comprend du temps de tir réel avec des instructeurs.",
-        "duration": "6.5 hrs",
-        "level": "Beginner",
-        "price": "From $150"
-      },
-      "level34Bundle": {
-        "title": "Pack Complet Niveau III + IV",
-        "description": "Pack complet : Officier Commissionnaire Niveau III, Protection Personnelle Niveau IV et Texas LTC — tout en un. Le meilleur rapport qualité-prix de la formation en sécurité professionnelle.",
-        "duration": "5–7 days",
-        "level": "Advanced",
-        "price": "From $400"
-      },
-      "armedFirstResponder": {
-        "title": "Premier Intervenant Armé",
-        "description": "Certification avancée de 3 jours pour les titulaires du Texas LTC qui servent en tant que premiers intervenants armés dans les églises, les écoles ou les organisations.",
-        "duration": "3 days",
-        "level": "Advanced",
-        "price": "From $595"
-      },
-      "nonLethalDefense": {
-        "title": "Formation à la Défense Non Létale",
-        "description": "Apprenez à utiliser efficacement le poivre de Cayenne, les tasers et les outils de sécurité personnelle. Un cours pratique d'autodéfense idéal pour ceux qui cherchent une protection efficace sans arme à feu.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "firearmsRequalification": {
-        "title": "Requalification de Compétence en Armes à Feu",
-        "description": "Restez à jour avec une session de requalification axée sur la manipulation sécurisée, les exercices de précision et la révision des techniques — idéal pour les propriétaires d'armes existants et les renouvellements de permis.",
-        "duration": "2–3 hrs",
-        "level": "Intermediate",
-        "price": "From $60"
-      }
-    },
     "whyCorsair": {
       "title": "Why Train With Corsair?",
       "subtitle": "Trusted by 500+ Texas gun owners",
@@ -289,38 +210,38 @@
       "button": "See Full Course Details"
     },
     "offerings": {
-      "ltc": "Permis de Port d'Armes Texas (LTC)",
-      "onlineAssessment": "Évaluation LTC en Ligne",
-      "shootingProficiency": "Aptitude au Tir LTC",
-      "wichitaCert": "Certification LTC (Wichita)",
-      "ltcCombo": "Combo LTC + Pistolet de Base",
-      "beginnerTraining": "Formation Débutant / Premiers Tirs",
-      "introFirearms": "Introduction aux Armes à Feu",
-      "basicHandgun1on1": "Compétences de Base au Pistolet (1:1)",
-      "defensiveSkills": "Compétences de Tir Défensif",
-      "privateInstruction": "Instruction Privée 1 pour 1",
-      "womensOnly": "Cours pour Femmes Uniquement",
-      "level2Security": "Sécurité Niveau II Sans Arme",
-      "level3Security": "Sécurité Armée Niveau III",
-      "level4Bodyguard": "Garde du Corps Niveau IV / PPO",
-      "churchSecurity": "Sécurité des Églises et Entreprises",
-      "activeShooter": "Réponse au Tireur Actif",
-      "homeDefense": "Formation à la Défense à Domicile",
-      "scenarioTraining": "Formation par Scénarios",
-      "nraCourses": "Cours Certifiés NRA",
-      "usccaCourses": "Cours Certifiés USCCA",
-      "rifleTraining": "Formation au Fusil",
-      "shotgunTraining": "Formation au Fusil à Pompe",
-      "stopTheBleed": "Arrêter le Saignement",
-      "cprFirstAid": "RCR / DEA / Premiers Secours",
-      "legalUseOfForce": "Usage Légal de la Force",
-      "permitlessCarry": "Port Constitutionnel / Sans Permis",
-      "texasLtcCertification": "Certification Permis de Port d'Armes Texas (LTC)",
-      "concealedCarryHomeDefense": "Port Dissimulé et Défense à Domicile",
-      "level34Bundle": "Pack Complet Niveau III + IV",
-      "nonLethalDefense": "Formation à la Défense Non Létale",
-      "firearmsRequalification": "Requalification de Compétence en Armes à Feu",
-      "armedFirstResponder": "Premier Intervenant Armé"
+      "ltc": "Texas License to Carry (LTC)",
+      "onlineAssessment": "Online LTC Assessment",
+      "shootingProficiency": "LTC Shooting Proficiency",
+      "wichitaCert": "LTC Certification (Wichita)",
+      "ltcCombo": "LTC + Basic Handgun Combo",
+      "beginnerTraining": "Beginner / First Shots Training",
+      "introFirearms": "Introduction to Firearms",
+      "basicHandgun1on1": "Basic Handgun Skills (1:1)",
+      "defensiveSkills": "Defensive Shooting Skills",
+      "privateInstruction": "Private 1-on-1 Instruction",
+      "womensOnly": "Women's Only Courses",
+      "level2Security": "Level II Unarmed Security",
+      "level3Security": "Level III Armed Security",
+      "level4Bodyguard": "Level IV Bodyguard / PPO",
+      "churchSecurity": "Church & Business Security",
+      "activeShooter": "Active Shooter Response",
+      "homeDefense": "In-Home Defense Training",
+      "scenarioTraining": "Scenario-Based Training",
+      "nraCourses": "NRA Certified Courses",
+      "usccaCourses": "USCCA Certified Courses",
+      "rifleTraining": "Rifle Training",
+      "shotgunTraining": "Shotgun Training",
+      "stopTheBleed": "Stop the Bleed",
+      "cprFirstAid": "CPR / AED / First Aid",
+      "legalUseOfForce": "Legal Use of Force",
+      "permitlessCarry": "Constitutional / Permitless Carry",
+      "texasLtcCertification": "Certification Texas License to Carry (LTC)",
+      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
+      "level34Bundle": "Level III + IV Complete Package",
+      "nonLethalDefense": "Non-Lethal Defense Training",
+      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
+      "armedFirstResponder": "Armed First Responder"
     },
     "testimonialsSection": {
       "label": "Student Reviews",
@@ -1919,5 +1840,103 @@
   "trainingWaiver": {
     "metaTitle": "Décharge de formation",
     "metaDescription": "Décharge de responsabilité électronique pour les cours Corsair Tactical Solutions. Requise avant toute participation."
+  },
+  "booking": {
+    "contactOnly": {
+      "label": "Planifiez Votre Formation",
+      "description": "Le prix varie selon la taille du groupe et le type de session. Contactez-nous pour discuter de vos besoins et planifier une session.",
+      "callButton": "Appeler pour Planifier — 214-335-6652",
+      "messageButton": "Envoyer un Message"
+    },
+    "header": {
+      "label": "Réservez Votre Place",
+      "startingAt": "À partir de"
+    },
+    "steps": {
+      "step1": "Choisir un Forfait",
+      "step2": "Vos Coordonnées"
+    },
+    "package": {
+      "label": "Choisir un Forfait",
+      "addOns": "Options Supplémentaires",
+      "total": "Total à Payer",
+      "continueBtn": "Continuer vers les Détails",
+      "secureNote": "Réservation sécurisée — Aucun paiement requis maintenant",
+      "requiredFees": "Required Fees",
+      "orderSummary": "Order Summary",
+      "baseClassPrice": "Base Class Price",
+      "totalDue": "Total Due"
+    },
+    "details": {
+      "backBtn": "Retour à la Sélection du Forfait",
+      "firstName": "Prénom",
+      "lastName": "Nom de Famille",
+      "email": "Adresse E-mail",
+      "phone": "Numéro de Téléphone",
+      "emergencySection": "Contact d'Urgence",
+      "emergencyName": "Nom du Contact",
+      "emergencyPhone": "Téléphone du Contact",
+      "background": "Profil",
+      "backgroundOptions": {
+        "placeholder": "Sélectionnez votre profil...",
+        "civilian": "Civil",
+        "military": "Militaire Actif",
+        "formerMilitary": "Ancien Militaire / Vétéran",
+        "lawEnforcement": "Forces de l'Ordre",
+        "formerLawEnforcement": "Ancien Agent des Forces de l'Ordre",
+        "firstResponder": "Premier Secours (Pompier / EMT)",
+        "instructor": "Instructeur d'Armes à Feu",
+        "security": "Professionnel de la Sécurité",
+        "other": "Autre"
+      },
+      "preferredDate": "Date Préférée",
+      "experience": "Niveau d'Expérience",
+      "experienceOptions": {
+        "placeholder": "Sélectionner...",
+        "none": "Aucune Expérience",
+        "beginner": "Débutant",
+        "intermediate": "Intermédiaire",
+        "advanced": "Avancé"
+      },
+      "notes": "Notes ou Questions",
+      "notesPlaceholder": "Demandes spéciales, besoins en équipement ou questions pour votre instructeur...",
+      "ageConfirm": "Je confirme avoir 18 ans ou plus (21+ pour les cours LTC / port dissimulé) et être légalement éligible à participer à une formation aux armes à feu.",
+      "govIdNotice": "Pièce d'identité officielle requise : Je comprends que ce cours nécessite une pièce d'identité officielle avec photo valide. Mon instructeur en demandera une copie avant le début du cours.",
+      "orderSummary": "Récapitulatif de Commande",
+      "total": "Total",
+      "confirmBtn": "Confirmer la Réservation",
+      "processingBtn": "Traitement en cours...",
+      "footerNote": "Aucun paiement prélevé maintenant · Payez sur le stand · Annulation gratuite 48h+"
+    },
+    "success": {
+      "title": "Réservation Soumise!",
+      "description": "Nous avons bien reçu votre demande pour",
+      "emailNote": "Un e-mail de confirmation sera envoyé à",
+      "emailSuffix": "dans quelques minutes.",
+      "govIdReminder": "Veuillez avoir votre pièce d'identité officielle prête. Votre instructeur en demandera une copie avant la classe.",
+      "summaryTitle": "Récapitulatif de Réservation",
+      "package": "Forfait:",
+      "addOns": "Options:",
+      "total": "Total:",
+      "viewConfirmation": "Voir la Confirmation Complète →"
+    },
+    "placeholders": {
+      "firstName": "Jean",
+      "lastName": "Dupont",
+      "email": "jean@exemple.fr",
+      "phone": "(214) 555-0100",
+      "emergencyName": "Marie Dupont",
+      "emergencyPhone": "(214) 555-0101"
+    },
+    "requiredFees": "Required Fees",
+    "requiredIncluded": "Required · Included",
+    "optionalAddOns": "Optional Add-ons",
+    "baseClassPrice": "Base Class Price",
+    "orderSummary": "Order Summary",
+    "totalDue": "Total Due",
+    "estimatedTotal": "Estimated Total",
+    "paySecurely": "Pay Securely with Square",
+    "contactForPricing": "Contact for Pricing",
+    "requestConsultation": "Request Consultation"
   }
 }

@@ -187,85 +187,6 @@
       "description": "Structured training for every skill level — from your first time on the range to professional security certification.",
       "viewAllCourses": "View All Courses"
     },
-    "courses": {
-      "ltc": {
-        "title": "Texas License to Carry / Basic Handgun",
-        "description": "LTC certification plus handgun fundamentals — two courses combined into one day. Great value for new gun owners.",
-        "duration": "8–10 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "firstShots": {
-        "title": "First Shots Basic Firearm Training",
-        "description": "The perfect first class for brand-new shooters. Learn safety, handling, and take your first shots in a supportive group environment.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "defensiveShooting": {
-        "title": "Defensive Shooting Skills",
-        "description": "Build real-world defensive skills with holster work, movement, situational awareness, and controlled shooting drills at the range.",
-        "duration": "4–6 hrs",
-        "level": "Intermediate",
-        "price": "From $50"
-      },
-      "basicHandgun": {
-        "title": "Basic Handgun Skills (Personal 1:1)",
-        "description": "Private one-on-one handgun training personalized to your skill level. Learn grip, stance, sight alignment, and fundamentals.",
-        "duration": "1.5 hrs",
-        "level": "Beginner",
-        "price": "From $70"
-      },
-      "level3Security": {
-        "title": "Level 3 Armed Security Officer",
-        "description": "Texas DPS Level III commissioned armed security certification. Classroom, use of force law, defensive tactics, and live-fire range qualification.",
-        "duration": "3–5 days",
-        "level": "Intermediate",
-        "price": "From $130"
-      },
-      "texasLtcCertification": {
-        "title": "텍사스 소지 허가 인증",
-        "description": "교실 교육, 법률 교육 및 실탄 사격 자격 심사를 포함하는 텍사스 주 승인 LTC 인증.",
-        "duration": "6–8 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "concealedCarryHomeDefense": {
-        "title": "은닉 휴대 및 가정 방어",
-        "description": "총기 취급, 상황 인식, 탄약 및 가정 방어를 배우세요. 이 6.5시간 수업에는 강사와 함께하는 실시간 사격 훈련이 포함됩니다.",
-        "duration": "6.5 hrs",
-        "level": "Beginner",
-        "price": "From $150"
-      },
-      "level34Bundle": {
-        "title": "레벨 III + IV 완전 패키지",
-        "description": "완전 패키지: 레벨 III 위촉 경찰관, 레벨 IV 개인 보호 및 텍사스 LTC — 모두 포함. 전문 보안 교육에서 최고의 가성비를 자랑합니다.",
-        "duration": "5–7 days",
-        "level": "Advanced",
-        "price": "From $400"
-      },
-      "armedFirstResponder": {
-        "title": "무장 초기 대응자",
-        "description": "교회, 학교 또는 단체에서 무장 초기 대응자로 활동하는 텍사스 LTC 소지자를 위한 고급 3일 인증 과정입니다.",
-        "duration": "3 days",
-        "level": "Advanced",
-        "price": "From $595"
-      },
-      "nonLethalDefense": {
-        "title": "비치명적 방어 훈련",
-        "description": "페퍼 스프레이, 테이저건, 개인 안전 도구의 효과적인 사용법을 배웁니다. 총기 없이 효과적인 자기 보호를 원하는 분들에게 이상적인 실용적 호신술 수업입니다.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "firearmsRequalification": {
-        "title": "총기 숙련도 재자격 취득",
-        "description": "안전한 취급, 정확도 훈련, 기술 검토에 집중한 재자격 세션으로 최신 역량을 유지하세요 — 기존 총기 소유자와 면허 갱신에 적합합니다.",
-        "duration": "2–3 hrs",
-        "level": "Intermediate",
-        "price": "From $60"
-      }
-    },
     "whyCorsair": {
       "title": "Why Train With Corsair?",
       "subtitle": "Trusted by 500+ Texas gun owners",
@@ -316,11 +237,11 @@
       "legalUseOfForce": "합법적 무력 사용",
       "permitlessCarry": "헌법적 / 무허가 소지",
       "texasLtcCertification": "텍사스 소지 허가(LTC) 인증",
-      "concealedCarryHomeDefense": "은닉 휴대 및 가정 방어",
-      "level34Bundle": "레벨 III + IV 완전 패키지",
-      "nonLethalDefense": "비치명적 방어 훈련",
-      "firearmsRequalification": "총기 숙련도 재자격 취득",
-      "armedFirstResponder": "무장 초기 대응자"
+      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
+      "level34Bundle": "Level III + IV Complete Package",
+      "nonLethalDefense": "Non-Lethal Defense Training",
+      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
+      "armedFirstResponder": "Armed First Responder"
     },
     "testimonialsSection": {
       "label": "Student Reviews",
@@ -1919,5 +1840,103 @@
   "trainingWaiver": {
     "metaTitle": "훈련 면책 동의서",
     "metaDescription": "Corsair Tactical Solutions 과정에 참여하기 전에 필요한 전자 책임 면제 동의서."
+  },
+  "booking": {
+    "contactOnly": {
+      "label": "교육 일정 예약",
+      "description": "가격은 그룹 규모와 세션 유형에 따라 다릅니다. 필요 사항을 논의하고 세션을 예약하려면 문의해 주세요.",
+      "callButton": "예약 전화 — 214-335-6652",
+      "messageButton": "메시지 보내기"
+    },
+    "header": {
+      "label": "자리 예약하기",
+      "startingAt": "부터"
+    },
+    "steps": {
+      "step1": "패키지 선택",
+      "step2": "개인 정보"
+    },
+    "package": {
+      "label": "패키지 선택",
+      "addOns": "선택적 추가 서비스",
+      "total": "결제 예정 금액",
+      "continueBtn": "세부 정보로 계속",
+      "secureNote": "안전한 예약 — 지금 결제 불필요",
+      "requiredFees": "Required Fees",
+      "orderSummary": "Order Summary",
+      "baseClassPrice": "Base Class Price",
+      "totalDue": "Total Due"
+    },
+    "details": {
+      "backBtn": "패키지 선택으로 돌아가기",
+      "firstName": "이름",
+      "lastName": "성",
+      "email": "이메일 주소",
+      "phone": "전화번호",
+      "emergencySection": "비상 연락처",
+      "emergencyName": "연락처 이름",
+      "emergencyPhone": "연락처 전화",
+      "background": "배경",
+      "backgroundOptions": {
+        "placeholder": "배경을 선택하세요...",
+        "civilian": "민간인",
+        "military": "현역 군인",
+        "formerMilitary": "전역 군인 / 재향군인",
+        "lawEnforcement": "법 집행관",
+        "formerLawEnforcement": "전직 법 집행관",
+        "firstResponder": "응급 대응자 (소방관/구급대원)",
+        "instructor": "총기 교관",
+        "security": "보안 전문가",
+        "other": "기타"
+      },
+      "preferredDate": "선호 날짜",
+      "experience": "경험 수준",
+      "experienceOptions": {
+        "placeholder": "선택...",
+        "none": "경험 없음",
+        "beginner": "초보자",
+        "intermediate": "중급",
+        "advanced": "고급"
+      },
+      "notes": "메모 또는 질문",
+      "notesPlaceholder": "특별 요청, 장비 필요 사항 또는 강사에게 질문...",
+      "ageConfirm": "저는 18세 이상(LTC/은닉 휴대 과정은 21세 이상)임을 확인하며 총기 교육에 참여할 법적 자격이 있습니다.",
+      "govIdNotice": "정부 발행 신분증 필요: 본 과정에서는 유효한 정부 발행 사진 신분증이 필요합니다. 강사가 수업 시작 전에 사본을 요청할 것입니다.",
+      "orderSummary": "주문 요약",
+      "total": "합계",
+      "confirmBtn": "예약 확정",
+      "processingBtn": "처리 중...",
+      "footerNote": "지금 결제 없음 · 사격장에서 결제 · 48시간 이상 무료 취소"
+    },
+    "success": {
+      "title": "예약이 제출되었습니다!",
+      "description": "다음에 대한 요청을 받았습니다",
+      "emailNote": "확인 이메일이 전송됩니다",
+      "emailSuffix": "몇 분 안에.",
+      "govIdReminder": "정부 발행 신분증을 준비해 주세요. 강사가 수업 전에 사본을 요청할 것입니다.",
+      "summaryTitle": "예약 요약",
+      "package": "패키지:",
+      "addOns": "추가:",
+      "total": "합계:",
+      "viewConfirmation": "전체 확인 보기 →"
+    },
+    "placeholders": {
+      "firstName": "김",
+      "lastName": "민수",
+      "email": "kim@example.com",
+      "phone": "(214) 555-0100",
+      "emergencyName": "이영희",
+      "emergencyPhone": "(214) 555-0101"
+    },
+    "requiredFees": "Required Fees",
+    "requiredIncluded": "Required · Included",
+    "optionalAddOns": "Optional Add-ons",
+    "baseClassPrice": "Base Class Price",
+    "orderSummary": "Order Summary",
+    "totalDue": "Total Due",
+    "estimatedTotal": "Estimated Total",
+    "paySecurely": "Pay Securely with Square",
+    "contactForPricing": "Contact for Pricing",
+    "requestConsultation": "Request Consultation"
   }
 }

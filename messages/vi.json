@@ -187,85 +187,6 @@
       "description": "Structured training for every skill level — from your first time on the range to professional security certification.",
       "viewAllCourses": "View All Courses"
     },
-    "courses": {
-      "ltc": {
-        "title": "Texas License to Carry / Basic Handgun",
-        "description": "LTC certification plus handgun fundamentals — two courses combined into one day. Great value for new gun owners.",
-        "duration": "8–10 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "firstShots": {
-        "title": "First Shots Basic Firearm Training",
-        "description": "The perfect first class for brand-new shooters. Learn safety, handling, and take your first shots in a supportive group environment.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "defensiveShooting": {
-        "title": "Defensive Shooting Skills",
-        "description": "Build real-world defensive skills with holster work, movement, situational awareness, and controlled shooting drills at the range.",
-        "duration": "4–6 hrs",
-        "level": "Intermediate",
-        "price": "From $50"
-      },
-      "basicHandgun": {
-        "title": "Basic Handgun Skills (Personal 1:1)",
-        "description": "Private one-on-one handgun training personalized to your skill level. Learn grip, stance, sight alignment, and fundamentals.",
-        "duration": "1.5 hrs",
-        "level": "Beginner",
-        "price": "From $70"
-      },
-      "level3Security": {
-        "title": "Level 3 Armed Security Officer",
-        "description": "Texas DPS Level III commissioned armed security certification. Classroom, use of force law, defensive tactics, and live-fire range qualification.",
-        "duration": "3–5 days",
-        "level": "Intermediate",
-        "price": "From $130"
-      },
-      "texasLtcCertification": {
-        "title": "Chứng nhận Giấy phép Mang theo Súng Texas",
-        "description": "Chứng nhận LTC của tiểu bang Texas được chấp thuận với giảng dạy trong lớp, giáo dục pháp lý và sát hạch bắn đạn thật.",
-        "duration": "6–8 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "concealedCarryHomeDefense": {
-        "title": "Mang Súng Ẩn và Phòng Thủ Tại Nhà",
-        "description": "Học cách xử lý súng, nhận thức tình huống, đạn dược và phòng thủ tại nhà. Lớp học 6,5 giờ này bao gồm thời gian bắn thực địa cùng giảng viên.",
-        "duration": "6.5 hrs",
-        "level": "Beginner",
-        "price": "From $150"
-      },
-      "level34Bundle": {
-        "title": "Gói Hoàn Chỉnh Cấp III + IV",
-        "description": "Gói hoàn chỉnh: Sĩ quan Cấp III, Bảo vệ Cá nhân Cấp IV và Texas LTC — tất cả trong một. Giá trị tốt nhất trong đào tạo bảo vệ chuyên nghiệp.",
-        "duration": "5–7 days",
-        "level": "Advanced",
-        "price": "From $400"
-      },
-      "armedFirstResponder": {
-        "title": "Người Ứng Phó Đầu Tiên Có Vũ Trang",
-        "description": "Chứng nhận nâng cao 3 ngày dành cho người có Texas LTC phục vụ với tư cách người ứng phó đầu tiên có vũ trang trong các nhà thờ, trường học hoặc tổ chức.",
-        "duration": "3 days",
-        "level": "Advanced",
-        "price": "From $595"
-      },
-      "nonLethalDefense": {
-        "title": "Đào Tạo Phòng Thủ Không Gây Chết Người",
-        "description": "Học cách sử dụng hiệu quả bình xịt hơi cay, súng điện và các công cụ an toàn cá nhân. Lớp tự vệ thực tế lý tưởng cho những người muốn bảo vệ bản thân hiệu quả mà không cần súng.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "firearmsRequalification": {
-        "title": "Tái Chứng Nhận Thành Thạo Súng",
-        "description": "Cập nhật kỹ năng với buổi tái chứng nhận tập trung vào xử lý an toàn, bài tập độ chính xác và ôn luyện kỹ thuật — lý tưởng cho chủ súng hiện tại và gia hạn giấy phép.",
-        "duration": "2–3 hrs",
-        "level": "Intermediate",
-        "price": "From $60"
-      }
-    },
     "whyCorsair": {
       "title": "Why Train With Corsair?",
       "subtitle": "Trusted by 500+ Texas gun owners",
@@ -316,11 +237,11 @@
       "legalUseOfForce": "Sử Dụng Vũ Lực Hợp Pháp",
       "permitlessCarry": "Mang Súng Theo Hiến Pháp / Không Cần Giấy Phép",
       "texasLtcCertification": "Chứng nhận Giấy phép Mang theo Súng Texas (LTC)",
-      "concealedCarryHomeDefense": "Mang Súng Ẩn và Phòng Thủ Tại Nhà",
-      "level34Bundle": "Gói Hoàn Chỉnh Cấp III + IV",
-      "nonLethalDefense": "Đào Tạo Phòng Thủ Không Gây Chết Người",
-      "firearmsRequalification": "Tái Chứng Nhận Thành Thạo Súng",
-      "armedFirstResponder": "Người Ứng Phó Đầu Tiên Có Vũ Trang"
+      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
+      "level34Bundle": "Level III + IV Complete Package",
+      "nonLethalDefense": "Non-Lethal Defense Training",
+      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
+      "armedFirstResponder": "Armed First Responder"
     },
     "testimonialsSection": {
       "label": "Student Reviews",
@@ -1919,5 +1840,103 @@
   "trainingWaiver": {
     "metaTitle": "Miễn trừ huấn luyện",
     "metaDescription": "Miễn trừ trách nhiệm điện tử cho các khóa học của Corsair Tactical Solutions. Bắt buộc trước khi tham gia."
+  },
+  "booking": {
+    "contactOnly": {
+      "label": "Đặt Lịch Đào Tạo",
+      "description": "Giá thay đổi tùy theo quy mô nhóm và loại buổi học. Liên hệ chúng tôi để thảo luận về nhu cầu của bạn và đặt lịch.",
+      "callButton": "Gọi Để Đặt Lịch — 214-335-6652",
+      "messageButton": "Gửi Tin Nhắn"
+    },
+    "header": {
+      "label": "Đặt Chỗ Của Bạn",
+      "startingAt": "Từ"
+    },
+    "steps": {
+      "step1": "Chọn Gói",
+      "step2": "Thông Tin Của Bạn"
+    },
+    "package": {
+      "label": "Chọn Gói",
+      "addOns": "Dịch Vụ Bổ Sung Tùy Chọn",
+      "total": "Tổng Thanh Toán",
+      "continueBtn": "Tiếp Tục Điền Thông Tin",
+      "secureNote": "Đặt chỗ an toàn — Không cần thanh toán ngay",
+      "requiredFees": "Required Fees",
+      "orderSummary": "Order Summary",
+      "baseClassPrice": "Base Class Price",
+      "totalDue": "Total Due"
+    },
+    "details": {
+      "backBtn": "Quay Lại Chọn Gói",
+      "firstName": "Tên",
+      "lastName": "Họ",
+      "email": "Địa Chỉ Email",
+      "phone": "Số Điện Thoại",
+      "emergencySection": "Liên Hệ Khẩn Cấp",
+      "emergencyName": "Tên Liên Hệ",
+      "emergencyPhone": "Điện Thoại Liên Hệ",
+      "background": "Lý Lịch",
+      "backgroundOptions": {
+        "placeholder": "Chọn lý lịch của bạn...",
+        "civilian": "Dân thường",
+        "military": "Quân nhân tại ngũ",
+        "formerMilitary": "Cựu quân nhân",
+        "lawEnforcement": "Cơ quan thực thi pháp luật",
+        "formerLawEnforcement": "Cựu nhân viên thực thi pháp luật",
+        "firstResponder": "Người phản ứng đầu tiên (Cứu hỏa / Y tế)",
+        "instructor": "Huấn luyện viên vũ khí",
+        "security": "Chuyên gia bảo mật",
+        "other": "Khác"
+      },
+      "preferredDate": "Ngày Ưa Thích",
+      "experience": "Trình Độ Kinh Nghiệm",
+      "experienceOptions": {
+        "placeholder": "Chọn...",
+        "none": "Chưa có kinh nghiệm",
+        "beginner": "Mới bắt đầu",
+        "intermediate": "Trung cấp",
+        "advanced": "Nâng cao"
+      },
+      "notes": "Ghi Chú Hoặc Câu Hỏi",
+      "notesPlaceholder": "Yêu cầu đặc biệt, nhu cầu thiết bị hoặc câu hỏi cho huấn luyện viên...",
+      "ageConfirm": "Tôi xác nhận rằng tôi từ 18 tuổi trở lên (21+ cho các khóa LTC / mang súng ẩn) và đủ điều kiện pháp lý để tham gia đào tạo súng.",
+      "govIdNotice": "Cần giấy tờ tùy thân do chính phủ cấp: Tôi hiểu rằng khóa học này yêu cầu giấy tờ tùy thân có ảnh hợp lệ do chính phủ cấp. Huấn luyện viên của tôi sẽ yêu cầu bản sao trước khi bắt đầu lớp.",
+      "orderSummary": "Tóm Tắt Đơn Hàng",
+      "total": "Tổng Cộng",
+      "confirmBtn": "Xác Nhận Đặt Chỗ",
+      "processingBtn": "Đang xử lý...",
+      "footerNote": "Không tính phí ngay · Thanh toán tại trường bắn · Hủy miễn phí 48h+"
+    },
+    "success": {
+      "title": "Đặt Chỗ Đã Gửi!",
+      "description": "Chúng tôi đã nhận được yêu cầu của bạn cho",
+      "emailNote": "Email xác nhận sẽ được gửi đến",
+      "emailSuffix": "trong vài phút.",
+      "govIdReminder": "Vui lòng chuẩn bị sẵn giấy tờ tùy thân do chính phủ cấp. Huấn luyện viên sẽ yêu cầu bản sao trước lớp học.",
+      "summaryTitle": "Tóm Tắt Đặt Chỗ",
+      "package": "Gói:",
+      "addOns": "Bổ sung:",
+      "total": "Tổng:",
+      "viewConfirmation": "Xem Xác Nhận Đầy Đủ →"
+    },
+    "placeholders": {
+      "firstName": "Nguyễn",
+      "lastName": "Văn A",
+      "email": "nguyen@example.com",
+      "phone": "(214) 555-0100",
+      "emergencyName": "Trần Thị B",
+      "emergencyPhone": "(214) 555-0101"
+    },
+    "requiredFees": "Required Fees",
+    "requiredIncluded": "Required · Included",
+    "optionalAddOns": "Optional Add-ons",
+    "baseClassPrice": "Base Class Price",
+    "orderSummary": "Order Summary",
+    "totalDue": "Total Due",
+    "estimatedTotal": "Estimated Total",
+    "paySecurely": "Pay Securely with Square",
+    "contactForPricing": "Contact for Pricing",
+    "requestConsultation": "Request Consultation"
   }
 }

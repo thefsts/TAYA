@@ -181,85 +181,6 @@
       "description": "Structured training for every skill level — from your first time on the range to professional security certification.",
       "viewAllCourses": "View All Courses"
     },
-    "courses": {
-      "ltc": {
-        "title": "Texas License to Carry / Basic Handgun",
-        "description": "LTC certification plus handgun fundamentals — two courses combined into one day. Great value for new gun owners.",
-        "duration": "8–10 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "firstShots": {
-        "title": "First Shots Basic Firearm Training",
-        "description": "The perfect first class for brand-new shooters. Learn safety, handling, and take your first shots in a supportive group environment.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "defensiveShooting": {
-        "title": "Defensive Shooting Skills",
-        "description": "Build real-world defensive skills with holster work, movement, situational awareness, and controlled shooting drills at the range.",
-        "duration": "4–6 hrs",
-        "level": "Intermediate",
-        "price": "From $50"
-      },
-      "basicHandgun": {
-        "title": "Basic Handgun Skills (Personal 1:1)",
-        "description": "Private one-on-one handgun training personalized to your skill level. Learn grip, stance, sight alignment, and fundamentals.",
-        "duration": "1.5 hrs",
-        "level": "Beginner",
-        "price": "From $70"
-      },
-      "level3Security": {
-        "title": "Level 3 Armed Security Officer",
-        "description": "Texas DPS Level III commissioned armed security certification. Classroom, use of force law, defensive tactics, and live-fire range qualification.",
-        "duration": "3–5 days",
-        "level": "Intermediate",
-        "price": "From $130"
-      },
-      "texasLtcCertification": {
-        "title": "Texas License to Carry Certification",
-        "description": "State-approved Texas LTC certification with classroom instruction, legal education, and live-fire qualification.",
-        "duration": "6–8 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "concealedCarryHomeDefense": {
-        "title": "Concealed Carry Home Defense",
-        "description": "Learn firearm handling, situational awareness, ammunition, and home defense. This 6.5-hour class includes live range time with instructors.",
-        "duration": "6.5 hrs",
-        "level": "Beginner",
-        "price": "From $150"
-      },
-      "level34Bundle": {
-        "title": "Level III + IV Complete Package",
-        "description": "Complete bundle: Level III Commissioned Officer, Level IV Personal Protection, and Texas LTC — all in one. The best value in professional security training.",
-        "duration": "5–7 days",
-        "level": "Advanced",
-        "price": "From $400"
-      },
-      "armedFirstResponder": {
-        "title": "Armed First Responder",
-        "description": "Advanced 3-day certification for Texas LTC holders who serve as armed first responders in churches, schools, or organizations.",
-        "duration": "3 days",
-        "level": "Advanced",
-        "price": "From $595"
-      },
-      "nonLethalDefense": {
-        "title": "Non-Lethal Defense Training",
-        "description": "Learn to use pepper spray, tasers, and personal safety tools effectively. A practical self-defense class ideal for those seeking effective protection without a firearm.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "firearmsRequalification": {
-        "title": "Firearm Proficiency Re-Qualification",
-        "description": "Stay current with a focused re-qualification session covering safe handling, accuracy drills, and technique review — ideal for existing firearm owners and license renewals.",
-        "duration": "2–3 hrs",
-        "level": "Intermediate",
-        "price": "From $60"
-      }
-    },
     "whyCorsair": {
       "title": "Why Train With Corsair?",
       "subtitle": "Trusted by 500+ Texas gun owners",
@@ -1913,5 +1834,103 @@
   "trainingWaiver": {
     "metaTitle": "Training Waiver",
     "metaDescription": "Electronic liability waiver for Corsair Tactical Solutions training courses. Required before participating in firearms or security training."
+  },
+  "booking": {
+    "contactOnly": {
+      "label": "Schedule Your Training",
+      "description": "Pricing varies by group size and session type. Contact us to discuss your needs and schedule a session.",
+      "callButton": "Call to Schedule — 214-335-6652",
+      "messageButton": "Send a Message"
+    },
+    "header": {
+      "label": "Reserve Your Spot",
+      "startingAt": "Starting at"
+    },
+    "steps": {
+      "step1": "Select Package",
+      "step2": "Your Details"
+    },
+    "package": {
+      "label": "Select Package",
+      "addOns": "Optional Add-Ons",
+      "total": "Total Due",
+      "continueBtn": "Continue to Details",
+      "secureNote": "Secure booking — No payment required now",
+      "requiredFees": "Required Fees",
+      "orderSummary": "Order Summary",
+      "baseClassPrice": "Base Class Price",
+      "totalDue": "Total Due"
+    },
+    "details": {
+      "backBtn": "Back to Package Selection",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "emergencySection": "Emergency Contact",
+      "emergencyName": "Contact Name",
+      "emergencyPhone": "Contact Phone",
+      "background": "Background",
+      "backgroundOptions": {
+        "placeholder": "Select your background...",
+        "civilian": "Civilian",
+        "military": "Active Military",
+        "formerMilitary": "Former Military / Veteran",
+        "lawEnforcement": "Law Enforcement",
+        "formerLawEnforcement": "Former Law Enforcement",
+        "firstResponder": "First Responder (Fire / EMS)",
+        "instructor": "Firearms Instructor",
+        "security": "Security Professional",
+        "other": "Other"
+      },
+      "preferredDate": "Preferred Date",
+      "experience": "Experience Level",
+      "experienceOptions": {
+        "placeholder": "Select...",
+        "none": "No Experience",
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "notes": "Notes or Questions",
+      "notesPlaceholder": "Special requests, equipment needs, or questions for your instructor...",
+      "ageConfirm": "I confirm I am 18 years of age or older (21+ for LTC / concealed carry courses) and I am legally eligible to participate in firearms training.",
+      "govIdNotice": "Government-Issued ID required: I understand this course requires a valid government-issued photo ID. My instructor will request a copy before class begins.",
+      "orderSummary": "Order Summary",
+      "total": "Total",
+      "confirmBtn": "Confirm Booking",
+      "processingBtn": "Processing...",
+      "footerNote": "No payment charged now · Pay at the range · Free cancellation 48h+"
+    },
+    "success": {
+      "title": "Booking Submitted!",
+      "description": "We've received your request for",
+      "emailNote": "A confirmation email will be sent to",
+      "emailSuffix": "within a few minutes.",
+      "govIdReminder": "Please have your Government-Issued ID ready. Your instructor will request a copy prior to class.",
+      "summaryTitle": "Booking Summary",
+      "package": "Package:",
+      "addOns": "Add-ons:",
+      "total": "Total:",
+      "viewConfirmation": "View Full Confirmation →"
+    },
+    "placeholders": {
+      "firstName": "John",
+      "lastName": "Smith",
+      "email": "john@example.com",
+      "phone": "(214) 555-0100",
+      "emergencyName": "Jane Smith",
+      "emergencyPhone": "(214) 555-0101"
+    },
+    "requiredFees": "Required Fees",
+    "requiredIncluded": "Required · Included",
+    "optionalAddOns": "Optional Add-ons",
+    "baseClassPrice": "Base Class Price",
+    "orderSummary": "Order Summary",
+    "totalDue": "Total Due",
+    "estimatedTotal": "Estimated Total",
+    "paySecurely": "Pay Securely with Square",
+    "contactForPricing": "Contact for Pricing",
+    "requestConsultation": "Request Consultation"
   }
 }

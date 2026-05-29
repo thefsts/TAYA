@@ -187,85 +187,6 @@
       "description": "Structured training for every skill level — from your first time on the range to professional security certification.",
       "viewAllCourses": "View All Courses"
     },
-    "courses": {
-      "ltc": {
-        "title": "Texas License to Carry / Basic Handgun",
-        "description": "LTC certification plus handgun fundamentals — two courses combined into one day. Great value for new gun owners.",
-        "duration": "8–10 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "firstShots": {
-        "title": "First Shots Basic Firearm Training",
-        "description": "The perfect first class for brand-new shooters. Learn safety, handling, and take your first shots in a supportive group environment.",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "defensiveShooting": {
-        "title": "Defensive Shooting Skills",
-        "description": "Build real-world defensive skills with holster work, movement, situational awareness, and controlled shooting drills at the range.",
-        "duration": "4–6 hrs",
-        "level": "Intermediate",
-        "price": "From $50"
-      },
-      "basicHandgun": {
-        "title": "Basic Handgun Skills (Personal 1:1)",
-        "description": "Private one-on-one handgun training personalized to your skill level. Learn grip, stance, sight alignment, and fundamentals.",
-        "duration": "1.5 hrs",
-        "level": "Beginner",
-        "price": "From $70"
-      },
-      "level3Security": {
-        "title": "Level 3 Armed Security Officer",
-        "description": "Texas DPS Level III commissioned armed security certification. Classroom, use of force law, defensive tactics, and live-fire range qualification.",
-        "duration": "3–5 days",
-        "level": "Intermediate",
-        "price": "From $130"
-      },
-      "texasLtcCertification": {
-        "title": "德州持枪证认证",
-        "description": "经德州州政府批准的 LTC 认证，包含课堂教学、法律教育和实弹射击资格认证。",
-        "duration": "6–8 hrs",
-        "level": "Beginner",
-        "price": "From $100"
-      },
-      "concealedCarryHomeDefense": {
-        "title": "隐蔽携带与家庭防卫",
-        "description": "学习枪支操作、情景感知、弹药和家庭防卫。这堂6.5小时的课程包含与教练一起的实弹射击训练时间。",
-        "duration": "6.5 hrs",
-        "level": "Beginner",
-        "price": "From $150"
-      },
-      "level34Bundle": {
-        "title": "III + IV级完整套餐",
-        "description": "完整套餐：III级委任警察官、IV级个人防护及德州LTC——三合一。专业安保培训中的最高性价比之选。",
-        "duration": "5–7 days",
-        "level": "Advanced",
-        "price": "From $400"
-      },
-      "armedFirstResponder": {
-        "title": "武装急救响应者",
-        "description": "面向在教堂、学校或组织中担任武装急救响应者的德州LTC持有者的高级3天认证课程。",
-        "duration": "3 days",
-        "level": "Advanced",
-        "price": "From $595"
-      },
-      "nonLethalDefense": {
-        "title": "非致命防御训练",
-        "description": "学习有效使用辣椒喷雾、电击枪和个人安全工具。这是一门实用的自卫课程，非常适合希望在不使用枪支的情况下获得有效保护的人士。",
-        "duration": "2–3 hrs",
-        "level": "Beginner",
-        "price": "From $50"
-      },
-      "firearmsRequalification": {
-        "title": "枪支熟练度重新认证",
-        "description": "通过专项复训课程保持技能更新，涵盖安全操作、精准度训练和技术复习 — 非常适合现有枪支持有者和执照续期。",
-        "duration": "2–3 hrs",
-        "level": "Intermediate",
-        "price": "From $60"
-      }
-    },
     "whyCorsair": {
       "title": "Why Train With Corsair?",
       "subtitle": "Trusted by 500+ Texas gun owners",
@@ -316,11 +237,11 @@
       "legalUseOfForce": "合法使用武力",
       "permitlessCarry": "宪法 / 免许可携带",
       "texasLtcCertification": "德州持枪证 (LTC) 认证",
-      "concealedCarryHomeDefense": "隐蔽携带与家庭防卫",
-      "level34Bundle": "III + IV级完整套餐",
-      "nonLethalDefense": "非致命防御训练",
-      "firearmsRequalification": "枪支熟练度重新认证",
-      "armedFirstResponder": "武装急救响应者"
+      "concealedCarryHomeDefense": "Concealed Carry Home Defense",
+      "level34Bundle": "Level III + IV Complete Package",
+      "nonLethalDefense": "Non-Lethal Defense Training",
+      "firearmsRequalification": "Firearm Proficiency Re-Qualification",
+      "armedFirstResponder": "Armed First Responder"
     },
     "testimonialsSection": {
       "label": "Student Reviews",
@@ -1919,5 +1840,103 @@
   "trainingWaiver": {
     "metaTitle": "培训免责声明",
     "metaDescription": "参加 Corsair Tactical Solutions 课程前需签署的电子责任免除声明。"
+  },
+  "booking": {
+    "contactOnly": {
+      "label": "安排您的培训",
+      "description": "价格因小组规模和课程类型而异。请联系我们讨论您的需求并安排课程。",
+      "callButton": "致电预约 — 214-335-6652",
+      "messageButton": "发送消息"
+    },
+    "header": {
+      "label": "预留您的名额",
+      "startingAt": "起价"
+    },
+    "steps": {
+      "step1": "选择套餐",
+      "step2": "您的信息"
+    },
+    "package": {
+      "label": "选择套餐",
+      "addOns": "可选附加服务",
+      "total": "应付总额",
+      "continueBtn": "继续填写详情",
+      "secureNote": "安全预订 — 现在无需付款",
+      "requiredFees": "Required Fees",
+      "orderSummary": "Order Summary",
+      "baseClassPrice": "Base Class Price",
+      "totalDue": "Total Due"
+    },
+    "details": {
+      "backBtn": "返回套餐选择",
+      "firstName": "名",
+      "lastName": "姓",
+      "email": "电子邮件地址",
+      "phone": "电话号码",
+      "emergencySection": "紧急联系人",
+      "emergencyName": "联系人姓名",
+      "emergencyPhone": "联系人电话",
+      "background": "背景",
+      "backgroundOptions": {
+        "placeholder": "选择您的背景...",
+        "civilian": "平民",
+        "military": "现役军人",
+        "formerMilitary": "退役军人",
+        "lawEnforcement": "执法人员",
+        "formerLawEnforcement": "前执法人员",
+        "firstResponder": "急救人员（消防员/急救医疗技术员）",
+        "instructor": "枪械教练",
+        "security": "安保专业人员",
+        "other": "其他"
+      },
+      "preferredDate": "首选日期",
+      "experience": "经验水平",
+      "experienceOptions": {
+        "placeholder": "选择...",
+        "none": "无经验",
+        "beginner": "初学者",
+        "intermediate": "中级",
+        "advanced": "高级"
+      },
+      "notes": "备注或问题",
+      "notesPlaceholder": "特殊要求、设备需求或对教练的提问...",
+      "ageConfirm": "我确认我已年满18岁（LTC/隐蔽携带课程须满21岁），并且在法律上有资格参加枪械培训。",
+      "govIdNotice": "需要政府颁发的身份证件：我了解本课程需要有效的政府颁发的带照片身份证件。我的教练将在课程开始前要求提供副本。",
+      "orderSummary": "订单摘要",
+      "total": "总计",
+      "confirmBtn": "确认预订",
+      "processingBtn": "处理中...",
+      "footerNote": "现在不收费 · 在射击场付款 · 48小时以上免费取消"
+    },
+    "success": {
+      "title": "预订已提交！",
+      "description": "我们已收到您的申请",
+      "emailNote": "确认邮件将发送至",
+      "emailSuffix": "几分钟内。",
+      "govIdReminder": "请备好您的政府颁发的身份证件。您的教练将在课程前要求提供副本。",
+      "summaryTitle": "预订摘要",
+      "package": "套餐：",
+      "addOns": "附加：",
+      "total": "总计：",
+      "viewConfirmation": "查看完整确认 →"
+    },
+    "placeholders": {
+      "firstName": "李",
+      "lastName": "伟",
+      "email": "liwei@example.com",
+      "phone": "(214) 555-0100",
+      "emergencyName": "王芳",
+      "emergencyPhone": "(214) 555-0101"
+    },
+    "requiredFees": "Required Fees",
+    "requiredIncluded": "Required · Included",
+    "optionalAddOns": "Optional Add-ons",
+    "baseClassPrice": "Base Class Price",
+    "orderSummary": "Order Summary",
+    "totalDue": "Total Due",
+    "estimatedTotal": "Estimated Total",
+    "paySecurely": "Pay Securely with Square",
+    "contactForPricing": "Contact for Pricing",
+    "requestConsultation": "Request Consultation"
   }
 }
