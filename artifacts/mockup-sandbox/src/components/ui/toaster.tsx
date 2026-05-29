@@ -8,6 +8,10 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 
+const TOASTER_CLASSES = {
+  grid: "grid gap-1",
+} as const
+
 export function Toaster() {
   const { toasts } = useToast()
 
@@ -16,7 +20,7 @@ export function Toaster() {
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
-            <div className="grid gap-1">
+            <div className={TOASTER_CLASSES.grid}>
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (
                 <ToastDescription>{description}</ToastDescription>

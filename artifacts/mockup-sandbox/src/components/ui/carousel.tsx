@@ -7,6 +7,23 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+const CAROUSEL_CLASSES = {
+  root: "relative",
+  contentWrapper: "overflow-hidden",
+  contentHorizontal: "-ml-4",
+  contentVertical: "-mt-4 flex-col",
+  contentBase: "flex",
+  itemBase: "min-w-0 shrink-0 grow-0 basis-full",
+  itemHorizontal: "pl-4",
+  itemVertical: "pt-4",
+  buttonBase: "absolute  h-8 w-8 rounded-full",
+  prevHorizontal: "-left-12 top-1/2 -translate-y-1/2",
+  prevVertical: "-top-12 left-1/2 -translate-x-1/2 rotate-90",
+  nextHorizontal: "-right-12 top-1/2 -translate-y-1/2",
+  nextVertical: "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
+  icon: "h-4 w-4",
+} as const
+
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 type CarouselOptions = UseCarouselParameters[0]
@@ -135,7 +152,7 @@ const Carousel = React.forwardRef<
         <div
           ref={ref}
           onKeyDownCapture={handleKeyDown}
-          className={cn("relative", className)}
+          className={cn(CAROUSEL_CLASSES.root, className)}
           role="region"
           aria-roledescription="carousel"
           {...props}
@@ -155,12 +172,12 @@ const CarouselContent = React.forwardRef<
   const { carouselRef, orientation } = useCarousel()
 
   return (
-    <div ref={carouselRef} className="overflow-hidden">
+    <div ref={carouselRef} className={CAROUSEL_CLASSES.contentWrapper}>
       <div
         ref={ref}
         className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
+          CAROUSEL_CLASSES.contentBase,
+          orientation === "horizontal" ? CAROUSEL_CLASSES.contentHorizontal : CAROUSEL_CLASSES.contentVertical,
           className
         )}
         {...props}
@@ -182,8 +199,8 @@ const CarouselItem = React.forwardRef<
       role="group"
       aria-roledescription="slide"
       className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full",
-        orientation === "horizontal" ? "pl-4" : "pt-4",
+        CAROUSEL_CLASSES.itemBase,
+        orientation === "horizontal" ? CAROUSEL_CLASSES.itemHorizontal : CAROUSEL_CLASSES.itemVertical,
         className
       )}
       {...props}
@@ -204,17 +221,15 @@ const CarouselPrevious = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute  h-8 w-8 rounded-full",
-        orientation === "horizontal"
-          ? "-left-12 top-1/2 -translate-y-1/2"
-          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
+        CAROUSEL_CLASSES.buttonBase,
+        orientation === "horizontal" ? CAROUSEL_CLASSES.prevHorizontal : CAROUSEL_CLASSES.prevVertical,
         className
       )}
       disabled={!canScrollPrev}
       onClick={scrollPrev}
       {...props}
     >
-      <ArrowLeft className="h-4 w-4" />
+      <ArrowLeft className={CAROUSEL_CLASSES.icon} />
       <span className="sr-only">Previous slide</span>
     </Button>
   )
@@ -233,17 +248,15 @@ const CarouselNext = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute h-8 w-8 rounded-full",
-        orientation === "horizontal"
-          ? "-right-12 top-1/2 -translate-y-1/2"
-          : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
+        CAROUSEL_CLASSES.buttonBase,
+        orientation === "horizontal" ? CAROUSEL_CLASSES.nextHorizontal : CAROUSEL_CLASSES.nextVertical,
         className
       )}
       disabled={!canScrollNext}
       onClick={scrollNext}
       {...props}
     >
-      <ArrowRight className="h-4 w-4" />
+      <ArrowRight className={CAROUSEL_CLASSES.icon} />
       <span className="sr-only">Next slide</span>
     </Button>
   )

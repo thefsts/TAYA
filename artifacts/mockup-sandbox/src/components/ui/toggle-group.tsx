@@ -7,6 +7,10 @@ import { type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
 
+const TOGGLE_GROUP_CLASSES = {
+  root: "flex items-center justify-center gap-1",
+} as const
+
 const ToggleGroupContext = React.createContext<
   VariantProps<typeof toggleVariants>
 >({
@@ -21,7 +25,7 @@ const ToggleGroup = React.forwardRef<
 >(({ className, variant, size, children, ...props }, ref) => (
   <ToggleGroupPrimitive.Root
     ref={ref}
-    className={cn("flex items-center justify-center gap-1", className)}
+    className={cn(TOGGLE_GROUP_CLASSES.root, className)}
     {...props}
   >
     <ToggleGroupContext.Provider value={{ variant, size }}>

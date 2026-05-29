@@ -4,11 +4,20 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ButtonProps, buttonVariants } from "@/components/ui/button"
 
+const PAGINATION_CLASSES = {
+  root: "mx-auto flex w-full justify-center",
+  content: "flex flex-row items-center gap-1",
+  previous: "gap-1 pl-2.5",
+  next: "gap-1 pr-2.5",
+  ellipsis: "flex h-9 w-9 items-center justify-center",
+  icon: "h-4 w-4",
+} as const
+
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
     role="navigation"
     aria-label="pagination"
-    className={cn("mx-auto flex w-full justify-center", className)}
+    className={cn(PAGINATION_CLASSES.root, className)}
     {...props}
   />
 )
@@ -20,7 +29,7 @@ const PaginationContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ul
     ref={ref}
-    className={cn("flex flex-row items-center gap-1", className)}
+    className={cn(PAGINATION_CLASSES.content, className)}
     {...props}
   />
 ))
@@ -66,10 +75,10 @@ const PaginationPrevious = ({
   <PaginationLink
     aria-label="Go to previous page"
     size="default"
-    className={cn("gap-1 pl-2.5", className)}
+    className={cn(PAGINATION_CLASSES.previous, className)}
     {...props}
   >
-    <ChevronLeft className="h-4 w-4" />
+    <ChevronLeft className={PAGINATION_CLASSES.icon} />
     <span>Previous</span>
   </PaginationLink>
 )
@@ -82,11 +91,11 @@ const PaginationNext = ({
   <PaginationLink
     aria-label="Go to next page"
     size="default"
-    className={cn("gap-1 pr-2.5", className)}
+    className={cn(PAGINATION_CLASSES.next, className)}
     {...props}
   >
     <span>Next</span>
-    <ChevronRight className="h-4 w-4" />
+    <ChevronRight className={PAGINATION_CLASSES.icon} />
   </PaginationLink>
 )
 PaginationNext.displayName = "PaginationNext"
@@ -97,10 +106,10 @@ const PaginationEllipsis = ({
 }: React.ComponentProps<"span">) => (
   <span
     aria-hidden
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
+    className={cn(PAGINATION_CLASSES.ellipsis, className)}
     {...props}
   >
-    <MoreHorizontal className="h-4 w-4" />
+    <MoreHorizontal className={PAGINATION_CLASSES.icon} />
     <span className="sr-only">More pages</span>
   </span>
 )

@@ -2,16 +2,22 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+const CARD_CLASSES = {
+  root: "rounded-xl border bg-card text-card-foreground shadow",
+  header: "flex flex-col space-y-1.5 p-6",
+  title: "font-semibold leading-none tracking-tight",
+  description: "text-sm text-muted-foreground",
+  content: "p-6 pt-0",
+  footer: "flex items-center p-6 pt-0",
+} as const
+
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow",
-      className
-    )}
+    className={cn(CARD_CLASSES.root, className)}
     {...props}
   />
 ))
@@ -23,7 +29,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn(CARD_CLASSES.header, className)}
     {...props}
   />
 ))
@@ -35,7 +41,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
+    className={cn(CARD_CLASSES.title, className)}
     {...props}
   />
 ))
@@ -47,7 +53,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn(CARD_CLASSES.description, className)}
     {...props}
   />
 ))
@@ -57,7 +63,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cn(CARD_CLASSES.content, className)} {...props} />
 ))
 CardContent.displayName = "CardContent"
 
@@ -67,7 +73,7 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    className={cn(CARD_CLASSES.footer, className)}
     {...props}
   />
 ))

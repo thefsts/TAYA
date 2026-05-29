@@ -4,6 +4,16 @@ import { ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+const BREADCRUMB_CLASSES = {
+  list: "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
+  item: "inline-flex items-center gap-1.5",
+  link: "transition-colors hover:text-foreground",
+  page: "font-normal text-foreground",
+  separator: "[&>svg]:w-3.5 [&>svg]:h-3.5",
+  ellipsis: "flex h-9 w-9 items-center justify-center",
+  ellipsisIcon: "h-4 w-4",
+} as const
+
 const Breadcrumb = React.forwardRef<
   HTMLElement,
   React.ComponentPropsWithoutRef<"nav"> & {
@@ -18,10 +28,7 @@ const BreadcrumbList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ol
     ref={ref}
-    className={cn(
-      "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
-      className
-    )}
+    className={cn(BREADCRUMB_CLASSES.list, className)}
     {...props}
   />
 ))
@@ -33,7 +40,7 @@ const BreadcrumbItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <li
     ref={ref}
-    className={cn("inline-flex items-center gap-1.5", className)}
+    className={cn(BREADCRUMB_CLASSES.item, className)}
     {...props}
   />
 ))
@@ -50,7 +57,7 @@ const BreadcrumbLink = React.forwardRef<
   return (
     <Comp
       ref={ref}
-      className={cn("transition-colors hover:text-foreground", className)}
+      className={cn(BREADCRUMB_CLASSES.link, className)}
       {...props}
     />
   )
@@ -66,7 +73,7 @@ const BreadcrumbPage = React.forwardRef<
     role="link"
     aria-disabled="true"
     aria-current="page"
-    className={cn("font-normal text-foreground", className)}
+    className={cn(BREADCRUMB_CLASSES.page, className)}
     {...props}
   />
 ))
@@ -80,7 +87,7 @@ const BreadcrumbSeparator = ({
   <li
     role="presentation"
     aria-hidden="true"
-    className={cn("[&>svg]:w-3.5 [&>svg]:h-3.5", className)}
+    className={cn(BREADCRUMB_CLASSES.separator, className)}
     {...props}
   >
     {children ?? <ChevronRight />}
@@ -95,10 +102,10 @@ const BreadcrumbEllipsis = ({
   <span
     role="presentation"
     aria-hidden="true"
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
+    className={cn(BREADCRUMB_CLASSES.ellipsis, className)}
     {...props}
   >
-    <MoreHorizontal className="h-4 w-4" />
+    <MoreHorizontal className={BREADCRUMB_CLASSES.ellipsisIcon} />
     <span className="sr-only">More</span>
   </span>
 )

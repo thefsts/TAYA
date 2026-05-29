@@ -5,12 +5,23 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
 
+const ITEM_CLASSES = {
+  group: "group/item-group flex flex-col",
+  separator: "my-0",
+  content: "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none",
+  title: "flex w-fit items-center gap-2 text-sm font-medium leading-snug",
+  description: "text-muted-foreground line-clamp-2 text-balance text-sm font-normal leading-normal [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
+  actions: "flex items-center gap-2",
+  header: "flex basis-full items-center justify-between gap-2",
+  footer: "flex basis-full items-center justify-between gap-2",
+} as const
+
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       role="list"
       data-slot="item-group"
-      className={cn("group/item-group flex flex-col", className)}
+      className={cn(ITEM_CLASSES.group, className)}
       {...props}
     />
   )
@@ -24,7 +35,7 @@ function ItemSeparator({
     <Separator
       data-slot="item-separator"
       orientation="horizontal"
-      className={cn("my-0", className)}
+      className={cn(ITEM_CLASSES.separator, className)}
       {...props}
     />
   )
@@ -107,10 +118,7 @@ function ItemContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-content"
-      className={cn(
-        "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none",
-        className
-      )}
+      className={cn(ITEM_CLASSES.content, className)}
       {...props}
     />
   )
@@ -120,10 +128,7 @@ function ItemTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-title"
-      className={cn(
-        "flex w-fit items-center gap-2 text-sm font-medium leading-snug",
-        className
-      )}
+      className={cn(ITEM_CLASSES.title, className)}
       {...props}
     />
   )
@@ -133,11 +138,7 @@ function ItemDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="item-description"
-      className={cn(
-        "text-muted-foreground line-clamp-2 text-balance text-sm font-normal leading-normal",
-        "[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
-        className
-      )}
+      className={cn(ITEM_CLASSES.description, className)}
       {...props}
     />
   )
@@ -147,7 +148,7 @@ function ItemActions({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-actions"
-      className={cn("flex items-center gap-2", className)}
+      className={cn(ITEM_CLASSES.actions, className)}
       {...props}
     />
   )
@@ -157,10 +158,7 @@ function ItemHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-header"
-      className={cn(
-        "flex basis-full items-center justify-between gap-2",
-        className
-      )}
+      className={cn(ITEM_CLASSES.header, className)}
       {...props}
     />
   )
@@ -170,10 +168,7 @@ function ItemFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-footer"
-      className={cn(
-        "flex basis-full items-center justify-between gap-2",
-        className
-      )}
+      className={cn(ITEM_CLASSES.footer, className)}
       {...props}
     />
   )

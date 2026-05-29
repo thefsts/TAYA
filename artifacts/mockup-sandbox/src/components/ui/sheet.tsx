@@ -7,6 +7,16 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+const SHEET_CLASSES = {
+  overlay: "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+  closeButton: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary",
+  closeIcon: "h-4 w-4",
+  header: "flex flex-col space-y-2 text-center sm:text-left",
+  footer: "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+  title: "text-lg font-semibold text-foreground",
+  description: "text-sm text-muted-foreground",
+} as const
+
 const Sheet = SheetPrimitive.Root
 
 const SheetTrigger = SheetPrimitive.Trigger
@@ -20,10 +30,7 @@ const SheetOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
-    className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className
-    )}
+    className={cn(SHEET_CLASSES.overlay, className)}
     {...props}
     ref={ref}
   />
@@ -64,8 +71,8 @@ const SheetContent = React.forwardRef<
       className={cn(sheetVariants({ side }), className)}
       {...props}
     >
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-        <X className="h-4 w-4" />
+      <SheetPrimitive.Close className={SHEET_CLASSES.closeButton}>
+        <X className={SHEET_CLASSES.closeIcon} />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>
       {children}
@@ -79,10 +86,7 @@ const SheetHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col space-y-2 text-center sm:text-left",
-      className
-    )}
+    className={cn(SHEET_CLASSES.header, className)}
     {...props}
   />
 )
@@ -93,10 +97,7 @@ const SheetFooter = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-      className
-    )}
+    className={cn(SHEET_CLASSES.footer, className)}
     {...props}
   />
 )
@@ -108,7 +109,7 @@ const SheetTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold text-foreground", className)}
+    className={cn(SHEET_CLASSES.title, className)}
     {...props}
   />
 ))
@@ -120,7 +121,7 @@ const SheetDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn(SHEET_CLASSES.description, className)}
     {...props}
   />
 ))

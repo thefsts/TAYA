@@ -13,6 +13,12 @@ import {
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
+const FORM_CLASSES = {
+  item: "space-y-2",
+  description: "text-[0.8rem] text-muted-foreground",
+  message: "text-[0.8rem] font-medium text-destructive",
+} as const
+
 const Form = FormProvider
 
 type FormFieldContextValue<
@@ -78,7 +84,7 @@ const FormItem = React.forwardRef<
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+      <div ref={ref} className={cn(FORM_CLASSES.item, className)} {...props} />
     </FormItemContext.Provider>
   )
 })
@@ -133,7 +139,7 @@ const FormDescription = React.forwardRef<
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn("text-[0.8rem] text-muted-foreground", className)}
+      className={cn(FORM_CLASSES.description, className)}
       {...props}
     />
   )
@@ -155,7 +161,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-[0.8rem] font-medium text-destructive", className)}
+      className={cn(FORM_CLASSES.message, className)}
       {...props}
     >
       {body}

@@ -3,6 +3,25 @@ import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
 
+const CHART_CLASSES = {
+  container: "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+  tooltip: "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+  tooltipGrid: "grid gap-1.5",
+  tooltipItemBase: "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
+  tooltipItemDot: "items-center",
+  tooltipIndicatorBase: "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+  tooltipValueWrapper: "flex flex-1 justify-between leading-none",
+  tooltipLabelWrapper: "grid gap-1.5",
+  tooltipLabel: "font-medium",
+  tooltipName: "text-muted-foreground",
+  tooltipValue: "font-mono font-medium tabular-nums text-foreground",
+  legendWrapper: "flex items-center justify-center gap-4",
+  legendItem: "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
+  legendDot: "h-2 w-2 shrink-0 rounded-[2px]",
+  legendTop: "pb-3",
+  legendBottom: "pt-3",
+} as const
+
 const THEMES = { light: "", dark: ".dark" } as const
 
 export type ChartConfig = {
@@ -48,10 +67,7 @@ const ChartContainer = React.forwardRef<
       <div
         data-chart={chartId}
         ref={ref}
-        className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
-          className
-        )}
+        className={cn(CHART_CLASSES.container, className)}
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
@@ -145,7 +161,7 @@ const ChartTooltipContent = React.forwardRef<
 
       if (labelFormatter) {
         return (
-          <div className={cn("font-medium", labelClassName)}>
+          <div className={cn(CHART_CLASSES.tooltipLabel, labelClassName)}>
             {labelFormatter(value, payload)}
           </div>
         )
@@ -155,7 +171,7 @@ const ChartTooltipContent = React.forwardRef<
         return null
       }
 
-      return <div className={cn("font-medium", labelClassName)}>{value}</div>
+      return <div className={cn(CHART_CLASSES.tooltipLabel, labelClassName)}>{value}</div>
     }, [
       label,
       labelFormatter,
@@ -175,13 +191,10 @@ const ChartTooltipContent = React.forwardRef<
     return (
       <div
         ref={ref}
-        className={cn(
-          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
-          className
-        )}
+        className={cn(CHART_CLASSES.tooltip, className)}
       >
         {!nestLabel ? tooltipLabel : null}
-        <div className="grid gap-1.5">
+        <div className={CHART_CLASSES.tooltipGrid}>
           {payload
             .filter((item) => item.type !== "none")
             .map((item, index) => {
@@ -193,8 +206,8 @@ const ChartTooltipContent = React.forwardRef<
                 <div
                   key={item.dataKey}
                   className={cn(
-                    "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
-                    indicator === "dot" && "items-center"
+                    CHART_CLASSES.tooltipItemBase,
+                    indicator === "dot" && CHART_CLASSES.tooltipItemDot
                   )}
                 >
                   {formatter && item?.value !== undefined && item.name ? (
@@ -207,7 +220,7 @@ const ChartTooltipContent = React.forwardRef<
                         !hideIndicator && (
                           <div
                             className={cn(
-                              "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+                              CHART_CLASSES.tooltipIndicatorBase,
                               {
                                 "h-2.5 w-2.5": indicator === "dot",
                                 "w-1": indicator === "line",
@@ -227,18 +240,18 @@ const ChartTooltipContent = React.forwardRef<
                       )}
                       <div
                         className={cn(
-                          "flex flex-1 justify-between leading-none",
+                          CHART_CLASSES.tooltipValueWrapper,
                           nestLabel ? "items-end" : "items-center"
                         )}
                       >
-                        <div className="grid gap-1.5">
+                        <div className={CHART_CLASSES.tooltipLabelWrapper}>
                           {nestLabel ? tooltipLabel : null}
-                          <span className="text-muted-foreground">
+                          <span className={CHART_CLASSES.tooltipName}>
                             {itemConfig?.label || item.name}
                           </span>
                         </div>
                         {item.value && (
-                          <span className="font-mono font-medium tabular-nums text-foreground">
+                          <span className={CHART_CLASSES.tooltipValue}>
                             {item.value.toLocaleString()}
                           </span>
                         )}
@@ -279,8 +292,8 @@ const ChartLegendContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "flex items-center justify-center gap-4",
-          verticalAlign === "top" ? "pb-3" : "pt-3",
+          CHART_CLASSES.legendWrapper,
+          verticalAlign === "top" ? CHART_CLASSES.legendTop : CHART_CLASSES.legendBottom,
           className
         )}
       >
@@ -293,15 +306,13 @@ const ChartLegendContent = React.forwardRef<
             return (
               <div
                 key={item.value}
-                className={cn(
-                  "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
-                )}
+                className={cn(CHART_CLASSES.legendItem)}
               >
                 {itemConfig?.icon && !hideIcon ? (
                   <itemConfig.icon />
                 ) : (
                   <div
-                    className="h-2 w-2 shrink-0 rounded-[2px]"
+                    className={CHART_CLASSES.legendDot}
                     style={{
                       backgroundColor: item.color,
                     }}
