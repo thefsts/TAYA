@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Clock, BarChart2, DollarSign, ArrowRight, Home } from "lucide-react";
 
 type Level = "Beginner" | "Intermediate" | "Advanced";
+type FilterTab = "All" | Level;
 
 interface Course {
   key: string;
@@ -17,6 +19,15 @@ const LEVEL_COLORS: Record<Level, string> = {
   Intermediate: "bg-amber-100 text-amber-800",
   Advanced: "bg-red-100 text-red-800",
 };
+
+const TAB_ACTIVE_COLORS: Record<FilterTab, string> = {
+  All: "bg-gray-900 text-white",
+  Beginner: "bg-emerald-600 text-white",
+  Intermediate: "bg-amber-500 text-white",
+  Advanced: "bg-red-700 text-white",
+};
+
+const TABS: FilterTab[] = ["All", "Beginner", "Intermediate", "Advanced"];
 
 const ALL_COURSES: Course[] = [
   {
@@ -131,6 +142,11 @@ const ALL_COURSES: Course[] = [
   },
 ];
 
+function tabCount(tab: FilterTab): number {
+  if (tab === "All") return ALL_COURSES.length;
+  return ALL_COURSES.filter((c) => c.level === tab).length;
+}
+
 function CourseCard({ course }: { course: Course }) {
   return (
     <div className="flex flex-col h-full bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
@@ -180,11 +196,12 @@ function CourseCard({ course }: { course: Course }) {
 }
 
 export default function CoursesListingPage() {
-  const beginnerCourses = ALL_COURSES.filter((c) => c.level === "Beginner");
-  const intermediateCourses = ALL_COURSES.filter(
-    (c) => c.level === "Intermediate",
-  );
-  const advancedCourses = ALL_COURSES.filter((c) => c.level === "Advanced");
+  const [activeTab, setActiveTab] = useState<FilterTab>("All");
+
+  const visibleCourses =
+    activeTab === "All"
+      ? ALL_COURSES
+      : ALL_COURSES.filter((c) => c.level === activeTab);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -226,55 +243,54 @@ export default function CoursesListingPage() {
           </div>
         </section>
 
+        {/* Filter tabs */}
+        <section className="bg-white border-b border-gray-200 px-4 py-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter courses by level">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setActiveTab(tab)}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400 ${
+                      isActive
+                        ? TAB_ACTIVE_COLORS[tab]
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {tab}
+                    <span
+                      className={`inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-bold ${
+                        isActive
+                          ? "bg-white/25 text-white"
+                          : "bg-gray-300 text-gray-600"
+                      }`}
+                    >
+                      {tabCount(tab)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         <section className="py-14 px-4">
-          <div className="max-w-6xl mx-auto space-y-14">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                  Beginner
-                </span>
-                <span className="text-sm text-gray-400">
-                  {beginnerCourses.length} courses
-                </span>
-              </div>
+          <div className="max-w-6xl mx-auto">
+            {visibleCourses.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {beginnerCourses.map((course) => (
+                {visibleCourses.map((course) => (
                   <CourseCard key={course.key} course={course} />
                 ))}
               </div>
-            </div>
-
-            <div className="border-t border-gray-200 pt-14">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
-                  Intermediate
-                </span>
-                <span className="text-sm text-gray-400">
-                  {intermediateCourses.length} courses
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {intermediateCourses.map((course) => (
-                  <CourseCard key={course.key} course={course} />
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200 pt-14">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-800">
-                  Advanced
-                </span>
-                <span className="text-sm text-gray-400">
-                  {advancedCourses.length} courses
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {advancedCourses.map((course) => (
-                  <CourseCard key={course.key} course={course} />
-                ))}
-              </div>
-            </div>
+            ) : (
+              <p className="text-gray-400 text-sm text-center py-20">
+                No courses found for this level.
+              </p>
+            )}
           </div>
         </section>
 
