@@ -1,12 +1,4 @@
 import { Clock, BarChart2, DollarSign, ArrowRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 type Level = "Beginner" | "Intermediate" | "Advanced";
 
@@ -117,26 +109,6 @@ const courses: Course[] = [
     price: "From $595",
     href: "/courses/armed-first-responder",
   },
-  {
-    key: "nonLethalDefense",
-    title: "Non-Lethal Defense Training",
-    description:
-      "Learn to use pepper spray, tasers, and personal safety tools effectively. A practical self-defense class ideal for those seeking effective protection without a firearm.",
-    duration: "2–3 hrs",
-    level: "Beginner",
-    price: "From $50",
-    href: "/courses/non-lethal-defense",
-  },
-  {
-    key: "firearmsRequalification",
-    title: "Firearm Proficiency Re-Qualification",
-    description:
-      "Stay current with a focused re-qualification session covering safe handling, accuracy drills, and technique review — ideal for existing firearm owners and license renewals.",
-    duration: "2–3 hrs",
-    level: "Intermediate",
-    price: "From $60",
-    href: "/courses/firearms-requalification",
-  },
 ];
 
 function CourseCard({ course }: { course: Course }) {
@@ -214,28 +186,11 @@ export default function HomepageCoursesSection() {
           </div>
         </div>
 
-        <Carousel
-          opts={{ align: "start", loop: false }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-4">
-            {courses.map((course) => (
-              <CarouselItem
-                key={course.key}
-                className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
-              >
-                <CourseCard course={course} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="flex items-center gap-2 mt-6">
-            <CarouselPrevious className="static translate-y-0" />
-            <CarouselNext className="static translate-y-0" />
-            <span className="text-xs text-gray-400 ml-2">
-              {courses.length} courses total
-            </span>
-          </div>
-        </Carousel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {courses.map((course) => (
+            <CourseCard key={course.key} course={course} />
+          ))}
+        </div>
       </div>
     </section>
   );
