@@ -32,6 +32,20 @@ const FALLBACK_LABELS: LevelLabels = {
   Advanced: "Advanced",
 };
 
+const SECTION_CLASSES = {
+  root: "bg-gray-50 py-16 px-4",
+  inner: "max-w-6xl mx-auto",
+  header: "mb-10",
+  eyebrow: "text-xs font-semibold tracking-widest text-red-700 uppercase mb-2",
+  headingRow: "flex items-start justify-between gap-4 flex-wrap",
+  headingGroup: "",
+  title: "text-3xl font-extrabold text-gray-900 mb-2",
+  subtitle: "text-gray-500 max-w-xl",
+  viewAllButton: "inline-flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap",
+  viewAllIcon: "w-4 h-4",
+  grid: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5",
+} as const;
+
 function getLocale(): string {
   if (typeof window === "undefined") return "en";
   const param = new URLSearchParams(window.location.search).get("locale");
@@ -45,32 +59,32 @@ function useLevelLabels(): LevelLabels {
 export default function HomepageCoursesSection() {
   const levelLabels = useLevelLabels();
   return (
-    <section className="bg-gray-50 py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-10">
-          <p className="text-xs font-semibold tracking-widest text-red-700 uppercase mb-2">
+    <section className={SECTION_CLASSES.root}>
+      <div className={SECTION_CLASSES.inner}>
+        <div className={SECTION_CLASSES.header}>
+          <p className={SECTION_CLASSES.eyebrow}>
             Training Programs
           </p>
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
+          <div className={SECTION_CLASSES.headingRow}>
+            <div className={SECTION_CLASSES.headingGroup}>
+              <h2 className={SECTION_CLASSES.title}>
                 Popular Courses
               </h2>
-              <p className="text-gray-500 max-w-xl">
+              <p className={SECTION_CLASSES.subtitle}>
                 Structured training for every skill level — from your first time
                 on the range to professional security certification.
               </p>
             </div>
             <a
               href="/courses"
-              className="inline-flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap"
+              className={SECTION_CLASSES.viewAllButton}
             >
-              View All Courses <ArrowRight className="w-4 h-4" />
+              View All Courses <ArrowRight className={SECTION_CLASSES.viewAllIcon} />
             </a>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className={SECTION_CLASSES.grid}>
           {HOMEPAGE_COURSES.map((course) => (
             <CourseCard key={course.key} course={course} levelLabels={levelLabels} />
           ))}
