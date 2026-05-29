@@ -129,4 +129,4 @@ export const ALL_COURSES: Course[] = [
   },
 ];
 
-export const HOMEPAGE_COURSES = ALL_COURSES.slice(0, 9);
+export const HOMEPAGE_COURSES = ALL_COURSES.slice(0, 6);
