@@ -4,13 +4,14 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
+import { mutedText } from "@/lib/design-tokens"
 
 const ITEM_CLASSES = {
   group: "group/item-group flex flex-col",
   separator: "my-0",
   content: "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none",
   title: "flex w-fit items-center gap-2 text-sm font-medium leading-snug",
-  description: "text-muted-foreground line-clamp-2 text-balance text-sm font-normal leading-normal [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
+  description: `${mutedText} line-clamp-2 text-balance text-sm font-normal leading-normal [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4`,
   actions: "flex items-center gap-2",
   header: "flex basis-full items-center justify-between gap-2",
   footer: "flex basis-full items-center justify-between gap-2",

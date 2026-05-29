@@ -4,11 +4,12 @@ import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
 import { cn } from "@/lib/utils"
+import { bgMuted } from "@/lib/design-tokens"
 
 const AVATAR_CLASSES = {
   root: "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
   image: "aspect-square h-full w-full",
-  fallback: "flex h-full w-full items-center justify-center rounded-full bg-muted",
+  fallback: `flex h-full w-full items-center justify-center rounded-full ${bgMuted}`,
 } as const
 
 const Avatar = React.forwardRef<

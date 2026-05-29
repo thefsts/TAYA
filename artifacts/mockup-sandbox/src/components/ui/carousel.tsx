@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { iconSm } from "@/lib/design-tokens"
 
 const CAROUSEL_CLASSES = {
   root: "relative",
@@ -21,7 +22,7 @@ const CAROUSEL_CLASSES = {
   prevVertical: "-top-12 left-1/2 -translate-x-1/2 rotate-90",
   nextHorizontal: "-right-12 top-1/2 -translate-y-1/2",
   nextVertical: "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
-  icon: "h-4 w-4",
+  icon: iconSm,
 } as const
 
 type CarouselApi = UseEmblaCarouselType[1]

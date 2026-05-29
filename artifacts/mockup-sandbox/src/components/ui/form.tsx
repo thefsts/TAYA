@@ -12,10 +12,11 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import { mutedText } from "@/lib/design-tokens"
 
 const FORM_CLASSES = {
   item: "space-y-2",
-  description: "text-[0.8rem] text-muted-foreground",
+  description: `text-[0.8rem] ${mutedText}`,
   message: "text-[0.8rem] font-medium text-destructive",
 } as const
 

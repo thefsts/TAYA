@@ -3,11 +3,12 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion"
 import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { iconSm, mutedText } from "@/lib/design-tokens"
 
 const ACCORDION_CLASSES = {
   item: "border-b",
   trigger: "flex flex-1 items-center justify-between py-4 text-sm font-medium transition-all hover:underline text-left [&[data-state=open]>svg]:rotate-180",
-  triggerIcon: "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+  triggerIcon: `${iconSm} shrink-0 ${mutedText} transition-transform duration-200`,
   content: "overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
   contentInner: "pb-4 pt-0",
 } as const

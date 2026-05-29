@@ -3,9 +3,10 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
+import { bgMuted } from "@/lib/design-tokens"
 
 const BUTTON_GROUP_CLASSES = {
-  text: "bg-muted shadow-xs flex items-center gap-2 rounded-md border px-4 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
+  text: `${bgMuted} shadow-xs flex items-center gap-2 rounded-md border px-4 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none`,
   separator: "bg-input relative !m-0 self-stretch data-[orientation=vertical]:h-auto",
 } as const
 

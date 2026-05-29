@@ -10,12 +10,17 @@ import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { mutedText } from "@/lib/design-tokens"
 
 const CALENDAR_CLASSES = {
   root: "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
   chevronIcon: "size-4",
   weekNumberCell: "flex size-[--cell-size] items-center justify-center text-center",
   dayButton: "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+  weekday: `${mutedText} flex-1 select-none rounded-md text-[0.8rem] font-normal`,
+  weekNumber: `${mutedText} select-none text-[0.8rem]`,
+  outside: `${mutedText} aria-selected:text-muted-foreground`,
+  disabled: `${mutedText} opacity-50`,
 } as const
 
 function Calendar({
@@ -94,7 +99,7 @@ function Calendar({
         table: "w-full border-collapse",
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
-          "text-muted-foreground flex-1 select-none rounded-md text-[0.8rem] font-normal",
+          CALENDAR_CLASSES.weekday,
           defaultClassNames.weekday
         ),
         week: cn("mt-2 flex w-full", defaultClassNames.week),
@@ -103,7 +108,7 @@ function Calendar({
           defaultClassNames.week_number_header
         ),
         week_number: cn(
-          "text-muted-foreground select-none text-[0.8rem]",
+          CALENDAR_CLASSES.weekNumber,
           defaultClassNames.week_number
         ),
         day: cn(
@@ -121,11 +126,11 @@ function Calendar({
           defaultClassNames.today
         ),
         outside: cn(
-          "text-muted-foreground aria-selected:text-muted-foreground",
+          CALENDAR_CLASSES.outside,
           defaultClassNames.outside
         ),
         disabled: cn(
-          "text-muted-foreground opacity-50",
+          CALENDAR_CLASSES.disabled,
           defaultClassNames.disabled
         ),
         hidden: cn("invisible", defaultClassNames.hidden),

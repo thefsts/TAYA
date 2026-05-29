@@ -6,9 +6,10 @@ import { type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
+import { flexCenter } from "@/lib/design-tokens"
 
 const TOGGLE_GROUP_CLASSES = {
-  root: "flex items-center justify-center gap-1",
+  root: `${flexCenter} gap-1`,
 } as const
 
 const ToggleGroupContext = React.createContext<

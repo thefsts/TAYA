@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { ButtonProps, buttonVariants } from "@/components/ui/button"
+import { iconSm } from "@/lib/design-tokens"
 
 const PAGINATION_CLASSES = {
   root: "mx-auto flex w-full justify-center",
@@ -10,7 +11,7 @@ const PAGINATION_CLASSES = {
   previous: "gap-1 pl-2.5",
   next: "gap-1 pr-2.5",
   ellipsis: "flex h-9 w-9 items-center justify-center",
-  icon: "h-4 w-4",
+  icon: iconSm,
 } as const
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (

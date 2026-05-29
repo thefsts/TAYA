@@ -2,9 +2,10 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { headingTracking } from "@/lib/design-tokens"
 
 const ALERT_CLASSES = {
-  title: "mb-1 font-medium leading-none tracking-tight",
+  title: `mb-1 font-medium ${headingTracking}`,
   description: "text-sm [&_p]:leading-relaxed",
 } as const
 

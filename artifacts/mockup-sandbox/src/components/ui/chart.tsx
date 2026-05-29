@@ -2,6 +2,7 @@ import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
+import { mutedText } from "@/lib/design-tokens"
 
 const CHART_CLASSES = {
   container: "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
@@ -13,7 +14,7 @@ const CHART_CLASSES = {
   tooltipValueWrapper: "flex flex-1 justify-between leading-none",
   tooltipLabelWrapper: "grid gap-1.5",
   tooltipLabel: "font-medium",
-  tooltipName: "text-muted-foreground",
+  tooltipName: mutedText,
   tooltipValue: "font-mono font-medium tabular-nums text-foreground",
   legendWrapper: "flex items-center justify-center gap-4",
   legendItem: "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",

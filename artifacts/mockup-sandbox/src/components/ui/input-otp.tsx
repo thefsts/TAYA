@@ -3,10 +3,11 @@ import { OTPInput, OTPInputContext } from "input-otp"
 import { Minus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { cursorNotAllowed } from "@/lib/design-tokens"
 
 const INPUT_OTP_CLASSES = {
   container: "flex items-center gap-2 has-[:disabled]:opacity-50",
-  root: "disabled:cursor-not-allowed",
+  root: cursorNotAllowed,
   group: "flex items-center",
   slot: "relative flex h-9 w-9 items-center justify-center border-y border-r border-input text-sm shadow-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
   slotActive: "z-10 ring-1 ring-ring",

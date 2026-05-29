@@ -1,12 +1,13 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { descriptionText } from "@/lib/design-tokens"
 
 const CARD_CLASSES = {
   root: "rounded-xl border bg-card text-card-foreground shadow",
   header: "flex flex-col space-y-1.5 p-6",
   title: "font-semibold leading-none tracking-tight",
-  description: "text-sm text-muted-foreground",
+  description: descriptionText,
   content: "p-6 pt-0",
   footer: "flex items-center p-6 pt-0",
 } as const

@@ -6,6 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { mutedText } from "@/lib/design-tokens"
 
 const FIELD_CLASSES = {
   set: "flex flex-col gap-6 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
@@ -14,10 +15,10 @@ const FIELD_CLASSES = {
   content: "group/field-content flex flex-1 flex-col gap-1.5 leading-snug",
   label: "group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50 has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border [&>[data-slot=field]]:p-4 has-data-[state=checked]:bg-primary/5 has-data-[state=checked]:border-primary dark:has-data-[state=checked]:bg-primary/10",
   title: "flex w-fit items-center gap-2 text-sm font-medium leading-snug group-data-[disabled=true]/field:opacity-50",
-  description: "text-muted-foreground text-sm font-normal leading-normal group-has-[[data-orientation=horizontal]]/field:text-balance nth-last-2:-mt-1 last:mt-0 [[data-variant=legend]+&]:-mt-1.5 [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
+  description: `${mutedText} text-sm font-normal leading-normal group-has-[[data-orientation=horizontal]]/field:text-balance nth-last-2:-mt-1 last:mt-0 [[data-variant=legend]+&]:-mt-1.5 [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4`,
   separator: "relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
   separatorLine: "absolute inset-0 top-1/2",
-  separatorContent: "bg-background text-muted-foreground relative mx-auto block w-fit px-2",
+  separatorContent: `bg-background ${mutedText} relative mx-auto block w-fit px-2`,
   error: "text-destructive text-sm font-normal",
   errorList: "ml-4 flex list-disc flex-col gap-1",
 } as const

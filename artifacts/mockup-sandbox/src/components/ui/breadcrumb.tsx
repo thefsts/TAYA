@@ -3,15 +3,16 @@ import { Slot } from "@radix-ui/react-slot"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { iconSm, mutedText } from "@/lib/design-tokens"
 
 const BREADCRUMB_CLASSES = {
-  list: "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
+  list: `flex flex-wrap items-center gap-1.5 break-words text-sm ${mutedText} sm:gap-2.5`,
   item: "inline-flex items-center gap-1.5",
   link: "transition-colors hover:text-foreground",
   page: "font-normal text-foreground",
   separator: "[&>svg]:w-3.5 [&>svg]:h-3.5",
   ellipsis: "flex h-9 w-9 items-center justify-center",
-  ellipsisIcon: "h-4 w-4",
+  ellipsisIcon: iconSm,
 } as const
 
 const Breadcrumb = React.forwardRef<
