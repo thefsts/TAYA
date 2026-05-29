@@ -244,6 +244,20 @@
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"
+      },
+      "nonLethalDefense": {
+        "title": "Non-Lethal Defense Training",
+        "description": "Learn to use pepper spray, tasers, and personal safety tools effectively. A practical self-defense class ideal for those seeking effective protection without a firearm.",
+        "duration": "2–3 hrs",
+        "level": "Beginner",
+        "price": "From $50"
+      },
+      "firearmsRequalification": {
+        "title": "Firearm Proficiency Re-Qualification",
+        "description": "Stay current with a focused re-qualification session covering safe handling, accuracy drills, and technique review — ideal for existing firearm owners and license renewals.",
+        "duration": "2–3 hrs",
+        "level": "Intermediate",
+        "price": "From $60"
       }
     },
     "whyCorsair": {

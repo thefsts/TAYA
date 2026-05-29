@@ -250,6 +250,20 @@
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"
+      },
+      "nonLethalDefense": {
+        "title": "비치명적 방어 훈련",
+        "description": "페퍼 스프레이, 테이저건, 개인 안전 도구의 효과적인 사용법을 배웁니다. 총기 없이 효과적인 자기 보호를 원하는 분들에게 이상적인 실용적 호신술 수업입니다.",
+        "duration": "2–3 hrs",
+        "level": "Beginner",
+        "price": "From $50"
+      },
+      "firearmsRequalification": {
+        "title": "총기 숙련도 재자격 취득",
+        "description": "안전한 취급, 정확도 훈련, 기술 검토에 집중한 재자격 세션으로 최신 역량을 유지하세요 — 기존 총기 소유자와 면허 갱신에 적합합니다.",
+        "duration": "2–3 hrs",
+        "level": "Intermediate",
+        "price": "From $60"
       }
     },
     "whyCorsair": {

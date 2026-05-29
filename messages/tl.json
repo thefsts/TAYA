@@ -250,6 +250,20 @@
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"
+      },
+      "nonLethalDefense": {
+        "title": "Pagsasanay sa Hindi Nakamamatay na Depensa",
+        "description": "Matuto kung paano epektibong gamitin ang pepper spray, taser, at mga personal na kagamitan sa kaligtasan. Isang praktikal na klase sa pagtatanggol sa sarili na perpekto para sa mga naghahanap ng epektibong proteksyon nang walang baril.",
+        "duration": "2–3 hrs",
+        "level": "Beginner",
+        "price": "From $50"
+      },
+      "firearmsRequalification": {
+        "title": "Muling Kwalipikasyon sa Kahusayan ng Baril",
+        "description": "Manatiling updated sa isang nakatuong sesyon ng muling kwalipikasyon na sumasaklaw sa ligtas na paghawak, mga ehersisyo sa katumpakan, at pagsusuri ng teknik — perpekto para sa mga kasalukuyang may-ari ng baril at pagpapanibago ng lisensya.",
+        "duration": "2–3 hrs",
+        "level": "Intermediate",
+        "price": "From $60"
       }
     },
     "whyCorsair": {

@@ -250,6 +250,20 @@
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"
+      },
+      "nonLethalDefense": {
+        "title": "Formation à la Défense Non Létale",
+        "description": "Apprenez à utiliser efficacement le poivre de Cayenne, les tasers et les outils de sécurité personnelle. Un cours pratique d'autodéfense idéal pour ceux qui cherchent une protection efficace sans arme à feu.",
+        "duration": "2–3 hrs",
+        "level": "Beginner",
+        "price": "From $50"
+      },
+      "firearmsRequalification": {
+        "title": "Requalification de Compétence en Armes à Feu",
+        "description": "Restez à jour avec une session de requalification axée sur la manipulation sécurisée, les exercices de précision et la révision des techniques — idéal pour les propriétaires d'armes existants et les renouvellements de permis.",
+        "duration": "2–3 hrs",
+        "level": "Intermediate",
+        "price": "From $60"
       }
     },
     "whyCorsair": {

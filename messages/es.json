@@ -250,6 +250,20 @@
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"
+      },
+      "nonLethalDefense": {
+        "title": "Entrenamiento de Defensa No Letal",
+        "description": "Aprenda a usar efectivamente el gas pimienta, tasers y herramientas de seguridad personal. Una clase práctica de autodefensa ideal para quienes buscan protección efectiva sin arma de fuego.",
+        "duration": "2–3 hrs",
+        "level": "Beginner",
+        "price": "From $50"
+      },
+      "firearmsRequalification": {
+        "title": "Recertificación de Competencia en Armas de Fuego",
+        "description": "Manténgase actualizado con una sesión de recertificación enfocada en el manejo seguro, ejercicios de precisión y revisión de técnica — ideal para propietarios de armas existentes y renovaciones de licencia.",
+        "duration": "2–3 hrs",
+        "level": "Intermediate",
+        "price": "From $60"
       }
     },
     "whyCorsair": {

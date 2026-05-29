@@ -250,6 +250,20 @@
         "duration": "3 days",
         "level": "Advanced",
         "price": "From $595"
+      },
+      "nonLethalDefense": {
+        "title": "非致命防御训练",
+        "description": "学习有效使用辣椒喷雾、电击枪和个人安全工具。这是一门实用的自卫课程，非常适合希望在不使用枪支的情况下获得有效保护的人士。",
+        "duration": "2–3 hrs",
+        "level": "Beginner",
+        "price": "From $50"
+      },
+      "firearmsRequalification": {
+        "title": "枪支熟练度重新认证",
+        "description": "通过专项复训课程保持技能更新，涵盖安全操作、精准度训练和技术复习 — 非常适合现有枪支持有者和执照续期。",
+        "duration": "2–3 hrs",
+        "level": "Intermediate",
+        "price": "From $60"
       }
     },
     "whyCorsair": {
