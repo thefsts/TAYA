@@ -1,0 +1,426 @@
+Redo the Square/payment pricing setup with the website frontend prices as the correct source of truth.
+
+Repo:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Commit author must be:
+Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)
+
+====================
+PRIMARY GOAL
+============
+
+The prices currently displayed on the website frontend are the correct prices.
+
+Use the website course/service prices and fees as the source of truth.
+
+Square must match the website prices.
+
+The customer checkout total must include:
+
+* base class price
+* required fees
+* optional add-ons
+* correct final total
+
+====================
+IMPORTANT PRICE RULE
+====================
+
+Do NOT let Square, the frontend form, or user input override the correct price.
+
+The server must calculate the final total from the website pricing catalog.
+
+Frontend can display prices, but backend/server must validate and calculate:
+
+finalTotal = baseCoursePrice + requiredFees + selectedOptionalAddOns
+
+====================
+CENTRAL PRICING FILE
+====================
+
+Create or update one central pricing/catalog source, such as:
+
+src/lib/pricing.ts
+or
+src/data/catalog.ts
+
+This file must include every payable class and service.
+
+Each course/service should support:
+
+```ts
+type PriceFee = {
+  id: string;
+  label: string;
+  amountCents: number;
+  required: boolean;
+  locked: boolean;
+  description?: string;
+};
+
+type CatalogItem = {
+  id: string;
+  slug: string;
+  name: string;
+  type: "course" | "service" | "event";
+  category: string;
+  basePriceCents: number | null;
+  currency: "USD";
+  contactOnly: boolean;
+  active: boolean;
+  requiredFees: PriceFee[];
+  optionalAddOns: PriceFee[];
+  squareCatalogItemId?: string;
+  squareVariationId?: string;
+};
+```
+
+====================
+REQUIRED / LOCKED FEES
+======================
+
+If a course has a range fee or any required class fee, that fee must be locked.
+
+Locked means:
+
+* it is shown clearly to the customer
+* it is included in the checkout total
+* it cannot be unchecked
+* it cannot be removed
+* it cannot be modified by frontend input
+* server always includes it when calculating payment
+
+Example:
+
+```ts
+requiredFees: [
+  {
+    id: "range-fee",
+    label: "Range Fee",
+    amountCents: 2500,
+    required: true,
+    locked: true,
+    description: "Required range fee for this class."
+  }
+]
+```
+
+If the range fee is required for the class, it must always be charged.
+
+====================
+OPTIONAL ADD-ONS
+================
+
+Optional add-ons can be selectable.
+
+Examples:
+
+* firearm rental
+* ammunition package
+* private coaching add-on
+* extra student
+* printed certificate if applicable
+
+Optional add-ons:
+
+* may be checked/unchecked
+* must show price clearly
+* must be included only if selected
+* must still be validated server-side
+
+====================
+FRONTEND DISPLAY REQUIREMENTS
+=============================
+
+On course cards and course detail pages, show:
+
+* base class price
+* required fees
+* optional add-ons if available
+* estimated total
+
+Example display:
+
+Class Price: $75
+Required Range Fee: $25
+Total Due: $100
+
+If optional add-ons are selected:
+Class Price: $75
+Required Range Fee: $25
+Ammunition Package: $40
+Total Due: $140
+
+Required fee UI:
+
+* show checkbox as checked and disabled
+  OR
+* show locked badge:
+  Required · Included
+
+Do not allow required fees to be removed.
+
+====================
+CHECKOUT UI REQUIREMENTS
+========================
+
+Before payment, show a clear order summary:
+
+Course:
+Texas License to Carry Certification
+
+Base Class Price:
+$XX.XX
+
+Required Fees:
+
+* Range Fee: $XX.XX locked / required
+
+Optional Add-ons:
+
+* Firearm Rental: $XX.XX if selected
+* Ammunition: $XX.XX if selected
+
+Final Total:
+$XX.XX
+
+The final total shown in checkout must match the amount sent to Square.
+
+====================
+SERVER-SIDE TOTAL CALCULATION
+=============================
+
+Backend must calculate the total.
+
+Frontend should send only:
+
+* course slug/id
+* selected option id if needed
+* selected optional add-on ids
+* student/customer info
+* waiver status
+
+Server must:
+
+1. Look up course by slug/id
+2. Validate course is active
+3. Validate course is not contactOnly
+4. Add base price
+5. Add all requiredFees automatically
+6. Add only valid selected optionalAddOns
+7. Reject unknown add-ons
+8. Reject tampered prices
+9. Create Square Order/Payment with the server-calculated total
+
+====================
+SQUARE ORDER ITEMIZATION
+========================
+
+Square Order should be itemized.
+
+Line items should include:
+
+1. Base course/class
+2. Required fees as separate locked line items
+3. Optional add-ons as separate line items
+
+Example Square order:
+
+* Texas License to Carry Certification — $75.00
+* Required Range Fee — $25.00
+* Ammunition Package — $40.00
+
+Total:
+$140.00
+
+This makes the receipt clear.
+
+====================
+PRICE MATCHING WITH SQUARE
+==========================
+
+Use the website catalog as the correct pricing source.
+
+Square catalog should be checked against the website catalog.
+
+If Square has a different price:
+
+* report the mismatch
+* do not silently charge the wrong Square price
+* server should still charge the website catalog price unless we intentionally update the website catalog
+
+Create or update:
+
+npm run square:check
+
+The check should compare:
+
+* website item name
+* website base price
+* website required fees
+* website optional add-ons
+* Square item/variation names
+* Square prices
+* Square itemization
+
+Output:
+
+* matched
+* missing in Square
+* price mismatch
+* fee mismatch
+* add-on mismatch
+
+====================
+PAYMENT RULES
+=============
+
+Pay button should only show if:
+
+* item is active
+* basePriceCents is not null
+* contactOnly is false
+
+If contactOnly:
+
+* show Request Consultation
+* do not show Pay Now
+* do not create Square payment
+
+====================
+COURSE FEE AUDIT
+================
+
+Review every course currently on the website and make sure the central catalog includes all fees shown on the frontend.
+
+Courses to audit:
+
+* Texas License to Carry Certification
+* Online Texas License to Carry Assessment
+* Texas LTC Shooting Proficiency
+* Texas License to Carry Certification/Basic Handgun
+* Basic Handgun Skills Training
+* First Shots Basic Firearm Training
+* Introduction to Firearms
+* Defensive Shooting Skills
+* Level 3 Armed Security Officer - Commissioned
+* Level 4 Bodyguard / Personal Protection Officer
+* Texas Private Security Certification
+* Texas Private Security Certification - Level II
+* Armed First Responder
+* Women’s Firearm Training
+* Private Firearm Training
+* Rifle / Carbine Training
+* Shotgun Training
+* Stop the Bleed / CPR / AED
+
+Services to audit:
+
+* Armed Security Services
+* Unarmed Security Services
+* Patrol Operations
+* Event Security
+* Church Safety Assessment
+* Property Manager Security Services
+* Private Investigation Consultation
+* Security Consulting
+
+====================
+RANGE FEE RULE
+==============
+
+If a course requires a range fee, it must be:
+
+* present in requiredFees
+* locked: true
+* required: true
+* displayed on frontend
+* included in order summary
+* included in Square line items
+* included in final total
+* impossible to remove
+
+The customer should clearly see the fee before paying.
+
+====================
+CONFIRMATION PAGE
+=================
+
+Confirmation page should show the itemized total:
+
+* course/class name
+* base price
+* required fees
+* optional add-ons
+* total paid
+* Square payment id
+* Square order id
+* next steps
+
+====================
+EMAIL CONFIRMATION
+==================
+
+If email confirmation is implemented or stubbed, the email should show the same itemized receipt:
+
+* base class price
+* required fees
+* optional add-ons
+* total paid
+
+====================
+QA TESTING REQUIRED
+===================
+
+Before production:
+
+Test at least these examples:
+
+1. Course with no required fee:
+
+* final total equals base price
+
+2. Course with required range fee:
+
+* range fee appears locked
+* range fee cannot be removed
+* final total equals base + range fee
+
+3. Course with optional add-on:
+
+* optional add-on changes total when selected
+* optional add-on can be removed
+* required fee still remains locked
+
+4. Tampered frontend test:
+
+* try to send altered price
+* server ignores frontend price
+* server charges catalog price
+
+5. Contact-only service:
+
+* no Pay button
+* Request Consultation only
+
+====================
+FINAL QA CHECKLIST
+==================
+
+Before pushing:
+
+* website frontend prices are source of truth
+* all prices moved into central catalog
+* all required fees are included and locked
+* range fees cannot be removed
+* optional add-ons work
+* checkout total calculates correctly
+* Square order is itemized
+* Square charge equals checkout total
+* confirmation page shows itemized receipt
+* square:check reports catalog mismatches
+* no secrets committed
+* build passes
+
+Keep Square in Sandbox until we approve production switch.
