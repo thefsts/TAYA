@@ -1,0 +1,388 @@
+Set up Square Sandbox payment integration and Square catalog/price matching for Corsair Tactical Solutions.
+
+Repo:
+thefsts/Corsair-Tactical-Solutions
+
+Commit author must be:
+Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)
+
+Current site:
+https://corsair-tactical-solutions.vercel.app/en
+
+====================
+SECURITY WARNING
+================
+
+Do NOT hardcode Square credentials into the codebase.
+
+Do NOT commit tokens.
+
+Do NOT print tokens in logs.
+
+Do NOT expose the Square Access Token to the browser.
+
+Use Vercel environment variables only.
+
+====================
+SQUARE ENV VARS
+===============
+
+Use these env variable names.
+
+Frontend-safe public env vars:
+
+NEXT_PUBLIC_SQUARE_APPLICATION_ID=
+NEXT_PUBLIC_SQUARE_LOCATION_ID=
+NEXT_PUBLIC_SQUARE_ENVIRONMENT=sandbox
+
+Server-only secret env vars:
+
+SQUARE_ACCESS_TOKEN=
+SQUARE_LOCATION_ID=
+SQUARE_ENVIRONMENT=sandbox
+SQUARE_WEBHOOK_SIGNATURE_KEY=
+
+Important:
+Only NEXT_PUBLIC_* variables can be used in browser/client components.
+
+SQUARE_ACCESS_TOKEN must only be used in server routes/server actions.
+
+====================
+WHAT I WILL ADD IN VERCEL
+=========================
+
+I will add the actual Sandbox Application ID and Sandbox Access Token directly into Vercel Environment Variables.
+
+Do not ask to paste them into source files.
+
+====================
+PRIMARY GOALS
+=============
+
+1. Connect the website to Square Sandbox.
+2. Confirm the website and Square can talk to each other.
+3. Make sure all website course/service prices match Square.
+4. Create Square-ready mapping for all courses and services.
+5. If items do not exist in Square yet, prepare a sync/create script or admin-safe function to create them in Square Catalog.
+6. Build the payment flow so users can pay for training securely.
+
+====================
+COURSE/SERVICE PRICE SOURCE OF TRUTH
+====================================
+
+Create a single price/catalog source file in the website, such as:
+
+src/lib/pricing.ts
+or
+src/data/catalog.ts
+
+Each item should include:
+
+```ts
+{
+  id: string;
+  slug: string;
+  name: string;
+  type: "course" | "service" | "event";
+  category: string;
+  description: string;
+  priceCents: number;
+  currency: "USD";
+  squareCatalogItemId?: string;
+  squareVariationId?: string;
+  active: boolean;
+}
+```
+
+Do not scatter prices across multiple components.
+
+All course cards, course detail pages, checkout, and schema should read prices from this single source.
+
+====================
+PRICE VALIDATION RULE
+=====================
+
+Never trust prices sent from the frontend.
+
+When checkout starts:
+
+* frontend sends item slug/id only
+* server looks up price from trusted catalog source
+* server creates Square payment with server-side price
+* server includes item name, slug, and category in metadata/reference_id/order note if possible
+
+====================
+SQUARE PAYMENT FLOW
+===================
+
+Use Square Web Payments SDK on frontend.
+
+Create API routes/server actions:
+
+/api/square/create-payment
+/api/square/create-order
+/api/square/webhook
+/api/square/catalog-check
+/api/square/catalog-sync
+
+Payment flow:
+
+1. User selects course/service/event.
+2. User fills registration fields.
+3. User signs waiver if course requires it.
+4. User clicks Pay Securely with Square.
+5. Frontend uses Square Web Payments SDK.
+6. Backend creates/charges payment through Square.
+7. Success redirects to /confirmation.
+8. Failure shows clear retry message.
+
+====================
+REQUIRED SQUARE SDK SETUP
+=========================
+
+Install Square SDK if needed:
+
+npm install square
+
+Use sandbox environment when:
+SQUARE_ENVIRONMENT=sandbox
+
+Do not use production until we intentionally switch later.
+
+====================
+SQUARE CATALOG CHECK
+====================
+
+Build a catalog verification script or route that compares website catalog items to Square Catalog.
+
+It should check:
+
+* item name
+* variation name
+* price
+* currency
+* active status
+
+Output should show:
+
+* matched items
+* missing in Square
+* price mismatches
+* duplicate Square items
+* inactive items
+
+Suggested script:
+scripts/check-square-catalog.ts
+
+Run with:
+npm run square:check
+
+====================
+SQUARE CATALOG SYNC
+===================
+
+Build a safe sync script for sandbox only first:
+
+scripts/sync-square-catalog.ts
+
+Run with:
+npm run square:sync:sandbox
+
+The script should:
+
+* read website catalog/pricing source
+* create missing Square Catalog items
+* create variations with correct price
+* update website mapping output if possible
+* never delete Square items automatically
+* warn before updating prices
+* default to dry-run unless CONFIRM_SQUARE_SYNC=true
+
+Example commands:
+
+npm run square:check
+CONFIRM_SQUARE_SYNC=true npm run square:sync:sandbox
+
+====================
+SQUARE LOCATION ID
+==================
+
+The website needs Square Location ID.
+
+Add a helper script:
+scripts/get-square-locations.ts
+
+Run:
+npm run square:locations
+
+This should use SQUARE_ACCESS_TOKEN to list Square Sandbox locations and print:
+
+* location name
+* location id
+* status
+
+Then set:
+NEXT_PUBLIC_SQUARE_LOCATION_ID=
+SQUARE_LOCATION_ID=
+
+in Vercel.
+
+====================
+COURSES AND SERVICES TO INCLUDE
+===============================
+
+Make sure all active website courses/services are in the catalog source.
+
+Courses:
+
+* Texas License to Carry Certification
+* Online Texas License to Carry Assessment
+* Texas LTC Shooting Proficiency
+* Texas License to Carry Certification/Basic Handgun
+* Basic Handgun Skills Training
+* First Shots Basic Firearm Training
+* Introduction to Firearms
+* Defensive Shooting Skills
+* Level 3 Armed Security Officer - Commissioned
+* Level 4 Bodyguard / Personal Protection Officer
+* Texas Private Security Certification
+* Texas Private Security Certification - Level II
+* Armed First Responder
+* Women’s Firearm Training
+* Private Firearm Training
+* Rifle / Carbine Training
+* Shotgun Training
+* Stop the Bleed / CPR / AED
+
+Services:
+
+* Armed Security Services
+* Unarmed Security Services
+* Patrol Operations
+* Event Security
+* Church Safety Assessment
+* Property Manager Security Services
+* Private Investigation Consultation
+* Security Consulting
+
+Events:
+
+* support future event payment items
+
+If exact prices are unknown:
+
+* set priceCents to null or use “Contact for Pricing”
+* do not allow Square checkout for contact-only items
+* show Request Consultation instead of Pay button
+
+====================
+WEBSITE UI UPDATES
+==================
+
+Course cards/detail pages:
+
+* show price from catalog source
+* show “Contact for Pricing” when price is null
+* show “Book / Pay Now” only when price exists and item is active
+* show “Request Consultation” for services/contact-only items
+
+Checkout page/section:
+
+* match Corsair white/navy/red branding
+* show item name
+* price
+* student/customer info
+* waiver status if required
+* Square secure payment form
+* success/failure states
+
+====================
+SQUARE WEBHOOK
+==============
+
+Add webhook route:
+
+* /api/square/webhook
+
+Handle:
+
+* payment.created
+* payment.updated
+* order.created
+* order.updated
+
+Verify webhook signature using:
+SQUARE_WEBHOOK_SIGNATURE_KEY
+
+If no database yet:
+
+* log minimal safe event info
+* add TODO for Supabase registration/payment storage
+
+Do not log full payment payload with sensitive info.
+
+====================
+DATABASE NOTE
+=============
+
+For phase 1, Square can process payments without a full database.
+
+But for launch-quality registration tracking, we should add a database soon.
+
+Recommended:
+
+* Supabase
+
+Future tables:
+
+* customers
+* registrations
+* waiver_submissions
+* payments
+* square_events
+
+For now:
+
+* build code structure so adding Supabase later is clean
+* do not fake storage
+
+====================
+ENV EXAMPLE
+===========
+
+Update .env.example with:
+
+NEXT_PUBLIC_SQUARE_APPLICATION_ID=
+NEXT_PUBLIC_SQUARE_LOCATION_ID=
+NEXT_PUBLIC_SQUARE_ENVIRONMENT=sandbox
+
+SQUARE_ACCESS_TOKEN=
+SQUARE_LOCATION_ID=
+SQUARE_ENVIRONMENT=sandbox
+SQUARE_WEBHOOK_SIGNATURE_KEY=
+
+Do not include real values.
+
+====================
+FINAL QA
+========
+
+Before pushing:
+
+* no Square token committed
+* no Square token printed
+* .env.example has placeholder variables only
+* Square sandbox location script works
+* Square catalog check script works
+* Square catalog sync dry-run works
+* payment form loads with Sandbox Application ID
+* server validates prices from catalog source
+* checkout succeeds in Square sandbox
+* checkout failure state works
+* confirmation page shows payment status
+* services without prices do not show Pay button
+* course prices are centralized
+* build passes
+
+Commit and push fresh update as:
+Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)
