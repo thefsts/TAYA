@@ -15,7 +15,13 @@
     "viewAll": "Tingnan Lahat",
     "backToTop": "Bumalik sa Taas",
     "home": "Home",
-    "courses": "Courses"
+    "courses": "Courses",
+    "levels": {
+      "Beginner": "Baguhan",
+      "Intermediate": "Katamtaman",
+      "Advanced": "Advanced",
+      "All Levels": "Lahat ng Antas"
+    }
   },
   "nav": {
     "corsair": "Corsair",

@@ -15,7 +15,13 @@
     "viewAll": "Xem Tất Cả",
     "backToTop": "Về Đầu Trang",
     "home": "Home",
-    "courses": "Courses"
+    "courses": "Courses",
+    "levels": {
+      "Beginner": "Người Mới Bắt Đầu",
+      "Intermediate": "Trung Cấp",
+      "Advanced": "Nâng Cao",
+      "All Levels": "Mọi Cấp Độ"
+    }
   },
   "nav": {
     "corsair": "Corsair",

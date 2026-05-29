@@ -15,7 +15,13 @@
     "viewAll": "Ver Todo",
     "backToTop": "Volver Arriba",
     "home": "Home",
-    "courses": "Courses"
+    "courses": "Courses",
+    "levels": {
+      "Beginner": "Principiante",
+      "Intermediate": "Intermedio",
+      "Advanced": "Avanzado",
+      "All Levels": "Todos los Niveles"
+    }
   },
   "nav": {
     "corsair": "Corsair",

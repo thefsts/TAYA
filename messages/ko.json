@@ -15,7 +15,13 @@
     "viewAll": "전체 보기",
     "backToTop": "맨 위로",
     "home": "Home",
-    "courses": "Courses"
+    "courses": "Courses",
+    "levels": {
+      "Beginner": "초급",
+      "Intermediate": "중급",
+      "Advanced": "고급",
+      "All Levels": "모든 레벨"
+    }
   },
   "nav": {
     "corsair": "Corsair",

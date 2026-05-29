@@ -15,7 +15,13 @@
     "viewAll": "查看全部",
     "backToTop": "返回顶部",
     "home": "Home",
-    "courses": "Courses"
+    "courses": "Courses",
+    "levels": {
+      "Beginner": "初级",
+      "Intermediate": "中级",
+      "Advanced": "高级",
+      "All Levels": "所有级别"
+    }
   },
   "nav": {
     "corsair": "Corsair",

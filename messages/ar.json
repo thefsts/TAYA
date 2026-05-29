@@ -15,7 +15,13 @@
     "viewAll": "عرض الكل",
     "backToTop": "العودة للأعلى",
     "home": "Home",
-    "courses": "Courses"
+    "courses": "Courses",
+    "levels": {
+      "Beginner": "مبتدئ",
+      "Intermediate": "متوسط",
+      "Advanced": "متقدم",
+      "All Levels": "جميع المستويات"
+    }
   },
   "nav": {
     "corsair": "كورسير",
