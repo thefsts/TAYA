@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve } from "path";
 
 const BASE = "/__mockup";
@@ -23,6 +23,41 @@ function discoverMockupNames(): string[] {
   return names;
 }
 
+function warnMissingBaselines(names: string[]): void {
+  const snapshotDir = resolve(
+    __dirname,
+    "../snapshots/mockup.spec.ts-snapshots"
+  );
+
+  const existingFiles = existsSync(snapshotDir)
+    ? readdirSync(snapshotDir)
+    : [];
+
+  const hasBaseline = (snapshotName: string): boolean =>
+    existingFiles.some((f) => f.startsWith(`${snapshotName}-`));
+
+  const missing: string[] = [];
+
+  if (!hasBaseline("gallery")) {
+    missing.push("gallery (root page)");
+  }
+
+  for (const name of names) {
+    if (!hasBaseline(name)) {
+      missing.push(`${name} mockup`);
+    }
+  }
+
+  if (missing.length > 0) {
+    const list = missing.map((m) => `  • ${m}`).join("\n");
+    console.warn(
+      `\n⚠  No visual baseline found for the following mockup(s):\n${list}\n` +
+        `   The test(s) above will fail until you generate baselines.\n` +
+        `   Run:  pnpm run test:visual:update\n`
+    );
+  }
+}
+
 const mockupNames = discoverMockupNames();
 
 if (mockupNames.length === 0) {
@@ -31,6 +66,8 @@ if (mockupNames.length === 0) {
       "artifacts/mockup-sandbox/src/.generated/mockup-components.ts exists and is non-empty."
   );
 }
+
+warnMissingBaselines(mockupNames);
 
 test.describe("mockup-sandbox visual regression", () => {
   test("gallery root page", async ({ page }) => {
