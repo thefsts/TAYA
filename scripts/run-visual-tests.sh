@@ -2,6 +2,8 @@
 # Run visual regression tests against the mockup-sandbox.
 # Starts the Component Preview Server if it is not already listening on
 # PORT=8081, runs the tests, then stops any server process it started.
+# On failure, generates a visual diff report at
+# tests/visual-regression/visual-diff-report.html.
 
 set -euo pipefail
 
@@ -45,4 +47,12 @@ else
 fi
 
 echo "[visual-tests] Running visual regression tests…"
-pnpm run test:visual
+if pnpm run test:visual; then
+  echo "[visual-tests] All visual regression tests passed."
+else
+  EXIT_CODE=$?
+  echo "[visual-tests] Visual regression tests FAILED. Generating diff report…"
+  pnpm --filter @workspace/scripts run visual-diff-report || true
+  echo "[visual-tests] Open tests/visual-regression/visual-diff-report.html to review the changes."
+  exit $EXIT_CODE
+fi

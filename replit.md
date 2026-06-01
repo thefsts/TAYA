@@ -11,6 +11,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm run test:visual` — run visual regression tests against the mockup-sandbox
 - `pnpm run test:visual:update` — regenerate baseline snapshots (run after intentional UI changes)
+- `pnpm run test:visual:report` — generate `tests/visual-regression/visual-diff-report.html` from the last failed test run (before/after/diff thumbnails)
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
@@ -42,6 +43,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 - Visual regression tests (`pnpm run test:visual`) require the Component Preview Server workflow to be running (PORT=8081). Start it first or the tests will fail with connection errors.
 - After intentional style changes, regenerate baselines with `pnpm run test:visual:update` and commit the updated snapshots in `tests/visual-regression/snapshots/`.
+- When visual regression tests fail, `scripts/run-visual-tests.sh` automatically generates `tests/visual-regression/visual-diff-report.html` — a self-contained HTML file with embedded before/after/diff thumbnails for every changed component. Open it in a browser to review the changes without navigating the raw `test-results/` directory.
 
 ## Pointers
 
