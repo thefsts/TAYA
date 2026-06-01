@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "playwright test",
+    "test": "node scripts/ensure-baselines.mjs && playwright test",
     "test:update": "playwright test --update-snapshots"
   },
   "devDependencies": {

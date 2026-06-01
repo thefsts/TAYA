@@ -42,6 +42,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 ## Gotchas
 
 - Visual regression tests (`pnpm run test:visual`) require the Component Preview Server workflow to be running (PORT=8081). Start it first or the tests will fail with connection errors.
+- Missing baselines are auto-generated on first run — adding a new mockup will never cause a red build just because its snapshot doesn't exist yet. The pre-test script (`tests/visual-regression/scripts/ensure-baselines.mjs`) detects the gap and runs a targeted `--update-snapshots` pass before the comparison run.
 - After intentional style changes, regenerate baselines with `pnpm run test:visual:update` and commit the updated snapshots in `tests/visual-regression/snapshots/`.
 - When visual regression tests fail, `scripts/run-visual-tests.sh` automatically generates `tests/visual-regression/visual-diff-report.html` — a self-contained HTML file with embedded before/after/diff thumbnails for every changed component. Open it in a browser to review the changes without navigating the raw `test-results/` directory.
 

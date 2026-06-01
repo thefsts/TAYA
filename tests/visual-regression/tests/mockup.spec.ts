@@ -52,8 +52,8 @@ function warnMissingBaselines(names: string[]): void {
     const list = missing.map((m) => `  • ${m}`).join("\n");
     console.warn(
       `\n⚠  No visual baseline found for the following mockup(s):\n${list}\n` +
-        `   The test(s) above will fail until you generate baselines.\n` +
-        `   Run:  pnpm run test:visual:update\n`
+        `   Baselines are auto-generated when you run: pnpm run test:visual\n` +
+        `   To regenerate all baselines manually: pnpm run test:visual:update\n`
     );
   }
 }
