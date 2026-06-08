@@ -1,0 +1,105 @@
+16. Homepage Hero Section Redesign
+
+Current Situation:
+The homepage hero is primarily focused on Texas LTC training. We want to reposition the website so that visitors immediately understand that Corsair Tactical Solutions is primarily a security services company.
+
+Update the homepage hero section to reflect the following service hierarchy:
+
+1. Security Services (Primary Focus)
+2. Security Training (Secondary Focus)
+3. Texas LTC / Private Instruction (Third Priority)
+
+Hero Section Requirements
+
+Primary Headline:
+
+Professional Security Services Across All 50 States
+
+Alternative headline options:
+
+* Armed Protective Solutions for Businesses and Individuals
+* Professional Security Services, Training & Protection Solutions
+* Trusted Security Professionals. Nationwide Coverage.
+
+Primary Supporting Text:
+
+Corsair Tactical Solutions provides professional security services, armed protective services, private investigations, and state-certified security training nationwide.
+
+Primary Call-to-Action Button:
+
+Security Services
+
+Button Destination:
+Security Services page
+
+Secondary Call-to-Action Button:
+
+Security Training
+
+Button Destination:
+Security Training page
+
+Third Call-to-Action Button:
+
+Texas LTC / Private Instruction
+
+Button Destination:
+LTC Training page
+
+Homepage Service Order
+
+The homepage should visually present services in this order:
+
+Section 1 (Largest & Most Prominent)
+Security Services
+
+Examples:
+
+* Armed Security Officers
+* Executive Protection
+* Event Security
+* Patrol Services
+* Corporate Security
+* Private Investigations
+
+Section 2
+Security Training
+
+Examples:
+
+* Level II Training
+* Level III Training
+* Level IV Training
+* Continuing Education
+* Instructor-Led Courses
+
+Section 3
+Texas LTC / Private Instruction
+
+Examples:
+
+* Texas License to Carry Classes
+* Private Firearms Instruction
+* Shooting Proficiency Training
+
+Hero Image Recommendations
+
+Replace or rotate the current LTC-focused hero image with imagery emphasizing:
+
+* Armed Security Professionals
+* Executive Protection
+* Corporate Security
+* Protective Services
+* Professional Security Operations
+
+LTC Training should remain visible on the homepage but should no longer be the first message visitors see.
+
+Business Goal
+
+The homepage should clearly communicate that Corsair Tactical Solutions is:
+
+1. A Security Services Company
+2. A Security Training Provider
+3. An LTC and Firearms Training Provider
+
+This order should be reflected throughout the homepage design, navigation, content hierarchy, and calls to action.
