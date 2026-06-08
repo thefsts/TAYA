@@ -1,0 +1,52 @@
+Footer Refinement (Do Not Redesign)
+
+Please keep the existing footer structure and branding. Do not create a completely new footer.
+
+The goal is to improve spacing, readability, and organization while maintaining the current design style.
+
+Requested Updates:
+
+1. Improve Spacing
+
+* Increase padding above and below footer content.
+* Add more space between sections and columns.
+* Prevent text from appearing crowded or compressed.
+
+2. Add Compliance Information
+   Include the following in the existing footer:
+
+State of Texas · Licensed & Regulated
+
+Texas Licensed Security & Training Provider
+
+Corsair Tactical Solutions is licensed by the State of Texas to provide security services, private investigations, security training, continuing education, and firearms instruction. We are committed to maintaining the highest standards of professionalism, compliance, and public safety.
+
+License Information:
+
+* Instructor License Number: 161402002
+* Training School License #: F30797601
+* Continuing Education License #: Y30987101
+* Business License #: B29791901
+* Private Investigation License #: C31074401
+
+3. Footer Layout Cleanup
+
+* Maintain the current footer design.
+* Improve alignment of existing content.
+* Ensure all footer elements have consistent spacing.
+* Make the footer easier to read on desktop and mobile.
+* Avoid adding excessive content that makes the footer feel cluttered.
+
+4. Homepage Compliance Change
+
+* Remove the separate licensing/compliance section from the homepage body.
+* Use the footer as the primary location for licensing and compliance information.
+
+5. Mobile Optimization
+
+* Verify the footer stacks properly on mobile devices.
+* Ensure license information remains readable without creating excessive page length.
+
+Objective
+
+Keep the existing footer design and branding intact while making it feel cleaner, more professional, and easier to read. The footer should serve as the site's primary compliance and licensing location without appearing crowded.
