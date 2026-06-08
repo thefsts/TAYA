@@ -1,0 +1,108 @@
+Additional Website Updates and Event Registration Setup
+
+8. Contact Form Configuration
+
+Update all website contact forms and inquiry forms to send submissions to:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+Requirements:
+
+* Verify successful email delivery.
+* Confirm no form submissions are lost.
+* Display a success confirmation message after form submission.
+* Include contact form testing as part of QA.
+
+9. Square Integration Testing
+
+For QA testing, use Square Sandbox Mode only.
+
+Requirements:
+
+* Verify checkout flow functions correctly.
+* Verify successful transaction processing in Sandbox.
+* Verify registration and payment workflows complete successfully.
+* Confirm payment confirmation pages and emails function properly.
+* Provide screenshots or documentation of successful Sandbox testing.
+
+10. Texas LTC Event Page Creation
+
+Create a dedicated event page for the Texas LTC Certification Class.
+
+Use the supplied event flyer image as the primary event graphic.
+
+Event Details:
+
+Title:
+Texas LTC Certification Class
+
+Date:
+June 13, 2026
+
+Time:
+8:30 AM – 3:30 PM
+
+Cost:
+$100 + Range Fee
+
+Registration:
+Users should be able to register and pay online through Square.
+
+11. Event Registration and Payment Setup
+
+Create a Square payment link/product for this event.
+
+Requirements:
+
+* Follow the same styling, branding, navigation, and design standards used throughout the website.
+* Add a clear "Register Now" button.
+* Connect the button directly to the Square checkout experience.
+* Capture attendee registration information before payment if the site's existing registration workflow supports it.
+* Display confirmation messaging after registration and payment completion.
+
+12. Event Page Content
+
+Include information from the event flyer:
+
+Class Includes:
+
+* Texas LTC Laws Overview
+* Non-Violent Dispute Resolution
+* Handgun Use & Safety
+* Shooting Proficiency
+* Certification Upon Completion
+
+What to Bring:
+
+* Handgun
+* 50 Rounds of Ammunition
+* Eye and Ear Protection
+* Valid Photo ID
+* Comfortable Clothing
+* Pen and Notebook
+
+Location Information:
+
+Classroom Instruction:
+Hilton Garden Inn
+4090 Belt Line Rd
+Addison, TX 75001
+
+Shooting Qualification:
+Eagle Gun Range
+14400 Midway Rd
+Farmers Branch, TX 75244
+
+13. Final QA Requirements
+
+Before project completion, verify:
+
+* Contact forms send successfully to [corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+* Square Sandbox checkout functions properly
+* Event registration page is operational
+* Event image displays correctly
+* Payment workflow completes successfully
+* Mobile and desktop versions are fully functional
+* All links and buttons work correctly
+
+Provide a final QA report documenting successful testing and any issues resolved.
