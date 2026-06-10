@@ -1,0 +1,121 @@
+21. CRITICAL: Audit and Test ALL Course Tabs and Hidden Registration Forms
+
+Priority: HIGHEST
+
+The Courses page contains multiple tabs with their own forms, registration workflows, and call-to-action buttons. These areas cannot be skipped during QA testing.
+
+Do NOT only test what is visible on the main Courses page.
+
+Audit every tab, every form, and every button within each tab.
+
+Courses Page:
+https://www.corsairtacticalsolution.com/courses
+
+Required Course Tabs to Review and Test
+
+The following tabs must each be opened individually and fully tested:
+
+* License to Carry (LTC)
+* Beginner Training
+* Defensive Training
+* Private Training
+* Security Training
+* Rifle / Shotgun
+* Women's Training
+* Church / Business Safety
+* First Aid / Medical
+* Instructor / Professional
+
+Additional Requirement
+
+If any additional tabs, accordion sections, hidden forms, popup forms, or dynamically loaded content exist on the Courses page, they must also be included in testing.
+
+Form & Registration Testing
+
+Current Problem:
+Some forms within these tabs redirect users back to the homepage instead of processing the inquiry or registration.
+
+Required Fix:
+
+For every form located within these tabs:
+
+* Verify the form opens correctly.
+* Verify the submit button functions properly.
+* Verify submissions do NOT redirect users to the homepage.
+* Verify users receive a confirmation message after submission.
+* Verify the intended workflow completes successfully.
+
+Email Delivery Requirements
+
+Every inquiry form and registration form on the Courses page must send notifications to:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+Test every form individually and confirm:
+
+* Email is delivered successfully.
+* No submissions are lost.
+* No spam filtering prevents delivery.
+* The email contains the user's submitted information.
+
+Button & CTA Audit
+
+Test every clickable element within each course tab.
+
+Examples include:
+
+* Register Now
+* Learn More
+* Request Information
+* Submit
+* Contact Instructor
+* Pay Now
+* Schedule Training
+* Book Private Instruction
+* Any icon buttons
+* Any text links
+
+Verify that each button:
+
+* Goes to the correct destination,
+* Opens the correct form,
+* Opens the correct registration process,
+* Opens the correct Square checkout when applicable,
+* Does NOT redirect back to the homepage unless intentionally designed to do so.
+
+Square Payment Requirements
+
+Review all training categories to determine whether payment should be collected online.
+
+If the class is intended to accept payment online:
+
+* Connect it to the appropriate Square checkout.
+* Verify pricing accuracy.
+* Test the payment workflow in Square Sandbox.
+* Verify successful completion.
+
+Classes that require only inquiries should:
+
+* Submit the form successfully,
+* Send the inquiry to [corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com),
+* Display a confirmation message to the user.
+
+Completion Standard
+
+The Courses page should be treated as a separate website within the website.
+
+No tab, hidden section, form, registration process, button, or payment workflow should be excluded from testing.
+
+Final QA Deliverable
+
+Provide a detailed checklist showing:
+
+* Each course tab reviewed,
+* Each form tested,
+* Each button tested,
+* Each email notification verified,
+* Each Square payment verified,
+* Any defects discovered,
+* The corrective actions taken.
+
+The project is not complete until every course tab and its associated workflows have been verified as fully functional.
