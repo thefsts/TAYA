@@ -1,0 +1,203 @@
+19. URGENT: Registration, Square Integration & Form Routing Fixes
+
+Priority: HIGH
+
+The website is live, but there are several issues preventing registrations and inquiries from functioning correctly. These items must be completed and fully tested before the website is considered production-ready.
+
+Affected Pages:
+
+* https://www.corsairtacticalsolution.com/
+* https://www.corsairtacticalsolution.com/courses
+* https://www.corsairtacticalsolution.com/security-training
+* All event registration pages
+* Any page containing inquiry, registration, or call-to-action buttons
+
+Square Payment Integration Requirements
+
+The current setup appears to only process payments for the event page.
+
+This needs to be expanded so that EVERY paid course and training offering can accept payment through Square.
+
+Required Setup:
+
+Create Square products/payment links for all paid classes and connect them to the corresponding registration workflows.
+
+Security Training Pricing:
+
+* Level II Security Training – $65
+* Level III Security Training – $130
+* Level IV Security Training – $225
+* Level III / Level IV Combo – $400
+
+Texas LTC Event:
+
+* June 13, 2026
+* $100 plus range fee
+
+Requirements:
+
+* Every paid class must have a working Square checkout.
+* Registration must flow directly into payment.
+* No class should require manual payment arrangements.
+* Use Square Sandbox for QA testing before enabling production.
+* Once testing is complete, connect to the live Square account.
+
+Registration Workflow Requirements
+
+Current Problem:
+When someone registers and completes payment, Corsair Tactical Solutions is NOT receiving an email notification identifying who registered.
+
+Required Fix:
+
+Whenever someone registers for any class:
+
+Capture the following information:
+
+* Full Name
+* Email Address
+* Phone Number
+* Class Selected
+* Event Date (if applicable)
+* Payment Confirmation Number
+* Date and Time of Registration
+
+After successful registration and payment:
+
+Automatically send an email notification to:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+Email Subject Example:
+
+New Class Registration – [Class Name]
+
+Email Body Example:
+
+A new registration has been received.
+
+Student Name:
+Email:
+Phone:
+
+Registered Class:
+Event Date:
+
+Square Payment Confirmation:
+Registration Date:
+
+Please contact the student if additional information is needed.
+
+Student Confirmation Emails
+
+The registrant should also receive an automatic confirmation email containing:
+
+* Thank-you message
+* Registered class details
+* Event date and time
+* Payment confirmation number
+* Instructions on what to bring
+* Contact information
+
+Button & Link Audit (Critical)
+
+Current Problem:
+Some buttons redirect visitors back to the homepage instead of the intended forms.
+
+Required Action:
+
+Audit EVERY button, link, and call-to-action on the website.
+
+Verify that each button routes correctly.
+
+Examples include:
+
+Homepage:
+
+* Security Services
+* Security Training
+* Texas LTC / Private Instruction
+* Contact Us
+* Register Now
+* Learn More
+
+Courses Page:
+
+* All registration buttons
+* All payment buttons
+
+Security Training Page:
+
+* All registration buttons
+* All payment buttons
+
+Events Pages:
+
+* Registration buttons
+* Square checkout buttons
+
+Contact Page:
+
+* Submit button
+* Inquiry buttons
+
+Any incorrect homepage redirects must be corrected immediately.
+
+Contact Form Requirements
+
+All contact and inquiry forms must send submissions to:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+Verify:
+
+* Form submissions are delivered successfully.
+* Confirmation messages display to users.
+* No submissions are lost.
+* Spam filtering is not preventing delivery.
+
+QA Testing Requirements
+
+Perform complete end-to-end testing for every workflow:
+
+Contact Forms
+
+* Submit test inquiries.
+* Verify email delivery.
+
+Course Registrations
+
+* Register for every class.
+* Verify student information is captured.
+
+Square Sandbox
+
+* Complete Sandbox transactions for every paid offering.
+* Verify successful checkout.
+
+Email Notifications
+
+* Verify admin notifications are received.
+* Verify student confirmations are received.
+
+Button Testing
+
+* Click every CTA on the website.
+* Confirm proper destinations.
+
+Mobile Testing
+
+* Test on desktop, tablet, and mobile devices.
+
+Final Deliverables
+
+Provide a QA report documenting:
+
+* Every class tested
+* Every payment tested
+* Every registration tested
+* Every email notification tested
+* Screenshots of successful Square Sandbox transactions
+* Screenshots of registration confirmation emails
+* List of any issues found and the resolutions implemented
+
+The website should not be considered complete until all registrations, payments, email notifications, forms, and call-to-action buttons have been verified as fully functional.

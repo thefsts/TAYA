@@ -1,0 +1,217 @@
+20. Comprehensive Website Audit – Do Not Miss Any Classes, Buttons, or Workflows
+
+Priority: CRITICAL
+
+Do not limit testing and setup to only the pages specifically mentioned above. Perform a complete audit of the entire website to identify every class, every registration workflow, every payment button, every contact form, and every call-to-action button.
+
+Nothing should be assumed to be working without being tested.
+
+Website-Wide Scope
+
+Audit and verify ALL pages throughout the website, including any pages that may have been added after launch.
+
+This includes, but is not limited to:
+
+* Homepage
+* Security Services pages
+* Security Training pages
+* Courses pages
+* LTC pages
+* Events pages
+* Contact page
+* Registration forms
+* Inquiry forms
+* Footer links
+* Header navigation
+* Hero buttons
+* Internal call-to-action buttons
+* Mobile menu links
+
+Class & Training Audit
+
+Identify EVERY class, course, event, and training offering listed anywhere on the website.
+
+Examples include:
+
+Security Training
+
+* Level II Security Training
+* Level III Security Training
+* Level IV Security Training
+* Level III / Level IV Combo
+* Continuing Education Courses
+* Any additional security training programs listed on the website
+
+LTC & Firearms Training
+
+* Texas LTC Classes
+* Private Firearms Instruction
+* Any specialty firearms instruction
+* Any future scheduled LTC events
+
+Events
+
+* June 13, 2026 Texas LTC Event
+* Any additional event registrations displayed anywhere on the website
+
+If a class exists anywhere on the website, it must be included in this process.
+
+Square Payment Requirements
+
+Every paid offering on the website must have a functioning Square payment process.
+
+Do not assume only the event page requires payment integration.
+
+For EVERY paid class:
+
+* Create or connect the appropriate Square item/payment link.
+* Verify pricing matches the website.
+* Verify checkout completes successfully.
+* Verify payment confirmation is received.
+* Verify the workflow works on desktop and mobile.
+
+No class should require customers to call, email, or arrange payment separately unless specifically instructed.
+
+Registration & Email Notification Requirements
+
+For EVERY registration submitted:
+
+Capture:
+
+* Full Name
+* Email Address
+* Phone Number
+* Selected Class/Event
+* Event Date (if applicable)
+* Square Transaction Reference
+* Registration Date and Time
+
+After registration and payment:
+
+Send an administrative notification to:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+The email must identify exactly who registered and for which class.
+
+Send a confirmation email to the student containing:
+
+* Registration details
+* Payment confirmation
+* Class information
+* Event details
+* Instructions for attendance
+* Contact information
+
+Button & Link Audit (Entire Website)
+
+Current Problem:
+Several buttons redirect visitors back to the homepage instead of their intended destination.
+
+Required Action:
+
+Test EVERY clickable element on the website.
+
+Verify that each button:
+
+* Goes to the correct page,
+* Opens the correct form,
+* Initiates the correct registration process,
+* Opens the correct Square checkout,
+* Sends inquiries to the correct email address,
+* Returns the user to the correct confirmation page.
+
+Examples include:
+
+Homepage
+
+* All hero buttons
+* Learn More buttons
+* Register buttons
+* Contact buttons
+
+Courses Pages
+
+* Register Now buttons
+* Pay Now buttons
+* Learn More buttons
+
+Security Training Pages
+
+* All training registration buttons
+* All payment buttons
+
+Events Pages
+
+* Registration buttons
+* Checkout buttons
+
+Contact Forms
+
+* Submit buttons
+* Inquiry buttons
+
+Navigation
+
+* Header menu items
+* Footer links
+* Mobile menu items
+
+Absolutely no button should redirect users back to the homepage unless that is its intended function.
+
+Form & Email Audit
+
+Verify every form on the website sends to:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+Test each form individually.
+
+Confirm:
+
+* Successful delivery,
+* User confirmation messages,
+* No failed submissions,
+* No missing notifications.
+
+QA Testing Requirements
+
+Conduct a complete end-to-end QA review of the entire website.
+
+This includes:
+
+* Desktop testing
+* Tablet testing
+* Mobile testing
+
+Test:
+
+* Every page
+* Every button
+* Every form
+* Every class registration
+* Every Square payment workflow
+* Every confirmation email
+* Every administrative notification
+
+Final Deliverables
+
+Provide a detailed QA report documenting:
+
+* All pages reviewed
+* All classes identified
+* All Square payment links tested
+* All registration workflows tested
+* All forms tested
+* All buttons and links tested
+* Screenshots of successful Square Sandbox transactions
+* Screenshots of confirmation emails
+* Screenshots of administrative notification emails
+* Any defects discovered
+* The corrective actions taken
+
+Project Completion Standard
+
+The website should not be considered complete until every class, every training program, every event, every button, every form, every payment process, and every email notification across the entire website has been verified as fully functional.
+
+The expectation is 100% website coverage with no assumptions and no untested workflows.

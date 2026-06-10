@@ -1,0 +1,3 @@
+- [Corsair GitHub push pattern](corsair-github-push.md) — blob→tree→commit (full 40-char SHA)→PATCH refs/heads/main; author Thefsts <amorebey@gmail.com>
+- [Corsair Vercel + Square + Resend](corsair-infra.md) — project IDs, env var names, from address, admin email
+- [Corsair courses.ts slugs](corsair-courses.md) — all security training slugs + pricing; Level II added at $65
