@@ -1,22 +1,20 @@
 ---
-name: Corsair courses.ts slugs and pricing
-description: All security training course slugs and base prices for Corsair Tactical Solutions
+name: Corsair email and security course decisions
+description: Durable constraints about email sending pattern, security course GOV_ID requirements, and course catalog location
 ---
 
-Security training slugs (all payable via Square BookingForm):
-  level-2-security-officer          $65   (added in QA pass, unarmed, 1-2 days)
-  level-3-armed-security-officer    $130  (armed, 3-5 days, range fee $25 required)
-  level-4-bodyguard                 $225  (PPO/bodyguard, 3-5 days)
-  level-3-4-complete-package        $400  (bundle w/ LTC, 5-7 days)
+**Email send pattern:** Raw `fetch` to Resend API — NOT the Resend SDK. Fire-and-forget with `Promise.all`. Applies in all API routes (contact, create-payment, event-register).
 
-All 4 slugs are in BookingForm GOV_ID_SLUGS (government ID acknowledgment required).
-Security training page (/security-training) cert cards link to /courses/[slug].
+**Why:** The project uses plain fetch for consistency and to avoid adding a dependency. Switching to the SDK would require installing it in the artifact package.
 
-Event: texas-ltc-certification-class-jun2026 — $100, 20-seat cap, Jun 13 2026.
-Seat counter at /api/seats, 409 when full.
+**GOV_ID_SLUGS constraint:** All security training courses (Level II through Level III/IV combo) require government ID acknowledgment in the booking form. When adding a new security course, add its slug to `GOV_ID_SLUGS` in BookingForm.tsx.
 
-courses.ts location: src/lib/courses.ts (NOT src/data/courses.ts)
-events.ts location: src/data/events.ts
-pricing.ts: src/lib/pricing.ts (getCatalog, resolveCoursePayment)
+**Why:** Texas DPS regulations require identity verification for security officer certifications.
 
-**Why:** Needed to know which slugs exist before modifying course pages or payment routes.
+**Security course location:** Security training courses live in `src/lib/courses.ts` (not `src/data/`). The security category list in that same file must be updated when adding a new slug, or `getCoursesByCategory('security')` will miss it.
+
+**Why:** Took two files to add Level II correctly — easy to miss the category list.
+
+**Courses vs data split:** Course definitions = `src/lib/courses.ts`. Events = `src/data/events.ts`. Pricing/catalog resolution = `src/lib/pricing.ts`.
+
+**How to apply:** Any time a new course is added or an email notification is wired up.

@@ -1,3 +1,2 @@
-- [Corsair GitHub push pattern](corsair-github-push.md) — blob→tree→commit (full 40-char SHA)→PATCH refs/heads/main; author Thefsts <amorebey@gmail.com>
-- [Corsair Vercel + Square + Resend](corsair-infra.md) — project IDs, env var names, from address, admin email
-- [Corsair courses.ts slugs](corsair-courses.md) — all security training slugs + pricing; Level II added at $65
+- [Corsair GitHub push pattern](corsair-github-push.md) — how to push to thefsts/Corsair-Tactical-Solutions without losing Vercel auto-deploy
+- [Corsair email + security course decisions](corsair-courses.md) — non-obvious constraints about GOV_ID slugs, Level II addition, and email-send pattern
