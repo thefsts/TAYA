@@ -1,0 +1,109 @@
+22. CRITICAL: Switch Square From Sandbox to LIVE Production Mode
+
+Priority: IMMEDIATE
+
+The client has confirmed that the website is now expected to accept real customer payments. Square must be fully transitioned from Sandbox testing to the live production environment.
+
+Do not close this project until live payment processing has been verified.
+
+Live Square Requirements
+
+1. Replace Sandbox Credentials
+
+* Remove all Square Sandbox access tokens, application IDs, and environment settings.
+* Configure the website to use the client's LIVE Square credentials.
+* Verify that all environment variables have been updated correctly in Vercel.
+
+2. Enable Production Checkout
+
+All paid offerings throughout the website must process real payments through Square.
+
+This includes, but is not limited to:
+
+Security Training:
+
+* Level II Security Training – $65
+* Level III Security Training – $130
+* Level IV Security Training – $225
+* Level III / Level IV Combo – $400
+
+LTC Training:
+
+* June 13, 2026 Texas LTC Event – $100 plus range fee
+* Any additional LTC events listed on the website
+
+All Other Paid Courses:
+
+* Review the entire website and identify every paid offering.
+* Connect each paid offering to the appropriate live Square product/payment flow.
+
+3. Live Payment Validation
+
+After production credentials are enabled, perform a REAL transaction test.
+
+Recommended Process:
+
+* Process a small live transaction (for example, $1.00 if supported) using a real payment method.
+* Immediately refund the transaction after successful completion.
+
+Verify:
+
+* Payment is approved.
+* Confirmation page loads correctly.
+* Square records the payment.
+* Refund processing functions correctly.
+
+4. Registration & Email Verification
+
+For each live payment test, confirm that:
+
+The student receives:
+
+* Payment confirmation email.
+* Registration confirmation.
+* Class details.
+
+Corsair Tactical Solutions receives an email at:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+containing:
+
+* Student name.
+* Student email.
+* Phone number.
+* Registered class.
+* Event date (if applicable).
+* Square payment ID.
+* Order number.
+* Registration date and time.
+
+5. Production QA Checklist
+
+Verify on the LIVE website:
+
+* All Square checkout buttons work.
+* No checkout redirects fail.
+* Pricing matches the website.
+* Confirmation pages display properly.
+* Email notifications function correctly.
+* Mobile checkout works.
+* Desktop checkout works.
+
+6. Final Deliverables
+
+Provide evidence of:
+
+* Live Square environment enabled.
+* List of all products/classes connected to live Square.
+* Successful live payment test.
+* Successful refund test.
+* Screenshots of Square transaction confirmation.
+* Screenshots of admin email notifications.
+* Confirmation that Vercel production environment variables were updated.
+
+Project Completion Standard
+
+The website should only be considered complete after confirming that real customers can successfully register, pay through Square, and generate the required email notifications without any manual intervention.
+
+The site must be fully operational and ready to accept live registrations and payments immediately.

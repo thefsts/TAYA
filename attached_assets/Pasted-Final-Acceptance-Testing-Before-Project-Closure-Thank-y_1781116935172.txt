@@ -1,0 +1,118 @@
+Final Acceptance Testing Before Project Closure
+
+Thank you for completing the fixes and QA review. Before this project is considered complete, please perform one final production-level validation to ensure nothing was overlooked.
+
+The following items require explicit confirmation:
+
+1. Course Coverage Verification
+
+Please provide a checklist confirming that EVERY course on the website has been reviewed.
+
+This includes all tabbed content under:
+https://www.corsairtacticalsolution.com/courses
+
+Required confirmation for:
+
+* License to Carry (LTC)
+* Beginner Training
+* Defensive Training
+* Private Training
+* Security Training
+* Rifle / Shotgun
+* Women's Training
+* Church / Business Safety
+* First Aid / Medical
+* Instructor / Professional
+
+For each category, confirm:
+
+* Whether the course is inquiry-only or paid.
+* Whether the registration flow works.
+* Whether emails are received.
+* Whether Square checkout was tested (if applicable).
+
+2. Square Coverage Verification
+
+Please provide a list of every paid class connected to Square.
+
+Confirm that all paid offerings throughout the website are connected to Square and not just the June 13 event.
+
+For each paid class, verify:
+
+* Correct pricing.
+* Successful Square checkout.
+* Student confirmation email.
+* Admin notification email to:
+  [corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+3. Email Verification
+
+Please confirm that ALL email notifications are being delivered to:
+
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+This includes:
+
+* Contact forms
+* Inquiry forms
+* Course registrations
+* Event registrations
+* Waiver submissions
+* Square payment registrations
+
+Provide confirmation that each workflow was tested end-to-end.
+
+4. Homepage and CTA Audit
+
+Please reconfirm that no buttons are redirecting users back to the homepage unintentionally.
+
+Verify:
+
+Homepage:
+
+* Security Services
+* Security Training
+* Texas LTC / Private Instruction
+* Contact buttons
+* Learn More buttons
+
+Courses:
+
+* Quick View buttons
+* Register buttons
+* Contact Instructor buttons
+
+Events:
+
+* Registration buttons
+* Payment buttons
+
+Navigation:
+
+* Header links
+* Footer links
+* Mobile menu links
+
+5. Production Validation
+
+After Vercel deployment completes, perform the same tests against the LIVE production website—not only in the development environment.
+
+Confirm that:
+
+* The live site behaves exactly as tested.
+* All environment variables function correctly.
+* Emails are delivered in production.
+* Square integrations function correctly.
+* No production-only errors occur.
+
+Final Sign-Off Requirement
+
+The project may be considered complete once written confirmation is provided that:
+
+* Every course and tab was tested.
+* Every paid class is connected to Square.
+* Every form sends email notifications to [corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com).
+* Every button routes correctly.
+* Production testing passed successfully after deployment.
+
+Once these confirmations are complete, the Corsair Tactical Solutions website can be considered fully operational and ready for public use.
