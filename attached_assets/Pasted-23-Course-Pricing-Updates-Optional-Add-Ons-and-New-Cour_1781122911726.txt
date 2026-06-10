@@ -1,0 +1,149 @@
+23. Course Pricing Updates, Optional Add-Ons, and New Course Creation
+
+Priority: HIGH
+
+Please update the training catalog, Square products, registration workflows, and confirmation emails to reflect the following changes.
+
+A. Add Required Range Fee and Optional Add-Ons
+
+For the following courses, add the ability for students to select optional add-ons during registration and checkout.
+
+Required Fee:
+
+* Range Fee: $25 (Required and automatically included in checkout total)
+
+Optional Add-Ons:
+
+* 50 Rounds of Ammo: $30
+* Rent a Handgun: $20
+
+These options should appear as selectable add-ons within the booking flow and be reflected in the Square order summary, confirmation page, and email notifications.
+
+Apply these updates to the following courses:
+
+* Texas License to Carry Certification
+* Texas License to Carry Certification / Basic Handgun
+* Texas LTC Shooting Proficiency
+* Basic Handgun Skills Training (Personal 1:1)
+* Defensive Shooting Skills
+* Level 3 Armed Security Officer — Commissioned
+* Level III + IV Complete Package
+* Texas License to Carry Certification (Wichita)
+* Firearm Proficiency Re-Qualification
+
+Checkout Requirements:
+
+* The $25 Range Fee must always be included.
+* Ammo and handgun rental must be optional checkboxes.
+* The final price shown to the customer must update dynamically before payment.
+* Square orders and receipts must display the itemized breakdown.
+
+B. Pricing Update
+
+Update the following course price:
+
+Texas License to Carry Certification (Wichita)
+
+Current:
+
+* From $100
+
+New:
+
+* From $125
+
+Update:
+
+* Website pricing display
+* Square pricing
+* Confirmation emails
+* Receipts
+* Server-side pricing validation
+
+C. New Course: Shotgun Course
+
+Create a new course listing.
+
+Course Name:
+Shotgun Course
+
+Price:
+
+* From $75
+
+Required Fee:
+
+* Range Fee: $25 (Required and automatically included)
+
+Optional Add-Ons:
+
+* 50 Rounds of Ammo: $35
+* Rent a Shotgun: $25
+
+Requirements:
+
+* Add to the Courses page.
+* Tag under the Rifle / Shotgun category.
+* Include registration workflow.
+* Connect to Square.
+* Include confirmation emails.
+* Display itemized pricing throughout checkout.
+
+D. New Course: AR-15 Rifle Course
+
+Create a new course listing.
+
+Course Name:
+AR-15 Rifle Course
+
+Price:
+
+* From $90
+
+Required Fee:
+
+* Range Fee: $25 (Required and automatically included)
+
+Optional Add-Ons:
+
+* 50 Rounds of Ammo: $40
+* Rent an AR-15 Rifle: $35
+
+Requirements:
+
+* Add to the Courses page.
+* Tag under the Rifle / Shotgun category.
+* Include registration workflow.
+* Connect to Square.
+* Include confirmation emails.
+* Display itemized pricing throughout checkout.
+
+E. Square & Email Requirements
+
+For all new and updated courses:
+
+* Update Square product catalog entries.
+* Update server-side pricing validation.
+* Ensure the browser cannot manipulate pricing.
+* Include all required fees and selected add-ons in Square Orders.
+* Include itemized line items on receipts and confirmation pages.
+* Include selected add-ons in administrative emails sent to:
+  [corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+* Include selected add-ons in student confirmation emails.
+
+F. QA Requirements
+
+Verify the following for each updated course:
+
+* Base price is correct.
+* Required range fee is automatically included.
+* Optional add-ons calculate correctly.
+* Square checkout total matches the displayed total.
+* Confirmation page displays itemized charges.
+* Admin emails include add-on selections.
+* Student emails include add-on selections.
+* Mobile and desktop checkout function correctly.
+
+Project Completion Standard
+
+The training catalog, Square integration, and registration workflows should accurately reflect all pricing, required fees, and optional add-ons so customers can register and pay with complete transparency.

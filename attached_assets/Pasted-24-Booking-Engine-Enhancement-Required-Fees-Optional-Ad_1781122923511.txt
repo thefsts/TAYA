@@ -1,0 +1,244 @@
+24. Booking Engine Enhancement – Required Fees, Optional Add-Ons & Dynamic Checkout
+
+Priority: HIGH
+
+To improve customer experience and increase revenue opportunities, update the booking engine so customers can customize their registrations before completing payment.
+
+A. Dynamic Checkout Requirements
+
+The booking form should automatically calculate totals in real time.
+
+Display the following:
+
+Course Price
+
+* Required Fees
+* Optional Add-Ons
+  = Total Due Today
+
+The customer should see the total update immediately as selections are made.
+
+B. Handgun Course Add-Ons
+
+For the following courses:
+
+* Texas License to Carry Certification
+* Texas License to Carry Certification / Basic Handgun
+* Texas LTC Shooting Proficiency
+* Basic Handgun Skills Training (Personal 1:1)
+* Defensive Shooting Skills
+* Level 3 Armed Security Officer — Commissioned
+* Level III + IV Complete Package
+* Texas License to Carry Certification (Wichita)
+* Firearm Proficiency Re-Qualification
+
+Booking Options:
+
+Base Course Price:
+
+* Use the published course price.
+
+Required Fee:
+
+* Range Fee: $25 (automatically included)
+
+Optional Add-Ons:
+☐ 50 Rounds of Ammo — $30
+☐ Rent a Handgun — $20
+
+The checkout should clearly indicate:
+
+"$25 Range Fee Included"
+
+C. Wichita LTC Pricing Update
+
+Update:
+
+Texas License to Carry Certification (Wichita)
+
+Previous Price:
+
+* From $100
+
+New Price:
+
+* From $125
+
+Update all references including:
+
+* Course listings
+* Course detail pages
+* Square orders
+* Confirmation pages
+* Emails
+* Pricing validation logic
+
+D. New Course: Shotgun Course
+
+Create a new course.
+
+Course Name:
+Shotgun Course
+
+Category:
+Rifle / Shotgun
+
+Price:
+
+* From $75
+
+Booking Options:
+
+Required Fee:
+
+* Range Fee: $25 Included
+
+Optional Add-Ons:
+☐ 50 Rounds of Shotgun Ammo — $35
+☐ Rent a Shotgun — $25
+
+Requirements:
+
+* Add to Courses page.
+* Display in Rifle / Shotgun filter.
+* Create course detail page.
+* Connect to Square.
+* Include confirmation emails.
+* Include admin notifications.
+* Include itemized receipts.
+
+E. New Course: AR-15 Rifle Course
+
+Create a new course.
+
+Course Name:
+AR-15 Rifle Course
+
+Category:
+Rifle / Shotgun
+
+Price:
+
+* From $90
+
+Booking Options:
+
+Required Fee:
+
+* Range Fee: $25 Included
+
+Optional Add-Ons:
+☐ 50 Rounds of AR-15 Ammunition — $40
+☐ Rent an AR-15 Rifle — $35
+
+Requirements:
+
+* Add to Courses page.
+* Display in Rifle / Shotgun filter.
+* Create course detail page.
+* Connect to Square.
+* Include confirmation emails.
+* Include admin notifications.
+* Include itemized receipts.
+
+F. Square Product & Pricing Requirements
+
+For every updated course:
+
+Create separate Square line items for:
+
+* Course Tuition
+* Required Range Fee
+* Optional Ammunition
+* Optional Firearm Rental
+
+Server-Side Validation:
+
+Do not trust browser pricing.
+
+The server must calculate totals using approved pricing rules.
+
+Square Orders should display itemized charges.
+
+G. Confirmation Page Updates
+
+Display an itemized breakdown including:
+
+Course Tuition:
+Required Range Fee:
+Optional Add-Ons:
+Total Paid:
+
+Also display:
+
+What to Bring:
+
+* Valid Photo ID
+* Eye and Ear Protection
+* Appropriate Clothing
+* Any rented equipment selected during registration
+
+H. Email Updates
+
+Administrative Email to:
+[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)
+
+Include:
+
+* Student Name
+* Email
+* Phone Number
+* Course Registered
+* Selected Add-Ons
+* Payment ID
+* Order Number
+* Registration Date
+
+Student Confirmation Email
+
+Include:
+
+* Course Name
+* Date and Time (if applicable)
+* Required Range Fee
+* Selected Add-Ons
+* Itemized Receipt
+* What to Bring
+* Contact Information
+
+I. QA Requirements
+
+Verify for every updated course:
+
+✓ Correct base pricing
+
+✓ Wichita LTC displays From $125
+
+✓ Required range fee automatically included
+
+✓ Optional add-ons calculate correctly
+
+✓ Square checkout totals match displayed totals
+
+✓ Square receipts show itemized charges
+
+✓ Admin emails contain selected add-ons
+
+✓ Student emails contain selected add-ons
+
+✓ Confirmation pages display accurate totals
+
+✓ Mobile checkout functions properly
+
+✓ Desktop checkout functions properly
+
+J. Final Acceptance Requirements
+
+The booking engine should provide a premium customer experience where students can clearly understand:
+
+* What the course costs,
+* What fees are required,
+* What optional equipment is available,
+* Exactly what they are paying for before completing checkout.
+
+All pricing must remain transparent, itemized, and protected through server-side validation.

@@ -1,2 +1,2 @@
-- [Corsair GitHub push pattern](corsair-github-push.md) — how to push to thefsts/Corsair-Tactical-Solutions without losing Vercel auto-deploy
-- [Corsair email + security course decisions](corsair-courses.md) — non-obvious constraints about GOV_ID slugs, Level II addition, and email-send pattern
+- [Corsair push pattern](corsair-push.md) — GitHub blob→tree→commit→PATCH pattern; file must be read from API first; anchor uniqueness is critical
+- [Corsair TypeScript unicode](corsair-ts-unicode.md) — TypeScript string literal \uXXXX escapes are stored as literal 6-char sequences; comments use real unicode; use surrounding ASCII context as anchors
