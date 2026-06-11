@@ -1,0 +1,222 @@
+28. Courses Page Image Updates
+
+Priority: HIGH
+
+Location:
+https://www.corsairtacticalsolution.com/courses
+
+Please update the course images listed below. Maintain the existing design, course card layouts, animations, hover effects, filtering functionality, and responsive behavior.
+
+Do not redesign the Courses page. Only replace the specified images.
+
+A. Online Texas License to Carry Assessment
+
+Course:
+Online Texas License to Carry Assessment
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Online Texas License to Carry Assessment pic
+
+Requirements:
+
+* Update both the course card image and course detail page image (if applicable).
+* Preserve existing styling and layout.
+
+B. Texas License to Carry Certification / Basic Handgun
+
+Course:
+Texas License to Carry Certification / Basic Handgun
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Texas License to Carry Certification / Basic Handgun 2
+
+Requirements:
+
+* Update the course card image.
+* Update the course detail page image.
+* Maintain the previously updated duration of 6–7 hours for this course only.
+
+C. Texas LTC Shooting Proficiency
+
+Course:
+Texas LTC Shooting Proficiency
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Texas LTC Shooting Proficiency
+
+Requirements:
+
+* Update all instances of the course image.
+
+D. Level 2 Unarmed Security Officer
+
+Course:
+Level 2 Unarmed Security Officer
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Level 2 Unarmed Security Officer
+
+Requirements:
+
+* Update both the course card and course detail page.
+
+E. Level 3 Armed Security Officer — Commissioned
+
+Course:
+Level 3 Armed Security Officer — Commissioned
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Level 3 Armed Security Officer — Commissioned
+
+Requirements:
+
+* Update both the course card and course detail page.
+
+F. Level 4 Bodyguard (Personal Protection Officer)
+
+Course:
+Level 4 Bodyguard (Personal Protection Officer)
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Level 4 Bodyguard (Personal Protection Officer)
+
+Requirements:
+
+* Update both the course card and course detail page.
+
+G. Firearm Proficiency Re-Qualification
+
+Course:
+Firearm Proficiency Re-Qualification
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Firearm Proficiency Re-Qualification
+
+Requirements:
+
+* Update all instances of the image.
+
+H. Armed First Responder
+
+Course:
+Armed First Responder
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Armed First Responder
+
+Requirements:
+
+* Update all instances of the image.
+
+I. Shotgun Course
+
+Course:
+Shotgun Course
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: Shotgun Course
+
+Requirements:
+
+* Update both the course card and course detail page.
+* Verify the Rifle / Shotgun category filter displays the updated image correctly.
+
+J. AR-15 Rifle Course
+
+Course:
+AR-15 Rifle Course
+
+Action:
+Replace the current image.
+
+New Image:
+
+* File Name: AR-15 Rifle Course
+
+Requirements:
+
+* Update both the course card and course detail page.
+* Verify the Rifle / Shotgun category filter displays the updated image correctly.
+
+K. Image Standards and QA Requirements
+
+Apply the following standards to ALL updated course images:
+
+* Maintain consistent image sizing and aspect ratios.
+* No stretched, distorted, blurry, or pixelated images.
+* Preserve hover effects and animations.
+* Optimize all images for fast page loading.
+* Ensure proper cropping so important subjects remain visible.
+* Verify responsive display on desktop, tablet, and mobile devices.
+* Maintain visual consistency across the entire Courses page.
+* Ensure all filters continue functioning correctly after image updates.
+
+Final QA Checklist
+
+✓ Online Texas License to Carry Assessment image updated.
+
+✓ Texas License to Carry Certification / Basic Handgun image updated to "Texas License to Carry Certification / Basic Handgun 2."
+
+✓ Texas License to Carry Certification / Basic Handgun remains the ONLY course displaying the updated 6–7 hour duration.
+
+✓ Texas LTC Shooting Proficiency image updated.
+
+✓ Level 2 Unarmed Security Officer image updated.
+
+✓ Level 3 Armed Security Officer — Commissioned image updated.
+
+✓ Level 4 Bodyguard (Personal Protection Officer) image updated.
+
+✓ Firearm Proficiency Re-Qualification image updated.
+
+✓ Armed First Responder image updated.
+
+✓ Shotgun Course image updated.
+
+✓ AR-15 Rifle Course image updated.
+
+✓ All updated images display correctly on desktop, tablet, and mobile devices.
+
+✓ No broken images or missing media files.
+
+✓ Course filters and functionality remain fully operational.
+
+Project Completion Standard
+
+The Courses page should maintain its current design and user experience while presenting refreshed, high-quality imagery that better represents each training offering and reinforces the professional appearance of Corsair Tactical Solutions.
