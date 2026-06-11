@@ -1,0 +1,166 @@
+31. Final Visual & Content Audit – Please Verify These Additional Items
+
+Priority: HIGH
+
+Before closing this project, please perform one final visual and content audit to catch any remaining inconsistencies introduced during the updates.
+
+A. Reusable Component Audit
+
+Several sections of the website reuse the same components. Please verify that updates applied in one location were propagated everywhere those components appear.
+
+Check for:
+
+* Steve Hopwood bio sections
+* Instructor profile cards
+* Course cards
+* Hero banners
+* Testimonial sections
+* CTA sections
+* Featured course sections
+* Event cards
+
+Ensure all instances are displaying the latest content and imagery.
+
+B. Image Cache Verification
+
+Because multiple images have been replaced during this project:
+
+* Verify the newest image files are being served.
+* Confirm old optimized images are not being cached.
+* Test in an incognito/private browser session.
+* Test after clearing cache.
+* Confirm Vercel image optimization is serving the updated assets.
+
+C. Mobile Visual Review
+
+Perform a full review on mobile devices and verify:
+
+* Images are not clipped.
+* Faces are not cut off.
+* Text overlays remain readable.
+* Buttons remain visible and clickable.
+* Hero sections maintain proper proportions.
+* Instructor portraits display correctly.
+* Course cards remain visually consistent.
+
+D. Tablet Review
+
+Verify tablet layouts for:
+
+* Portrait orientation
+* Landscape orientation
+
+Confirm:
+
+* Proper spacing.
+* Balanced layouts.
+* Correct image scaling.
+* No unexpected wrapping of text.
+
+E. Desktop Review
+
+Review the entire website on desktop and confirm:
+
+* Images are sharp and centered.
+* No layout shifts occur.
+* Hover states continue functioning.
+* Animations remain smooth.
+* Section spacing remains consistent.
+
+F. Typography & Content Consistency
+
+Please verify:
+
+* "Navy Veteran · 14 Yrs" appears consistently everywhere.
+* No references remain to "12 Yrs."
+* Course titles are identical across listings, detail pages, emails, and confirmations.
+* Pricing is consistent throughout the site.
+* Duration values match the approved course durations.
+* Contact information is consistent.
+
+G. Broken Link Audit
+
+Perform a complete click-through of the production site and confirm:
+
+* No 404 errors.
+* No links redirect unintentionally to the homepage.
+* Removed course redirects function properly.
+* Navigation links work.
+* Footer links work.
+* Social links work.
+* Phone and email links work.
+
+H. SEO & Metadata Review
+
+Verify that recent changes did not negatively impact SEO.
+
+Check:
+
+* Removed duplicate course redirects are functioning.
+* No duplicate pages remain indexed.
+* Updated course images have alt text.
+* Updated instructor images have alt text.
+* Metadata reflects current content.
+* Structured data/schema is still valid.
+
+I. Final Production Walkthrough
+
+After deployment is complete, conduct a full walkthrough of the LIVE site from beginning to end.
+
+Review:
+
+Homepage
+
+About
+
+Courses
+
+Events
+
+Security Services
+
+Property Manager Services
+
+Private Investigations
+
+Security Training
+
+Contact
+
+Footer
+
+Mobile Navigation
+
+Desktop Navigation
+
+J. Final Acceptance Checklist
+
+Verify:
+
+✓ All new images are displaying correctly.
+
+✓ Steve Hopwood portrait issue is fully resolved everywhere.
+
+✓ Navy Veteran · 14 Yrs is consistent across the site.
+
+✓ No old content remains.
+
+✓ No broken images exist.
+
+✓ No broken links exist.
+
+✓ No production-only issues exist.
+
+✓ Desktop review completed.
+
+✓ Tablet review completed.
+
+✓ Mobile review completed.
+
+✓ SEO redirects validated.
+
+✓ Website is visually polished and ready for public use.
+
+Project Completion Standard
+
+The website should not only function correctly but also present a polished, professional, and consistent experience across every page and every device. This final audit is intended to identify and eliminate the small issues that are often missed during large update projects so the Corsair Tactical Solutions website launches in its best possible state.

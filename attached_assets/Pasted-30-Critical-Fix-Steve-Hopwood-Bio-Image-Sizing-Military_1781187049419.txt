@@ -1,0 +1,149 @@
+30. Critical Fix – Steve Hopwood Bio Image Sizing & Military Service Update
+
+Priority: HIGH
+
+The previous image replacement for Steve Hopwood was not completed correctly.
+
+The image is still being improperly cropped and is not displaying the full portrait.
+
+This issue exists in multiple locations and must be corrected everywhere the component is reused.
+
+Affected Pages:
+
+Homepage:
+https://www.corsairtacticalsolution.com/
+
+Security Training:
+https://www.corsairtacticalsolution.com/security-training
+
+A. Replace Steve Hopwood Image Again
+
+Action:
+
+The previously supplied image did not display correctly.
+
+A newly cropped replacement image will be provided.
+
+Replace the current Steve Hopwood image with the new file.
+
+New Image:
+
+* File Name: Steve Hopwood bio pic (new replacement version)
+
+Requirements:
+
+* Use the newly supplied image.
+* Remove the previous version completely.
+* Ensure the entire portrait is visible.
+* Do not crop off Steve's head, shoulders, arms, or other important parts of the image.
+* Verify the image is using the new asset and not being served from cache.
+
+B. Fix the Image Container and Layout
+
+The issue appears to be caused by the image container settings rather than the image itself.
+
+Review and update the component configuration.
+
+Verify:
+
+* Image aspect ratio is appropriate for portrait photography.
+* The image container height allows the full portrait to display.
+* The image is centered correctly.
+* The image is not zoomed excessively.
+* Important portions of the image are not clipped.
+* The image remains visually balanced with the adjacent text.
+
+If necessary:
+
+* Adjust the container dimensions.
+* Modify object-fit and object-position settings.
+* Update responsive breakpoints.
+* Increase vertical space allocated to the portrait.
+
+The goal is to display the full professional portrait while preserving the existing design.
+
+C. Apply the Fix Everywhere This Component Is Used
+
+The corrected Steve Hopwood image treatment must be applied consistently to all locations using this component.
+
+Required Locations:
+
+Homepage:
+https://www.corsairtacticalsolution.com/
+
+Security Training Page:
+https://www.corsairtacticalsolution.com/security-training
+
+If additional instances of this same component exist elsewhere on the site:
+
+* Update those instances as well.
+
+D. Military Service Update
+
+Current Text:
+
+* Navy Veteran · 12 Yrs
+
+Update To:
+
+* Navy Veteran · 14 Yrs
+
+Requirements:
+
+Review the entire website and update every occurrence of:
+
+"Navy Veteran · 12 Yrs"
+
+to:
+
+"Navy Veteran · 14 Yrs"
+
+Verify there are no remaining references to 12 years of service.
+
+Check:
+
+* Homepage
+* Security Training page
+* About page
+* Instructor sections
+* Structured data/schema markup
+* Reusable components
+* SEO metadata if applicable
+
+E. Cache and Deployment Validation
+
+After deployment:
+
+* Clear any image caches if necessary.
+* Confirm the new image is being served in production.
+* Verify that browsers display the updated image without requiring users to hard refresh.
+
+F. QA Requirements
+
+Verify:
+
+✓ Homepage Steve Hopwood image displays the full portrait correctly.
+
+✓ Security Training page Steve Hopwood image displays the full portrait correctly.
+
+✓ The new replacement image is being used.
+
+✓ No excessive cropping occurs.
+
+✓ No stretching or distortion occurs.
+
+✓ Desktop display verified.
+
+✓ Tablet display verified.
+
+✓ Mobile display verified.
+
+✓ Navy Veteran · 14 Yrs displays correctly everywhere.
+
+✓ No remaining references to Navy Veteran · 12 Yrs exist.
+
+✓ Layout balance and visual quality remain professional.
+
+Project Completion Standard
+
+Steve Hopwood's portrait should appear as a properly framed, professional biography image throughout the website. The updated image should display completely and consistently across all devices, and all military service references should accurately reflect 14 years of service.
