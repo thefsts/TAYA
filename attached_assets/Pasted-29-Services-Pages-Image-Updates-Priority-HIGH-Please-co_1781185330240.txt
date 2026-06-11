@@ -1,0 +1,147 @@
+29. Services Pages Image Updates
+
+Priority: HIGH
+
+Please complete the following image updates across the Services pages while preserving the existing layouts, functionality, animations, and responsive behavior.
+
+Do NOT redesign these pages. Only replace the specified images and ensure they meet the site's image quality standards.
+
+A. Security Services Page Updates
+
+Location:
+https://www.corsairtacticalsolution.com/security-services
+
+1. Church & House of Worship Safety
+
+Current Section:
+Houses of Worship
+Church & House of Worship Safety
+
+Action:
+Replace the existing image.
+
+New Image:
+
+* File Name: Specialty Program Church Safety Services
+
+Requirements:
+
+* Maintain the current section layout and styling.
+* Preserve any animations, overlays, or visual effects.
+* Ensure the image is properly cropped and centered.
+* Optimize for fast loading.
+* Verify responsive display on desktop, tablet, and mobile devices.
+* Ensure important subjects remain visible at all screen sizes.
+* Avoid stretching, distortion, or pixelation.
+
+B. Property Manager Services Page Updates
+
+Location:
+https://www.corsairtacticalsolution.com/property-manager-services
+
+1. Hero Section Image
+
+Current Location:
+Hero banner at the top of the page.
+
+Action:
+Replace the existing hero image.
+
+New Image:
+
+* File Name: Protecting Properties & Property Management
+
+Requirements:
+
+* Maintain the existing hero layout and text placement.
+* Preserve animations and transitions.
+* Ensure the focal point remains visible across all devices.
+* Prevent text overlays from obscuring important subjects.
+* Optimize for responsive viewing and performance.
+
+2. Protecting Realtors Who Serve Our Communities
+
+Current Section:
+Protecting Realtors Who Serve Our Communities
+
+Action:
+Replace the existing image.
+
+New Image:
+
+* File Name: Realtor Safety Program
+
+Requirements:
+
+* Maintain the current design and styling.
+* Ensure professional cropping and positioning.
+* Optimize for desktop, tablet, and mobile viewing.
+* Preserve any hover effects or animations.
+
+C. Private Investigations Page Updates
+
+Location:
+https://www.corsairtacticalsolution.com/private-investigations
+
+1. Hero Section Image
+
+Current Location:
+Hero banner at the top of the page.
+
+Action:
+Replace the existing hero image.
+
+New Image:
+
+* File Name: Private Investigation Services
+
+Requirements:
+
+* Maintain the existing hero section layout.
+* Preserve all current text, calls-to-action, and animations.
+* Ensure the image appears sharp and professional.
+* Optimize for fast loading and responsive behavior.
+* Verify that important subjects remain visible on all screen sizes.
+* Avoid stretching, distortion, clipping, or pixelation.
+
+D. Global Image Quality Standards
+
+Apply the following standards to all images updated in this batch:
+
+* No stretched or distorted images.
+* No blurry or pixelated images.
+* Proper responsive behavior on desktop, tablet, and mobile devices.
+* Consistent visual quality throughout the website.
+* Maintain existing layouts and spacing.
+* Preserve animations, overlays, and transitions.
+* Optimize images for performance and fast loading.
+* Ensure subjects remain visible and properly framed.
+* Verify there are no broken image links.
+
+E. QA Verification
+
+Before marking this task complete, verify:
+
+✓ Security Services page church safety image updated successfully.
+
+✓ "Specialty Program Church Safety Services" displays correctly.
+
+✓ Property Manager Services hero image updated successfully.
+
+✓ "Protecting Properties & Property Management" displays correctly.
+
+✓ Realtor Safety Program image updated successfully.
+
+✓ Private Investigations hero image updated successfully.
+
+✓ "Private Investigation Services" displays correctly.
+
+✓ Existing layouts and animations remain intact.
+
+✓ Updated images display correctly on desktop, tablet, and mobile devices.
+
+✓ No broken images, clipping, distortion, or layout regressions exist.
+
+Project Completion Standard
+
+The Security Services, Property Manager Services, and Private Investigations pages should maintain their current functionality and professional appearance while showcasing the refreshed imagery. The updated visuals should strengthen the Corsair Tactical Solutions brand and provide a polished, consistent experience across the entire website.
