@@ -1,0 +1,172 @@
+25. Content Cleanup, Image Updates & Instructor Profile Changes
+
+Priority: HIGH
+
+Please complete the following content and media updates throughout the website. These changes should preserve the existing design and layout while replacing outdated content and eliminating duplicate courses.
+
+A. Homepage Hero Image Update
+
+Location:
+Homepage Hero Slider
+
+Current Slide:
+Security Officer Training
+
+Action:
+Replace the existing image used in the "Security Officer Training" hero slide.
+
+New Image:
+
+* File Name: hero slide Security Officer Training
+
+Requirements:
+
+* Maintain the current hero slider layout and animation effects.
+* Optimize the new image for fast loading and responsive display.
+* Verify proper cropping on desktop, tablet, and mobile devices.
+* Ensure the focal point of the image remains visible across all screen sizes.
+
+B. Course Image Update
+
+Course:
+Texas License to Carry Certification / Basic Handgun
+
+Action:
+Replace the current course image.
+
+New Image:
+
+* File Name: Texas License to Carry Certification / Basic Handgun
+
+Requirements:
+
+* Preserve the existing card layout and course page styling.
+* Optimize the image for performance.
+* Verify proper display on both the course card and the course detail page.
+
+C. Course Duration Update
+
+Course:
+Texas License to Carry Certification / Basic Handgun
+
+Current Duration:
+
+* Existing hours shown on the website.
+
+Update To:
+
+* Duration: 6–7 Hours
+
+Update all references including:
+
+* Course cards
+* Course detail pages
+* Confirmation emails (if duration is listed)
+* Registration summaries
+* Any structured course data
+
+D. Remove Duplicate Course
+
+Course to Remove:
+Texas License to Carry Certification
+
+Reason:
+This course duplicates the content already covered by:
+
+Texas License to Carry Certification / Basic Handgun
+
+Required Actions:
+
+Remove the duplicate course from:
+
+* Courses page
+* Filters and search results
+* Course detail routes/pages
+* Homepage featured course sections
+* Any related recommendations
+* Square catalog/products
+* Booking workflows
+* Confirmation logic
+* Email templates
+* Navigation links
+
+Redirect Requirements:
+
+If the removed course has an existing URL:
+
+Implement a redirect from the old course URL to:
+
+Texas License to Carry Certification / Basic Handgun
+
+This preserves SEO value and prevents broken links.
+
+E. Instructor Section Updates
+
+Section:
+About Your Instructor
+Current Heading:
+Trained by a Veteran. Built for Texas.
+
+Action:
+Replace the existing instructor image.
+
+New Image:
+
+* File Name: Steve Hopwood bio pic
+
+Requirements:
+
+* Maintain the existing section design.
+* Use appropriate cropping to highlight Steve professionally.
+* Optimize for mobile and desktop viewing.
+
+F. Instructor Biography Update
+
+Instructor:
+Steve Hopwood
+
+Current Text:
+
+* Navy Veteran (current years listed)
+
+Update To:
+
+* Navy Veteran – 14 Years
+
+Review the instructor biography and update any references to military service length to reflect:
+
+14 Years of Service
+
+Requirements:
+
+* Ensure consistency across all pages.
+* Update structured content if used.
+* Verify no outdated service references remain.
+
+G. QA Requirements
+
+Verify:
+
+✓ Hero slide image updated correctly.
+
+✓ Hero slider animations remain functional.
+
+✓ Texas License to Carry Certification / Basic Handgun image updated.
+
+✓ Course duration displays as 6–7 hours everywhere.
+
+✓ Duplicate Texas License to Carry Certification course removed.
+
+✓ Old course URLs redirect properly.
+
+✓ Steve Hopwood bio image updated.
+
+✓ Navy Veteran service updated to 14 Years everywhere referenced.
+
+✓ Mobile and desktop layouts remain intact.
+
+✓ No broken images or missing media files.
+
+Project Completion Standard
+
+The website should reflect the updated training catalog, improved instructor presentation, and refreshed imagery while maintaining the existing design, functionality, and user experience.

@@ -1,0 +1,125 @@
+26. Image Quality, Sizing & Formatting Standards (Applies to ALL Website Images)
+
+Priority: HIGH
+
+As we continue updating and replacing images throughout the website, please ensure that every image is professionally optimized and displayed correctly across all devices.
+
+This applies not only to the newly uploaded images, but to ALL images currently used throughout the website.
+
+Image Standards
+
+Please review every image on the website and verify that it meets the following requirements:
+
+General Requirements
+
+* Images should appear sharp and professional.
+* No stretching, squashing, distortion, or pixelation.
+* No important subjects should be cropped out.
+* Maintain a consistent visual style throughout the website.
+* Ensure images align properly within their containers.
+* Replace any low-quality or outdated images if needed.
+
+Responsive Image Formatting
+
+Verify image presentation on:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile devices
+
+Requirements:
+
+* Images should resize gracefully.
+* Focal points should remain visible.
+* Text overlays should not cover faces or important content.
+* Hero images should maintain impact across screen sizes.
+* Course images should remain centered and recognizable.
+
+Optimization Requirements
+
+* Compress and optimize images for fast page loading.
+* Use modern image formats where supported.
+* Maintain visual quality while minimizing file size.
+* Implement responsive image sizing to avoid loading oversized assets on mobile devices.
+* Preserve accessibility and performance standards.
+
+Homepage Hero Images
+
+For all homepage hero slides:
+
+* Verify correct aspect ratios.
+* Ensure subjects remain visible on all screen sizes.
+* Maintain existing slider animations and transitions.
+* Prevent awkward cropping on smaller devices.
+* Optimize for both desktop and mobile viewing experiences.
+
+Course Images
+
+For every course card and course detail page:
+
+* Ensure a consistent image ratio.
+* Use uniform cropping and positioning.
+* Avoid mismatched image heights.
+* Verify hover effects continue functioning properly.
+* Confirm images display correctly in all course filters and tabs.
+
+Instructor Images
+
+For instructor biographies and staff sections:
+
+* Use professional portrait-style cropping.
+* Center the subject appropriately.
+* Maintain consistency with the site's overall design.
+* Ensure images remain clear on mobile devices.
+
+Event Images
+
+For all event pages:
+
+* Verify flyers and promotional graphics display clearly.
+* Ensure important event information remains readable.
+* Prevent clipping or distortion.
+* Optimize for registration pages and mobile viewing.
+
+Footer, Testimonials, and Supporting Images
+
+Review any additional imagery used throughout the website, including:
+
+* Service sections
+* Testimonials
+* Event promotions
+* Background images
+* Supporting graphics
+
+Ensure all are properly formatted and visually consistent.
+
+Quality Assurance Requirements
+
+Perform a complete visual audit of the website and verify:
+
+✓ No stretched images
+
+✓ No blurry or pixelated images
+
+✓ No broken image links
+
+✓ No improper cropping
+
+✓ Consistent image presentation
+
+✓ Responsive behavior on all devices
+
+✓ Fast loading performance
+
+✓ Existing animations remain functional
+
+✓ Newly uploaded images are optimized before publishing
+
+✓ All updated images maintain a premium, professional appearance
+
+Project Completion Standard
+
+Corsair Tactical Solutions should present a polished, professional appearance throughout the website. Every image should feel intentional, high quality, and properly formatted so that visitors receive a consistent experience regardless of the device they use.
+
+No image updates should be considered complete until they have been visually verified on desktop, tablet, and mobile devices.
