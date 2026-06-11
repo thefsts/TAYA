@@ -1,0 +1,131 @@
+Priority: CRITICAL
+Please perform a complete visual review of EVERY image on the Corsair Tactical Solutions website.
+Several images currently display with heads, faces, or important portions of the subjects cut off due to the way the image containers are configured.
+This issue must be corrected before final project sign-off.
+Objective
+Every image should look intentional and professionally framed.
+No visitor should see:
+Heads cut off
+Faces partially hidden
+Important subjects cropped out
+Images zoomed in excessively
+Awkward framing
+Distorted photos
+A. Full Site Image Audit
+Review every page of the LIVE production website.
+Pages to Review:
+Homepage
+About
+Courses
+All Course Detail Pages
+Events
+Security Services
+Property Manager Services
+Private Investigations
+Security Training
+Church Safety
+Contact
+FAQ
+Careers
+Confirmation Pages
+Footer sections
+Any hidden/mobile-only sections
+B. Subject Visibility Standards
+For every image containing people:
+Verify that:
+✓ Entire head is visible.
+✓ Forehead is not cropped.
+✓ Chin is not cropped.
+✓ Faces remain centered.
+✓ Eyes are visible.
+✓ Shoulders appear naturally framed.
+✓ Important equipment is visible when relevant.
+✓ No subjects are cut off by overlays or gradients.
+C. Hero Banner Standards
+Review all hero sections.
+Verify:
+The primary subject remains visible.
+Heads and faces are not cropped.
+Text overlays do not obscure people.
+Mobile versions use appropriate focal points.
+Desktop versions maintain visual impact.
+If necessary:
+Create separate mobile focal positioning.
+Adjust object-position values.
+Modify container heights.
+D. Course Card Standards
+Review every course image.
+Verify:
+Subjects fit naturally within the card.
+Faces are visible.
+Equipment remains recognizable.
+Cropping is consistent across all courses.
+Filter views maintain proper image presentation.
+E. Instructor Image Standards
+Special attention should be given to instructor portraits.
+Verify:
+Full portrait presentation.
+Professional framing.
+No clipping of heads or shoulders.
+Consistent presentation everywhere reused.
+F. Services Page Standards
+Review:
+Security Services
+Property Manager Services
+Private Investigations
+Church Safety
+Verify:
+Professional composition.
+Full subject visibility.
+No aggressive cropping.
+G. Responsive Device Testing
+Verify all images on:
+Desktop:
+Large monitors
+Standard laptops
+Tablet:
+Portrait orientation
+Landscape orientation
+Mobile:
+Small phones
+Large phones
+Confirm that image framing remains appropriate at every breakpoint.
+H. Technical Review
+Do not simply replace images.
+Investigate the root cause.
+Review and adjust as needed:
+Image aspect ratios
+Container dimensions
+object-fit settings
+object-position settings
+Responsive breakpoints
+Next.js Image sizing behavior
+Overlay positioning
+Use the correct layout for the image rather than forcing the image into an unsuitable container.
+I. QA Checklist
+Verify:
+✓ No heads are cut off.
+✓ No faces are cropped.
+✓ No shoulders are awkwardly clipped.
+✓ No images appear overly zoomed.
+✓ Hero images frame subjects correctly.
+✓ Course images frame subjects correctly.
+✓ Instructor portraits display correctly.
+✓ Services images display correctly.
+✓ Mobile layouts display correctly.
+✓ Tablet layouts display correctly.
+✓ Desktop layouts display correctly.
+✓ Existing functionality remains intact.
+✓ Existing branding remains unchanged.
+Project Completion Standard
+Corsair Tactical Solutions should present a polished, professional appearance throughout the entire website. Every image should appear intentionally framed and visually balanced, with full visibility of the people being shown. No image should look accidentally cropped or improperly sized on any device.
+Final Approval Requirement
+Do not mark this project complete until a human visual walkthrough of the LIVE production site confirms that every image containing people displays the full subject appropriately across desktop, tablet, and mobile devices. :::
+Additional Direction for the AI/Developer
+This should not be treated as an "image replacement" task. It is a layout correction task. The developer should inspect the actual image components and adjust the presentation rules for each section as needed. Some images may require:
+object-contain instead of object-cover
+Different aspect ratios
+Taller containers
+Custom mobile focal points
+Separate desktop and mobile crops
+The goal is simple: if there's a person in the photo, their full head and natural framing should be visible everywhere on the live site.
