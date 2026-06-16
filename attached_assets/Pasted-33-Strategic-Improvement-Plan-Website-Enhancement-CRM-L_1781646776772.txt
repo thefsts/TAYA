@@ -1,0 +1,241 @@
+33. Strategic Improvement Plan – Website Enhancement (CRM & LMS Deferred)
+
+Priority: HIGH
+
+The CRM implementation, automated scheduling, LMS deployment, and related automation projects are being deferred until a future phase.
+
+Please use the recommendations from the Consolidated AI Website Review to strengthen the current production website without introducing unfinished infrastructure.
+
+Implement the following items only.
+
+SECTION 1 – Trust & Foundation Improvements
+
+Priority: CRITICAL
+
+Complete the remaining trust improvements.
+
+Requirements:
+
+* Ensure all Texas license information remains visible and professionally presented in the footer.
+* Verify all licenses are accurate and current.
+* Ensure contact information is consistent throughout the site.
+* Confirm all forms and payment flows function correctly.
+* Ensure all email notifications operate correctly.
+* Complete the mobile usability and readability audit.
+* Complete the page speed optimization audit.
+* Verify all production links function correctly.
+
+Goal:
+
+Increase visitor confidence and remove friction from the buying process.
+
+SECTION 3 – Conversion & Authority Improvements
+
+Priority: HIGH
+
+A. Church Security Division Positioning
+
+Strengthen the existing Church Safety pages.
+
+Requirements:
+
+* Elevate Church Safety as a specialty offering.
+* Improve messaging around:
+  • Assessments
+  • Safety Planning
+  • Training
+  • Ongoing Support
+
+B. The 4D Protection Model™
+
+Create a dedicated page introducing the framework.
+
+Suggested Navigation Placement:
+
+Services → Church Safety
+
+Page Elements:
+
+* Overview of the 4D Protection Model™
+* Why churches need a structured approach
+* Benefits of proactive planning
+* Call-to-action to contact Corsair Tactical Solutions
+
+Important:
+
+Do NOT build CRM funnels.
+
+Do NOT build downloadable lead magnets.
+
+The objective is authority positioning only.
+
+C. Operational Photography
+
+Continue replacing generic imagery with authentic Corsair operational photography.
+
+Goal:
+
+Increase credibility.
+
+SECTION 4 – SEO & Content Authority
+
+Priority: HIGH
+
+Implement only the content portions.
+
+Requirements:
+
+A. Blog Foundation
+
+Create the first four educational articles.
+
+Suggested Topics:
+
+1. How Texas Churches Can Improve Their Security Posture
+2. What Texas Businesses Should Know About Workplace Safety
+3. Understanding Texas Security Officer Licensing Levels II–IV
+4. Texas License to Carry: What New Students Need to Know
+
+Requirements:
+
+* Professional tone.
+* Educational content.
+* Strong calls-to-action.
+* Internal links to related services.
+
+B. Local SEO Foundations
+
+Prepare the structure for future city pages.
+
+Initial Cities:
+
+* Dallas
+* Fort Worth
+* Wichita Falls
+
+Important:
+
+Create the framework only.
+
+Do NOT build dozens of city pages yet.
+
+SECTION 6 – Revenue Optimization (Without CRM)
+
+Priority: HIGH
+
+Implement improvements that increase revenue immediately.
+
+Requirements:
+
+A. Improve Cross-Selling
+
+Display related course recommendations.
+
+Examples:
+
+LTC → Defensive Shooting
+
+Level II → Level III
+
+Level III → Level IV
+
+AR-15 → Shotgun Course
+
+Firearm Proficiency → Armed First Responder
+
+B. Promote Optional Add-Ons
+
+Ensure checkout clearly displays:
+
+* Range Fees
+* Ammunition
+* Firearm Rentals
+
+C. Highlight Continuing Education
+
+Promote recertification opportunities where appropriate.
+
+Goal:
+
+Increase average transaction value.
+
+SECTION 7 – Revised Implementation Timeline
+
+Priority: MEDIUM
+
+Update planning assumptions.
+
+Phase 1 (Current)
+
+* Website trust improvements
+* Production QA
+* Mobile optimization
+* Performance optimization
+* Image optimization
+* Payment verification
+* Readability improvements
+
+Phase 2 (Next 60–90 Days)
+
+* Church Safety authority positioning
+* 4D Protection Model™ page
+* First four blog articles
+* Instructor profiles
+* Local SEO framework
+
+Deferred Until Future Phase
+
+* CRM
+* Automated scheduling
+* LMS
+* Memberships
+* Email automation
+* Multi-state expansion
+
+SECTION 8 – Strategic Positioning
+
+Priority: HIGH
+
+Refine the site's messaging to support the future vision.
+
+Position Corsair Tactical Solutions as:
+
+"Texas' Trusted Authority in Security, Training, and Protection."
+
+Built On:
+
+* Security Services
+* Training Academy
+* Private Investigations
+* Church Safety
+* Professional Instruction
+
+Key Messaging Goals:
+
+* Increase trust.
+* Demonstrate authority.
+* Showcase real-world experience.
+* Reinforce Texas licensing and compliance.
+* Present Corsair as an organization rather than a single individual.
+
+Do NOT remove Steve Hopwood's credibility.
+
+Instead:
+
+* Continue highlighting Steve's expertise.
+* Begin introducing Corsair as a team and system capable of growth.
+
+FINAL PROJECT STANDARD
+
+The goal is not to build future infrastructure prematurely.
+
+The goal is to maximize the effectiveness of the current website by improving:
+
+* Trust
+* Conversion
+* Authority
+* Performance
+* SEO foundations
+* Revenue opportunities
+
+while deferring CRM, scheduling automation, LMS, and enterprise-scale initiatives until the business is operationally ready.

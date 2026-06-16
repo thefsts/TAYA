@@ -1,0 +1,348 @@
+34. Final Website Enhancement Batch – Authority, Conversion & Revenue Improvements
+
+Priority: HIGH
+
+This batch incorporates the remaining high-value recommendations from the Consolidated AI Website Review. CRM, automated scheduling, LMS, memberships, and related automations remain deferred to a future phase.
+
+The objective is to maximize the value of the current production website by improving authority, conversions, SEO, and revenue opportunities.
+
+SECTION 1 – Trust, Performance & Production Readiness
+
+Complete a final production audit.
+
+Requirements:
+
+* Verify all forms function correctly.
+* Verify all emails are being delivered properly.
+* Verify all Square payments process correctly.
+* Verify receipts and confirmations display correctly.
+* Verify footer licensing information remains accurate.
+* Verify contact information is consistent throughout the website.
+* Verify all navigation links function properly.
+* Verify no unexpected redirects occur.
+
+Mobile & Performance
+
+Complete a final audit for:
+
+* Image optimization
+* Mobile responsiveness
+* Font readability
+* Tablet usability
+* Desktop usability
+* Lazy loading
+* Page speed
+
+Target Standards:
+
+* Body text minimum 16px on mobile.
+* Small supporting text minimum 14px.
+* Touch targets minimum 44×44 pixels.
+* Responsive images served appropriately.
+
+SECTION 3 – Church Safety Authority Positioning
+
+Enhance Corsair's specialty positioning.
+
+A. Strengthen Church Safety Messaging
+
+Review existing Church Safety content.
+
+Improve messaging around:
+
+* Security assessments
+* Safety planning
+* Emergency preparedness
+* Volunteer training
+* Leadership consultation
+* Ongoing support
+
+Goal:
+
+Position Corsair Tactical Solutions as a trusted church security authority in Texas.
+
+B. Create a Dedicated 4D Protection Model™ Page
+
+Add a new page.
+
+Page Title:
+
+The 4D Protection Model™
+
+Purpose:
+
+Introduce Corsair's structured protection philosophy.
+
+Suggested Sections:
+
+* What is the 4D Protection Model™?
+* Why churches need proactive protection.
+* The four pillars of the framework.
+* Benefits of planning before emergencies occur.
+* How Corsair can help.
+* Call-to-action.
+
+Requirements:
+
+* Maintain existing site styling.
+* Include strong calls-to-action.
+* Link internally to Church Safety services.
+
+Do NOT implement:
+
+* Lead magnets.
+* CRM funnels.
+* Email automation.
+
+SECTION 4 – Content & SEO Foundation
+
+A. Publish the First Four Educational Articles
+
+Article 1
+
+How Texas Churches Can Improve Their Security Posture
+
+Topics:
+
+* Risk assessments
+* Volunteer readiness
+* Emergency planning
+* Professional consultation
+
+CTA:
+
+Contact Corsair for assistance.
+
+Article 2
+
+What Texas Businesses Should Know About Workplace Safety
+
+Topics:
+
+* Threat awareness
+* Employee preparedness
+* Site evaluations
+* Security planning
+
+CTA:
+
+Request a consultation.
+
+Article 3
+
+Understanding Texas Security Officer Licensing Levels II–IV
+
+Topics:
+
+* Level II overview
+* Level III overview
+* Level IV overview
+* Career progression
+
+CTA:
+
+Explore Corsair training programs.
+
+Article 4
+
+Texas License to Carry: What New Students Need to Know
+
+Topics:
+
+* Eligibility
+* Requirements
+* Class expectations
+* Proficiency requirements
+
+CTA:
+
+Register for training.
+
+Requirements:
+
+* Professional educational tone.
+* Internal linking.
+* Mobile-friendly formatting.
+* SEO best practices.
+
+B. Local SEO Framework
+
+Prepare location page templates for future expansion.
+
+Cities:
+
+* Dallas
+* Fort Worth
+* Wichita Falls
+
+Requirements:
+
+* Framework only.
+* No mass deployment.
+* Maintain quality standards.
+
+SECTION 6 – Revenue Optimization
+
+A. Course Cross-Selling
+
+Display related training recommendations.
+
+Examples:
+
+Texas LTC Certification / Basic Handgun
+
+Recommended:
+
+* Defensive Shooting Skills
+* Texas LTC Shooting Proficiency
+
+Level II Security Officer
+
+Recommended:
+
+* Level III Armed Security Officer
+
+Level III Armed Security Officer
+
+Recommended:
+
+* Level IV Bodyguard Training
+
+AR-15 Rifle Course
+
+Recommended:
+
+* Shotgun Course
+
+Firearm Proficiency Re-Qualification
+
+Recommended:
+
+* Armed First Responder
+
+Requirements:
+
+* Display on course detail pages.
+* Display on confirmation pages when appropriate.
+* Maintain existing design.
+
+B. Promote Add-Ons
+
+Ensure optional add-ons are clearly visible.
+
+Display:
+
+* Required range fees
+* Ammunition options
+* Firearm rentals
+
+Requirements:
+
+* Transparent pricing.
+* Itemized presentation.
+* Mobile-friendly display.
+
+C. Continuing Education
+
+Highlight recertification opportunities.
+
+Requirements:
+
+* Promote continuing education naturally.
+* Link relevant classes together.
+* Encourage repeat business.
+
+SECTION 7 – Revised Implementation Roadmap
+
+Current Phase
+
+Complete:
+
+* Production QA
+* Image optimization
+* Mobile optimization
+* Font sizing improvements
+* Performance improvements
+* Final payment testing
+* Authority enhancements
+* SEO foundation
+* Cross-selling improvements
+
+Deferred Until Future Phase
+
+* CRM implementation
+* Scheduling automation
+* LMS deployment
+* Memberships
+* Email automation
+* Recertification reminders
+* Multi-state marketing
+
+SECTION 8 – Strategic Positioning
+
+Refine messaging to support long-term growth.
+
+Position Corsair Tactical Solutions as:
+
+Texas' Trusted Authority in Security, Training, and Protection.
+
+Built On:
+
+* Security Services
+* Security Training
+* Church Safety
+* Private Investigations
+* Professional Instruction
+
+Messaging Objectives
+
+* Increase trust.
+* Demonstrate expertise.
+* Reinforce Texas licensing.
+* Highlight operational experience.
+* Support future growth.
+* Present Corsair as a scalable organization.
+
+Steve Hopwood Positioning
+
+Continue emphasizing Steve's credibility while evolving the brand beyond a founder-only identity.
+
+Requirements:
+
+* Highlight Steve's 14 years of military service.
+* Showcase instructional expertise.
+* Present Corsair as a professional organization capable of growth.
+
+FINAL ACCEPTANCE REQUIREMENTS
+
+Before closing the project, verify:
+
+✓ Mobile readability standards met.
+
+✓ Performance optimization completed.
+
+✓ Images optimized and responsive.
+
+✓ Cross-selling implemented.
+
+✓ Add-on opportunities displayed correctly.
+
+✓ Church Safety messaging strengthened.
+
+✓ 4D Protection Model™ page created.
+
+✓ Four educational articles published.
+
+✓ Local SEO framework prepared.
+
+✓ Strategic positioning updated.
+
+✓ No CRM functionality introduced.
+
+✓ No scheduling automation introduced.
+
+✓ Existing functionality remains intact.
+
+Project Completion Standard
+
+The Corsair Tactical Solutions website should emerge from this phase as a polished, professional, high-converting platform that maximizes authority, trust, SEO value, and revenue opportunities while intentionally deferring larger infrastructure projects until the business is operationally ready.
