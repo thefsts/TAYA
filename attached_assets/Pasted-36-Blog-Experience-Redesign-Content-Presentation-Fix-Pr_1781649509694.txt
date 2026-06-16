@@ -1,0 +1,192 @@
+36. Blog Experience Redesign & Content Presentation Fix
+
+Priority: CRITICAL
+
+Location:
+https://www.corsairtacticalsolution.com/blog
+
+The current blog implementation functions technically, but the user experience resembles a course sales page rather than a professional educational resource.
+
+Before proceeding with any additional enhancements, please redesign the Blog section to present as a true article and knowledge center.
+
+Do NOT redesign the entire website. Update only the Blog experience.
+
+A. Replace Missing Blog Images
+
+Current Issue:
+
+Some blog articles are missing featured images.
+
+Requirements:
+
+* Every article must have a featured image.
+* Images should be relevant to the article topic.
+* Use authentic Corsair imagery whenever possible.
+* If no Corsair image exists, use professional, industry-appropriate photography.
+
+Current Articles Requiring Featured Images:
+
+1. How Texas Churches Can Improve Their Security Posture
+2. What Texas Businesses Should Know About Workplace Safety
+3. Understanding Texas Security Officer Licensing Levels II–IV
+4. Texas License to Carry: What New Students Need to Know
+
+Requirements:
+
+* Featured images should have consistent dimensions.
+* Maintain a uniform visual style.
+* Optimize all images for performance.
+* Verify desktop, tablet, and mobile presentation.
+
+B. Transform the Blog Index Into a Real Blog
+
+The page should feel like an educational resource center.
+
+Remove the appearance of a training sales catalog.
+
+Requirements:
+
+Add a proper page introduction.
+
+Suggested Hero Content:
+
+Title:
+Corsair Tactical Insights
+
+Subtitle:
+Professional insights, safety guidance, training information, and practical advice from experienced security and firearms professionals.
+
+Layout Requirements:
+
+* Display articles as editorial cards.
+* Larger featured images.
+* Article excerpts.
+* Publication date.
+* Estimated reading time.
+* Category tags.
+* "Read Article" CTA instead of course-style buttons.
+
+C. Blog Card Improvements
+
+Each article card should display:
+
+* Featured image
+* Article title
+* Category
+* Publication date
+* Reading time
+* Short excerpt
+* Read Article button
+
+Do NOT display:
+
+* Pricing
+* Registration language
+* Training CTAs that resemble course purchases
+
+Goal:
+
+The visitor should immediately recognize this section as educational content.
+
+D. Individual Article Improvements
+
+For each blog post:
+
+Add:
+
+* Featured hero image
+* Author attribution
+* Publication date
+* Reading time
+* Related articles section
+* Internal links to relevant services
+
+Example:
+
+Church Security article:
+
+* Link to Church Security services
+* Link to the 4D Protection Model™
+
+Security Licensing article:
+
+* Link to Level II–IV training
+
+LTC article:
+
+* Link to Texas LTC courses
+
+Requirements:
+
+* Improve readability.
+* Maintain strong SEO practices.
+* Mobile-friendly formatting.
+
+E. Sidebar or Supporting Content
+
+If a sidebar exists (or can be introduced without redesign):
+
+Display:
+
+Popular Topics:
+
+* Church Safety
+* Security Training
+* LTC Information
+* Workplace Safety
+
+Optional:
+
+Recent Articles section.
+
+Do NOT include:
+
+Course pricing.
+Buy-now CTAs.
+Checkout prompts.
+
+F. SEO & Readability Requirements
+
+Verify:
+
+* Proper metadata.
+* Featured images included in Open Graph.
+* Appropriate heading structure.
+* Alt text on all images.
+* Mobile-friendly typography.
+* Comfortable line spacing.
+* Easy-to-read article widths.
+
+G. QA Verification
+
+Verify:
+
+✓ All articles have featured images.
+
+✓ Blog page looks like a professional resource center.
+
+✓ No course-catalog appearance remains.
+
+✓ Article cards are visually consistent.
+
+✓ Read Article buttons function correctly.
+
+✓ Individual articles display properly.
+
+✓ Related article links work.
+
+✓ Internal service links work.
+
+✓ Desktop layouts verified.
+
+✓ Tablet layouts verified.
+
+✓ Mobile layouts verified.
+
+✓ Images optimized.
+
+✓ SEO metadata validated.
+
+Project Completion Standard
+
+The Blog should establish Corsair Tactical Solutions as an authority in security, training, and safety—not as another product listing page. Visitors should view the section as a trusted educational resource that builds credibility and naturally supports future conversions.
