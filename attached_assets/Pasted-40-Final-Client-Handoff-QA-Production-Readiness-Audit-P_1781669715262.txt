@@ -1,0 +1,280 @@
+40. Final Client Handoff QA & Production Readiness Audit
+
+Priority: CRITICAL
+
+This is the final production review before handing the Corsair Tactical Solutions website back to the client.
+
+Please update the previous batch with the following changes and complete a full end-to-end audit of the live website.
+
+A. Discount Program Update
+
+Update the previously approved discount list.
+
+Remove:
+
+* College Student – 5%
+* Clergy – 5%
+
+The final discount program should display only:
+
+Available Discounts
+
+* Veteran – 10%
+* First Responder – 5%
+* Educator/Teacher – 5%
+
+Requirements:
+
+* Update all locations where discounts appear.
+* Remove the deleted discounts from:
+
+  * Homepage
+  * Security Training page
+  * Checkout/review screens
+  * Registration flows
+  * Promotional banners
+  * Any future discount messaging
+
+Verification disclaimer may remain:
+
+"Eligible discounts may require verification prior to class attendance."
+
+B. Square Production Audit – All Classes & Services
+
+Priority: CRITICAL
+
+Perform a complete audit of every paid offering on the website.
+
+The objective is to ensure every class, service, and event connected to Square can successfully complete checkout and process payment.
+
+Verify:
+
+✓ Correct Square item/order creation.
+
+✓ Correct pricing.
+
+✓ Correct add-on pricing.
+
+✓ Taxes and totals calculate properly.
+
+✓ Payment authorization succeeds.
+
+✓ Payment capture succeeds.
+
+✓ Confirmation pages display correctly.
+
+✓ Payment IDs generate correctly.
+
+✓ Order IDs generate correctly.
+
+✓ Receipts display properly.
+
+✓ Confirmation emails send.
+
+✓ Admin emails send.
+
+✓ Student emails send.
+
+C. Full Square Coverage Review
+
+Review every offering on the website.
+
+Confirm each one is properly connected to Square.
+
+Courses
+
+* Online Texas License to Carry Assessment
+* Texas License to Carry Certification / Basic Handgun
+* Texas LTC Shooting Proficiency
+* Basic Handgun Skills Training (Personal 1:1)
+* First Shots Basic Firearm Training
+* Introduction to Firearms
+* Defensive Shooting Skills
+* Level II Unarmed Security Officer
+* Level III Armed Security Officer — Commissioned
+* Level IV Bodyguard (Personal Protection Officer)
+* Level III + IV Complete Package
+* Concealed Carry / Home Defense
+* Firearm Proficiency Re-Qualification
+* Armed First Responder
+* Shotgun Course
+* AR-15 Rifle Course
+
+Events
+
+* July 25 Training Event
+* Any additional event registrations currently published
+
+Services
+
+If any services currently allow online payment:
+
+* Verify checkout functionality.
+* Verify payment completion.
+* Verify confirmation messaging.
+
+If services remain inquiry-only:
+
+* Verify contact forms function correctly.
+* Verify emails are delivered.
+
+D. Add-On Verification
+
+Confirm the following add-ons work correctly:
+
+Handgun Courses
+
+* Rounds of Ammo – $30
+* Rent a Handgun – $20
+
+Shotgun Course
+
+* 50 Rounds of Ammo – $35
+* Rent a Shotgun – $25
+
+AR-15 Rifle Course
+
+* 50 Rounds of Ammo – $40
+* Rent an AR-15 Rifle – $35
+
+Verify:
+
+* Pricing accuracy.
+* Proper itemization.
+* Correct totals.
+* Confirmation displays correctly.
+* Emails reflect selected add-ons.
+
+E. Full Website QA Audit
+
+Perform a complete click-through of the live production website.
+
+Review:
+
+Homepage
+
+About
+
+Courses
+
+All Course Detail Pages
+
+Events
+
+Security Services
+
+Church Security
+
+4D Protection Model™
+
+Property Manager Services
+
+Private Investigations
+
+Security Training
+
+Contact
+
+FAQ
+
+Articles / Blog
+
+City Pages
+
+Footer
+
+Desktop Navigation
+
+Mobile Navigation
+
+Verify:
+
+✓ No broken links.
+
+✓ No unexpected homepage redirects.
+
+✓ No missing pages.
+
+✓ No missing images.
+
+✓ No layout regressions.
+
+✓ Mobile responsiveness.
+
+✓ Tablet responsiveness.
+
+✓ Desktop responsiveness.
+
+✓ Readability standards maintained.
+
+✓ Buttons function correctly.
+
+✓ Forms submit correctly.
+
+✓ Email notifications deliver properly.
+
+F. Blog Verification
+
+Confirm:
+
+* All featured images display.
+* Articles render correctly.
+* Read Article buttons work.
+* Internal links function.
+* Related resources function.
+* Mobile readability is acceptable.
+
+G. Performance Verification
+
+Complete a final production performance review.
+
+Verify:
+
+* Images optimized.
+* Responsive images functioning.
+* Lazy loading functioning.
+* Mobile load times acceptable.
+* Desktop performance acceptable.
+* Newly added content has not degraded performance.
+
+H. Final Client Handoff Checklist
+
+Before declaring the project complete, verify:
+
+✓ Discounts updated correctly.
+
+✓ Removed discounts no longer appear.
+
+✓ Every paid course connected to Square.
+
+✓ Every event connected to Square.
+
+✓ Service inquiry flows functioning.
+
+✓ Add-ons functioning correctly.
+
+✓ Admin notifications functioning.
+
+✓ Student confirmations functioning.
+
+✓ Full site QA completed.
+
+✓ Blog functioning correctly.
+
+✓ Mobile experience verified.
+
+✓ Tablet experience verified.
+
+✓ Desktop experience verified.
+
+✓ No broken links remain.
+
+✓ No broken images remain.
+
+✓ Performance remains acceptable.
+
+✓ Website is ready to hand back to the client.
+
+Project Completion Standard
+
+Corsair Tactical Solutions should be delivered as a polished, production-ready platform with fully functioning payment workflows, verified communication systems, optimized performance, and a professional user experience across every page and every device. This audit serves as the final quality gate before client handoff and project closure.

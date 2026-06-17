@@ -1,0 +1,290 @@
+37. Blog Redesign – Transform "Blog" Into Corsair Tactical Insights
+
+Priority: CRITICAL
+
+Location:
+https://www.corsairtacticalsolution.com/blog
+
+The current blog implementation works from a technical standpoint, but it does not reflect the quality, authority, or professionalism of the Corsair Tactical Solutions brand.
+
+Before any additional enhancements are completed, the Blog section must be redesigned into a true educational resource center.
+
+The goal is to position Corsair Tactical Solutions as a trusted authority—not another course catalog.
+
+A. Rename the Blog Experience
+
+Current:
+Blog
+
+Update To:
+Corsair Tactical Insights
+
+Subtitle:
+
+Professional insights, security guidance, training information, and practical advice from experienced security and firearms professionals.
+
+Requirements:
+
+* Update the Blog landing page heading.
+* Preserve existing navigation functionality.
+* Keep the URL as /blog.
+* Maintain the site's existing design language.
+
+B. Create a True Blog Homepage Experience
+
+The current page feels too similar to the Courses page.
+
+Redesign the layout to resemble a professional publication.
+
+Requirements:
+
+Display articles as editorial content cards featuring:
+
+* Large featured image
+* Article title
+* Article category
+* Publication date
+* Estimated reading time
+* Short excerpt (2–3 sentences)
+* "Read Article" button
+
+The page should immediately communicate:
+
+"This is a resource center."
+
+NOT:
+
+"This is another sales page."
+
+C. Add Featured Images to Every Article
+
+Current Issue:
+
+Some articles are missing imagery.
+
+Every article must have a featured image.
+
+Articles:
+
+1. How Texas Churches Can Improve Their Security Posture
+
+Suggested Category:
+Church Safety
+
+Suggested Imagery:
+Church security team, congregation safety, planning session.
+
+2. What Texas Businesses Should Know About Workplace Safety
+
+Suggested Category:
+Business Safety
+
+Suggested Imagery:
+Corporate environment, workplace preparedness, security planning.
+
+3. Understanding Texas Security Officer Licensing Levels II–IV
+
+Suggested Category:
+Security Training
+
+Suggested Imagery:
+Professional security officers in training.
+
+4. Texas License to Carry: What New Students Need to Know
+
+Suggested Category:
+LTC Education
+
+Suggested Imagery:
+Professional firearms instruction environment.
+
+Requirements:
+
+* Maintain consistent image ratios.
+* Use authentic Corsair photography whenever available.
+* Optimize images for fast loading.
+* Ensure mobile responsiveness.
+* Avoid stock-photo overuse whenever possible.
+
+D. Improve Article Cards
+
+Each article card should display:
+
+* Featured image
+* Category badge
+* Publication date
+* Reading time
+* Article title
+* Excerpt
+* Read Article CTA
+
+Remove:
+
+* Any course-style formatting
+* Registration language
+* Sales-oriented styling
+* Course pricing elements
+* Buttons resembling checkout flows
+
+Goal:
+
+Readers should instantly recognize these as articles.
+
+E. Improve Individual Articles
+
+Update each article template.
+
+Add:
+
+Article Hero Section:
+
+* Featured image
+* Category label
+* Article title
+* Publication date
+* Reading time
+* Author attribution
+
+Author:
+
+By Corsair Tactical Solutions
+
+Content Improvements:
+
+* Clear heading hierarchy.
+* Comfortable spacing.
+* Improved readability.
+* Mobile-friendly typography.
+* Pull quotes or highlighted callouts if appropriate.
+
+F. Related Resources Section
+
+At the bottom of each article:
+
+Display:
+
+"You May Also Find Helpful"
+
+Show 3 related resources.
+
+Examples:
+
+Church Security Article
+
+Related Resources:
+
+* Church Safety Services
+* The 4D Protection Model™
+* Workplace Safety Article
+
+Security Licensing Article
+
+Related Resources:
+
+* Level II Training
+* Level III Training
+* Level IV Training
+
+LTC Article
+
+Related Resources:
+
+* Texas LTC Certification / Basic Handgun
+* Texas LTC Shooting Proficiency
+* Defensive Shooting Skills
+
+Goal:
+
+Educate first.
+
+Convert second.
+
+G. Sidebar or Supporting Navigation
+
+If practical without redesigning the site architecture:
+
+Include:
+
+Popular Topics
+
+* Church Safety
+* Security Training
+* LTC Information
+* Workplace Safety
+
+Recent Articles
+
+* Most recently published posts.
+
+Do NOT include:
+
+* Buy Now messaging
+* Pricing
+* Course registration prompts
+
+H. SEO Optimization
+
+Verify:
+
+* Open Graph images configured.
+* Article metadata complete.
+* Proper heading structure.
+* Article schema implemented.
+* Alt text added to all featured images.
+* Internal linking strategy in place.
+* Canonical URLs configured.
+
+I. Mobile Readability Standards
+
+Verify:
+
+* Body text minimum 16px.
+* Comfortable line spacing.
+* Proper margins.
+* Easy scrolling.
+* Buttons large enough to tap.
+* Images display correctly.
+
+J. QA Verification
+
+Confirm:
+
+✓ Blog renamed to "Corsair Tactical Insights."
+
+✓ Blog landing page feels like a professional publication.
+
+✓ All articles include featured images.
+
+✓ Consistent article card styling.
+
+✓ Read Article buttons function correctly.
+
+✓ Individual article layouts improved.
+
+✓ Author information displays correctly.
+
+✓ Related resources display appropriately.
+
+✓ Internal links function correctly.
+
+✓ No course-catalog appearance remains.
+
+✓ Mobile layouts verified.
+
+✓ Tablet layouts verified.
+
+✓ Desktop layouts verified.
+
+✓ SEO enhancements validated.
+
+✓ Images optimized for performance.
+
+Project Completion Standard
+
+Corsair Tactical Insights should establish Corsair Tactical Solutions as an educational authority in security, training, and protection. Visitors should leave with increased trust in the organization, while naturally discovering relevant services through high-quality content rather than aggressive sales tactics.
+
+Success means visitors think:
+
+"These people clearly know what they're talking about."
+
+before they ever decide to become customers.

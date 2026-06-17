@@ -1,0 +1,193 @@
+38. Final Content Updates – Images, Discounts & Upcoming Training Date
+
+Priority: HIGH
+
+Please complete the following updates across the website while maintaining the current layouts, responsiveness, and functionality.
+
+A. Course Image Updates
+
+Replace the existing images with the newly provided assets.
+
+1. Level IV Bodyguard (Personal Protection Officer)
+
+Current Course:
+Level IV Bodyguard (Personal Protection Officer)
+
+Action:
+Replace the current image.
+
+New Image:
+
+* Attached photo of Hilton and Steve together.
+
+Requirements:
+
+* Maintain the existing course card and detail page layouts.
+* Ensure both individuals are visible.
+* Avoid cropping faces.
+* Optimize for desktop, tablet, and mobile display.
+
+2. Online Texas License to Carry Assessment
+
+Current Course:
+Online Texas License to Carry Assessment
+
+Action:
+Replace the current image.
+
+New Image:
+
+* Computer photo for Online LTC.
+
+Requirements:
+
+* Preserve existing styling.
+* Ensure the computer screen remains visible.
+* Optimize for performance and responsive viewing.
+
+3. Basic Handgun Skills Training (Personal 1:1)
+
+Current Course:
+Basic Handgun Skills Training (Personal 1:1)
+
+Action:
+Replace the current image.
+
+New Image:
+
+* White lady photo.
+
+Requirements:
+
+* Preserve the current course presentation.
+* Avoid excessive cropping.
+* Ensure the subject remains properly framed across all devices.
+
+4. Level III + IV Complete Package
+
+Current Course:
+Level III + IV Complete Package
+
+Action:
+Replace the current image.
+
+New Image:
+
+* Hilton training person with braids.
+
+Requirements:
+
+* Use the newly supplied image.
+* Ensure the training activity remains visible.
+* Preserve responsive behavior.
+
+B. Church Safety Image Update
+
+Location:
+Protecting the House of Worship section.
+
+Action:
+Replace the existing image.
+
+New Image:
+
+* Church pew photo.
+
+Requirements:
+
+* Maintain the existing section layout.
+* Ensure the church environment is clearly recognizable.
+* Preserve mobile and desktop presentation.
+* Optimize image size for performance.
+
+C. Discounts Section
+
+Add a clearly visible Discounts section to the website.
+
+Suggested Placement:
+
+* Course pages near pricing information.
+* Registration/checkout flow before payment.
+* Security Training page.
+* Homepage (if space permits).
+
+Display:
+
+Discounts Available
+
+* Veteran – 10%
+* First Responder – 5%
+* Educator/Teacher – 5%
+* College Student – 5%
+* Clergy – 5%
+
+Requirements:
+
+* Maintain professional styling.
+* Clarify that verification may be required.
+* Ensure discounts are easy to read on mobile devices.
+* Do not clutter the checkout experience.
+
+Suggested Disclaimer:
+
+"Eligible discounts may require verification prior to class attendance."
+
+D. Upcoming Training Date Update
+
+Update the website to promote the next available training session.
+
+Display:
+
+Next Training Class:
+July 25
+
+Suggested Placement:
+
+* Homepage
+* Events page
+* Security Training page
+* Relevant course pages
+
+Requirements:
+
+* Use a visually prominent callout.
+* Maintain consistency with the site's existing design.
+* Ensure the information is easy to find on mobile devices.
+
+E. QA Verification
+
+Verify:
+
+✓ Level IV image updated successfully.
+
+✓ Online Texas LTC Assessment image updated successfully.
+
+✓ Basic Handgun Skills Training image updated successfully.
+
+✓ Level III + IV Complete Package image updated successfully.
+
+✓ House of Worship image updated successfully.
+
+✓ No faces are cropped.
+
+✓ Images remain optimized for performance.
+
+✓ Discounts display correctly.
+
+✓ Discount percentages are accurate.
+
+✓ Verification disclaimer appears where appropriate.
+
+✓ July 25 training date displays correctly.
+
+✓ Desktop layouts verified.
+
+✓ Tablet layouts verified.
+
+✓ Mobile layouts verified.
+
+✓ No broken images or layout regressions.
+
+Project Completion Standard
+
+The website should accurately reflect the updated course imagery, clearly communicate available discounts, and prominently promote the upcoming July 25 training opportunity while preserving the professional appearance and performance standards established throughout the site.
