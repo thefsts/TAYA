@@ -1,0 +1,193 @@
+43. Responsive Design & Mobile Optimization Verification
+
+Priority: CRITICAL
+
+As part of these image updates, perform a complete responsive design review to ensure the website delivers an excellent experience across desktop, tablet, and mobile devices.
+
+This review should include every page, every image, every form, and every interactive element.
+
+## A. Responsive Image Verification
+
+Review every image on the website, including the newly updated course images.
+
+Verify:
+
+* Images display correctly on desktop.
+* Images display correctly on tablets.
+* Images display correctly on mobile phones.
+* No faces or important subjects are cropped.
+* Images maintain consistent aspect ratios.
+* No stretching or distortion.
+* Responsive image sizes are served where appropriate.
+* Lazy loading is enabled where appropriate.
+* Images remain optimized for fast loading.
+
+---
+
+## B. Mobile Layout Review
+
+Test the website on common mobile screen sizes, including:
+
+* iPhone SE
+* iPhone 14/15/16
+* iPhone Pro Max
+* Samsung Galaxy devices
+* Google Pixel devices
+
+Verify:
+
+* No horizontal scrolling.
+* No overlapping content.
+* No cut-off text.
+* Proper spacing throughout.
+* Buttons are easy to tap (minimum 44×44 px).
+* Navigation menu functions correctly.
+* Hero sections display properly.
+* Cards stack correctly.
+* Images resize appropriately.
+* Forms remain easy to complete.
+
+---
+
+## C. Tablet Review
+
+Test common tablet breakpoints, including:
+
+* iPad Mini
+* iPad
+* iPad Pro
+* Android tablets
+
+Verify:
+
+* Proper spacing.
+* Responsive grids.
+* Correct image scaling.
+* Readable typography.
+* Navigation behaves correctly.
+* No layout shifts.
+
+---
+
+## D. Typography Review
+
+Verify typography across the site.
+
+Standards:
+
+* Body text: minimum 16px on mobile.
+* Supporting text: minimum 14px.
+* Headings scale proportionally.
+* Comfortable line spacing.
+* Good color contrast.
+* No text clipping or overflow.
+
+---
+
+## E. Forms & Checkout Review
+
+Verify on mobile and tablet:
+
+* Contact forms.
+* Registration forms.
+* Event registration.
+* Square checkout.
+* Waiver forms.
+* Quick Consult forms.
+
+Confirm:
+
+* Fields remain easy to use.
+* Keyboard types are appropriate.
+* Buttons remain accessible.
+* Validation messages display correctly.
+* Confirmation pages display properly.
+
+---
+
+## F. Navigation Review
+
+Verify:
+
+Desktop Navigation
+
+* All menu items work.
+* Dropdowns function properly.
+
+Tablet Navigation
+
+* Menu adapts correctly.
+* No overlapping elements.
+
+Mobile Navigation
+
+* Hamburger menu functions correctly.
+* All links work.
+* Language selector functions correctly.
+* Menu closes properly after navigation.
+
+---
+
+## G. Performance Review
+
+Verify that responsive improvements do not negatively affect performance.
+
+Confirm:
+
+* Fast image loading.
+* Responsive image delivery.
+* No unnecessary layout shifts (CLS).
+* Smooth scrolling.
+* Good mobile performance scores.
+* No JavaScript errors related to responsive layouts.
+
+---
+
+## H. Cross-Browser Testing
+
+Verify responsive behavior in:
+
+* Chrome
+* Safari
+* Edge
+* Firefox
+
+Confirm consistent layouts and functionality across browsers.
+
+---
+
+## I. Final QA Checklist
+
+Before project completion, verify:
+
+✓ Basic Handgun Skills Training image updated.
+
+✓ AR-15 Rifle Course image updated.
+
+✓ All images display correctly on desktop.
+
+✓ All images display correctly on tablets.
+
+✓ All images display correctly on mobile.
+
+✓ Typography is readable on all devices.
+
+✓ Navigation functions correctly.
+
+✓ Forms work correctly.
+
+✓ Square checkout is usable on mobile.
+
+✓ Buttons are touch-friendly.
+
+✓ No layout regressions.
+
+✓ No overlapping content.
+
+✓ No broken images.
+
+✓ Responsive performance remains optimized.
+
+Project Completion Standard
+
+The Corsair Tactical Solutions website should provide a polished, professional, and consistent experience across desktops, tablets, and smartphones. Every visitor should be able to browse, register for training, complete payments, and contact the company comfortably from any modern device without layout issues, readability problems, or usability concerns.
