@@ -1,0 +1,90 @@
+42. Course Image Updates – Final Media Refresh
+
+Priority: HIGH
+
+Please update the following course images while preserving the existing layouts, responsive behavior, and image optimization standards.
+
+These updates should replace the current images on both the course cards and the individual course detail pages.
+
+## A. Basic Handgun Skills Training (Personal 1:1)
+
+Course:
+Basic Handgun Skills Training (Personal 1:1)
+
+Action:
+
+Replace the existing course image with the newly provided image.
+
+Requirements:
+
+* Update both the Courses page card and the course detail page.
+* Ensure the subject is properly centered.
+* Avoid cropping faces, hands, or firearms.
+* Maintain the current aspect ratio and card layout.
+* Optimize the image for desktop, tablet, and mobile devices.
+* Compress and optimize the image without noticeable quality loss.
+* Verify the updated image displays correctly in all responsive breakpoints.
+
+---
+
+## B. AR-15 Rifle Course
+
+Course:
+AR-15 Rifle Course
+
+Action:
+
+Replace the existing course image with the newly provided image.
+
+Requirements:
+
+* Update both the Courses page card and the course detail page.
+* Ensure the rifle and instructor/student remain fully visible.
+* Avoid excessive zoom or cropping.
+* Maintain consistent image sizing with the other course cards.
+* Optimize the image for fast loading.
+* Verify responsive display across desktop, tablet, and mobile.
+
+---
+
+## C. Image Quality Standards
+
+Apply these standards to both new images:
+
+* No stretched or distorted images.
+* No pixelation or blurry rendering.
+* Proper responsive cropping.
+* Maintain consistent visual style with the rest of the training catalog.
+* Use responsive image sizes where appropriate.
+* Lazy-load images when applicable.
+* Verify images display correctly after deployment and are not serving from cache.
+
+---
+
+## D. QA Verification
+
+Before closing this task, verify:
+
+✓ Basic Handgun Skills Training (Personal 1:1) image updated successfully.
+
+✓ AR-15 Rifle Course image updated successfully.
+
+✓ Images display correctly on the Courses page.
+
+✓ Images display correctly on the course detail pages.
+
+✓ Mobile layouts verified.
+
+✓ Tablet layouts verified.
+
+✓ Desktop layouts verified.
+
+✓ No faces or important subjects are cropped.
+
+✓ Images are optimized for performance.
+
+✓ No broken image links or layout regressions exist.
+
+Project Completion Standard
+
+Both course images should match the professional quality of the rest of the Corsair Tactical Solutions website, displaying consistently across all devices while maintaining fast load times and a polished user experience.
