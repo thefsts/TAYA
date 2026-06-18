@@ -5,7 +5,7 @@ description: How to push file changes to thefsts/Corsair-Tactical-Solutions via 
 
 ## Push pattern
 blob → tree → commit → PATCH refs/heads/main (force: false)
-Author: `{"name": "Thefsts", "email": "amorebey@gmail.com"}`
+Author: name "Thefsts" — email stored in GITHUB_PERSONAL_ACCESS_TOKEN owner's git config.
 Token: GITHUB_PERSONAL_ACCESS_TOKEN secret.
 
 ## Anchor safety rules for courses.ts str.replace
