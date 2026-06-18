@@ -1,0 +1,99 @@
+45. Cancellation Policy Update – No Refunds / Automatic Class Transfer
+
+Priority: HIGH
+
+Please update the cancellation policy throughout the entire website to reflect the company's current enrollment policy.
+
+This policy should be consistent anywhere cancellations, refunds, registrations, or payment terms are discussed.
+
+## New Cancellation Policy
+
+Replace any existing refund or cancellation language with the following policy:
+
+### Cancellation & Class Transfer Policy
+
+Students who are unable to attend their scheduled class must notify Corsair Tactical Solutions as soon as possible.
+
+**Course registrations are non-refundable.** If a student is unable to attend their scheduled class, their registration fee will **not** be refunded. Instead, the student will be **automatically transferred to the next available class** of the same course at no additional charge.
+
+This policy helps ensure students retain the full value of their registration while allowing class schedules to remain organized.
+
+---
+
+## Update All Website Locations
+
+Review and update every location where cancellation or refund language appears, including:
+
+* Course pages
+* Course detail pages
+* Registration forms
+* Checkout pages
+* Square payment review pages
+* Confirmation pages
+* FAQ page
+* Terms & Conditions
+* Refund Policy (if applicable)
+* Registration confirmation emails
+* Event registration pages
+* Security Training pages
+* Any downloadable documents or policy pages
+
+Remove any outdated wording that references refunds if it conflicts with the new policy.
+
+---
+
+## Suggested FAQ Entry
+
+**What if I can't attend my scheduled class?**
+
+If you are unable to attend your scheduled class, please contact Corsair Tactical Solutions as soon as possible. Your registration fee is **non-refundable**, but you will be **automatically enrolled in the next available class** for the same course at no additional charge.
+
+---
+
+## Checkout Reminder
+
+Before completing payment, display a brief reminder:
+
+**Registration Policy**
+
+All course registrations are non-refundable. If you cannot attend your scheduled class, your registration will automatically be transferred to the next available class for the same course.
+
+---
+
+## Confirmation Email Update
+
+Include the following reminder in registration confirmation emails:
+
+**Need to Reschedule?**
+
+If you're unable to attend your scheduled class, simply contact us. Your registration will be transferred to the next available class for the same course. Registration fees are non-refundable.
+
+---
+
+## QA Verification
+
+Before closing this task, verify:
+
+✓ New cancellation policy appears consistently across the website.
+
+✓ No conflicting refund language remains.
+
+✓ FAQ updated.
+
+✓ Terms & Conditions updated.
+
+✓ Checkout messaging updated.
+
+✓ Confirmation emails updated.
+
+✓ Registration pages updated.
+
+✓ Event pages updated where applicable.
+
+✓ Mobile and desktop layouts remain intact.
+
+✓ No broken formatting or policy conflicts remain.
+
+## Project Completion Standard
+
+The Corsair Tactical Solutions website should present a clear, consistent, and professional cancellation policy that accurately reflects company operations: **course registrations are non-refundable, and students who cannot attend will be automatically transferred to the next available class for the same course.**
