@@ -1,0 +1,66 @@
+46. Final Course Image Update – Concealed Carry / Home Defense
+
+Priority: HIGH
+
+Please complete one final image update for the course catalog before the website is delivered to the client.
+
+## Course Image Update
+
+Course:
+**Concealed Carry / Home Defense**
+
+Action:
+
+Replace the existing course image with the newly provided image.
+
+Requirements:
+
+* Update the image on both the **Courses** page and the **Concealed Carry / Home Defense** course detail page.
+* Ensure the primary subject(s) remain fully visible.
+* Avoid cropping faces, hands, firearms, or important training elements.
+* Maintain the existing course card aspect ratio and layout.
+* Match the visual style and quality of the other recently updated course images.
+* Optimize the image for fast loading while preserving image quality.
+* Verify the image displays correctly across desktop, tablet, and mobile devices.
+
+---
+
+## Image Formatting Standards
+
+Apply the same standards used throughout the website:
+
+* Proper responsive cropping.
+* No stretching or distortion.
+* No blurry or pixelated rendering.
+* Consistent framing with the rest of the course catalog.
+* Responsive image sizing.
+* Lazy loading enabled where appropriate.
+* Optimized for Core Web Vitals and overall site performance.
+
+---
+
+## QA Verification
+
+Before closing this task, verify:
+
+✓ Concealed Carry / Home Defense image updated successfully.
+
+✓ Image displays correctly on the Courses page.
+
+✓ Image displays correctly on the course detail page.
+
+✓ Desktop layout verified.
+
+✓ Tablet layout verified.
+
+✓ Mobile layout verified.
+
+✓ No important subjects are cropped.
+
+✓ Image optimized for performance.
+
+✓ No broken image links or layout regressions introduced.
+
+## Project Completion Standard
+
+The **Concealed Carry / Home Defense** course should display the newly provided professional image consistently across the website, maintaining the same polished appearance, responsive behavior, and performance standards established for all other Corsair Tactical Solutions training courses.
