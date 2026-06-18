@@ -1,0 +1,212 @@
+41. Critical Internationalization (i18n) Fixes – Language Switching & RTL Support
+
+Priority: CRITICAL
+
+The language selector is not functioning correctly across the website.
+
+This must be corrected before the website is considered production-ready.
+
+The language switcher should provide a seamless multilingual experience while preserving navigation, page state, and layouts.
+
+A. Complete Translation Coverage
+
+Current Issue:
+
+Changing languages does not translate all content.
+
+Requirements:
+
+Review every page and ensure all user-facing text is translated.
+
+This includes:
+
+* Navigation
+* Hero sections
+* Buttons
+* Headlines
+* Paragraphs
+* Course descriptions
+* Service descriptions
+* Forms
+* Validation messages
+* Error messages
+* Success messages
+* Footer
+* Blog
+* Events
+* Checkout
+* Confirmation pages
+* Email templates (if localized)
+* Metadata where applicable
+
+No English text should remain visible when another language is selected unless intentionally left untranslated (e.g., trademarks or proper names).
+
+B. Language Persistence
+
+Current Issue:
+
+The site does not reliably return to English or maintain the selected language.
+
+Requirements:
+
+When a visitor selects a language:
+
+* The preference should persist while navigating the site.
+* Internal links should preserve the selected language.
+* Refreshing the page should not unexpectedly revert languages.
+* Selecting English should immediately restore the full English experience.
+
+Verify that switching between languages multiple times works correctly without stale or mixed translations.
+
+C. Right-to-Left (RTL) Language Support
+
+Current Issue:
+
+Languages that read right-to-left are not displaying correctly.
+
+Requirements:
+
+For RTL languages (such as Arabic):
+
+* Automatically set `dir="rtl"` on the document.
+* Update the page layout so it flows naturally from right to left.
+* Mirror navigation placement where appropriate.
+* Reverse flex/grid ordering where needed.
+* Align text correctly.
+* Ensure icons, arrows, and directional elements display appropriately.
+* Verify forms, menus, and buttons remain usable.
+* Ensure responsive layouts continue to function.
+
+LTR languages should continue using `dir="ltr"`.
+
+D. URL & Routing Verification
+
+Verify language routing behaves consistently.
+
+Requirements:
+
+* All internal navigation respects the active language.
+* No broken language routes.
+* No redirect loops.
+* No mixed-language URLs.
+* Language changes should not unexpectedly return users to the homepage unless intended.
+
+E. Language Switcher QA
+
+Test switching between all supported languages.
+
+For each language verify:
+
+✓ Homepage
+
+✓ About
+
+✓ Courses
+
+✓ Course Detail Pages
+
+✓ Events
+
+✓ Church Security
+
+✓ 4D Protection Model™
+
+✓ Property Manager Services
+
+✓ Private Investigations
+
+✓ Security Training
+
+✓ Contact
+
+✓ FAQ
+
+✓ Blog
+
+✓ City Pages
+
+✓ Footer
+
+Confirm that each page:
+
+* Loads correctly.
+* Uses the correct language.
+* Maintains formatting.
+* Preserves navigation.
+* Displays responsive layouts.
+
+F. Layout Validation
+
+Verify:
+
+Desktop
+
+* No overlapping content.
+* Correct spacing.
+* Correct alignment.
+
+Tablet
+
+* Responsive layout remains intact.
+* Navigation functions correctly.
+
+Mobile
+
+* No text overflow.
+* Buttons remain readable.
+* Menus function correctly.
+* RTL layouts remain usable.
+
+G. Browser Testing
+
+Verify language switching works correctly in:
+
+* Chrome
+* Edge
+* Safari
+* Firefox
+
+Confirm behavior is consistent across browsers.
+
+H. Performance
+
+Ensure multilingual support does not negatively impact performance.
+
+Verify:
+
+* Translation resources load efficiently.
+* No duplicate requests.
+* No excessive JavaScript.
+* No layout shifts caused by language changes.
+
+I. Final Acceptance Checklist
+
+Verify:
+
+✓ Every page fully translates.
+
+✓ No mixed-language pages remain.
+
+✓ English can always be restored.
+
+✓ Language selection persists while navigating.
+
+✓ RTL languages display correctly.
+
+✓ Navigation mirrors appropriately for RTL.
+
+✓ Forms function in every language.
+
+✓ Mobile layouts verified.
+
+✓ Tablet layouts verified.
+
+✓ Desktop layouts verified.
+
+✓ No routing regressions introduced.
+
+✓ No performance regressions introduced.
+
+Project Completion Standard
+
+The multilingual experience should feel native in every supported language. Visitors should be able to switch languages at any time, maintain their language preference while navigating the site, and experience proper left-to-right or right-to-left layouts where appropriate. The website should appear professionally localized rather than partially translated.
