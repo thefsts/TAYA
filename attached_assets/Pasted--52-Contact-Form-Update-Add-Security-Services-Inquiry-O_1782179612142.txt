@@ -1,0 +1,103 @@
+# 52. Contact Form Update – Add Security Services Inquiry Option
+
+**Priority:** HIGH
+
+Update the **Contact** page form to better support commercial clients seeking security services.
+
+**Important:** Do **NOT** redesign or restyle the Contact page. Preserve the existing layout, styling, spacing, typography, colors, and responsive behavior. This is a functionality update only.
+
+---
+
+# Update the "Course Interest" Dropdown
+
+The current dropdown is focused primarily on training courses. Since Corsair Tactical Solutions is now positioned as a **security services company first**, the contact form should allow visitors to inquire about professional security services as well.
+
+## Rename the Field
+
+Change:
+
+**Course Interest**
+
+To:
+
+**How Can We Help You?**
+
+This makes the form more inclusive for both training and commercial service inquiries.
+
+---
+
+# Add a New Section to the Dropdown
+
+## Security Services
+
+Include the following options:
+
+* General Security Services Inquiry
+* Armed Security Services
+* Church Security Services
+* Property Management & HOA Security
+* Executive Protection
+* Private Investigations
+* Corporate Security Services
+* Event Security Services
+* Security Assessment / Consultation
+
+---
+
+# Keep Existing Training Options
+
+Retain all existing training-related selections, including:
+
+* Texas License to Carry (LTC)
+* Security Officer Training
+* Basic Handgun Training
+* Defensive Shooting
+* AR-15 Rifle Course
+* Shotgun Course
+* Firearm Proficiency Re-Qualification
+* Private Instruction
+* First Aid / Stop the Bleed
+* Other Training Programs
+
+---
+
+# Form Behavior
+
+When a visitor submits the form:
+
+* Include the selected service or training interest in the email notification.
+* Continue sending all contact form submissions to:
+  **[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)**
+* Preserve all existing email functionality and confirmation messages.
+
+---
+
+# Future CRM Compatibility
+
+Structure the dropdown values so they can easily map to a future CRM for routing, reporting, and lead categorization.
+
+---
+
+# QA Verification
+
+Verify:
+
+✓ Field renamed to **"How Can We Help You?"**
+
+✓ Security Services options appear correctly.
+
+✓ Existing training options remain available.
+
+✓ Selected option is included in the email notification.
+
+✓ Contact emails continue sending to **[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)**.
+
+✓ Desktop, tablet, and mobile layouts remain unchanged.
+
+✓ No styling or spacing changes.
+
+✓ Form validation continues to function correctly.
+
+## Project Completion Standard
+
+The Contact page should effectively serve both **commercial security service clients** and **training students**, allowing visitors to clearly identify the type of assistance they need while maintaining the site's existing design and functionality.
