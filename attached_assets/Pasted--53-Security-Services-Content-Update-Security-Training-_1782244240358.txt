@@ -1,0 +1,192 @@
+# 53. Security Services Content Update, Security Training Hero Update & Homepage Featured Training Programs
+
+**Priority:** HIGH
+
+Please complete the following updates while preserving the current design and user experience.
+
+**Important:** **Do NOT redesign or restyle the website.** Preserve the existing layout, colors, typography, spacing, animations, responsive behavior, and overall visual identity. These are content and organization updates only.
+
+---
+
+# A. Security Services Page – Add the 4D Protection Model™
+
+**Page:**
+
+/security-services
+
+Add a new section highlighting Corsair Tactical Solutions' proprietary security philosophy.
+
+## Section Title
+
+**The 4D Protection Model™**
+
+### Introduction
+
+The **4D Protection Model™** is CTS's proprietary security framework built around four sequential phases designed to proactively protect people, property, and organizations while reducing risk through progressive response strategies.
+
+---
+
+## Deter
+
+**The First Line of Defense**
+
+Visible security presence, signage, lighting, and access control measures discourage threats before they materialize.
+
+---
+
+## Detect
+
+**Identify Threats Early**
+
+Surveillance systems, trained officer observation, and situational awareness protocols identify potential threats early, creating valuable time and space to respond appropriately.
+
+---
+
+## Deflect
+
+**The CTS Difference**
+
+This is the distinctive Corsair Tactical Solutions differentiator.
+
+Officers are trained in verbal de-escalation, conflict management, and trauma-informed response techniques that redirect threats without unnecessary force.
+
+Most security models move directly to physical intervention.
+
+CTS treats communication, professionalism, and conflict resolution as a critical middle layer that protects clients while reducing unnecessary escalation.
+
+---
+
+## Defend
+
+**Professional Response When Necessary**
+
+The final escalation tier activates only when the other three phases have been exhausted or bypassed.
+
+This includes:
+
+* Physical intervention
+* Emergency response
+* Life safety protection
+* Coordination with law enforcement
+
+---
+
+## Progressive Escalation
+
+The model is structured as a progressive escalation ladder, meaning each phase only activates when the previous one is insufficient.
+
+The objective is to resolve situations as early as possible, minimizing risk to personnel, clients, visitors, and bystanders.
+
+The **Deflect** layer reflects CTS's philosophy:
+
+**A well-trained officer is a communicator first and a physical responder only when necessary.**
+
+---
+
+# B. Security Training Hero Update
+
+**Page:**
+
+/security-training
+
+Update the hero heading.
+
+Current:
+
+**Security Officer Training**
+
+Change To:
+
+**Security Guard Training**
+
+Keep the existing hero image, styling, animations, and layout.
+
+---
+
+# C. Homepage Training Section Update
+
+**Page:**
+
+Homepage
+
+Rename the section heading:
+
+Current:
+
+**Popular Courses**
+
+Update To:
+
+# **Featured Training Programs**
+
+This better reflects Corsair Tactical Solutions' focus on professional security services while highlighting its training division.
+
+---
+
+## Reorganize the Featured Training Programs
+
+### First Row – Security Guard Training
+
+Display these four featured programs first:
+
+* Level II Unarmed Security Officer
+* Level III Armed Security Officer — Commissioned
+* Level IV Bodyguard (Personal Protection Officer)
+* Level III + IV Complete Package
+
+These should be the primary featured training programs.
+
+---
+
+### Second Row – Firearms Training
+
+Display:
+
+* Texas License to Carry Certification / Basic Handgun
+* Basic Handgun Skills Training (Personal 1:1)
+* Shotgun Course
+* AR-15 Rifle Course
+
+These should appear directly beneath the Security Guard Training row.
+
+This organization reinforces the company's priorities:
+
+1. Professional Security Services
+2. Security Guard Training
+3. Firearms Training
+
+---
+
+# D. QA Verification
+
+Verify:
+
+✓ 4D Protection Model™ section added to the Security Services page.
+
+✓ Existing Security Services page layout remains unchanged.
+
+✓ Security Training hero updated to **Security Guard Training**.
+
+✓ Homepage section title updated to **Featured Training Programs**.
+
+✓ Security Guard Training courses display in the first row.
+
+✓ Firearms Training courses display in the second row.
+
+✓ Desktop layout verified.
+
+✓ Tablet layout verified.
+
+✓ Mobile layout verified.
+
+✓ No broken links.
+
+✓ No visual regressions.
+
+✓ Existing animations and responsiveness remain intact.
+
+✓ Images and cards remain properly aligned after reordering.
+
+## Project Completion Standard
+
+The website should continue presenting Corsair Tactical Solutions as a **professional security services company first**, with **Security Guard Training** prominently featured ahead of firearms training. The homepage should clearly communicate this hierarchy through the updated **Featured Training Programs** section, while the Security Services page reinforces the company's proprietary **4D Protection Model™** without altering the site's established design or user experience.
