@@ -1,0 +1,120 @@
+# 55. Security Services Page Layout Update – Move the 4D Protection Model™ to the Top
+
+**Priority:** HIGH
+
+Please update the layout of the **Security Services** page to better showcase Corsair Tactical Solutions' unique approach to professional security services.
+
+**Page:**
+
+`/security-services`
+
+**Important:** **Do NOT redesign or restyle the page.** Preserve the current design, spacing, colors, typography, animations, responsive behavior, and visual identity. This is a content placement update only.
+
+---
+
+# Move the 4D Protection Model™ Section
+
+Relocate the entire **The 4D Protection Model™** section so it appears **immediately below the hero banner** and **before all other page content**.
+
+This should become the first informational section visitors see after the hero.
+
+The purpose is to immediately communicate what makes Corsair Tactical Solutions different from other security companies before introducing the individual services.
+
+---
+
+# Section Order
+
+The page should follow this general flow:
+
+1. Hero Banner
+2. **The 4D Protection Model™**
+3. Security Services Overview
+4. Individual Security Service Sections
+5. Industries Served
+6. Call-to-Action / Consultation Section
+7. Footer
+
+This establishes the **4D Protection Model™** as the foundation for every security service Corsair Tactical Solutions provides.
+
+---
+
+# 4D Protection Model™ Content
+
+Retain the complete content already approved:
+
+### Deter
+
+The first line of defense. Visible security presence, signage, lighting, and access control measures that discourage threats before they materialize.
+
+### Detect
+
+Surveillance systems, trained officer observation, and situational awareness protocols that identify potential threats early, creating time and space to respond.
+
+### Deflect
+
+The defining CTS differentiator, emphasizing verbal de-escalation, conflict management, and trauma-informed response techniques to resolve situations without unnecessary force whenever possible.
+
+### Defend
+
+The final escalation tier, activated only when the previous phases have been exhausted or bypassed, including physical intervention, emergency response, and coordination with law enforcement.
+
+### Progressive Escalation
+
+Explain that the model functions as a progressive escalation ladder, where each phase is activated only when the previous one is insufficient. The objective is always to resolve situations at the earliest possible stage, minimizing risk to personnel, clients, and bystanders.
+
+Conclude with the Corsair Tactical Solutions philosophy:
+
+> **A well-trained Security Officer is a communicator first and a physical responder only when necessary.**
+
+---
+
+# Design Requirements
+
+* Keep the existing section styling.
+* Maintain current spacing and visual consistency.
+* Preserve all animations.
+* Preserve responsive behavior.
+* Do not alter the hero section.
+* Do not remove any existing service content.
+* Ensure the new placement flows naturally with the rest of the page.
+
+---
+
+# SEO Benefit
+
+Moving the **4D Protection Model™** directly below the hero strengthens the page by:
+
+* Immediately communicating Corsair Tactical Solutions' unique value proposition.
+* Reinforcing the company's professional methodology before presenting services.
+* Improving keyword relevance for security services and commercial security searches.
+* Increasing visitor engagement by introducing the company's proprietary framework early in the user journey.
+
+---
+
+# QA Verification
+
+Verify:
+
+✓ The **4D Protection Model™** section appears immediately below the hero.
+
+✓ Existing page design remains unchanged.
+
+✓ All content displays correctly.
+
+✓ Desktop layout verified.
+
+✓ Tablet layout verified.
+
+✓ Mobile layout verified.
+
+✓ No spacing or layout regressions.
+
+✓ Internal links continue functioning.
+
+✓ Page performance remains optimized.
+
+✓ The section reads naturally and reinforces the Security Services message.
+
+## Project Completion Standard
+
+The **Security Services** page should immediately introduce visitors to the **4D Protection Model™**, establishing Corsair Tactical Solutions' proprietary approach to professional security before presenting the company's individual services. This change should improve user engagement, strengthen the company's brand differentiation, and support the website's positioning as a security services company first while maintaining the existing design and user experience.
