@@ -1,0 +1,278 @@
+# 50. Final SEO Optimization & Search Engine Readiness
+
+**Priority:** CRITICAL
+
+Before final client handoff, complete a full SEO optimization of the website to align with Corsair Tactical Solutions' updated business strategy.
+
+**Important:** Do **NOT** redesign or change the website layout. This task is limited to SEO, metadata, structured data, indexing, and search optimization.
+
+The website should now rank primarily for **professional security services** while continuing to rank for **security officer training** and **Texas firearms training**.
+
+---
+
+# A. Homepage SEO
+
+Update the homepage metadata to reflect the company's primary business.
+
+### SEO Title
+
+Corsair Tactical Solutions | Professional Security Services & Security Training in Texas
+
+### Meta Description
+
+Corsair Tactical Solutions provides licensed armed security services, executive protection, church security, HOA and property management security, private investigations, and Texas security officer training throughout Texas.
+
+### Primary Keywords
+
+* Texas Security Company
+* Armed Security Services Texas
+* Professional Security Services
+* Church Security
+* Executive Protection
+* Property Management Security
+* HOA Security
+* Private Investigations Texas
+* Security Officer Training
+* Texas License to Carry
+* Level II Security Training
+* Level III Security Training
+* Level IV Security Training
+
+---
+
+# B. Page Titles & Meta Descriptions
+
+Review and optimize every page, including:
+
+* Homepage
+* About
+* Security Services
+* Church Security
+* Property Manager Services
+* Private Investigations
+* Security Training
+* Courses
+* Every Course Detail Page
+* Events
+* Contact
+* FAQ
+* Careers
+* Articles / Blog
+* City Landing Pages
+* 4D Protection Model™
+
+Ensure each page has:
+
+* Unique SEO Title
+* Unique Meta Description
+* Canonical URL
+* Proper H1
+* Logical H2/H3 structure
+
+---
+
+# C. Open Graph & Social Sharing
+
+Add or verify:
+
+* Open Graph Title
+* Open Graph Description
+* Open Graph Image
+* Twitter/X Card Metadata
+* Social preview image
+* Favicon
+* Apple Touch Icon
+
+Ensure pages display professional previews when shared on:
+
+* Facebook
+* LinkedIn
+* X (Twitter)
+* iMessage
+* Slack
+
+---
+
+# D. Structured Data (Schema)
+
+Verify or implement:
+
+* Organization Schema
+* Local Business Schema
+* Security Service Schema (where applicable)
+* Course Schema
+* Event Schema
+* FAQ Schema
+* Article Schema
+* Breadcrumb Schema
+* Website Schema
+
+Include:
+
+* Business Name
+* Phone Number
+* Website
+* Service Areas
+* Business Logo
+* Texas Licenses (where appropriate)
+
+---
+
+# E. Local SEO
+
+Strengthen local search optimization.
+
+Target locations including:
+
+* Dallas
+* Fort Worth
+* Plano
+* Frisco
+* McKinney
+* Arlington
+* Garland
+* Irving
+* Denton
+* Grand Prairie
+* Addison
+* Farmers Branch
+
+Optimize page content naturally without keyword stuffing.
+
+---
+
+# F. Security Services SEO
+
+Increase emphasis on commercial services.
+
+Target phrases such as:
+
+* Armed Security Company
+* Commercial Security Services
+* Church Security Company
+* Executive Protection Texas
+* HOA Security Services
+* Apartment Security
+* Property Patrol Services
+* Security Guard Company Texas
+* Private Investigation Services
+* Event Security
+
+---
+
+# G. Training SEO
+
+Continue optimizing for:
+
+* Texas License to Carry
+* LTC Classes
+* Concealed Carry Training
+* Security Officer Training
+* Level II Security Training
+* Level III Security Training
+* Level IV PPO Training
+* Defensive Handgun Training
+* Firearms Instruction Texas
+
+---
+
+# H. Technical SEO
+
+Verify:
+
+* XML Sitemap updated.
+* robots.txt configured correctly.
+* Canonical URLs implemented.
+* No duplicate metadata.
+* No duplicate H1 tags.
+* No broken internal links.
+* No orphan pages.
+* Proper 301 redirects.
+* Clean URL structure.
+* Remove `/en` from default English URLs while maintaining multilingual support.
+
+---
+
+# I. Image SEO
+
+Review every image.
+
+Verify:
+
+* Descriptive filenames.
+* Optimized file sizes.
+* Alt text added.
+* Width/height attributes present.
+* Lazy loading enabled.
+* Modern formats used where supported (WebP/AVIF).
+
+---
+
+# J. Performance & Core Web Vitals
+
+Confirm:
+
+* Fast Largest Contentful Paint (LCP).
+* Minimal Layout Shift (CLS).
+* Good Interaction to Next Paint (INP).
+* Optimized JavaScript.
+* Optimized CSS.
+* Responsive images.
+* Mobile-first performance maintained.
+
+---
+
+# K. Google Search Readiness
+
+Verify the site is ready for indexing:
+
+* XML Sitemap available.
+* robots.txt correct.
+* Metadata complete.
+* Structured data validated.
+* Canonical URLs verified.
+* Noindex tags removed from production pages.
+* 404 page optimized.
+* Redirects functioning correctly.
+
+---
+
+# L. Final SEO QA
+
+Verify:
+
+✓ Every page has a unique SEO title.
+
+✓ Every page has a unique meta description.
+
+✓ Canonical URLs implemented.
+
+✓ Structured data validated.
+
+✓ Open Graph metadata complete.
+
+✓ Images optimized with alt text.
+
+✓ XML Sitemap updated.
+
+✓ robots.txt verified.
+
+✓ Internal links checked.
+
+✓ No duplicate metadata.
+
+✓ Homepage optimized for Security Services first.
+
+✓ Training pages optimized appropriately.
+
+✓ Mobile SEO verified.
+
+✓ Tablet SEO verified.
+
+✓ Desktop SEO verified.
+
+✓ Site ready for Google indexing.
+
+## Project Completion Standard
+
+Corsair Tactical Solutions should be fully optimized for search engines, with its SEO strategy reflecting its position as a **professional Texas security services company** while continuing to attract qualified leads for **security officer training** and **Texas firearms training**. The website should be technically sound, mobile-friendly, and ready for indexing by Google and other major search engines.

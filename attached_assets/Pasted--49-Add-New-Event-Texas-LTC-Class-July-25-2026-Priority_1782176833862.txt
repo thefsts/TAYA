@@ -1,0 +1,169 @@
+# 49. Add New Event – Texas LTC Class (July 25, 2026)
+
+**Priority:** HIGH
+
+Please add the following event to the website using the **same design, layout, functionality, and registration flow** as the existing event pages.
+
+**Important:** Do **NOT** redesign the Events page. Follow the existing event template, styling, and user experience exactly.
+
+---
+
+# Event Information
+
+**Event Title**
+
+Texas License to Carry (LTC) Class
+
+**Date**
+
+Saturday, July 25, 2026
+
+**Time**
+
+8:30 AM – 3:30 PM
+
+**Course Fee**
+
+$100.00
+
+**Optional Add-Ons**
+
+* 50 Rounds of Handgun Ammunition — **$30**
+* Handgun Rental — **$20**
+
+These optional add-ons should be available during registration and included in the Square checkout total if selected.
+
+---
+
+# Classroom Location
+
+**Hilton Garden Inn Dallas / Addison**
+
+4090 Belt Line Road
+
+Addison, TX 75001
+
+---
+
+# Range Location
+
+**Eagle Gun Range**
+
+13301 Midway Road
+
+Farmers Branch, TX 75244
+
+---
+
+# Class Includes
+
+* Texas LTC Classroom Instruction
+* Handgun Safety & Handling
+* Texas Laws & Use of Force
+* Live Fire Qualification
+* Application Guidance
+
+---
+
+# Event Image
+
+Replace the default event image with the newly provided promotional graphic for the **July 25, 2026 Texas LTC Class**.
+
+Requirements:
+
+* Display on the Events listing page.
+* Display on the individual event page.
+* Optimize for web performance.
+* Maintain proper aspect ratio.
+* Verify responsive display on desktop, tablet, and mobile.
+* Do not crop important event information from the image.
+
+---
+
+# Registration Flow
+
+Use the same registration workflow as the other LTC event.
+
+Requirements:
+
+* Register button functions correctly.
+* Square checkout opens correctly.
+* Optional add-ons are selectable.
+* Correct totals calculate automatically.
+* Confirmation page displays correctly.
+* Payment confirmation emails send to the student.
+* Registration notification emails send to:
+  **[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)**
+
+---
+
+# Event Confirmation
+
+After payment, display:
+
+* Registration confirmation
+* Event date and time
+* Classroom location
+* Range location
+* Selected add-ons
+* Square Payment ID
+* Order ID
+* "What to Bring" checklist
+
+---
+
+# "What to Bring"
+
+Include:
+
+* Valid Government Photo ID
+* Handgun (if not renting)
+* Eye Protection
+* Ear Protection
+* Comfortable Clothing
+* Pen & Notebook
+* 50 Rounds of Ammunition (if not purchasing through registration)
+
+---
+
+# Homepage
+
+Automatically include this event in the homepage "Upcoming Training" section.
+
+If the homepage limits the number of upcoming events, display the July 25 class according to the site's existing sorting logic.
+
+---
+
+# QA Verification
+
+Verify:
+
+✓ Event appears on the Events page.
+
+✓ Event detail page functions correctly.
+
+✓ New event image displays correctly.
+
+✓ Desktop layout verified.
+
+✓ Tablet layout verified.
+
+✓ Mobile layout verified.
+
+✓ Square checkout functions correctly.
+
+✓ Optional add-ons calculate correctly.
+
+✓ Registration confirmation page displays correctly.
+
+✓ Admin email sent to **[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)**.
+
+✓ Student confirmation email sent.
+
+✓ Event appears in Upcoming Training (if applicable).
+
+✓ No broken links or layout regressions.
+
+## Project Completion Standard
+
+The **July 25, 2026 Texas License to Carry Class** should function exactly like the other events already on the website, using the same design, registration process, and Square payment workflow while maintaining a consistent user experience across all devices.

@@ -1,0 +1,118 @@
+# Final Update Batch – Navigation, Event Policy & Square Integration
+
+**Priority:** CRITICAL
+
+Please complete the following three updates before project handoff.
+
+**Important:** Do **NOT** redesign or restyle the website. Preserve the existing design, layout, colors, typography, spacing, animations, and responsive behavior. Only make the requested updates.
+
+---
+
+# 1. Navigation Update
+
+Update the main navigation order as follows:
+
+* **Corsair**
+* **About**
+* **Security Services**
+* **Training**
+* **Events**
+* **Articles**
+* **Contact** ▼
+
+### Contact Dropdown
+
+Move **Careers** under the **Contact** menu as a submenu item instead of displaying it as a top-level navigation item.
+
+The Contact dropdown should contain:
+
+* Contact Us
+* Careers
+
+### Requirements
+
+* Move **Security Services** so it appears immediately after **About**.
+* Make **Contact** a dropdown menu.
+* Move **Careers** under the Contact dropdown.
+* Keep all existing dropdown functionality and styling.
+* Update both the desktop and mobile navigation.
+* Do **not** change the appearance or layout of the header.
+
+---
+
+# 2. July 25, 2026 Event Policy Update
+
+Apply the company's current registration policy to the new **Texas License to Carry (LTC) Class – July 25, 2026** event.
+
+### Registration Policy
+
+**Course registrations are non-refundable.**
+
+If a student is unable to attend the July 25 class, they will **not receive a refund**. Instead, they will be **automatically enrolled in the next available Texas License to Carry class** at no additional charge.
+
+### Update This Policy In
+
+* Event registration page
+* Checkout page
+* Payment review page
+* Registration confirmation page
+* Confirmation email
+* Any event-specific Terms or Policies
+
+Remove any language that suggests refunds are available.
+
+---
+
+# 3. Square Production Integration
+
+The new **July 25, 2026 Texas License to Carry Event** must be fully connected to the live Square production system.
+
+Verify:
+
+* Event is connected to the live Square account.
+* Base registration price is **$100**.
+* Optional add-ons work correctly:
+
+  * 50 Rounds of Handgun Ammunition — **$30**
+  * Handgun Rental — **$20**
+* Square order is created correctly.
+* Square payment processes successfully.
+* Correct totals calculate.
+* Payment confirmation page displays correctly.
+* Square Payment ID is generated.
+* Square Order ID is generated.
+* Student confirmation email is sent.
+* Admin registration notification is sent to **[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)**.
+* Event appears correctly in Square reporting and transaction history.
+
+---
+
+# Final QA
+
+Before closing this task, verify:
+
+✓ Navigation updated successfully.
+
+✓ Security Services moved next to About.
+
+✓ Contact now contains a Careers submenu.
+
+✓ Existing website design remains unchanged.
+
+✓ July 25 event displays the **No Refund / Automatic Transfer** policy.
+
+✓ New event is fully connected to the live Square production account.
+
+✓ Payment flow tested successfully.
+
+✓ Confirmation emails function correctly.
+
+✓ Admin notifications function correctly.
+
+✓ Desktop, tablet, and mobile layouts remain unchanged.
+
+✓ No broken links or layout regressions.
+
+## Project Completion Standard
+
+The website should maintain its existing professional design while improving navigation, ensuring the July 25 event clearly communicates the **No Refund / Automatic Enrollment in the Next Available Class** policy, and confirming the event is fully operational with the live Square payment system before final client handoff.
