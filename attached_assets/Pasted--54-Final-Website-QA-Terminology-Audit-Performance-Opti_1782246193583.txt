@@ -1,0 +1,168 @@
+# 54. Final Website QA, Terminology Audit & Performance Optimization
+
+**Priority:** CRITICAL
+
+This is the final website optimization before client handoff.
+
+**Important:** Do **NOT** redesign or restyle the website. Preserve the current layout, colors, typography, spacing, animations, responsive behavior, and branding. These updates are for consistency, performance, and production readiness only.
+
+---
+
+# A. Website Terminology Audit
+
+Perform a complete website-wide audit to ensure consistent terminology.
+
+Wherever the website refers to security training personnel, use the approved terminology consistently.
+
+## Approved Terminology
+
+**Security Officer**
+
+Use **Security Officer** consistently throughout the website unless a specific legal or regulatory requirement requires different wording.
+
+Review and update all occurrences across:
+
+* Homepage
+* Security Training page
+* Courses page
+* Individual course pages
+* Events
+* About page
+* FAQs
+* Contact page
+* Articles / Blog
+* Email templates
+* Confirmation pages
+* Registration pages
+* Checkout pages
+* Navigation
+* Buttons
+* SEO titles
+* Meta descriptions
+* Structured data
+* Open Graph metadata
+
+Ensure there are no inconsistent references such as:
+
+* Security Guard
+* Security Personnel
+* Guard Training
+* Officer Training (when inconsistent)
+* Mixed terminology
+
+Only retain alternate wording where legally required by Texas licensing terminology.
+
+---
+
+# B. Production Code Cleanup
+
+Perform a complete production cleanup of the codebase.
+
+Remove:
+
+* Unused components
+* Dead code
+* Duplicate functions
+* Obsolete files
+* Unused imports
+* Commented-out production code
+* Temporary development utilities
+* Console.log statements
+* Debug code
+* Test helpers
+* Placeholder content
+* Legacy assets no longer referenced
+
+Verify there are no unused images, fonts, JavaScript, CSS, or API routes included in the production build.
+
+---
+
+# C. Performance Optimization
+
+Review the entire application for performance improvements.
+
+Verify:
+
+* Images optimized for web.
+* WebP/AVIF used where supported.
+* Lazy loading enabled where appropriate.
+* JavaScript bundles minimized.
+* CSS optimized.
+* Fonts optimized.
+* Duplicate requests eliminated.
+* Efficient caching configured.
+* Route prefetching working correctly.
+* Next.js production optimizations enabled.
+* No unnecessary client-side rendering.
+* Minimize layout shift (CLS).
+* Fast Largest Contentful Paint (LCP).
+* Good Interaction to Next Paint (INP).
+
+---
+
+# D. Build & Production Verification
+
+Confirm:
+
+* No build warnings.
+* No TypeScript errors.
+* No ESLint errors.
+* No hydration errors.
+* No React console warnings.
+* No broken imports.
+* No missing assets.
+* No 404 errors.
+* No duplicate routes.
+* No duplicate metadata.
+* No unused API endpoints.
+
+---
+
+# E. Final Website QA
+
+Perform a complete walkthrough of the production website.
+
+Verify:
+
+* Every page loads correctly.
+* Every navigation item functions.
+* Every button links correctly.
+* Every form submits correctly.
+* Every Square checkout works correctly.
+* Every contact form emails **[corsairtacticalsolutions@gmail.com](mailto:corsairtacticalsolutions@gmail.com)**.
+* Every event registration works.
+* Every course registration works.
+* Every email notification works.
+* Every responsive layout works on desktop, tablet, and mobile.
+* No broken images.
+* No layout regressions.
+* No accessibility issues.
+* No SEO regressions.
+
+---
+
+# F. Final Production Readiness
+
+Before closing the project, verify:
+
+✓ Website terminology is consistent.
+
+✓ Security Officer terminology is used appropriately throughout the site.
+
+✓ Codebase cleaned of unused files and legacy code.
+
+✓ Performance optimized.
+
+✓ Production build passes without warnings or errors.
+
+✓ Fast page load times maintained.
+
+✓ Site is fully responsive.
+
+✓ All forms, registrations, emails, and Square payment flows are fully operational.
+
+✓ Website is ready for client handoff.
+
+## Project Completion Standard
+
+Corsair Tactical Solutions should be delivered as a clean, production-ready website with consistent terminology, an optimized codebase, fast performance, and a fully tested user experience. The final product should reflect a professional security company that is reliable, scalable, and ready for long-term maintenance.
