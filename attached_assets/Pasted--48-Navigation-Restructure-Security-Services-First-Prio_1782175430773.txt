@@ -1,0 +1,177 @@
+# 48. Navigation Restructure – Security Services First
+
+**Priority:** HIGH
+
+As part of repositioning Corsair Tactical Solutions as a professional security company, reorganize the navigation to improve usability while keeping the top navigation clean and uncluttered.
+
+**Important:** This is a navigation and content organization update only. **Do NOT redesign or change the overall style, branding, colors, spacing, typography, animations, or layout of the website.** Preserve the current design language and user experience. Only reorganize the menu structure and hierarchy.
+
+The goal is to reduce the number of primary navigation items while making it easier for commercial clients to find security services while still allowing training customers to easily access courses.
+
+---
+
+# Primary Navigation
+
+Update the main navigation to the following order:
+
+* **Corsair** *(rename the current "Home" menu item to "Corsair")*
+* **About** ▼
+* **Security Services** ▼
+* **Training** ▼
+* **Events**
+* **Articles**
+* **Contact**
+* **Careers**
+
+This should be used for both the desktop navigation and the mobile navigation.
+
+---
+
+# About Dropdown
+
+Organize the About section into a dropdown menu.
+
+Suggested items:
+
+* About Corsair
+* Meet the Team
+* 4D Protection Model™
+* FAQs
+
+The top-level **About** item should still link to the About page.
+
+---
+
+# Security Services Dropdown
+
+When users hover (desktop) or tap (mobile), display:
+
+* Security Services Overview
+* Armed Security Services
+* Church Security
+* Property Management & HOA Security
+* Executive Protection
+* Private Investigations
+* Corporate Security *(when available)*
+* Request a Security Consultation
+
+The top-level **Security Services** item should continue linking to the main Security Services overview page.
+
+---
+
+# Training Dropdown
+
+Group all training under one organized menu.
+
+### Security Officer Training
+
+* Level II Security Officer
+* Level III Armed Security Officer
+* Level IV Personal Protection Officer
+* Continuing Education
+
+### Firearms Training
+
+* Texas License to Carry
+* Basic Handgun Skills
+* Defensive Shooting Skills
+* Concealed Carry / Home Defense
+* AR-15 Rifle Course
+* Shotgun Course
+* Firearm Proficiency Re-Qualification
+
+### Additional Training
+
+* First Aid / Stop the Bleed
+* Private Instruction
+
+At the bottom of the menu include:
+
+**View All Courses**
+
+---
+
+# Mobile Navigation
+
+The mobile menu should use expandable accordion sections.
+
+Example:
+
+☰ Menu
+
+* Corsair
+* About ▼
+* Security Services ▼
+* Training ▼
+* Events
+* Articles
+* Contact
+* Careers
+
+Users should be able to expand and collapse sections without leaving the menu.
+
+---
+
+# Navigation Goals
+
+The navigation should immediately communicate the company's priorities:
+
+1. Professional Security Services
+2. Security Officer Training
+3. Firearms Training
+4. Educational Resources
+5. Company Information
+
+Commercial buyers should immediately recognize Corsair Tactical Solutions as a professional security services company, while individual students can still quickly find the appropriate training programs.
+
+---
+
+# Preserve Existing Design
+
+Do **NOT**:
+
+* Change the website layout.
+* Change the header design.
+* Change fonts.
+* Change colors.
+* Change spacing.
+* Change branding.
+* Change animations.
+* Change the responsive design.
+* Change the styling of the navigation.
+
+Only reorganize the menu structure and dropdown hierarchy while preserving the current visual appearance.
+
+---
+
+# QA Verification
+
+Verify:
+
+✓ Navigation remains clean and uncluttered.
+
+✓ Existing website design remains unchanged.
+
+✓ Dropdown menus function correctly on desktop.
+
+✓ Accordion menus function correctly on mobile.
+
+✓ "Home" successfully renamed to "Corsair."
+
+✓ About moved next to Corsair.
+
+✓ Careers added after Contact.
+
+✓ All submenu links function correctly.
+
+✓ No broken links.
+
+✓ Responsive behavior verified on desktop, tablet, and mobile.
+
+✓ Existing SEO-friendly URLs remain unchanged.
+
+✓ Accessibility maintained (keyboard navigation, focus states, and touch targets).
+
+## Project Completion Standard
+
+The navigation should reinforce Corsair Tactical Solutions as a professional security services company while preserving the existing design and user experience. Visitors should be able to quickly find commercial services or training programs through a clean, organized navigation without any visual redesign or layout changes.

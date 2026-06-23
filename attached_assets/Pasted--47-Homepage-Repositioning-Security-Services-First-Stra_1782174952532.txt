@@ -1,0 +1,368 @@
+# 47. Homepage Repositioning – Security Services First Strategy
+
+**Priority:** CRITICAL
+
+## Project Objective
+
+Reposition the Corsair Tactical Solutions website so that visitors immediately recognize the company as a **professional Texas security services provider**, with training presented as an important secondary division.
+
+The primary audience should become:
+
+* Property Managers
+* HOA Boards
+* Churches & Faith-Based Organizations
+* Commercial Businesses
+* Executive Clients
+* Event Organizers
+* Corporate Decision Makers
+
+Training should remain highly visible but no longer lead the overall messaging.
+
+---
+
+# A. Homepage Content Hierarchy
+
+Reorganize the homepage to reflect the following priority:
+
+### 1. Professional Security Services
+
+Primary focus.
+
+### 2. Security Officer Training Academy
+
+Secondary focus.
+
+### 3. Firearms & License to Carry Training
+
+Third focus.
+
+This hierarchy should be reflected throughout the homepage.
+
+---
+
+# B. Hero Section Rewrite
+
+## Main Headline
+
+**Security Solutions Built on Experience, Training, and Accountability**
+
+Supporting Copy:
+
+Corsair Tactical Solutions provides professional security services throughout Texas, specializing in armed security, executive protection, church security, property management security, private investigations, and professional security training.
+
+Our mission is simple:
+
+**Protect people, property, and reputation through highly trained professionals operating under our proven 4D Protection Model™.**
+
+---
+
+### Primary Service Highlights
+
+Display prominently:
+
+✔ Armed Security Officers
+
+✔ Executive Protection Specialists
+
+✔ Church Security Programs
+
+✔ HOA & Property Management Security
+
+✔ Private Investigations
+
+✔ Security Training & Certification
+
+✔ Emergency Preparedness Programs
+
+---
+
+## Primary Buttons
+
+Button One
+
+**Schedule a Security Consultation**
+
+Button Two
+
+**Request a Security Proposal**
+
+These should become the primary hero CTAs.
+
+Training CTAs should appear lower on the homepage.
+
+---
+
+# C. Homepage Section Order
+
+Recommended homepage flow:
+
+## Hero
+
+Security company positioning
+
+↓
+
+## Why Corsair
+
+The Corsair Difference
+
+↓
+
+## 4D Protection Model™
+
+Detect
+
+Deter
+
+Deflect
+
+Defend
+
+↓
+
+## Industries We Protect
+
+Churches
+
+Property Management & HOA Communities
+
+Corporate Facilities
+
+Executive Protection
+
+Special Events
+
+Private Investigations
+
+↓
+
+## Professional Security Services
+
+Feature service cards:
+
+* Armed Security
+* Church Security
+* Executive Protection
+* Property Security
+* Investigations
+
+↓
+
+## Security Officer Training Academy
+
+Highlight:
+
+* Level II
+* Level III
+* Level IV
+* Continuing Education
+
+↓
+
+## Firearms Training
+
+Highlight:
+
+* Texas License to Carry
+* Defensive Shooting
+* Basic Handgun
+* AR-15
+* Shotgun
+
+↓
+
+## About Corsair
+
+↓
+
+## Testimonials
+
+↓
+
+## Final Call to Action
+
+---
+
+# D. Update "Why Corsair"
+
+Replace generic training-focused messaging.
+
+New headline:
+
+## The Corsair Difference
+
+Supporting copy:
+
+Many security companies provide personnel.
+
+Corsair Tactical Solutions provides complete protection strategies.
+
+Every service is delivered through our proven **4D Protection Model™**, ensuring a proactive approach to protecting people, property, and operations.
+
+---
+
+# E. Industries We Serve
+
+Create a dedicated homepage section.
+
+Display six industry cards:
+
+* Churches & Faith-Based Organizations
+* Property Management & HOA Communities
+* Corporate & Commercial Facilities
+* Executive Protection
+* Special Events
+* Private Investigations
+
+Each card should link to its related service page.
+
+---
+
+# F. Services Section
+
+Feature the company's commercial services first.
+
+Cards:
+
+Professional Armed Security
+
+Church Security Programs
+
+Executive Protection
+
+Property & Community Security
+
+Private Investigations
+
+Security Training Academy
+
+Each card should contain:
+
+* Professional image
+* Short description
+* Learn More button
+
+---
+
+# G. Training Section
+
+Training becomes a dedicated division.
+
+Heading:
+
+## Professional Security Training Academy
+
+Include:
+
+* Level II
+* Level III
+* Level IV
+* Texas License to Carry
+* Continuing Education
+* First Aid & Stop the Bleed
+
+CTA:
+
+View All Training Programs
+
+---
+
+# H. Trust & Credentials
+
+Add a dedicated credibility section.
+
+Display:
+
+* Texas Licensed Security Contractor
+* Texas Private Investigation License
+* Texas Security Training School
+* Texas Continuing Education Provider
+* Licensed & Insured
+* Background Screened Personnel
+* Ongoing Qualification Standards
+
+---
+
+# I. Company Mission
+
+Display prominently.
+
+## Protecting Those We Will Never Meet
+
+At Corsair Tactical Solutions, we believe security is more than a service—it is a responsibility.
+
+Every officer, instructor, investigator, and protection specialist represents our commitment to professionalism, preparedness, and accountability.
+
+Whether protecting a church congregation, a residential community, a corporate facility, or a private client, our objective remains the same:
+
+**Protecting Those We Will Never Meet.**
+
+---
+
+# J. Final Call to Action
+
+Heading:
+
+## Need Professional Security Services?
+
+Supporting Text:
+
+Our team is ready to discuss your organization's security needs and develop a customized protection strategy.
+
+Buttons:
+
+* Schedule a Security Consultation
+* Request a Security Proposal
+
+Display the company phone number prominently:
+
+**214-335-6652**
+
+---
+
+# K. Future Service Pages
+
+As part of this restructuring, prepare the homepage to emphasize these dedicated commercial service pages:
+
+* Church Security Services
+* HOA & Property Management Security
+* Executive Protection Services
+* Corporate Security Services
+
+These service pages should become the primary destinations for commercial prospects and future contract opportunities.
+
+---
+
+# L. QA Verification
+
+Before closing this task, verify:
+
+✓ Homepage messaging now prioritizes security services.
+
+✓ Hero section updated.
+
+✓ Primary CTAs focus on consultations and proposals.
+
+✓ Service hierarchy updated.
+
+✓ Training moved below commercial services.
+
+✓ Firearms training positioned as a tertiary offering.
+
+✓ 4D Protection Model™ messaging reflects **Detect • Deter • Deflect • Defend**.
+
+✓ Internal links updated.
+
+✓ Desktop layout verified.
+
+✓ Tablet layout verified.
+
+✓ Mobile layout verified.
+
+✓ No broken links.
+
+✓ Existing Square checkout and training registration functionality remain intact.
+
+## Project Completion Standard
+
+The homepage should immediately communicate that **Corsair Tactical Solutions is a professional Texas security company** that also operates a respected training academy. Commercial buyers should recognize within seconds that the company provides security solutions for organizations, while individual training opportunities remain readily accessible as a secondary service offering.
