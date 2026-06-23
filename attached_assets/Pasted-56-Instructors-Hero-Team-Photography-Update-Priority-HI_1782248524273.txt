@@ -1,0 +1,96 @@
+56. Instructors Hero & Team Photography Update
+Priority: HIGH
+Please update the instructor's hero photography and team profile images using the new approved photography provided by the client.
+Important: Do NOT redesign or change the layout of the website. Preserve the existing hero animations, typography, spacing, buttons, overlays, responsiveness, and overall visual style. Only replace the images and optimize their presentation.
+
+A. Homepage Hero Images
+Page: https://www.corsairtacticalsolution.com/instructors
+Instructors
+Replace the existing hero photography with the newly provided images.
+Hero Image 1
+File Name:
+hero main picture of the Alliance Training
+Use this as the primary hero image.
+This image should become the first impression visitors see when they arrive on the Instructors.
+
+Hero Image 2
+File Name:
+hero background picture
+Use this image as the secondary hero slide/background image.
+
+Image Presentation
+Both images should:
+Display the entire team whenever possible.
+Avoid cropping faces or cutting off people.
+Keep the focal point centered.
+Maintain a professional executive appearance.
+Scale properly across all screen sizes.
+Use responsive image positioning instead of forcing aggressive crops.
+If needed:
+Adjust object-position
+Adjust the focal point
+Slightly reduce overlay darkness if necessary
+Preserve readability of hero text
+Do not stretch or distort either image.
+
+B. Hilton Profile Photo Update
+Replace Hilton's profile photo throughout the website.
+New Image:
+Hilton Bio picture
+Update every occurrence including:
+Team section
+About page
+Instructor sections
+Security Training page
+Any profile cards
+Any biography sections
+Any testimonial or leadership sections where Hilton appears
+
+C. Image Optimization
+Optimize every newly uploaded image.
+Verify:
+Proper responsive sizing
+Modern image formats where supported
+Lazy loading where appropriate (except primary LCP hero image)
+No oversized files
+Fast loading
+Sharp image quality on Retina displays
+
+D. Responsive Verification
+Verify image presentation on:
+Desktop
+Full team visible
+No cropped heads
+Proper spacing
+Tablet
+Faces remain visible
+Hero text remains readable
+Mobile
+Team remains recognizable
+Important subjects remain centered
+Text does not overlap faces
+CTA buttons remain visible
+
+E. Accessibility
+Ensure:
+Appropriate descriptive alt text
+Good text contrast
+Overlay adjusted only if necessary
+Hero remains visually balanced
+
+F. QA Verification
+Verify:
+✓ New hero images installed.
+✓ Hilton profile photo updated everywhere.
+✓ No old hero images remain.
+✓ No stretched images.
+✓ No cropped faces.
+✓ Desktop verified.
+✓ Tablet verified.
+✓ Mobile verified.
+✓ Fast loading.
+✓ No layout changes.
+✓ Existing animations remain functional.
+✓ Hero continues to support excellent Core Web Vitals.
+Project Completion Standard
+The homepage should immediately present Corsair Tactical Solutions as a professional security services organization, showcasing the leadership team with modern, high-quality photography. The updated hero should reinforce trust, professionalism, and executive-level security expertise while preserving the existing design, responsiveness, and user experience.
