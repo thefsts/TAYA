@@ -74,3 +74,8 @@ externalPort = 3001
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+NEXT_PUBLIC_GA_ID = "G-MG8N46B3BS"
