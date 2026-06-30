@@ -1,0 +1,205 @@
+Task 55 — Add Level III & IV Security Officer Training Event (Square Enabled)
+
+Priority: HIGH
+
+Use the attached image:
+Levels 3 & 4 training Event.png
+
+========================================
+A. CREATE NEW EVENT
+========================================
+
+Event Title:
+Level III & IV Security Officer Training
+
+Dates:
+July 6–10, 2026
+
+Category:
+Security Officer Training
+
+========================================
+B. EVENT DETAILS
+========================================
+
+Training Includes:
+
+• Level III Security Officer Certification
+• Level IV Personal Protection Officer (PPO)
+• Firearms Qualification
+• Executive Protection Fundamentals
+• Risk Assessment
+• Leadership Development
+• Scenario-Based Training
+• Certification Upon Completion
+
+Use the supplied event flyer as the featured event image.
+
+Optimize the flyer for:
+• Desktop
+• Tablet
+• Mobile
+
+Maintain proper aspect ratio with no cropped text.
+
+========================================
+C. REGISTRATION
+========================================
+
+Use the EXACT SAME workflow as every other paid event.
+
+Must include:
+
+• Registration Form
+• Student Information
+• Emergency Contact
+• Liability Waiver
+• Square Checkout
+• Confirmation Page
+• Admin Email
+• Student Confirmation Email
+
+========================================
+D. SQUARE PAYMENT
+========================================
+
+Connect this event to the existing Square payment system.
+
+Use the existing production event checkout.
+
+Required:
+
+• Server-side pricing validation
+• Square Order
+• Square Payment
+• Payment ID
+• Order ID
+• Receipt
+• Confirmation Page
+• Email Notifications
+
+Do NOT create a new payment flow.
+
+========================================
+E. EMAILS
+========================================
+
+Admin Email:
+corsairtacticalsolutions@gmail.com
+
+Include:
+
+• Student Name
+• Phone
+• Email
+• Event Name
+• Registration Date
+• Square Payment ID
+• Order ID
+• Registration Time
+
+Student receives:
+
+• Confirmation Email
+• Event Details
+• Payment Confirmation
+• What To Bring
+• No Refund Policy
+
+========================================
+F. NO REFUND POLICY
+========================================
+
+Display on:
+
+• Event Page
+• Registration Form
+• Checkout
+• Confirmation Page
+• Confirmation Email
+
+Policy:
+
+NO REFUNDS.
+
+If a student cannot attend, they will automatically be enrolled into the next available Level III & IV Security Officer Training class.
+
+========================================
+G. HOMEPAGE
+========================================
+
+Add this event to:
+
+• Upcoming Events
+• Featured Event section (if applicable)
+
+Display events in chronological order.
+
+========================================
+H. EVENT INFORMATION
+========================================
+
+Include:
+
+• July 6–10, 2026
+• Flexible Schedule
+• In-Person Training
+• State Approved Curriculum
+• Shooting Proficiency Examination
+• Certification Upon Completion
+
+========================================
+I. MOBILE QA
+========================================
+
+Verify:
+
+✓ Flyer displays correctly
+✓ Registration form is responsive
+✓ Square checkout works on mobile
+✓ Buttons are touch friendly
+✓ Text is readable
+✓ No cropped text or images
+
+========================================
+J. SEO
+========================================
+
+Title:
+
+Level III & IV Security Officer Training | Corsair Tactical Solutions
+
+Description:
+
+Train to become a Texas Level III Security Officer and Level IV Personal Protection Officer with Corsair Tactical Solutions. State-approved security officer training featuring firearms qualification, executive protection instruction, and certification.
+
+Add structured Event Schema including:
+
+• Event Name
+• Date
+• Location
+• Organization
+• Registration URL
+
+========================================
+K. QA
+========================================
+
+Verify:
+
+✓ Event appears on Events page.
+✓ Event appears on Homepage Upcoming Events.
+✓ Flyer displays correctly.
+✓ Registration form functions.
+✓ Liability waiver works.
+✓ Square checkout completes successfully.
+✓ Admin email is sent to corsairtacticalsolutions@gmail.com.
+✓ Student confirmation email is received.
+✓ Confirmation page displays payment details.
+✓ No Refund policy appears everywhere required.
+✓ SEO metadata is complete.
+✓ No broken links or layout issues.
+
+Project Standard:
+
+This event must function exactly like every other paid Corsair Tactical Solutions event and use the existing registration, waiver, email, and Square payment workflow without introducing any new payment logic.

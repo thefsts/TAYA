@@ -15,6 +15,7 @@ import {
 } from '@/lib/blog';
 import ScrollReveal from '@/components/ScrollReveal';
 import ArticleClient from '@/components/ArticleClient';
+import ReadingProgress from '@/components/ReadingProgress';
 
 export async function generateStaticParams() {
   return getAllBlogSlugs().map((slug) => ({ slug }));
@@ -115,6 +116,8 @@ export default async function BlogDetailPage({
           }),
         }}
       />
+
+      <ReadingProgress />
 
       <ArticleClient>
         {/* Hero */}

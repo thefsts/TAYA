@@ -1,0 +1,1007 @@
+TASK 55–58 — FINAL WEBSITE COMPLETION, PREMIUM EXPERIENCE, PRODUCTION QA & CLIENT HANDOFF
+
+PRIORITY: CRITICAL
+
+This is the FINAL development phase before the Corsair Tactical Solutions website is delivered to the client.
+
+DO NOT redesign the website.
+
+DO NOT change the existing branding, colors, layout, navigation structure, or visual identity that has already been approved.
+
+Only improve functionality, professionalism, polish, performance, interactivity, and production readiness while preserving the existing design.
+
+==================================================================
+PART 1 — NEW LEVEL III & IV SECURITY OFFICER TRAINING EVENT
+==================================================================
+
+Create a new paid training event.
+
+Use the attached image:
+
+Levels 3 & 4 training Event.png
+
+Event Title
+
+Level III & IV Security Officer Training
+
+Dates
+
+July 6–10, 2026
+
+Category
+
+Security Officer Training
+
+Training Includes
+
+• Level III Security Officer Certification
+• Level IV Personal Protection Officer (PPO)
+• Firearms Qualification
+• Executive Protection Fundamentals
+• Risk Assessment
+• Leadership Development
+• Scenario-Based Training
+• Certification Upon Completion
+
+Optimize the flyer for desktop, tablet and mobile.
+
+Maintain proper aspect ratio.
+
+No cropped text.
+
+==================================================
+
+EVENT REGISTRATION
+
+==================================================
+
+Use the EXACT SAME registration workflow as every other paid event.
+
+Include:
+
+• Registration Form
+• Student Information
+• Emergency Contact
+• Liability Waiver
+• Square Checkout
+• Confirmation Page
+• Admin Email
+• Student Confirmation Email
+
+==================================================
+
+SQUARE PAYMENT
+
+==================================================
+
+Connect the event to the EXISTING Square production workflow.
+
+Do NOT create another payment system.
+
+Use:
+
+• Server-side pricing validation
+• Square Orders
+• Square Payments
+• Payment ID
+• Order ID
+• Receipt URL
+• Confirmation Page
+• Admin Email
+• Student Email
+
+==================================================
+
+EMAILS
+
+==================================================
+
+Admin Email
+
+corsairtacticalsolutions@gmail.com
+
+Include:
+
+• Student Name
+• Email
+• Phone
+• Event Name
+• Registration Date
+• Payment ID
+• Order ID
+• Registration Time
+
+Student receives:
+
+• Confirmation
+• Event Information
+• What To Bring
+• Payment Confirmation
+• No Refund Policy
+
+==================================================
+
+NO REFUND POLICY
+
+==================================================
+
+Display on:
+
+• Event Page
+• Registration Form
+• Checkout
+• Confirmation Page
+• Confirmation Email
+
+Policy
+
+NO REFUNDS.
+
+If a student cannot attend they will automatically be enrolled into the next available Level III & IV Security Officer Training class.
+
+==================================================
+
+HOMEPAGE
+
+==================================================
+
+Add the event to:
+
+• Upcoming Events
+
+• Featured Event (if applicable)
+
+Display events chronologically.
+
+==================================================
+
+SEO
+
+==================================================
+
+Optimize:
+
+Title
+
+Level III & IV Security Officer Training | Corsair Tactical Solutions
+
+Include:
+
+• Meta Description
+• Event Schema
+• Open Graph
+• Structured Data
+
+==================================================
+
+QA
+
+==================================================
+
+Verify:
+
+✓ Event appears everywhere
+
+✓ Registration works
+
+✓ Square payment works
+
+✓ Emails send
+
+✓ Mobile responsive
+
+✓ No broken links
+
+==================================================================
+PART 2 — PREMIUM INTERACTIVE EXPERIENCE
+==================================================================
+
+Transform the website into a premium interactive experience WITHOUT changing the design.
+
+Everything should remain professional.
+
+No gimmicks.
+
+No distracting animations.
+
+Performance must remain excellent.
+
+Respect prefers-reduced-motion.
+
+Maintain Lighthouse scores.
+
+==================================================
+
+HERO SECTIONS
+
+==================================================
+
+Add subtle motion:
+
+• Cinematic slow zoom
+• Layered parallax
+• Floating particles
+• CTA light sweep
+• Smooth headline animation
+• Sequential content fade
+
+==================================================
+
+SECURITY SERVICE PAGES
+
+==================================================
+
+Enhance with:
+
+• Radar pulse
+• Shield animation
+• Secure perimeter animation
+• Hover elevation
+• Interactive cards
+• Scan line effects
+
+==================================================
+
+TRAINING PAGES
+
+==================================================
+
+Enhance with:
+
+• Animated course cards
+• Curriculum timeline
+• Certification badges
+• Difficulty indicators
+• Hover transitions
+
+==================================================
+
+4D PROTECTION MODEL
+
+==================================================
+
+Animate each phase.
+
+Deter
+
+Animated security perimeter.
+
+Detect
+
+Radar sweep.
+
+Deflect
+
+Communication/de-escalation visualization.
+
+Defend
+
+Professional shield animation.
+
+Desktop
+
+Hover reveals details.
+
+Mobile
+
+Tap expands.
+
+==================================================
+
+TRAINING VISUALS
+
+==================================================
+
+Professional educational graphics only.
+
+Examples
+
+• Target overlays
+• Qualification graphics
+• Safety diagrams
+• Shot grouping illustrations
+• Training progression
+
+Do NOT create arcade shooting effects.
+
+==================================================
+
+RANGE EXPERIENCE
+
+==================================================
+
+Include:
+
+• Animated target lanes
+• Qualification graphics
+• Distance indicators
+• Wind indicators
+• Progress tracker
+
+==================================================
+
+COURSE CARDS
+
+==================================================
+
+Hover displays:
+
+• Duration
+• Difficulty
+• Price
+• Register CTA
+• Seats (if dynamic)
+
+==================================================
+
+BUTTONS
+
+==================================================
+
+Improve:
+
+• Hover
+• Ripple
+• Light sweep
+• Focus states
+• Mobile feedback
+
+==================================================
+
+COUNTERS
+
+==================================================
+
+Animate once when visible.
+
+==================================================
+
+TRAINING & KNOWLEDGE CENTER
+
+==================================================
+
+Enhance:
+
+• Featured article carousel
+• Animated categories
+• Reading progress
+• Sticky TOC
+• Related resources
+• Video carousel
+
+==================================================
+
+PERFORMANCE
+
+==================================================
+
+Maintain:
+
+✓ Lazy loading
+
+✓ Code splitting
+
+✓ Optimized images
+
+✓ No CLS
+
+✓ No unnecessary JS
+
+==================================================================
+PART 3 — PROFESSIONAL QUALITY REVIEW
+==================================================================
+
+Review the ENTIRE website.
+
+Content
+
+• Remove repetitive wording
+
+• Remove placeholder copy
+
+• Improve sentence flow
+
+• Maintain one consistent voice
+
+==================================================
+
+Brand
+
+==================================================
+
+Corsair Tactical Solutions should always be presented as:
+
+• Professional Security Company
+
+• Executive Protection Provider
+
+• Private Investigation Firm
+
+• Security Officer Training Academy
+
+• Firearms Training Provider
+
+Security Services always come before Training.
+
+==================================================
+
+Design Consistency
+
+==================================================
+
+Review:
+
+Spacing
+
+Typography
+
+Buttons
+
+Cards
+
+Icons
+
+Margins
+
+Section spacing
+
+Image consistency
+
+==================================================
+
+Images
+
+==================================================
+
+Verify:
+
+✓ Proper cropping
+
+✓ High resolution
+
+✓ Fast loading
+
+✓ Mobile optimized
+
+==================================================
+
+User Experience
+
+==================================================
+
+Review every journey.
+
+Commercial Client
+
+Security Services
+
+Request Consultation
+
+Submit Form
+
+Receive Email
+
+Training Student
+
+Browse Course
+
+Register
+
+Square Payment
+
+Confirmation
+
+Event Student
+
+Register
+
+Square
+
+Confirmation
+
+General Visitor
+
+Articles
+
+Knowledge Center
+
+Related Courses
+
+Contact
+
+Everything should feel intentional.
+
+==================================================
+
+Performance
+
+==================================================
+
+Remove:
+
+Dead code
+
+Unused imports
+
+Duplicate CSS
+
+Duplicate components
+
+Unused JS
+
+Console warnings
+
+==================================================
+
+Accessibility
+
+==================================================
+
+Verify:
+
+Keyboard navigation
+
+Focus states
+
+Contrast
+
+Labels
+
+Responsive typography
+
+==================================================
+
+Mobile
+
+==================================================
+
+Test:
+
+Desktop
+
+Tablet
+
+iPhone
+
+Android
+
+Verify:
+
+Typography
+
+Menus
+
+Buttons
+
+Images
+
+Forms
+
+Videos
+
+Hero sections
+
+==================================================================
+PART 4 — FINAL PRODUCTION QA
+==================================================================
+
+Audit EVERY page.
+
+Home
+
+About
+
+Security Services
+
+Property Management
+
+Church Security
+
+Private Investigations
+
+Security Training
+
+Courses
+
+All Course Detail Pages
+
+Events
+
+Training & Knowledge Center
+
+4D Protection Model
+
+Contact
+
+FAQ
+
+Careers
+
+Privacy
+
+Terms
+
+Cookie Policy
+
+Accessibility Statement
+
+404
+
+==================================================
+
+Navigation
+
+==================================================
+
+Verify:
+
+Desktop
+
+Tablet
+
+Mobile
+
+Header
+
+Footer
+
+Dropdowns
+
+Logo
+
+Breadcrumbs
+
+CTA buttons
+
+Internal links
+
+External links
+
+No incorrect homepage redirects.
+
+==================================================
+
+Training
+
+==================================================
+
+Verify every course.
+
+Correct:
+
+Price
+
+Duration
+
+Images
+
+Add-ons
+
+Ammo
+
+Rental firearms
+
+Range fees
+
+Square checkout
+
+Emails
+
+Confirmation
+
+==================================================
+
+Events
+
+==================================================
+
+Verify:
+
+Current flyer
+
+Pricing
+
+Square
+
+Confirmation
+
+Emails
+
+Upcoming Events
+
+Homepage
+
+No Refund policy
+
+==================================================
+
+Contact
+
+==================================================
+
+Verify:
+
+All forms
+
+Dropdowns
+
+Security Services
+
+Training
+
+Validation
+
+Emails
+
+Reply-To
+
+Admin email
+
+Spam protection
+
+==================================================
+
+Square
+
+==================================================
+
+Verify EVERY paid item.
+
+Every Course
+
+Every Event
+
+Every Package
+
+Every Bundle
+
+Every Add-On
+
+Verify:
+
+Square Order
+
+Square Payment
+
+Payment ID
+
+Order ID
+
+Receipt
+
+Confirmation
+
+Admin Email
+
+Student Email
+
+No duplicate charges.
+
+No pricing errors.
+
+==================================================
+
+Emails
+
+==================================================
+
+Verify:
+
+Contact
+
+Course Registration
+
+Event Registration
+
+Training Waiver
+
+Square Payment
+
+Admin Notifications
+
+Student Confirmations
+
+Branding
+
+Formatting
+
+==================================================
+
+Images
+
+==================================================
+
+Verify:
+
+Desktop
+
+Tablet
+
+Mobile
+
+High quality
+
+Proper cropping
+
+Alt text
+
+Lazy loading
+
+Next.js optimization
+
+==================================================
+
+Performance
+
+==================================================
+
+Verify:
+
+No console errors
+
+No build errors
+
+No TypeScript errors
+
+No React warnings
+
+No hydration errors
+
+No dead code
+
+No duplicate components
+
+No unnecessary JavaScript
+
+==================================================
+
+SEO
+
+==================================================
+
+Every page must include:
+
+Unique Title
+
+Meta Description
+
+Canonical URL
+
+Open Graph
+
+Twitter Cards
+
+Schema
+
+Breadcrumb Schema
+
+Organization Schema
+
+Event Schema
+
+Course Schema
+
+Internal Links
+
+Alt Text
+
+==================================================
+
+Security
+
+==================================================
+
+Verify:
+
+HTTPS
+
+No mixed content
+
+Protected forms
+
+Secure APIs
+
+Environment variables
+
+No exposed credentials
+
+==================================================
+
+CONTENT REVIEW
+
+==================================================
+
+Remove:
+
+Typos
+
+Grammar issues
+
+Duplicate wording
+
+Placeholder content
+
+Formatting inconsistencies
+
+==================================================
+
+FINAL RELEASE CHECKLIST
+
+==================================================
+
+Verify:
+
+✓ Homepage regression fixed
+
+✓ Hero typography renders correctly
+
+✓ Homepage counters display correctly
+
+✓ Footer content correct
+
+✓ All buttons work
+
+✓ All links work
+
+✓ All forms submit
+
+✓ All emails send
+
+✓ All Square payments complete
+
+✓ All add-ons calculate correctly
+
+✓ Every event functions
+
+✓ Every course functions
+
+✓ Navigation complete
+
+✓ Images optimized
+
+✓ Responsive on all devices
+
+✓ Animations smooth
+
+✓ Lighthouse scores remain high
+
+✓ SEO complete
+
+✓ Accessibility complete
+
+✓ No console errors
+
+✓ Production build successful
+
+✓ No broken links
+
+✓ No layout regressions
+
+==================================================
+
+FINAL DELIVERABLE
+
+==================================================
+
+Provide a FINAL RELEASE REPORT including:
+
+• Pages Reviewed
+• Bugs Fixed
+• Homepage Regression Fixes
+• Images Optimized
+• Performance Improvements
+• SEO Improvements
+• Accessibility Improvements
+• Forms Tested
+• Emails Tested
+• Square Payment Testing
+• Mobile Testing
+• Desktop Testing
+• Build Verification
+• Remaining Issues (if any)
+
+If everything passes, conclude with:
+
+"FINAL QA COMPLETE — Corsair Tactical Solutions has successfully passed Production QA, is fully optimized, and is approved for client handoff and production release."
+
+Do NOT mark this project complete until every item in this checklist has been verified and tested.

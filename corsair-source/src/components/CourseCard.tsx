@@ -53,6 +53,18 @@ export default function CourseCard({ course }: { course: Course }) {
             {course.duration}
           </span>
         </div>
+
+        {/* Hover quick-info overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-corsair-blue-900/95 via-corsair-blue-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4" aria-hidden="true">
+          <div className="translate-y-3 group-hover:translate-y-0 transition-transform duration-300">
+            <p className="text-[10px] font-bold text-corsair-red-400 uppercase tracking-widest mb-1">
+              {isContactOnly ? 'Contact for Pricing' : estimatedTotal ? `$${estimatedTotal} estimated` : startingPrice !== null ? `From $${startingPrice}` : 'Contact'}
+            </p>
+            <span className="inline-flex items-center gap-1 bg-corsair-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">
+              View Course →
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Content */}

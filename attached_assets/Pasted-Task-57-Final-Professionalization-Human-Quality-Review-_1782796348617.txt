@@ -1,0 +1,300 @@
+Task 57 — Final Professionalization & Human Quality Review
+
+Priority: CRITICAL
+
+Project Goal
+
+Perform a complete quality review of the entire Corsair Tactical Solutions website.
+
+The objective is for the website to feel like a professionally designed, custom-developed security company website with years of refinement—not a generic template or automatically generated site.
+
+Do NOT redesign the website.
+
+Do NOT change the established branding or layout.
+
+Instead, improve every detail that contributes to craftsmanship, polish, consistency, and professionalism.
+
+==================================================
+
+1. CONTENT REVIEW
+
+==================================================
+
+Review every page for:
+
+• Repetitive wording
+• Generic marketing language
+• Duplicate phrases
+• Inconsistent terminology
+• Placeholder content
+• Awkward sentence structure
+• Mechanical writing
+
+Rewrite where appropriate so the copy sounds like it came directly from Corsair Tactical Solutions.
+
+Maintain a consistent voice throughout the site.
+
+==================================================
+
+2. BRAND CONSISTENCY
+
+==================================================
+
+Ensure every page reinforces the same brand identity.
+
+Corsair Tactical Solutions should consistently be presented as:
+
+• Professional Security Services Company
+• Texas Licensed Security Contractor
+• Executive Protection Provider
+• Private Investigation Firm
+• Security Officer Training Academy
+• Firearms Training Provider
+
+Security Services should always be presented before Training.
+
+==================================================
+
+3. DESIGN CONSISTENCY
+
+==================================================
+
+Review every page for:
+
+• Consistent spacing
+• Padding
+• Margins
+• Typography
+• Heading hierarchy
+• Icon styles
+• Button styles
+• Card spacing
+• Section spacing
+• Image treatments
+
+Nothing should appear inconsistent from page to page.
+
+==================================================
+
+4. IMAGE QUALITY
+
+==================================================
+
+Review every image.
+
+Verify:
+
+✓ Correct cropping
+
+✓ High resolution
+
+✓ Fast loading
+
+✓ Proper sizing
+
+✓ No stretched images
+
+✓ No pixelation
+
+✓ Consistent visual quality
+
+==================================================
+
+5. USER EXPERIENCE
+
+==================================================
+
+Verify every visitor journey.
+
+Security Services
+
+Request Consultation
+
+Request Proposal
+
+Contact
+
+Training
+
+Browse Course
+
+Register
+
+Square Payment
+
+Confirmation
+
+Events
+
+Register
+
+Square Payment
+
+Confirmation
+
+Contact
+
+Inquiry
+
+Email
+
+Success
+
+Every journey should feel smooth and intentional.
+
+==================================================
+
+6. PERFORMANCE
+
+==================================================
+
+Review:
+
+• Image optimization
+• Lazy loading
+• Code splitting
+• Bundle size
+• Unused code
+• Unused imports
+• Dead components
+• Duplicate components
+• Duplicate CSS
+• Console warnings
+• Build warnings
+
+Remove anything unnecessary.
+
+==================================================
+
+7. SEO
+
+==================================================
+
+Verify every page has:
+
+• Unique title
+• Meta description
+• Canonical URL
+• Open Graph tags
+• Structured data
+• Internal links
+• Descriptive headings
+• Alt text
+
+==================================================
+
+8. ACCESSIBILITY
+
+==================================================
+
+Verify:
+
+• Keyboard navigation
+• Visible focus states
+• Color contrast
+• Form labels
+• Screen reader compatibility
+• Responsive typography
+
+==================================================
+
+9. MOBILE REVIEW
+
+==================================================
+
+Test every page on:
+
+Desktop
+
+Tablet
+
+iPhone
+
+Android
+
+Verify:
+
+✓ Text readability
+
+✓ Button sizes
+
+✓ Images
+
+✓ Menus
+
+✓ Forms
+
+✓ Videos
+
+✓ Hero sections
+
+✓ Performance
+
+==================================================
+
+10. FINAL PROFESSIONAL REVIEW
+
+==================================================
+
+Review the site as if it were being evaluated by:
+
+• A Fortune 500 security company
+• A corporate procurement department
+• A church security committee
+• A property management firm
+• A government agency
+• A commercial client seeking security services
+
+Ask:
+
+Would this website inspire confidence?
+
+Would this website justify a premium security contract?
+
+Would it represent Corsair Tactical Solutions as an industry leader?
+
+If anything appears unfinished, inconsistent, or unprofessional, refine it before release.
+
+==================================================
+
+11. FINAL QA
+
+==================================================
+
+Verify:
+
+✓ Every button works.
+
+✓ Every form submits.
+
+✓ Every email sends.
+
+✓ Every Square payment completes.
+
+✓ Every event registers correctly.
+
+✓ Every course functions correctly.
+
+✓ Every image loads.
+
+✓ Every video loads.
+
+✓ Every download works.
+
+✓ No broken links.
+
+✓ No console errors.
+
+✓ No layout issues.
+
+✓ No mobile issues.
+
+✓ No accessibility regressions.
+
+✓ No performance regressions.
+
+==================================================
+
+PROJECT COMPLETION STANDARD
+
+The website should be polished, cohesive, and professionally executed, reflecting the expertise and credibility of Corsair Tactical Solutions. Every page should demonstrate attention to detail, consistency, and a high standard of quality while preserving the established design, branding, functionality, and performance.

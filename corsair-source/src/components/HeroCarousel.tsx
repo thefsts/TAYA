@@ -290,6 +290,25 @@ function DarkStatementSlide({ slide, triggerKey }: { slide: Slide; triggerKey: n
         style={{ background: 'radial-gradient(circle at 80% 20%, rgba(239,68,68,.12) 0%, transparent 65%)' }}
       />
 
+      {/* Floating particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        {([
+          { left: '7%',  bottom: '-8px', delay: '0s',   dur: '18s', size: 3 },
+          { left: '18%', bottom: '-8px', delay: '3.5s', dur: '14s', size: 2 },
+          { left: '33%', bottom: '-8px', delay: '7s',   dur: '21s', size: 4 },
+          { left: '52%', bottom: '-8px', delay: '1.5s', dur: '16s', size: 2 },
+          { left: '67%', bottom: '-8px', delay: '9s',   dur: '23s', size: 3 },
+          { left: '80%', bottom: '-8px', delay: '4.5s', dur: '15s', size: 2 },
+          { left: '91%', bottom: '-8px', delay: '11s',  dur: '19s', size: 3 },
+        ] as Array<{left:string;bottom:string;delay:string;dur:string;size:number}>).map((p, i) => (
+          <span
+            key={i}
+            className="absolute rounded-full bg-corsair-red-500/25 animate-float-up"
+            style={{ left: p.left, bottom: p.bottom, width: `${p.size}px`, height: `${p.size}px`, animationDelay: p.delay, animationDuration: p.dur }}
+          />
+        ))}
+      </div>
+
       {/* LEFT: content */}
       <motion.div
         key={triggerKey}

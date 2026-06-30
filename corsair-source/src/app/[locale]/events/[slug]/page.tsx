@@ -92,8 +92,52 @@ export default async function EventDetailPage({
   const isSecurityEvent = SECURITY_EVENT_SLUGS.has(slug);
   const rangeLocale = LTC_RANGE_LOCATION[slug];
 
+  const eventJsonLd = priceCents
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        name: event.title,
+        description: event.description,
+        startDate: event.date,
+        endDate: isSecurityEvent ? '2026-07-10' : event.date,
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+          '@type': 'Place',
+          name: 'Hilton Garden Inn Dallas / Addison',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: '4090 Belt Line Road',
+            addressLocality: 'Addison',
+            addressRegion: 'TX',
+            postalCode: '75001',
+            addressCountry: 'US',
+          },
+        },
+        organizer: {
+          '@type': 'Organization',
+          name: 'Corsair Tactical Solutions',
+          url: 'https://corsairtacticalsolutions.com',
+        },
+        offers: {
+          '@type': 'Offer',
+          price: (priceCents / 100).toFixed(2),
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          url: `https://corsairtacticalsolutions.com/events/${slug}`,
+        },
+        image: event.flyerImage ?? event.heroImage,
+      }
+    : null;
+
   return (
     <>
+      {eventJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+        />
+      )}
       {/* Breadcrumb */}
       <nav className="bg-corsair-gray-50 border-b border-corsair-gray-200 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
