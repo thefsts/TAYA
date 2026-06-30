@@ -1,0 +1,622 @@
+TASK 58 — FINAL PRODUCTION QA & CLIENT HANDOFF
+
+Priority: CRITICAL
+
+This is the FINAL quality assurance review before the Corsair Tactical Solutions website is released to the client.
+
+DO NOT redesign the website.
+
+DO NOT change the established branding or layout.
+
+Only fix bugs, inconsistencies, missing functionality, performance issues, and production readiness items.
+
+==================================================
+
+1. COMPLETE WEBSITE AUDIT
+
+==================================================
+
+Review every page including:
+
+Home
+
+About
+
+Security Services
+
+Property Management Services
+
+Church Security
+
+Private Investigations
+
+Security Training
+
+Courses
+
+Every Course Detail Page
+
+Events
+
+Articles / Training & Knowledge Center
+
+4D Protection Model™
+
+Contact
+
+FAQ
+
+Careers
+
+Privacy Policy
+
+Terms
+
+Cookie Policy
+
+Accessibility Statement
+
+404 page
+
+Verify every page is complete.
+
+No placeholder content.
+
+No unfinished sections.
+
+No missing images.
+
+==================================================
+
+2. COMPLETE NAVIGATION AUDIT
+
+==================================================
+
+Verify every navigation item.
+
+Desktop
+
+Tablet
+
+Mobile
+
+Header
+
+Footer
+
+Dropdown menus
+
+Breadcrumbs
+
+Logo
+
+Every CTA button
+
+Every internal link
+
+Every external link
+
+Verify nothing redirects incorrectly.
+
+Verify no button returns users to the homepage unless intentionally designed.
+
+==================================================
+
+3. SECURITY SERVICES REVIEW
+
+==================================================
+
+Verify every service page includes:
+
+Professional imagery
+
+Consultation CTA
+
+Request Proposal CTA
+
+Internal links
+
+Related services
+
+Proper SEO
+
+Responsive layout
+
+Fast loading
+
+==================================================
+
+4. TRAINING REVIEW
+
+==================================================
+
+Verify every course.
+
+Confirm:
+
+Correct pricing
+
+Correct duration
+
+Correct images
+
+Correct instructor
+
+Correct add-ons
+
+Ammo options
+
+Rental firearm options
+
+Required range fees
+
+Square checkout
+
+Confirmation page
+
+Registration email
+
+Student confirmation email
+
+==================================================
+
+5. EVENTS REVIEW
+
+==================================================
+
+Verify every event.
+
+Current flyer
+
+Correct pricing
+
+Square payment
+
+Confirmation
+
+Emails
+
+Upcoming Events display
+
+Homepage display
+
+Chronological order
+
+NO REFUND policy
+
+Auto-enroll wording
+
+==================================================
+
+6. CONTACT REVIEW
+
+==================================================
+
+Verify:
+
+All forms
+
+Dropdown selections
+
+Security Services options
+
+Training options
+
+Emails
+
+Validation
+
+Spam protection
+
+Success page
+
+Reply-to
+
+Admin email
+
+corsairtacticalsolutions@gmail.com
+
+==================================================
+
+7. SQUARE PAYMENT REVIEW
+
+==================================================
+
+Verify every paid item.
+
+Every course
+
+Every event
+
+Every add-on
+
+Every package
+
+Every bundle
+
+Every security training package
+
+Verify:
+
+Square Order
+
+Square Payment
+
+Payment ID
+
+Order ID
+
+Receipt URL
+
+Confirmation Page
+
+Admin Email
+
+Student Email
+
+No pricing discrepancies.
+
+No duplicate charges.
+
+No failed redirects.
+
+==================================================
+
+8. EMAIL REVIEW
+
+==================================================
+
+Verify every workflow.
+
+Contact
+
+Course Registration
+
+Event Registration
+
+Training Waiver
+
+Square Payment
+
+Student Confirmation
+
+Admin Notification
+
+Reply-To
+
+Formatting
+
+Branding
+
+Links
+
+==================================================
+
+9. IMAGE REVIEW
+
+==================================================
+
+Review every image.
+
+Verify:
+
+High quality
+
+Proper cropping
+
+Desktop
+
+Tablet
+
+Mobile
+
+No stretched images
+
+No pixelation
+
+No missing alt text
+
+Lazy loading enabled
+
+Next.js image optimization enabled
+
+==================================================
+
+10. MOBILE REVIEW
+
+==================================================
+
+Review entire website.
+
+iPhone
+
+Android
+
+Tablet
+
+Verify:
+
+Readable typography
+
+Buttons
+
+Spacing
+
+Menus
+
+Forms
+
+Cards
+
+Hero sections
+
+Images
+
+Videos
+
+Carousels
+
+Animations
+
+==================================================
+
+11. PERFORMANCE REVIEW
+
+==================================================
+
+Verify:
+
+No console errors
+
+No build warnings
+
+No TypeScript errors
+
+No React warnings
+
+No hydration errors
+
+No dead code
+
+No unused imports
+
+No duplicate components
+
+No unnecessary JavaScript
+
+No render blocking issues
+
+==================================================
+
+12. SEO REVIEW
+
+==================================================
+
+Verify every page has:
+
+Unique Title
+
+Meta Description
+
+Canonical URL
+
+Open Graph
+
+Twitter Cards
+
+Structured Data
+
+Schema
+
+Breadcrumb Schema
+
+Organization Schema
+
+Event Schema
+
+Course Schema
+
+Image Alt Text
+
+Internal Links
+
+==================================================
+
+13. ACCESSIBILITY REVIEW
+
+==================================================
+
+Verify:
+
+Keyboard navigation
+
+Focus states
+
+Contrast
+
+ARIA labels
+
+Form labels
+
+Reduced motion support
+
+Screen reader compatibility
+
+==================================================
+
+14. SECURITY REVIEW
+
+==================================================
+
+Verify:
+
+HTTPS everywhere
+
+No mixed content
+
+Headers configured
+
+Forms protected
+
+API validation
+
+Environment variables secured
+
+No exposed keys
+
+==================================================
+
+15. FINAL CONTENT REVIEW
+
+==================================================
+
+Review all copy.
+
+Remove:
+
+Duplicate wording
+
+Grammar issues
+
+Typos
+
+Spacing inconsistencies
+
+Formatting inconsistencies
+
+Placeholder text
+
+Generic filler
+
+Maintain a professional security company voice throughout.
+
+==================================================
+
+16. FINAL CLIENT EXPERIENCE
+
+==================================================
+
+Walk through these user journeys.
+
+Commercial Client
+
+Homepage
+
+Security Services
+
+Request Consultation
+
+Submit Form
+
+Receive Email
+
+Training Student
+
+Homepage
+
+Courses
+
+Course Detail
+
+Register
+
+Square Payment
+
+Confirmation
+
+Emails
+
+Event Student
+
+Homepage
+
+Events
+
+Register
+
+Square
+
+Confirmation
+
+Emails
+
+General Visitor
+
+Homepage
+
+Knowledge Center
+
+Articles
+
+Related Courses
+
+Contact
+
+==================================================
+
+17. RELEASE CHECKLIST
+
+==================================================
+
+Confirm:
+
+✓ All buttons work
+
+✓ All links work
+
+✓ All images load
+
+✓ All forms work
+
+✓ All emails send
+
+✓ All Square payments function
+
+✓ All add-ons calculate correctly
+
+✓ No duplicate courses
+
+✓ Events display correctly
+
+✓ Footer complete
+
+✓ Navigation complete
+
+✓ Responsive everywhere
+
+✓ Performance optimized
+
+✓ SEO complete
+
+✓ Accessibility complete
+
+✓ No console errors
+
+✓ Production build successful
+
+==================================================
+
+18. FINAL DELIVERABLE
+
+==================================================
+
+When QA is complete, provide a FINAL RELEASE REPORT including:
+
+• Pages reviewed
+• Bugs fixed
+• Images optimized
+• Performance improvements
+• SEO improvements
+• Accessibility improvements
+• Forms tested
+• Emails tested
+• Square tested
+• Mobile testing completed
+• Desktop testing completed
+• Outstanding issues (if any)
+
+If no issues remain, clearly state:
+
+"Corsair Tactical Solutions has passed Final Production QA and is approved for client handoff and production release."
+
+Do not mark the project complete until every checklist item has been verified.

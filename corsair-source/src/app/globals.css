@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "../styles/animations.css";
+
+@theme inline {
+  /* ── Brand Colors ── */
+  --color-corsair-blue-950: #0D1E2B;
+  --color-corsair-blue-900: #1A3A52;
+  --color-corsair-blue-800: #1E4A68;
+  --color-corsair-blue-700: #235580;
+  --color-corsair-blue-600: #2A6496;
+  --color-corsair-blue-100: #E8F0F7;
+  --color-corsair-blue-50:  #F0F5FA;
+
+  --color-corsair-red-600:  #A01830;
+  --color-corsair-red-500:  #C41E3A;
+  --color-corsair-red-400:  #D4405A;
+  --color-corsair-red-100:  #FDEAED;
+  --color-corsair-red-50:   #FEF4F5;
+
+  --color-corsair-gray-900: #1A1A1A;
+  --color-corsair-gray-800: #2D2D2D;
+  --color-corsair-gray-700: #4A4A4A;
+  --color-corsair-gray-600: #6B6B6B;
+  --color-corsair-gray-500: #8A8A8A;
+  --color-corsair-gray-400: #ADADAD;
+  --color-corsair-gray-300: #CCCCCC;
+  --color-corsair-gray-200: #E2E2E2;
+  --color-corsair-gray-100: #F1F1F1;
+  --color-corsair-gray-50:  #F8F8F8;
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ── Custom Animations ── */
+  --animate-float-slow: float-slow 8s ease-in-out infinite;
+  --animate-float-medium: float-medium 6s ease-in-out infinite;
+  --animate-float-fast: float-fast 4s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
