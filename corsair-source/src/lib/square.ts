@@ -10,7 +10,7 @@
 import { randomUUID } from 'crypto';
 import type { CatalogItem } from '@/lib/pricing';
 
-export const SQUARE_ENVIRONMENT = process.env.SQUARE_ENVIRONMENT ?? 'production';
+export const SQUARE_ENVIRONMENT = process.env.SQUARE_ENVIRONMENT ?? 'sandbox';
 
 export const SQUARE_BASE_URL =
   SQUARE_ENVIRONMENT === 'production'

@@ -6,9 +6,18 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
 import { courseCategories, getAllCourses, filterCategories, type FilterCategory, type Course } from '@/lib/courses';
+import { getCatalogItemBySlug } from '@/lib/pricing';
 import { localizeAllCourses } from '@/lib/courseTranslations';
 import FloatingElements from '@/components/FloatingElements';
+
 import PageHero from '@/components/PageHero';
+
+function displayCatalogPrice(slug: string): string {
+  const item = getCatalogItemBySlug(slug);
+  if (!item || item.contactOnly || item.basePriceCents == null) return 'Contact';
+  const d = item.basePriceCents / 100;
+  return '$' + (d % 1 === 0 ? String(d) : d.toFixed(2));
+}
 
 const levelColors: Record<string, string> = {
   Beginner: 'bg-green-100 text-green-700',
@@ -272,7 +281,7 @@ export default function CoursesPage() {
                         </div>
 
                         <div className="flex items-center justify-between pt-3 border-t border-corsair-gray-100">
-                          <span className="text-xl font-black text-corsair-red-500">{course.price}</span>
+                          <span className="text-xl font-black text-corsair-red-500">{displayCatalogPrice(course.slug)}</span>
                           <button
                             onClick={() => setExpandedCourse(isExpanded ? null : course.slug)}
                             className="text-xs font-bold text-corsair-blue-900 hover:text-corsair-red-500 transition-colors flex items-center gap-1"
@@ -399,7 +408,7 @@ export default function CoursesPage() {
                               </span>
                               <span className="text-[10px] text-corsair-gray-400">{course.duration}</span>
                             </div>
-                            <span className="text-xs font-black text-corsair-red-500 mt-0.5">{course.price}</span>
+                            <span className="text-xs font-black text-corsair-red-500 mt-0.5">{displayCatalogPrice(course.slug)}</span>
                           </div>
                         </button>
                       );

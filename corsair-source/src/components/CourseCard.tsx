@@ -2,17 +2,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Course } from '@/lib/courses';
 import SeatCounter from '@/components/SeatCounter';
+import { getCatalogItemBySlug } from '@/lib/pricing';
 
 export default function CourseCard({ course }: { course: Course }) {
-  const payableOptions = course.pricingOptions.filter((p) => p.price > 0);
-  const isContactOnly = Boolean(course.contactOnly) || payableOptions.length === 0;
-  const startingPrice = payableOptions.length
-    ? Math.min(...payableOptions.map((p) => p.price))
-    : null;
-
-  const requiredFeesTotal = (course.requiredFees ?? []).reduce((sum, f) => sum + f.price, 0);
-  const estimatedTotal =
-    startingPrice !== null ? startingPrice + requiredFeesTotal : null;
+  const catalog = getCatalogItemBySlug(course.slug);
+  const isContactOnly = !catalog || catalog.contactOnly;
+  const startingPrice = catalog?.basePriceCents != null ? catalog.basePriceCents / 100 : null;
+  const requiredFeesTotal = (catalog?.requiredFees ?? []).reduce((sum, f) => sum + f.amountCents / 100, 0);
+  const estimatedTotal = startingPrice !== null ? startingPrice + requiredFeesTotal : null;
   const hasRequiredFees = requiredFeesTotal > 0;
 
   const levelColors: Record<string, string> = {

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getCourseBySlug, getAllCourses } from '@/lib/courses';
+import { getCatalogItemBySlug } from '@/lib/pricing';
 import { getLocalizedCourse } from '@/lib/courseTranslations';
 import BookingForm from '@/components/BookingForm';
 import DiscountsBanner from '@/components/DiscountsBanner';
@@ -84,10 +85,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const tn = await getTranslations('nav');
 
   // Extract numeric price for schema (first pricing option, if numeric)
+  const catalogItem = getCatalogItemBySlug(course.slug);
   const numericPrice =
-    typeof course.pricingOptions?.[0]?.price === 'number'
-      ? course.pricingOptions[0].price
-      : undefined;
+    catalogItem?.basePriceCents != null ? catalogItem.basePriceCents / 100 : undefined;
 
   const courseUrl = `/${locale}/courses/${course.slug}`;
   const schemas = [
@@ -171,7 +171,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                 {course.duration}
               </span>
               <span className="inline-flex items-center gap-1.5 bg-corsair-red-500/20 text-corsair-red-300 text-xs font-bold px-3 py-1.5 rounded-full border border-corsair-red-500/30">
-                💰 {course.price}
+                💰 {numericPrice != null ? `$${numericPrice % 1 === 0 ? numericPrice : numericPrice.toFixed(2)}` : course.price}
               </span>
               {course.urgencyMessage && (
                 <span className="inline-flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 text-xs font-bold px-3 py-1.5 rounded-full border border-yellow-500/30 animate-pulse">
