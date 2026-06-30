@@ -1,0 +1,509 @@
+# TASK — Transform the Corsair Blog into the Corsair Training & Knowledge Center
+
+Priority: HIGH
+
+Project Goal
+
+Transform the existing Blog into a modern Training & Knowledge Center that becomes the educational hub of Corsair Tactical Solutions.
+
+Rather than looking like a simple blog, this section should become a living resource center that continually grows with articles, videos, safety information, security industry insights, and training resources while naturally leading visitors into our Security Services and Training Programs.
+
+Maintain the existing Corsair Tactical Solutions branding, colors, layout, and overall design language. Improve the content organization and user experience without redesigning the website.
+
+==================================================
+
+RENAME THE PAGE
+
+==================================================
+
+Keep the URL:
+
+/blog
+
+For SEO purposes.
+
+Rename the page title to:
+
+Training & Knowledge Center
+
+Add an introductory section explaining that visitors can learn through:
+
+• Security Articles
+• Training Resources
+• Firearms Safety
+• Security Officer Career Development
+• Executive Protection
+• Church Security
+• Home Defense
+• Industry News
+• Videos
+• Professional Tips
+
+This should establish Corsair Tactical Solutions as a trusted authority in both professional security services and firearms/security officer training.
+
+==================================================
+
+CREATE CONTENT CATEGORIES
+
+==================================================
+
+Replace the current list of articles with organized category sections.
+
+Categories should include:
+
+Professional Security Services
+
+Topics
+
+• Armed Security
+• Executive Protection
+• Property Management Security
+• HOA Security
+• Church Security
+• Commercial Security
+• Corporate Security
+• Event Security
+• Risk Assessments
+• Patrol Services
+
+----------------------------------------
+
+Security Officer Training
+
+Topics
+
+• Level II Security Officer
+• Level III Commissioned Officer
+• Level IV Personal Protection Officer
+• Continuing Education
+• Career Development
+• Professional Standards
+• Texas Licensing
+
+----------------------------------------
+
+License to Carry
+
+Topics
+
+• Texas LTC Requirements
+• Texas Laws
+• Reciprocity
+• Renewal
+• Use of Force
+• Frequently Asked Questions
+
+----------------------------------------
+
+Firearms Safety
+
+Topics
+
+• Firearm Safety
+• Safe Storage
+• Cleaning & Maintenance
+• Transportation
+• Home Firearm Safety
+
+----------------------------------------
+
+New Gun Owners
+
+Topics
+
+• Choosing Your First Firearm
+• Preparing for Your First Class
+• Common Beginner Mistakes
+• Developing Good Habits
+
+----------------------------------------
+
+Defensive Shooting
+
+Topics
+
+• Defensive Mindset
+• Shooting Fundamentals
+• Tactical Movement
+• Range Drills
+• Scenario Training
+
+----------------------------------------
+
+Women's Training
+
+Topics
+
+• Personal Protection
+• Confidence Building
+• Situational Awareness
+• Firearm Training for Women
+
+----------------------------------------
+
+Shotgun & Rifle Training
+
+Topics
+
+• AR-15 Fundamentals
+• Shotgun Fundamentals
+• Home Defense with Long Guns
+• Rifle Maintenance
+
+----------------------------------------
+
+Church Safety
+
+Topics
+
+• Protecting Houses of Worship
+• Volunteer Security Teams
+• Emergency Response
+• Active Threat Planning
+• Safety Team Leadership
+
+----------------------------------------
+
+Emergency Preparedness
+
+Topics
+
+• Stop the Bleed
+• First Aid
+• Family Emergency Planning
+• Disaster Preparedness
+• Incident Response
+
+==================================================
+
+FEATURED ARTICLE
+
+==================================================
+
+Display one Featured Article prominently at the top of the page.
+
+Use:
+
+• Large featured image
+• Larger typography
+• Read More button
+
+Design this so it can easily rotate as new content is published.
+
+==================================================
+
+FEATURED VIDEOS
+
+==================================================
+
+Create a Featured Training Videos section.
+
+Support embedded YouTube videos.
+
+Organize videos by:
+
+• Firearms Safety
+• Instructor Tips
+• Security Officer Training
+• Defensive Shooting
+• Church Security
+• Executive Protection
+• Equipment Reviews
+• Scenario Discussions
+
+Videos should be easily replaceable without redesigning the page.
+
+==================================================
+
+TRAINING TIPS
+
+==================================================
+
+Add a rotating section for short educational tips.
+
+Examples:
+
+• Tip of the Week
+• Firearm Safety Reminder
+• Security Officer Tip
+• Instructor Advice
+• Range Tip
+• Defensive Mindset Tip
+
+These should be easy to update through content.
+
+==================================================
+
+REAL-WORLD SCENARIO DISCUSSIONS
+
+==================================================
+
+Create one of the signature sections of the website.
+
+Each scenario should include:
+
+• Situation Overview
+• Threat Assessment
+• Instructor Analysis
+• Recommended Response
+• Lessons Learned
+• Safety Takeaways
+• Discussion Questions
+• Optional Embedded Video
+
+This section should reinforce Corsair's expertise and encourage repeat visitors.
+
+==================================================
+
+DOWNLOADABLE RESOURCES
+
+==================================================
+
+Create a Professional Resources section.
+
+Support downloadable PDFs such as:
+
+• Home Defense Checklist
+• Church Security Planning Guide
+• Firearm Safety Checklist
+• Security Officer Equipment Checklist
+• Range Checklist
+• Emergency Contact Form
+• Incident Report Template
+• Family Safety Plan
+• Security Assessment Worksheet
+
+==================================================
+
+SEARCH & FILTERS
+
+==================================================
+
+Allow users to filter content by:
+
+• Category
+• Topic
+• Keyword
+• Training Type
+• Security Services
+
+Maintain fast performance.
+
+==================================================
+
+RELATED CONTENT
+
+==================================================
+
+At the bottom of every article automatically display:
+
+Related Articles
+
+Related Videos
+
+Related Training Courses
+
+Related Security Services
+
+This should keep visitors engaged and exploring the website.
+
+==================================================
+
+CONNECT CONTENT TO SERVICES & TRAINING
+
+==================================================
+
+Whenever appropriate, recommend the corresponding service or class.
+
+Examples
+
+Reading about Church Security?
+
+Display:
+
+Church Security Services
+
+Request a Consultation
+
+----------------------------------------
+
+Reading about Executive Protection?
+
+Display:
+
+Executive Protection Services
+
+Request Security Proposal
+
+----------------------------------------
+
+Reading about Level III Security Officer?
+
+Display:
+
+Level III Security Officer Training
+
+Register Now
+
+----------------------------------------
+
+Reading about Texas License to Carry?
+
+Display:
+
+Texas License to Carry Certification / Basic Handgun
+
+Register Today
+
+----------------------------------------
+
+Reading about Defensive Shooting?
+
+Display:
+
+Defensive Shooting Skills
+
+Book Your Class
+
+The goal is to naturally connect educational content to the appropriate security service or training opportunity.
+
+==================================================
+
+MODERN USER EXPERIENCE
+
+==================================================
+
+Without changing the existing Corsair branding or layout, enhance the page with:
+
+• Smooth scrolling
+• Animated article cards
+• Interactive category navigation
+• Hover effects
+• Reading progress indicator on articles
+• Responsive grids
+• Modern typography
+• High-quality imagery
+• Subtle animations
+• Fast loading
+
+Animations should remain professional and not distract from the content.
+
+==================================================
+
+SEO OPTIMIZATION
+
+==================================================
+
+Optimize every article for search engines.
+
+Include:
+
+• SEO-friendly URLs
+• Meta Titles
+• Meta Descriptions
+• Structured Headings
+• Internal Linking
+• Course Links
+• Service Links
+• Open Graph Metadata
+• Twitter Cards
+• Schema.org Article markup
+• Breadcrumbs
+
+Strengthen internal linking throughout the website.
+
+==================================================
+
+MOBILE EXPERIENCE
+
+==================================================
+
+Verify the Training & Knowledge Center displays properly on:
+
+• Desktop
+• Laptop
+• Tablet
+• iPhone
+• Android
+
+Verify:
+
+✓ Responsive layouts
+
+✓ Readable typography
+
+✓ Embedded videos resize correctly
+
+✓ Images are optimized
+
+✓ Touch-friendly navigation
+
+✓ Fast performance
+
+==================================================
+
+CONTENT MANAGEMENT
+
+==================================================
+
+Build the page so future additions are simple.
+
+Adding:
+
+• New Articles
+• Videos
+• Resources
+• Tips
+• Scenarios
+
+should not require changing the page layout.
+
+==================================================
+
+QA REQUIREMENTS
+
+==================================================
+
+Verify:
+
+✓ Existing blog URLs continue to work.
+
+✓ Training & Knowledge Center title displays correctly.
+
+✓ Category navigation works.
+
+✓ Search and filters function.
+
+✓ Featured Article displays correctly.
+
+✓ Featured Videos work.
+
+✓ Downloadable resources function.
+
+✓ Related Articles display correctly.
+
+✓ Related Courses display correctly.
+
+✓ Related Security Services display correctly.
+
+✓ Internal links work.
+
+✓ Mobile layouts display correctly.
+
+✓ Performance remains fast.
+
+✓ SEO metadata validates.
+
+✓ No broken images.
+
+✓ No broken links.
+
+✓ Existing styling remains consistent with the Corsair website.
+
+==================================================
+
+PROJECT COMPLETION STANDARD
+
+The Training & Knowledge Center should become one of the strongest sections of the Corsair Tactical Solutions website, positioning the company as both a trusted provider of professional security services and a leader in firearms, security officer, and protective services education.
+
+Visitors should return regularly for new articles, videos, safety resources, professional guidance, and training information while naturally being guided toward booking security services or enrolling in training programs.

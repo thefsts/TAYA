@@ -1,0 +1,404 @@
+Task 56 — Premium Interactive Experience & Micro-Animations
+
+Priority: HIGH
+
+Project Goal
+
+Without changing the existing design, branding, or layout, transform the website into a premium, modern, interactive experience.
+
+The website should feel like a high-end security company that also operates a professional training academy.
+
+Animations should support the user experience—not distract from it.
+
+Every animation must be smooth, fast, mobile friendly, and performance optimized.
+
+==================================================
+
+GENERAL REQUIREMENTS
+
+==================================================
+
+DO NOT redesign the website.
+
+DO NOT change branding.
+
+DO NOT change layouts.
+
+DO NOT use gimmicky effects.
+
+Maintain excellent Lighthouse performance.
+
+Respect prefers-reduced-motion accessibility settings.
+
+All animations should run at 60fps using GPU-accelerated CSS transforms where possible.
+
+==================================================
+
+HERO SECTIONS
+
+==================================================
+
+Enhance every hero section with subtle motion.
+
+Examples:
+
+• Slow cinematic background zoom (Ken Burns effect)
+• Layered parallax
+• Floating particles (very subtle)
+• Soft moving light sweep across CTA buttons
+• Animated badge reveals
+• Animated headline entrance
+• Fade-in content sequencing
+
+The hero should feel alive while remaining professional.
+
+==================================================
+
+SECURITY SERVICE PAGES
+
+==================================================
+
+Add subtle interactive effects that reinforce security themes.
+
+Examples:
+
+• Radar pulse around service icons
+• Animated shield outline on hover
+• Secure perimeter line animation
+• Location pin pulse
+• Security checkpoint scanning line
+• Interactive service cards
+• Hover elevation with soft shadow
+
+==================================================
+
+TRAINING PAGES
+
+==================================================
+
+Give the training pages more energy.
+
+Examples:
+
+• Training cards animate into view
+• Interactive difficulty indicators
+• Progress style curriculum timeline
+• Animated certification badges
+• Hover transitions on course cards
+• Sliding information panels
+
+==================================================
+
+4D PROTECTION MODEL
+
+==================================================
+
+Turn this into one of the most interactive sections.
+
+Animate each step independently.
+
+Deter
+
+Animated security perimeter.
+
+Detect
+
+Radar sweep with scanning animation.
+
+Deflect
+
+Conversation flow animation showing de-escalation.
+
+Defend
+
+Shield animation with coordinated response indicators.
+
+When scrolling:
+
+Each phase activates in sequence.
+
+Desktop:
+
+Hover reveals additional details.
+
+Mobile:
+
+Tap expands each phase.
+
+==================================================
+
+WEAPON TRAINING VISUALS
+
+==================================================
+
+Keep all firearm-related interactions professional and instructional.
+
+Examples:
+
+• Animated target graphics
+• Shot grouping overlays
+• Bullet trajectory illustrations for educational purposes
+• Safety zone diagrams
+• Training progression graphics
+• Qualification score examples
+• Interactive firearm safety checklist
+• Course curriculum progression
+
+Do NOT add arcade-style shooting effects, muzzle flashes, or gamified weapon use.
+
+==================================================
+
+RANGE EXPERIENCE
+
+==================================================
+
+Create an immersive training atmosphere.
+
+Examples:
+
+• Target cards animate into place
+• Steel target reaction illustrations
+• Qualification lane graphics
+• Distance indicators
+• Wind indicator graphics
+• Qualification progress tracker
+
+==================================================
+
+SCENARIO TRAINING
+
+==================================================
+
+Scenario cards should include:
+
+Hover:
+
+• Situation overview
+• Threat level
+• Recommended response
+• Related course
+
+Click:
+
+Expand with:
+
+• Instructor analysis
+• Lessons learned
+• Safety considerations
+
+==================================================
+
+SECURITY SERVICES
+
+==================================================
+
+Each service card should have its own visual identity.
+
+Executive Protection
+
+• Elegant moving gradient
+• Shield icon animation
+
+Church Security
+
+• Campus map pulse
+• Safety planning visualization
+
+Property Management
+
+• Building security overlay
+
+Investigations
+
+• Evidence timeline animation
+
+Corporate Security
+
+• Network protection visualization
+
+==================================================
+
+COURSE CARDS
+
+==================================================
+
+Each card should include:
+
+Hover:
+
+• Course duration
+• Difficulty
+• Seats remaining (dynamic if available)
+• Price
+• Register button animation
+
+Click:
+
+Smooth transition to course page.
+
+==================================================
+
+BUTTONS
+
+==================================================
+
+Upgrade every CTA.
+
+Examples:
+
+• Smooth hover
+• Light sweep animation
+• Soft elevation
+• Click ripple
+• Better focus states
+• Mobile touch feedback
+
+==================================================
+
+COUNTERS
+
+==================================================
+
+Animate statistics when visible.
+
+Examples:
+
+Years Experience
+
+Students Trained
+
+Security Officers Certified
+
+Hours of Training
+
+Organizations Served
+
+Only animate once.
+
+==================================================
+
+SCROLL EXPERIENCE
+
+==================================================
+
+Add tasteful scroll-triggered animations.
+
+Examples:
+
+• Fade up
+• Slide
+• Scale
+• Reveal
+• Timeline activation
+
+Never animate everything simultaneously.
+
+==================================================
+
+TRAINING & KNOWLEDGE CENTER
+
+==================================================
+
+Add rich interactions.
+
+Examples:
+
+• Featured article carousel
+• Animated category tabs
+• Reading progress indicator
+• Sticky table of contents
+• Related article transitions
+• Featured video carousel
+• Interactive resource cards
+
+==================================================
+
+VISUAL POLISH
+
+==================================================
+
+Improve:
+
+• Icon animations
+• Card transitions
+• Image hover effects
+• Loading skeletons
+• Smooth page transitions
+• Lazy loading
+• Optimized image loading
+
+==================================================
+
+PERFORMANCE
+
+==================================================
+
+Maintain excellent performance.
+
+Verify:
+
+✓ Images optimized
+
+✓ Code splitting
+
+✓ Lazy loading
+
+✓ No layout shift
+
+✓ No unnecessary JavaScript
+
+✓ Lighthouse scores remain high
+
+==================================================
+
+ACCESSIBILITY
+
+==================================================
+
+Support:
+
+• prefers-reduced-motion
+
+• Keyboard navigation
+
+• Visible focus states
+
+• Screen reader compatibility
+
+==================================================
+
+FINAL QA
+
+==================================================
+
+Verify:
+
+✓ Desktop
+
+✓ Tablet
+
+✓ Mobile
+
+✓ Fast loading
+
+✓ Smooth animations
+
+✓ No animation lag
+
+✓ No CLS
+
+✓ No broken interactions
+
+✓ All existing forms still work
+
+✓ Square checkout unaffected
+
+✓ Email workflows unaffected
+
+✓ SEO unaffected
+
+==================================================
+
+PROJECT STANDARD
+
+The final experience should feel like a premium security company website—modern, polished, and interactive. Every motion should reinforce professionalism, preparedness, and trust while preserving fast performance and accessibility. Visitors should leave with the impression that Corsair Tactical Solutions operates at the highest professional standard.
