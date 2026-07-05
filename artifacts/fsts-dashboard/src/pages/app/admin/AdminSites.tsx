@@ -6,8 +6,17 @@ import {
   useUpdateSite,
   useDeleteSite,
   SiteStatus,
+  WebsiteType,
   type Site,
+  type EnabledModules,
 } from "@workspace/api-client-react";
+import {
+  WEBSITE_TYPE_OPTIONS,
+  WEBSITE_TYPE_LABELS,
+  MODULE_KEYS,
+  MODULE_LABELS,
+  defaultModulesForWebsiteType,
+} from "@/lib/siteModules";
 import { Redirect, Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -57,6 +66,8 @@ export default function AdminSites() {
     brandColorSecondary: "#0f172a",
     whiteLabelEnabled: false,
     poweredByFsts: true,
+    websiteType: WebsiteType.business_website as string,
+    enabledModules: defaultModulesForWebsiteType(WebsiteType.business_website) as EnabledModules,
   });
 
   if (meLoading) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
@@ -73,6 +84,8 @@ export default function AdminSites() {
       brandColorSecondary: "#0f172a",
       whiteLabelEnabled: false,
       poweredByFsts: true,
+      websiteType: WebsiteType.business_website,
+      enabledModules: defaultModulesForWebsiteType(WebsiteType.business_website),
     });
     setDialogOpen(true);
   }
@@ -88,8 +101,14 @@ export default function AdminSites() {
       brandColorSecondary: s.brandColorSecondary,
       whiteLabelEnabled: s.whiteLabelEnabled ?? false,
       poweredByFsts: s.poweredByFsts ?? true,
+      websiteType: s.websiteType,
+      enabledModules: s.enabledModules ?? defaultModulesForWebsiteType(s.websiteType),
     });
     setDialogOpen(true);
+  }
+
+  function handleWebsiteTypeChange(type: string) {
+    setForm((f) => ({ ...f, websiteType: type, enabledModules: defaultModulesForWebsiteType(type) }));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -106,6 +125,8 @@ export default function AdminSites() {
             brandColorSecondary: form.brandColorSecondary,
             whiteLabelEnabled: form.whiteLabelEnabled,
             poweredByFsts: form.poweredByFsts,
+            websiteType: form.websiteType as (typeof WebsiteType)[keyof typeof WebsiteType],
+            enabledModules: form.enabledModules,
           },
         },
         {
@@ -133,6 +154,8 @@ export default function AdminSites() {
             brandColorSecondary: form.brandColorSecondary,
             whiteLabelEnabled: form.whiteLabelEnabled,
             poweredByFsts: form.poweredByFsts,
+            websiteType: form.websiteType as (typeof WebsiteType)[keyof typeof WebsiteType],
+            enabledModules: form.enabledModules,
           },
         },
         {
@@ -193,6 +216,7 @@ export default function AdminSites() {
               <tr>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Name</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Slug</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Type</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Status</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Domain</th>
                 <th className="px-4 py-3"></th>
@@ -205,6 +229,7 @@ export default function AdminSites() {
                     <Link href={`/app/sites/${site.id}`} className="hover:underline">{site.name}</Link>
                   </td>
                   <td className="px-4 py-3 text-slate-500">{site.slug}</td>
+                  <td className="px-4 py-3 text-slate-500">{WEBSITE_TYPE_LABELS[site.websiteType] ?? site.websiteType}</td>
                   <td className="px-4 py-3">
                     <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
                   </td>
@@ -253,6 +278,34 @@ export default function AdminSites() {
             <div className="space-y-1.5">
               <Label>Domain</Label>
               <Input placeholder="example.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Website Type</Label>
+              <Select value={form.websiteType} onValueChange={handleWebsiteTypeChange}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {WEBSITE_TYPE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500">Sets sensible default modules below. You can still adjust each toggle.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Enabled Modules</Label>
+              <div className="border border-slate-200 rounded-md divide-y divide-slate-100">
+                {MODULE_KEYS.map((key) => (
+                  <div key={key} className="flex items-center justify-between px-3 py-2">
+                    <span className="text-sm text-slate-700">{MODULE_LABELS[key]}</span>
+                    <Switch
+                      checked={form.enabledModules[key]}
+                      onCheckedChange={(v) =>
+                        setForm((f) => ({ ...f, enabledModules: { ...f.enabledModules, [key]: v } }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">

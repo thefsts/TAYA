@@ -10,7 +10,9 @@ import {
   backupsTable,
   squareConfigTable,
   activityLogTable,
+  defaultModulesForWebsiteType,
   type UserSiteRole,
+  type WebsiteType,
 } from "@workspace/db";
 import {
   CreateSiteBody,
@@ -45,7 +47,13 @@ router.post("/sites", requireAuth, requireSuperAdmin, async (req, res): Promise<
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [site] = await db.insert(sitesTable).values(parsed.data).returning();
+  const websiteType = (parsed.data.websiteType ?? "business_website") as WebsiteType;
+  const values = {
+    ...parsed.data,
+    websiteType,
+    enabledModules: parsed.data.enabledModules ?? defaultModulesForWebsiteType(websiteType),
+  };
+  const [site] = await db.insert(sitesTable).values(values).returning();
   res.status(201).json(GetSiteResponse.parse(site));
 });
 
@@ -74,9 +82,13 @@ router.patch("/sites/:siteId", requireAuth, requireSuperAdmin, async (req, res):
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const values = { ...parsed.data } as typeof parsed.data & { enabledModules?: ReturnType<typeof defaultModulesForWebsiteType> };
+  if (values.websiteType && !values.enabledModules) {
+    values.enabledModules = defaultModulesForWebsiteType(values.websiteType as WebsiteType);
+  }
   const [site] = await db
     .update(sitesTable)
-    .set(parsed.data)
+    .set(values)
     .where(eq(sitesTable.id, params.data.siteId))
     .returning();
   if (!site) {

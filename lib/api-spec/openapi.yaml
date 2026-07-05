@@ -1078,9 +1078,43 @@ components:
           items:
             $ref: "#/components/schemas/UserRoleAssignmentInput"
 
+    WebsiteType:
+      type: string
+      enum:
+        - business_website
+        - ecommerce
+        - security_company
+        - training_academy
+        - church
+        - property_management
+        - medical
+        - legal
+        - restaurant
+        - membership
+        - professional_services
+        - construction
+        - real_estate
+        - manufacturing
+        - custom_enterprise
+
+    EnabledModules:
+      type: object
+      required: [homepage, courses, events, articles, media, contact, footer, seo, payments, email]
+      properties:
+        homepage: { type: boolean }
+        courses: { type: boolean }
+        events: { type: boolean }
+        articles: { type: boolean }
+        media: { type: boolean }
+        contact: { type: boolean }
+        footer: { type: boolean }
+        seo: { type: boolean }
+        payments: { type: boolean }
+        email: { type: boolean }
+
     Site:
       type: object
-      required: [id, name, slug, status, brandColorPrimary, brandColorSecondary, createdAt]
+      required: [id, name, slug, status, brandColorPrimary, brandColorSecondary, websiteType, enabledModules, createdAt]
       properties:
         id: { type: integer }
         name: { type: string }
@@ -1095,6 +1129,8 @@ components:
         brandColorSecondary: { type: string }
         whiteLabelEnabled: { type: boolean }
         poweredByFsts: { type: boolean }
+        websiteType: { $ref: "#/components/schemas/WebsiteType" }
+        enabledModules: { $ref: "#/components/schemas/EnabledModules" }
         createdAt: { type: string, format: date-time }
 
     SiteInput:
@@ -1113,6 +1149,8 @@ components:
         brandColorSecondary: { type: string }
         whiteLabelEnabled: { type: boolean }
         poweredByFsts: { type: boolean }
+        websiteType: { $ref: "#/components/schemas/WebsiteType" }
+        enabledModules: { $ref: "#/components/schemas/EnabledModules" }
 
     SiteUpdate:
       type: object
@@ -1128,6 +1166,8 @@ components:
         brandColorSecondary: { type: string }
         whiteLabelEnabled: { type: boolean }
         poweredByFsts: { type: boolean }
+        websiteType: { $ref: "#/components/schemas/WebsiteType" }
+        enabledModules: { $ref: "#/components/schemas/EnabledModules" }
 
     DashboardSummary:
       type: object

@@ -68,6 +68,40 @@ export interface UserUpdate {
   roleAssignments?: UserRoleAssignmentInput[];
 }
 
+export type WebsiteType = typeof WebsiteType[keyof typeof WebsiteType];
+
+
+export const WebsiteType = {
+  business_website: 'business_website',
+  ecommerce: 'ecommerce',
+  security_company: 'security_company',
+  training_academy: 'training_academy',
+  church: 'church',
+  property_management: 'property_management',
+  medical: 'medical',
+  legal: 'legal',
+  restaurant: 'restaurant',
+  membership: 'membership',
+  professional_services: 'professional_services',
+  construction: 'construction',
+  real_estate: 'real_estate',
+  manufacturing: 'manufacturing',
+  custom_enterprise: 'custom_enterprise',
+} as const;
+
+export interface EnabledModules {
+  homepage: boolean;
+  courses: boolean;
+  events: boolean;
+  articles: boolean;
+  media: boolean;
+  contact: boolean;
+  footer: boolean;
+  seo: boolean;
+  payments: boolean;
+  email: boolean;
+}
+
 export type SiteStatus = typeof SiteStatus[keyof typeof SiteStatus];
 
 
@@ -92,6 +126,8 @@ export interface Site {
   brandColorSecondary: string;
   whiteLabelEnabled?: boolean;
   poweredByFsts?: boolean;
+  websiteType: WebsiteType;
+  enabledModules: EnabledModules;
   createdAt: string;
 }
 
@@ -117,6 +153,8 @@ export interface SiteInput {
   brandColorSecondary?: string;
   whiteLabelEnabled?: boolean;
   poweredByFsts?: boolean;
+  websiteType?: WebsiteType;
+  enabledModules?: EnabledModules;
 }
 
 export type SiteUpdateStatus = typeof SiteUpdateStatus[keyof typeof SiteUpdateStatus];
@@ -142,6 +180,8 @@ export interface SiteUpdate {
   brandColorSecondary?: string;
   whiteLabelEnabled?: boolean;
   poweredByFsts?: boolean;
+  websiteType?: WebsiteType;
+  enabledModules?: EnabledModules;
 }
 
 export interface ActivityLogEntry {

@@ -1,0 +1,313 @@
+==========================================================
+TASK 65 — OPERON CONNECTOR™ PLATFORM INTEGRATION
+Priority: ENTERPRISE / PLATFORM
+Applies To: ALL Current & Future FSTS Websites
+==========================================================
+
+PROJECT OBJECTIVE
+
+Integrate the Operon CRM with the FSTS Website Operating System™ (FSTS-WOS) through a native Operon Connector™.
+
+The website, dashboard, and Operon CRM should work together as one connected business platform while maintaining clear separation of responsibilities.
+
+The Website and Dashboard manage the website.
+
+Operon CRM manages sales, marketing, customer relationships, and business growth.
+
+The Operon Connector™ will be installed by default on every website built by Full Stack Tech Solutions.
+
+==========================================================
+1. OPERON CONNECTOR™
+==========================================================
+
+Create a new platform module:
+
+Operon Connector™
+
+This module should appear in the Website Dashboard under:
+
+Settings
+└── Operon CRM
+
+Display:
+
+• Connection Status
+• Connected Account
+• Sync Status
+• Last Sync
+• API Health
+• Sync Logs
+
+==========================================================
+2. CLIENT CONNECTION
+==========================================================
+
+Clients should be able to connect their Operon CRM account using:
+
+• Secure API Key
+• OAuth (future-ready)
+• Single Sign-On (SSO) architecture
+• Organization ID
+
+Connection must be encrypted and stored securely.
+
+==========================================================
+3. DEFAULT INSTALLATION
+==========================================================
+
+Every new FSTS website should automatically include the Operon Connector.
+
+Default Status:
+
+Installed
+Not Connected
+
+Clients activate it only after subscribing to Operon CRM.
+
+==========================================================
+4. SINGLE SIGN-ON (SSO)
+==========================================================
+
+After logging into the Website Dashboard, clients should be able to access Operon CRM without logging in a second time.
+
+Add a dashboard navigation item:
+
+Marketing & CRM
+
+Clicking this opens the client's Operon CRM workspace using SSO (or the future authentication flow).
+
+==========================================================
+5. WEBSITE → OPERON DATA SYNC
+==========================================================
+
+Automatically sync the following:
+
+• Contact Forms
+• Quote Requests
+• Consultation Requests
+• Event Registrations
+• Course Registrations
+• Product Orders
+• Customer Information
+• Payment Records
+• Newsletter Signups
+• Employment Applications
+• Custom Forms
+
+Each submission should create or update the appropriate record inside Operon CRM.
+
+==========================================================
+6. OPERON → WEBSITE DATA
+==========================================================
+
+Support receiving data back from Operon, including:
+
+• Appointment Status
+• Customer Notes
+• Marketing Campaign Status
+• Contact Preferences
+• Lead Status
+• Tags
+• Customer Profile Updates
+
+Only display relevant information on the website/dashboard.
+
+==========================================================
+7. EVENT INTEGRATION
+==========================================================
+
+When a new event is created on the website:
+
+The Operon Connector should notify Operon CRM so marketing workflows can be built there.
+
+The Website remains the source of truth for event content.
+
+==========================================================
+8. COURSE INTEGRATION
+==========================================================
+
+When courses are:
+
+• Created
+• Updated
+• Removed
+• Repriced
+
+Notify Operon CRM automatically.
+
+==========================================================
+9. PRODUCT INTEGRATION
+==========================================================
+
+Sync:
+
+• Products
+• Categories
+• Pricing
+• Inventory (if enabled)
+• Orders
+
+The Website remains the primary storefront.
+
+==========================================================
+10. PAYMENT SYNC
+==========================================================
+
+When Square payments are completed:
+
+Send to Operon CRM:
+
+• Customer
+• Order ID
+• Payment ID
+• Amount
+• Products
+• Courses
+• Events
+• Purchase Date
+
+No payment processing occurs in Operon CRM.
+
+Square remains the payment processor.
+
+==========================================================
+11. EMAIL & AUTOMATION HANDOFF
+==========================================================
+
+The Website collects the information.
+
+Operon CRM handles:
+
+• Email Campaigns
+• SMS
+• Marketing Automation
+• Follow-Up Sequences
+• Lead Nurturing
+• Sales Pipelines
+• Customer Retention
+
+No duplicate automation should exist inside the Website Dashboard.
+
+==========================================================
+12. SYNC SETTINGS
+==========================================================
+
+Clients should be able to enable or disable syncing for:
+
+☐ Contacts
+☐ Courses
+☐ Events
+☐ Products
+☐ Orders
+☐ Forms
+☐ Payments
+☐ Newsletter Subscribers
+
+==========================================================
+13. SYNC LOGS
+==========================================================
+
+Display:
+
+• Sync Time
+• Status
+• Records Sent
+• Records Updated
+• Errors
+• Retry Button
+
+==========================================================
+14. API ARCHITECTURE
+==========================================================
+
+Use a modular API layer.
+
+The connector should not be hard-coded to Operon.
+
+Design it so additional integrations could be added in the future (Salesforce, HubSpot, Zoho, etc.) without changing the website architecture.
+
+==========================================================
+15. CLIENT EXPERIENCE
+==========================================================
+
+The Website Dashboard should include a "Marketing & CRM" section that clearly indicates:
+
+Connected to Operon CRM
+
+Connection Status
+
+Last Sync
+
+Open Operon CRM
+
+The transition between the dashboard and Operon CRM should feel seamless.
+
+==========================================================
+16. PLATFORM RULES
+==========================================================
+
+The Website Dashboard remains responsible for:
+
+• Website Content
+• Images
+• Pages
+• Products
+• Courses
+• Events
+• SEO
+• Forms
+• Square Configuration
+• Website Settings
+
+Operon CRM remains responsible for:
+
+• Lead Management
+• Marketing
+• Email Campaigns
+• SMS Campaigns
+• Sales Pipelines
+• Customer Management
+• Scheduling
+• Automation
+• Reporting
+• Business Growth
+
+==========================================================
+17. FUTURE READY
+==========================================================
+
+The Operon Connector should be built as a reusable platform module.
+
+Every future FSTS Website Operating System™ installation should automatically include this connector.
+
+It should only require the client to connect their Operon CRM account.
+
+No custom coding should be required for future websites.
+
+==========================================================
+18. QA
+==========================================================
+
+Verify:
+
+✓ Connector installs on all websites by default.
+✓ Secure authentication works.
+✓ API credentials are encrypted.
+✓ Website forms sync correctly.
+✓ Events sync correctly.
+✓ Courses sync correctly.
+✓ Products sync correctly.
+✓ Square payment records sync correctly.
+✓ No duplicate records are created.
+✓ Sync logs display correctly.
+✓ Marketing & CRM button works.
+✓ SSO architecture is ready.
+✓ Dashboard performance is unaffected.
+✓ Website performance is unaffected.
+✓ Connector can be disabled without affecting website functionality.
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+The Operon Connector™ becomes a permanent, built-in module of the FSTS Website Operating System™. Every website delivered by Full Stack Tech Solutions will be Operon-ready from day one, allowing clients to activate CRM integration with a simple connection process. The website remains the authoritative source for public-facing content and commerce, while Operon CRM serves as the central platform for customer relationship management, marketing automation, lead nurturing, and business growth. Together, they create a unified ecosystem that is scalable, secure, and reusable across all current and future client websites.

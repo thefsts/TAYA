@@ -41,7 +41,9 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
   const id = parseInt(siteId, 10);
   const { data: site, isLoading } = useGetSite(id);
   const [location] = useLocation();
-  
+  const modules = site?.enabledModules;
+  const isEnabled = (key: keyof NonNullable<typeof modules>) => modules?.[key] ?? true;
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
@@ -84,24 +86,33 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3">Content</div>
           <NavItem icon={Activity} label="Dashboard" href={`/app/sites/${siteId}`} />
-          <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} />
-          <NavItem icon={BookOpen} label="Courses" href={`/app/sites/${siteId}/courses`} />
-          <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} />
-          <NavItem icon={FileText} label="Articles" href={`/app/sites/${siteId}/articles`} />
-          <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} />
-          
+          {isEnabled("homepage") && <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} />}
+          {isEnabled("courses") && <NavItem icon={BookOpen} label="Courses" href={`/app/sites/${siteId}/courses`} />}
+          {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} />}
+          {isEnabled("articles") && <NavItem icon={FileText} label="Articles" href={`/app/sites/${siteId}/articles`} />}
+          {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} />}
+
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Configuration</div>
-          <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} />
-          <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} />
-          <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} />
-          <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} />
-          <NavItem icon={Mail} label="Email Config" href={`/app/sites/${siteId}/email`} />
-          
+          {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} />}
+          {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} />}
+          {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} />}
+          {isEnabled("payments") && <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} />}
+          {isEnabled("email") && <NavItem icon={Mail} label="Email Config" href={`/app/sites/${siteId}/email`} />}
+
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">System</div>
           <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} />
           <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} />
           <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} />
         </nav>
+
+        {(site?.poweredByFsts ?? true) && (
+          <div className="px-4 py-3 border-t border-slate-200 text-center">
+            <p className="text-[11px] text-slate-400 leading-tight">
+              Powered by <span className="font-semibold text-slate-500">Full Stack Tech Solutions</span>
+            </p>
+            <p className="text-[10px] text-slate-400 leading-tight">FSTS Website Operating System™</p>
+          </div>
+        )}
       </aside>
 
       {/* Main Content */}

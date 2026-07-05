@@ -5,7 +5,9 @@
  * FSTS Client Dashboard Platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { EnabledModules } from './enabledModules';
 import type { SiteUpdateStatus } from './siteUpdateStatus';
+import type { WebsiteType } from './websiteType';
 
 export interface SiteUpdate {
   /** @minLength 1 */
@@ -21,4 +23,6 @@ export interface SiteUpdate {
   brandColorSecondary?: string;
   whiteLabelEnabled?: boolean;
   poweredByFsts?: boolean;
+  websiteType?: WebsiteType;
+  enabledModules?: EnabledModules;
 }

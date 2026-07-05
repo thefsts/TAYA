@@ -49,6 +49,19 @@ export const ListSitesResponseItem = zod.object({
   "brandColorSecondary": zod.string(),
   "whiteLabelEnabled": zod.boolean().optional(),
   "poweredByFsts": zod.boolean().optional(),
+  "websiteType": zod.enum(['business_website', 'ecommerce', 'security_company', 'training_academy', 'church', 'property_management', 'medical', 'legal', 'restaurant', 'membership', 'professional_services', 'construction', 'real_estate', 'manufacturing', 'custom_enterprise']),
+  "enabledModules": zod.object({
+  "homepage": zod.boolean(),
+  "courses": zod.boolean(),
+  "events": zod.boolean(),
+  "articles": zod.boolean(),
+  "media": zod.boolean(),
+  "contact": zod.boolean(),
+  "footer": zod.boolean(),
+  "seo": zod.boolean(),
+  "payments": zod.boolean(),
+  "email": zod.boolean()
+}),
   "createdAt": zod.coerce.date()
 })
 export const ListSitesResponse = zod.array(ListSitesResponseItem)
@@ -71,7 +84,20 @@ export const CreateSiteBody = zod.object({
   "brandColorPrimary": zod.string().optional(),
   "brandColorSecondary": zod.string().optional(),
   "whiteLabelEnabled": zod.boolean().optional(),
-  "poweredByFsts": zod.boolean().optional()
+  "poweredByFsts": zod.boolean().optional(),
+  "websiteType": zod.enum(['business_website', 'ecommerce', 'security_company', 'training_academy', 'church', 'property_management', 'medical', 'legal', 'restaurant', 'membership', 'professional_services', 'construction', 'real_estate', 'manufacturing', 'custom_enterprise']).optional(),
+  "enabledModules": zod.object({
+  "homepage": zod.boolean(),
+  "courses": zod.boolean(),
+  "events": zod.boolean(),
+  "articles": zod.boolean(),
+  "media": zod.boolean(),
+  "contact": zod.boolean(),
+  "footer": zod.boolean(),
+  "seo": zod.boolean(),
+  "payments": zod.boolean(),
+  "email": zod.boolean()
+}).optional()
 })
 
 
@@ -94,6 +120,19 @@ export const GetSiteResponse = zod.object({
   "brandColorSecondary": zod.string(),
   "whiteLabelEnabled": zod.boolean().optional(),
   "poweredByFsts": zod.boolean().optional(),
+  "websiteType": zod.enum(['business_website', 'ecommerce', 'security_company', 'training_academy', 'church', 'property_management', 'medical', 'legal', 'restaurant', 'membership', 'professional_services', 'construction', 'real_estate', 'manufacturing', 'custom_enterprise']),
+  "enabledModules": zod.object({
+  "homepage": zod.boolean(),
+  "courses": zod.boolean(),
+  "events": zod.boolean(),
+  "articles": zod.boolean(),
+  "media": zod.boolean(),
+  "contact": zod.boolean(),
+  "footer": zod.boolean(),
+  "seo": zod.boolean(),
+  "payments": zod.boolean(),
+  "email": zod.boolean()
+}),
   "createdAt": zod.coerce.date()
 })
 
@@ -117,7 +156,20 @@ export const UpdateSiteBody = zod.object({
   "brandColorPrimary": zod.string().optional(),
   "brandColorSecondary": zod.string().optional(),
   "whiteLabelEnabled": zod.boolean().optional(),
-  "poweredByFsts": zod.boolean().optional()
+  "poweredByFsts": zod.boolean().optional(),
+  "websiteType": zod.enum(['business_website', 'ecommerce', 'security_company', 'training_academy', 'church', 'property_management', 'medical', 'legal', 'restaurant', 'membership', 'professional_services', 'construction', 'real_estate', 'manufacturing', 'custom_enterprise']).optional(),
+  "enabledModules": zod.object({
+  "homepage": zod.boolean(),
+  "courses": zod.boolean(),
+  "events": zod.boolean(),
+  "articles": zod.boolean(),
+  "media": zod.boolean(),
+  "contact": zod.boolean(),
+  "footer": zod.boolean(),
+  "seo": zod.boolean(),
+  "payments": zod.boolean(),
+  "email": zod.boolean()
+}).optional()
 })
 
 export const UpdateSiteResponse = zod.object({
@@ -132,6 +184,19 @@ export const UpdateSiteResponse = zod.object({
   "brandColorSecondary": zod.string(),
   "whiteLabelEnabled": zod.boolean().optional(),
   "poweredByFsts": zod.boolean().optional(),
+  "websiteType": zod.enum(['business_website', 'ecommerce', 'security_company', 'training_academy', 'church', 'property_management', 'medical', 'legal', 'restaurant', 'membership', 'professional_services', 'construction', 'real_estate', 'manufacturing', 'custom_enterprise']),
+  "enabledModules": zod.object({
+  "homepage": zod.boolean(),
+  "courses": zod.boolean(),
+  "events": zod.boolean(),
+  "articles": zod.boolean(),
+  "media": zod.boolean(),
+  "contact": zod.boolean(),
+  "footer": zod.boolean(),
+  "seo": zod.boolean(),
+  "payments": zod.boolean(),
+  "email": zod.boolean()
+}),
   "createdAt": zod.coerce.date()
 })
 

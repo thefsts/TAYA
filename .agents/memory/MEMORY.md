@@ -2,3 +2,4 @@
 - [Corsair push pattern](corsair-push.md) — GitHub blob→tree→commit→PATCH pattern; file must be read from API first; anchor uniqueness is critical
 - [Corsair TypeScript unicode](corsair-ts-unicode.md) — TypeScript string literal \uXXXX escapes are stored as literal 6-char sequences; comments use real unicode; use surrounding ASCII context as anchors
 - [Corsair mobile audit](corsair-mobile-audit.md) — site is already largely responsive; only bare form grids (BookingForm/EventBookingForm) needed fixing; correct grep pattern documented
+- [FSTS dashboard superadmin bootstrap](fsts-dashboard-superadmin.md) — only the first-ever Clerk signup is superadmin; new e2e test users can't access /app/admin/* routes
