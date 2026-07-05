@@ -29,6 +29,7 @@ import CrmConnectionConfig from "@/pages/app/sites/CrmConnectionConfig";
 import VersionHistory from "@/pages/app/sites/VersionHistory";
 import ActivityLog from "@/pages/app/sites/ActivityLog";
 import BackupsList from "@/pages/app/sites/BackupsList";
+import HelpCenter from "@/pages/app/sites/HelpCenter";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -198,6 +199,7 @@ function AppRouter() {
         <Route path="/app/sites/:siteId/history" component={VersionHistory} />
         <Route path="/app/sites/:siteId/activity" component={ActivityLog} />
         <Route path="/app/sites/:siteId/backups" component={BackupsList} />
+        <Route path="/app/sites/:siteId/help" component={HelpCenter} />
         
         <Route component={NotFound} />
       </Switch>

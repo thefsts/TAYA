@@ -11,6 +11,8 @@ import {
   squareConfigTable,
   activityLogTable,
   crmConnectionsTable,
+  contactInfoTable,
+  emailSettingsTable,
   defaultModulesForWebsiteType,
   type UserSiteRole,
   type WebsiteType,
@@ -115,6 +117,24 @@ router.delete("/sites/:siteId", requireAuth, requireSuperAdmin, async (req, res)
   res.sendStatus(204);
 });
 
+async function checkWebsiteHealth(
+  domain: string | null,
+): Promise<{ websiteOnline: boolean | null; sslActive: boolean | null; responseTimeMs: number | null }> {
+  if (!domain) return { websiteOnline: null, sslActive: null, responseTimeMs: null };
+  const url = `https://${domain}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  const start = Date.now();
+  try {
+    const response = await fetch(url, { method: "HEAD", signal: controller.signal, redirect: "follow" });
+    return { websiteOnline: response.ok || response.status < 500, sslActive: true, responseTimeMs: Date.now() - start };
+  } catch {
+    return { websiteOnline: false, sslActive: null, responseTimeMs: null };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 router.get("/sites/:siteId/dashboard-summary", requireAuth, async (req, res): Promise<void> => {
   const params = GetSiteDashboardSummaryParams.safeParse(req.params);
   if (!params.success) {
@@ -123,20 +143,26 @@ router.get("/sites/:siteId/dashboard-summary", requireAuth, async (req, res): Pr
   }
   const { siteId } = params.data;
 
-  const [courses, events, articles, media, backups, [squareConfig], recentActivity] = await Promise.all([
-    db.select().from(coursesTable).where(eq(coursesTable.siteId, siteId)),
-    db.select().from(eventsTable).where(eq(eventsTable.siteId, siteId)),
-    db.select().from(articlesTable).where(eq(articlesTable.siteId, siteId)),
-    db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.siteId, siteId)),
-    db.select().from(backupsTable).where(eq(backupsTable.siteId, siteId)).orderBy(desc(backupsTable.createdAt)),
-    db.select().from(squareConfigTable).where(eq(squareConfigTable.siteId, siteId)),
-    db
-      .select()
-      .from(activityLogTable)
-      .where(eq(activityLogTable.siteId, siteId))
-      .orderBy(desc(activityLogTable.createdAt))
-      .limit(10),
-  ]);
+  const [site, courses, events, articles, media, backups, [squareConfig], [contactInfo], [emailSettings], recentActivity] =
+    await Promise.all([
+      db.select().from(sitesTable).where(eq(sitesTable.id, siteId)),
+      db.select().from(coursesTable).where(eq(coursesTable.siteId, siteId)),
+      db.select().from(eventsTable).where(eq(eventsTable.siteId, siteId)),
+      db.select().from(articlesTable).where(eq(articlesTable.siteId, siteId)),
+      db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.siteId, siteId)),
+      db.select().from(backupsTable).where(eq(backupsTable.siteId, siteId)).orderBy(desc(backupsTable.createdAt)),
+      db.select().from(squareConfigTable).where(eq(squareConfigTable.siteId, siteId)),
+      db.select().from(contactInfoTable).where(eq(contactInfoTable.siteId, siteId)),
+      db.select().from(emailSettingsTable).where(eq(emailSettingsTable.siteId, siteId)),
+      db
+        .select()
+        .from(activityLogTable)
+        .where(eq(activityLogTable.siteId, siteId))
+        .orderBy(desc(activityLogTable.createdAt))
+        .limit(10),
+    ]);
+
+  const health = await checkWebsiteHealth(site[0]?.domain ?? null);
 
   res.json(
     GetSiteDashboardSummaryResponse.parse({
@@ -147,6 +173,9 @@ router.get("/sites/:siteId/dashboard-summary", requireAuth, async (req, res): Pr
       mediaCount: media.length,
       lastBackupAt: backups[0]?.createdAt ?? null,
       squareConnected: squareConfig?.connected ?? false,
+      emailConfigured: !!(emailSettings?.fromEmail),
+      formsConfigured: !!(contactInfo?.email),
+      ...health,
       recentActivity,
     }),
   );

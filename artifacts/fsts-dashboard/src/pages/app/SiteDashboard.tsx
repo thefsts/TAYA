@@ -1,5 +1,6 @@
 import { useLocation, useParams, Link } from "wouter";
 import { useGetSite, useGetSiteDashboardSummary } from "@workspace/api-client-react";
+import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit } from "lucide-react";
 import { 
   ArrowLeft, 
   LayoutTemplate, 
@@ -15,7 +16,8 @@ import {
   Activity,
   DatabaseBackup,
   Phone,
-  Building2
+  Building2,
+  LifeBuoy
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,7 +80,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
               )}
               <div className="overflow-hidden">
                 <h2 className="font-bold text-slate-900 truncate" title={site?.name}>{site?.name}</h2>
-                <div className="text-xs text-slate-500 font-mono truncate" title={site?.slug}>{site?.slug}</div>
+                <div className="text-[10px] text-slate-400 uppercase tracking-wide truncate">FSTS Website Operating System™</div>
               </div>
             </div>
           )}
@@ -107,6 +109,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} />
           <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} />
           <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} />
+          <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} />
         </nav>
 
         {(site?.poweredByFsts ?? true) && (
@@ -158,13 +161,26 @@ export default function SiteDashboard() {
   const { data: summary, isLoading } = useGetSiteDashboardSummary(siteId, {
     query: { enabled: !!siteId, queryKey: ['site-summary', siteId] }
   });
+  const { data: site } = useGetSite(siteId, {
+    query: { enabled: !!siteId, queryKey: ["site", siteId] },
+  });
 
   return (
     <AppLayout siteId={siteIdStr!}>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Workspace Overview</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Welcome back, {site?.name ?? "there"}</h1>
           <p className="text-slate-500">At-a-glance metrics and recent activity for this site.</p>
+          {site?.domain && (
+            <a
+              href={`https://${site.domain}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1"
+            >
+              {site.domain} <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
         </div>
       </div>
 
@@ -214,11 +230,48 @@ export default function SiteDashboard() {
             <div className="space-y-4">
               <Card className="shadow-sm border-slate-200">
                 <CardHeader>
-                  <CardTitle className="text-sm">System Status</CardTitle>
+                  <CardTitle className="text-sm">Website Status</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600">Square Integration</span>
+                    <span className="text-slate-600">Website</span>
+                    {summary.websiteOnline === null ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-500">No domain set</span>
+                    ) : (
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${summary.websiteOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {summary.websiteOnline ? 'Online' : 'Offline'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600 flex items-center gap-1">
+                      {summary.sslActive ? <ShieldCheck className="h-3.5 w-3.5 text-green-600" /> : <ShieldAlert className="h-3.5 w-3.5 text-slate-400" />}
+                      SSL
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${summary.sslActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {summary.sslActive ? 'Active' : 'Unknown'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Performance</span>
+                    <span className="text-slate-900 font-mono text-xs">
+                      {summary.responseTimeMs !== null && summary.responseTimeMs !== undefined ? `${summary.responseTimeMs}ms` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600 flex items-center gap-1"><MailIcon className="h-3.5 w-3.5" /> Email</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${summary.emailConfigured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {summary.emailConfigured ? 'Configured' : 'Not Set Up'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600 flex items-center gap-1"><FileEdit className="h-3.5 w-3.5" /> Forms</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${summary.formsConfigured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {summary.formsConfigured ? 'Configured' : 'Not Set Up'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Square</span>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${summary.squareConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {summary.squareConnected ? 'Connected' : 'Disconnected'}
                     </span>

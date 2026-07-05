@@ -22,3 +22,24 @@ Token: GITHUB_PERSONAL_ACCESS_TOKEN secret.
 
 **Why:** Learned from Task #23 — 3 anchor failures due to: (a) em dash literal vs character,
 (b) non-unique optionalAddOns block matching wrong course, (c) BEGINNER section anchor issue.
+
+## Verifying a push
+`raw.githubusercontent.com` can 404/lag briefly after a push (CDN cache). Verify via the
+Contents API (`/contents/<path>?ref=main`) instead — it reflects the live repo state immediately.
+
+## Footer component location
+`src/components/Footer.tsx` holds the site footer (bottom bar has Cookie Settings button,
+policy links, trust line) — this is the anchor point for any global footer link additions
+(e.g. an "Admin Portal" link to the dashboard).
+
+## New client sites need content-table seeding, not just a `sites` row
+Registering a client in the dashboard's `sites` table does not seed its per-entity content
+tables (homepage_content, contact_info, footer_content, seo_settings, etc.) — editor forms
+for an unseeded site can hard-fail on save if a field has a NOT NULL/min-length constraint
+(e.g. heroSubheadline) but the GET route returns an empty-string placeholder when no row exists.
+**Why:** Discovered onboarding Corsair Tactical Solutions as first production client — its
+homepage/contact/footer tables had zero rows despite the site being registered, so any editor
+save round-tripped an empty required field back and got rejected by the update Zod schema.
+**How to apply:** When onboarding a new site, seed at least homepage_content and contact_info
+with real (or real-ish, pulled from the live site's source) values before considering the site
+"connected" — don't rely on the empty-string GET fallback as a substitute for real seed data.

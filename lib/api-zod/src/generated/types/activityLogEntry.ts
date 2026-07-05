@@ -16,6 +16,12 @@ export interface ActivityLogEntry {
   /** @nullable */
   entityId?: number | null;
   /** @nullable */
+  page?: string | null;
+  /** @nullable */
+  previousValue?: string | null;
+  /** @nullable */
+  newValue?: string | null;
+  /** @nullable */
   details?: string | null;
   createdAt: Date;
 }

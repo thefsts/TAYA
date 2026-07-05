@@ -195,6 +195,12 @@ export interface ActivityLogEntry {
   /** @nullable */
   entityId?: number | null;
   /** @nullable */
+  page?: string | null;
+  /** @nullable */
+  previousValue?: string | null;
+  /** @nullable */
+  newValue?: string | null;
+  /** @nullable */
   details?: string | null;
   createdAt: string;
 }
@@ -208,6 +214,14 @@ export interface DashboardSummary {
   /** @nullable */
   lastBackupAt?: string | null;
   squareConnected?: boolean;
+  /** @nullable */
+  websiteOnline?: boolean | null;
+  /** @nullable */
+  sslActive?: boolean | null;
+  /** @nullable */
+  responseTimeMs?: number | null;
+  emailConfigured?: boolean;
+  formsConfigured?: boolean;
   recentActivity: ActivityLogEntry[];
 }
 

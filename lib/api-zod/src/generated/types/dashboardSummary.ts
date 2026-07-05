@@ -16,5 +16,13 @@ export interface DashboardSummary {
   /** @nullable */
   lastBackupAt?: Date | null;
   squareConnected?: boolean;
+  /** @nullable */
+  websiteOnline?: boolean | null;
+  /** @nullable */
+  sslActive?: boolean | null;
+  /** @nullable */
+  responseTimeMs?: number | null;
+  emailConfigured?: boolean;
+  formsConfigured?: boolean;
   recentActivity: ActivityLogEntry[];
 }

@@ -229,6 +229,11 @@ export const GetSiteDashboardSummaryResponse = zod.object({
   "mediaCount": zod.number(),
   "lastBackupAt": zod.coerce.date().nullish(),
   "squareConnected": zod.boolean().optional(),
+  "websiteOnline": zod.boolean().nullish(),
+  "sslActive": zod.boolean().nullish(),
+  "responseTimeMs": zod.number().nullish(),
+  "emailConfigured": zod.boolean().optional(),
+  "formsConfigured": zod.boolean().optional(),
   "recentActivity": zod.array(zod.object({
   "id": zod.number(),
   "siteId": zod.number(),
@@ -236,6 +241,9 @@ export const GetSiteDashboardSummaryResponse = zod.object({
   "action": zod.string(),
   "entityType": zod.string().nullable(),
   "entityId": zod.number().nullish(),
+  "page": zod.string().nullish(),
+  "previousValue": zod.string().nullish(),
+  "newValue": zod.string().nullish(),
   "details": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }))
@@ -1396,6 +1404,9 @@ export const ListActivityLogResponseItem = zod.object({
   "action": zod.string(),
   "entityType": zod.string().nullable(),
   "entityId": zod.number().nullish(),
+  "page": zod.string().nullish(),
+  "previousValue": zod.string().nullish(),
+  "newValue": zod.string().nullish(),
   "details": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })

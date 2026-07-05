@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, contentEditorRoles } from "../lib/rbac";
+import { logActivity } from "../lib/activityLog";
 
 const router: IRouter = Router();
 
@@ -72,6 +73,15 @@ router.put(
           .insert(footerContentTable)
           .values({ siteId: params.data.siteId, ...parsed.data })
           .returning();
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: existing ? "updated" : "created",
+      entityType: "footer",
+      page: "Footer",
+      previousValue: existing,
+      newValue: content,
+    });
     res.json(UpdateFooterContentResponse.parse(content));
   },
 );

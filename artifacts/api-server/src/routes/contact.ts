@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, contentEditorRoles } from "../lib/rbac";
+import { logActivity } from "../lib/activityLog";
 
 const router: IRouter = Router();
 
@@ -71,6 +72,15 @@ router.put(
           .insert(contactInfoTable)
           .values({ siteId: params.data.siteId, ...parsed.data })
           .returning();
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: existing ? "updated" : "created",
+      entityType: "contact_info",
+      page: "Contact Info",
+      previousValue: existing,
+      newValue: info,
+    });
     res.json(UpdateContactInfoResponse.parse(info));
   },
 );

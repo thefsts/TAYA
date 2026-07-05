@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, contentEditorRoles, anySiteRole } from "../lib/rbac";
+import { logActivity } from "../lib/activityLog";
 
 const router: IRouter = Router();
 
@@ -75,6 +76,16 @@ router.put(
           .insert(homepageContentTable)
           .values({ siteId: params.data.siteId, ...parsed.data })
           .returning();
+
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: existing ? "updated" : "created",
+      entityType: "homepage",
+      page: "Homepage",
+      previousValue: existing,
+      newValue: content,
+    });
 
     res.json(UpdateHomepageContentResponse.parse(content));
   },

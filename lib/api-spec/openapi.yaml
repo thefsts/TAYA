@@ -1379,6 +1379,11 @@ components:
         mediaCount: { type: integer }
         lastBackupAt: { type: ["string", "null"], format: date-time }
         squareConnected: { type: boolean }
+        websiteOnline: { type: ["boolean", "null"] }
+        sslActive: { type: ["boolean", "null"] }
+        responseTimeMs: { type: ["integer", "null"] }
+        emailConfigured: { type: boolean }
+        formsConfigured: { type: boolean }
         recentActivity:
           type: array
           items:
@@ -1782,6 +1787,9 @@ components:
         action: { type: string }
         entityType: { type: ["string", "null"] }
         entityId: { type: ["integer", "null"] }
+        page: { type: ["string", "null"] }
+        previousValue: { type: ["string", "null"] }
+        newValue: { type: ["string", "null"] }
         details: { type: ["string", "null"] }
         createdAt: { type: string, format: date-time }
 

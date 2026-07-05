@@ -38,8 +38,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
 const ROLE_LABELS: Record<string, string> = {
-  super_admin: "Super Admin",
-  client_admin: "Client Admin",
+  super_admin: "Administrator (FSTS)",
+  client_admin: "Website Manager (Client)",
   editor: "Editor",
   marketing: "Marketing",
   training_manager: "Training Manager",

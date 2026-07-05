@@ -15,6 +15,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, trainingRoles } from "../lib/rbac";
+import { logActivity } from "../lib/activityLog";
 
 const router: IRouter = Router();
 
@@ -52,6 +53,15 @@ router.post(
       .insert(eventsTable)
       .values({ siteId: params.data.siteId, ...parsed.data })
       .returning();
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: "created",
+      entityType: "event",
+      entityId: event.id,
+      page: "Events",
+      newValue: event,
+    });
     res.status(201).json(GetEventResponse.parse(event));
   },
 );
@@ -93,6 +103,10 @@ router.patch(
       res.status(400).json({ error: parsed.error.message });
       return;
     }
+    const [existing] = await db
+      .select()
+      .from(eventsTable)
+      .where(and(eq(eventsTable.siteId, params.data.siteId), eq(eventsTable.id, params.data.eventId)));
     const [event] = await db
       .update(eventsTable)
       .set(parsed.data)
@@ -102,6 +116,16 @@ router.patch(
       res.status(404).json({ error: "Event not found" });
       return;
     }
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: "updated",
+      entityType: "event",
+      entityId: event.id,
+      page: "Events",
+      previousValue: existing,
+      newValue: event,
+    });
     res.json(UpdateEventResponse.parse(event));
   },
 );
@@ -124,6 +148,15 @@ router.delete(
       res.status(404).json({ error: "Event not found" });
       return;
     }
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: "deleted",
+      entityType: "event",
+      entityId: event.id,
+      page: "Events",
+      previousValue: event,
+    });
     res.sendStatus(204);
   },
 );

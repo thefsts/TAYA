@@ -15,6 +15,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, trainingRoles } from "../lib/rbac";
+import { logActivity } from "../lib/activityLog";
 
 const router: IRouter = Router();
 
@@ -52,6 +53,15 @@ router.post(
       .insert(coursesTable)
       .values({ siteId: params.data.siteId, ...parsed.data })
       .returning();
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: "created",
+      entityType: "course",
+      entityId: course.id,
+      page: "Courses",
+      newValue: course,
+    });
     res.status(201).json(GetCourseResponse.parse(course));
   },
 );
@@ -93,6 +103,10 @@ router.patch(
       res.status(400).json({ error: parsed.error.message });
       return;
     }
+    const [existing] = await db
+      .select()
+      .from(coursesTable)
+      .where(and(eq(coursesTable.siteId, params.data.siteId), eq(coursesTable.id, params.data.courseId)));
     const [course] = await db
       .update(coursesTable)
       .set(parsed.data)
@@ -102,6 +116,16 @@ router.patch(
       res.status(404).json({ error: "Course not found" });
       return;
     }
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: "updated",
+      entityType: "course",
+      entityId: course.id,
+      page: "Courses",
+      previousValue: existing,
+      newValue: course,
+    });
     res.json(UpdateCourseResponse.parse(course));
   },
 );
@@ -124,6 +148,15 @@ router.delete(
       res.status(404).json({ error: "Course not found" });
       return;
     }
+    await logActivity({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      action: "deleted",
+      entityType: "course",
+      entityId: course.id,
+      page: "Courses",
+      previousValue: course,
+    });
     res.sendStatus(204);
   },
 );

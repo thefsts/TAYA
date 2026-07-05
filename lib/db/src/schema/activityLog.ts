@@ -10,6 +10,9 @@ export const activityLogTable = pgTable("activity_log", {
   action: text("action").notNull(),
   entityType: text("entity_type"),
   entityId: integer("entity_id"),
+  page: text("page"),
+  previousValue: text("previous_value"),
+  newValue: text("new_value"),
   details: text("details"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

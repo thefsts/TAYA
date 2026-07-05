@@ -1,6 +1,7 @@
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useListActivityLog } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ActivityLog({ params }: { params: { siteId: string } }) {
   const siteId = parseInt(params.siteId, 10);
@@ -8,22 +9,70 @@ export default function ActivityLog({ params }: { params: { siteId: string } }) 
 
   return (
     <AppLayout siteId={params.siteId}>
-      <h1 className="text-2xl font-bold mb-6">Activity Log</h1>
-      {isLoading ? <Skeleton className="h-64" /> : (
-        <div className="bg-white border rounded shadow-sm">
-          <div className="divide-y">
-            {data?.map(log => (
-              <div key={log.id} className="p-4">
-                <p className="text-sm">
-                  <span className="font-semibold">{log.actorName}</span> {log.action} {log.entityType}
-                  {log.details && <span className="text-slate-500"> - {log.details}</span>}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">{new Date(log.createdAt).toLocaleString()}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Activity Log</h1>
+        <p className="text-slate-500 text-sm">
+          Full audit trail of every change made to this site — who, when, what, and the before/after values.
+        </p>
+      </div>
+      <Card className="shadow-sm border-slate-200">
+        <CardHeader>
+          <CardTitle className="text-sm">Recent Changes</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-6 space-y-3">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+                  <tr>
+                    <th className="text-left font-medium px-4 py-2">User</th>
+                    <th className="text-left font-medium px-4 py-2">Date / Time</th>
+                    <th className="text-left font-medium px-4 py-2">Action</th>
+                    <th className="text-left font-medium px-4 py-2">Page</th>
+                    <th className="text-left font-medium px-4 py-2">Previous Value</th>
+                    <th className="text-left font-medium px-4 py-2">New Value</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {data && data.length > 0 ? (
+                    data.map((log) => (
+                      <tr key={log.id} className="align-top hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{log.actorName}</td>
+                        <td className="px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">
+                          {new Date(log.createdAt).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700 capitalize">
+                          {log.action}
+                          {log.entityType ? ` ${log.entityType.replace(/_/g, " ")}` : ""}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">{log.page ?? "—"}</td>
+                        <td className="px-4 py-3 text-slate-500 max-w-xs truncate" title={log.previousValue ?? undefined}>
+                          {log.previousValue ?? "—"}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 max-w-xs truncate" title={log.newValue ?? undefined}>
+                          {log.newValue ?? "—"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-500">
+                        No activity recorded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </AppLayout>
   );
 }
