@@ -1,0 +1,297 @@
+import { useState } from "react";
+import { AppLayout } from "@/pages/app/SiteDashboard";
+import {
+  useListEvents,
+  useCreateEvent,
+  useUpdateEvent,
+  useDeleteEvent,
+  EventInputStatus,
+  type Event,
+} from "@workspace/api-client-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { CalendarDays, Pencil, Plus, Trash2 } from "lucide-react";
+
+type EventFormState = {
+  title: string;
+  slug: string;
+  status: EventInputStatus;
+  description: string;
+  startAt: string;
+  endAt: string;
+  location: string;
+  imageUrl: string;
+};
+
+function toLocalInput(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const emptyForm: EventFormState = {
+  title: "",
+  slug: "",
+  status: EventInputStatus.draft,
+  description: "",
+  startAt: "",
+  endAt: "",
+  location: "",
+  imageUrl: "",
+};
+
+function statusVariant(status: string) {
+  if (status === "published") return "default";
+  if (status === "archived") return "secondary";
+  return "outline";
+}
+
+export default function EventsList({ params }: { params: { siteId: string } }) {
+  const siteId = parseInt(params.siteId, 10);
+  const { toast } = useToast();
+  const { data, isLoading } = useListEvents(siteId);
+  const createMutation = useCreateEvent();
+  const updateMutation = useUpdateEvent();
+  const deleteMutation = useDeleteEvent();
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<Event | null>(null);
+  const [form, setForm] = useState<EventFormState>(emptyForm);
+  const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
+
+  function openCreate() {
+    setEditing(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  }
+
+  function openEdit(ev: Event) {
+    setEditing(ev);
+    setForm({
+      title: ev.title,
+      slug: ev.slug,
+      status: ev.status as EventInputStatus,
+      description: ev.description,
+      startAt: toLocalInput(ev.startAt),
+      endAt: toLocalInput(ev.endAt),
+      location: ev.location ?? "",
+      imageUrl: ev.imageUrl ?? "",
+    });
+    setDialogOpen(true);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const payload = {
+      title: form.title,
+      slug: form.slug,
+      status: form.status,
+      description: form.description,
+      startAt: new Date(form.startAt).toISOString(),
+      endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
+      location: form.location || undefined,
+      imageUrl: form.imageUrl || undefined,
+    };
+
+    const onSuccess = () => {
+      toast({ title: editing ? "Event updated" : "Event created" });
+      setDialogOpen(false);
+    };
+    const onError = (err: unknown) => {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    };
+
+    if (editing) {
+      updateMutation.mutate({ siteId, eventId: editing.id, data: payload }, { onSuccess, onError });
+    } else {
+      createMutation.mutate({ siteId, data: payload }, { onSuccess, onError });
+    }
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    deleteMutation.mutate(
+      { siteId, eventId: deleteTarget.id },
+      {
+        onSuccess: () => {
+          toast({ title: "Event deleted" });
+          setDeleteTarget(null);
+        },
+        onError: (err) => {
+          toast({
+            title: "Couldn't delete event",
+            description: err instanceof Error ? err.message : String(err),
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  }
+
+  const saving = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <AppLayout siteId={params.siteId}>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Events</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Manage upcoming events for this site.</p>
+        </div>
+        <Button onClick={openCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Event
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
+        </div>
+      ) : data?.length === 0 ? (
+        <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
+          <CalendarDays className="mx-auto h-10 w-10 text-slate-300 mb-3" />
+          <h3 className="text-lg font-medium text-slate-900">No events yet</h3>
+          <p className="text-slate-500 mt-1">Add your first event to get started.</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Title</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Starts</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
+                <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {data?.map((ev) => (
+                <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-slate-900">{ev.title}</td>
+                  <td className="px-4 py-3"><Badge variant={statusVariant(ev.status)}>{ev.status}</Badge></td>
+                  <td className="px-4 py-3 text-slate-500">{new Date(ev.startAt).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-slate-500">{ev.location || "—"}</td>
+                  <td className="px-4 py-3 text-right space-x-1">
+                    <Button variant="ghost" size="sm" onClick={() => openEdit(ev)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(ev)}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Event" : "New Event"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Title</Label>
+                <Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Slug</Label>
+                <Input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Description</Label>
+              <Textarea required rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Starts At</Label>
+                <Input required type="datetime-local" value={form.startAt} onChange={(e) => setForm({ ...form, startAt: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Ends At</Label>
+                <Input type="datetime-local" value={form.endAt} onChange={(e) => setForm({ ...form, endAt: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Status</Label>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as EventInputStatus })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={EventInputStatus.draft}>Draft</SelectItem>
+                    <SelectItem value={EventInputStatus.published}>Published</SelectItem>
+                    <SelectItem value={EventInputStatus.archived}>Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Location</Label>
+                <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Image URL</Label>
+              <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{deleteTarget?.title}"?</AlertDialogTitle>
+            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AppLayout>
+  );
+}

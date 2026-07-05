@@ -1,0 +1,700 @@
+TASK 59 — FSTS CLIENT DASHBOARD PLATFORM (OFFICIAL STANDARD FOR ALL FUTURE FSTS WEBSITES)
+
+PRIORITY: CRITICAL
+
+PROJECT OBJECTIVE
+
+The FSTS Client Dashboard is now the OFFICIAL content management platform for Full Stack Tech Solutions.
+
+This dashboard will be used for EVERY current and future FSTS client website.
+
+Corsair Tactical Solutions will be the first production website connected to the platform and will serve as the reference implementation for all future projects.
+
+The dashboard must be scalable, secure, modular, and reusable.
+
+The dashboard is a CONTENT MANAGEMENT SYSTEM ONLY.
+
+It is NOT a website builder.
+
+==================================================
+FSTS PLATFORM RULES (APPLIES TO EVERY CLIENT)
+==================================================
+
+These rules are permanent and apply to ALL websites using the FSTS Client Dashboard.
+
+Clients MAY edit:
+
+• Text content
+• Images
+• Videos
+• Documents
+• Courses
+• Events
+• Pricing
+• Product information
+• Team members
+• Testimonials
+• FAQs
+• Contact information
+• Business hours
+• Social media links
+• SEO content
+• Blog / Knowledge Center articles
+• Homepage content
+• Hero images
+• Hero text
+• Square payment mappings
+• Event registration information
+
+Clients MAY NOT edit:
+
+✖ Website layout
+
+✖ Website design
+
+✖ Navigation structure
+
+✖ Header layout
+
+✖ Footer layout
+
+✖ Components
+
+✖ CSS
+
+✖ HTML
+
+✖ JavaScript
+
+✖ React Components
+
+✖ Tailwind styles
+
+✖ Animations
+
+✖ Templates
+
+✖ Responsive layouts
+
+✖ Theme
+
+✖ Fonts
+
+✖ Colors
+
+✖ Global spacing
+
+✖ Build configuration
+
+✖ APIs
+
+✖ Database structure
+
+✖ Authentication
+
+✖ Deployment settings
+
+✖ Environment variables
+
+✖ Security configuration
+
+Only Full Stack Tech Solutions Super Administrators can modify these areas.
+
+These restrictions must be enforced globally for every client website using this platform.
+
+==================================================
+GLOBAL ROLE PERMISSIONS
+==================================================
+
+FSTS SUPER ADMIN
+
+Complete unrestricted access.
+
+Can modify:
+
+• Layouts
+• Components
+• Code
+• Design
+• Templates
+• Navigation
+• Dashboard
+• Users
+• Security
+• APIs
+• Database
+• Integrations
+• Deployments
+• Client Accounts
+
+--------------------------------------------------
+
+CLIENT ADMIN
+
+Content management only.
+
+Cannot modify anything affecting website structure or design.
+
+--------------------------------------------------
+
+EDITOR
+
+Can edit:
+
+Pages
+
+Articles
+
+Courses
+
+Events
+
+Media
+
+--------------------------------------------------
+
+MARKETING
+
+Can edit:
+
+SEO
+
+Articles
+
+Media
+
+Homepage messaging
+
+--------------------------------------------------
+
+TRAINING MANAGER
+
+Can edit:
+
+Courses
+
+Pricing
+
+Events
+
+Schedules
+
+Ammo
+
+Rental pricing
+
+Training images
+
+--------------------------------------------------
+
+READ ONLY
+
+Reports only.
+
+No editing permissions.
+
+==================================================
+WEBSITE CONTENT MANAGEMENT
+==================================================
+
+Clients may manage:
+
+Homepage
+
+Hero slides
+
+Hero text
+
+CTA buttons
+
+Featured Services
+
+Featured Training
+
+Statistics
+
+Testimonials
+
+Upcoming Events
+
+About
+
+Photos
+
+Biography
+
+Mission
+
+History
+
+Team
+
+Security Services
+
+Descriptions
+
+Images
+
+CTA wording
+
+Service ordering
+
+Courses
+
+Title
+
+Description
+
+Price
+
+Duration
+
+Difficulty
+
+Instructor
+
+Images
+
+Required fees
+
+Optional add-ons
+
+Ammo pricing
+
+Rental firearm pricing
+
+Equipment
+
+FAQs
+
+Visibility
+
+Events
+
+Create
+
+Edit
+
+Archive
+
+Publish
+
+Flyers
+
+Dates
+
+Times
+
+Capacity
+
+Pricing
+
+Descriptions
+
+Images
+
+Registration
+
+Articles / Knowledge Center
+
+Categories
+
+Articles
+
+Featured Article
+
+Videos
+
+Downloads
+
+Resources
+
+Related Courses
+
+SEO
+
+Media Library
+
+Images
+
+Videos
+
+PDFs
+
+Logos
+
+Event Flyers
+
+Hero Images
+
+Course Images
+
+Automatic optimization
+
+Responsive image generation
+
+Alt text
+
+Contact
+
+Business information
+
+Phone
+
+Email
+
+Address
+
+Hours
+
+Social media
+
+Footer Content
+
+Business information
+
+License numbers
+
+Compliance wording
+
+Copyright year
+
+Social links
+
+==================================================
+SQUARE PAYMENT MANAGEMENT
+==================================================
+
+Clients must be able to manage their own Square payment configuration without requiring developer assistance.
+
+Create a dedicated "Square Management" section.
+
+Allow editing of:
+
+• Square Application ID
+• Square Location ID
+• Catalog Item IDs
+• Course Payment Links
+• Event Payment Links
+• Button-to-Product Mapping
+• Production/Sandbox selection
+• Active products
+• Inactive products
+
+Allow clients to:
+
+Update pricing
+
+Replace payment links
+
+Assign products to courses
+
+Assign products to events
+
+Enable/Disable products
+
+Reconnect Square catalog items
+
+WITHOUT requiring any code changes.
+
+The dashboard must automatically preserve the existing secure payment workflow.
+
+==================================================
+EMAIL MANAGEMENT
+==================================================
+
+Allow editing:
+
+Notification email
+
+Reply-to email
+
+Business signature
+
+Confirmation wording
+
+Email templates
+
+==================================================
+SEO MANAGEMENT
+==================================================
+
+Allow editing:
+
+Titles
+
+Descriptions
+
+Keywords
+
+Open Graph
+
+Twitter Cards
+
+Canonical URLs
+
+==================================================
+MEDIA OPTIMIZATION
+==================================================
+
+Automatically optimize every uploaded image.
+
+Generate:
+
+Desktop
+
+Tablet
+
+Mobile
+
+WebP
+
+AVIF (if supported)
+
+Lazy loading
+
+Responsive sizing
+
+Automatic compression
+
+Alt text reminders
+
+==================================================
+VERSION HISTORY (NEW)
+==================================================
+
+Every content change must be versioned automatically.
+
+Track:
+
+Who made the change
+
+Date
+
+Time
+
+Section changed
+
+Old value
+
+New value
+
+Provide:
+
+Revision History
+
+One-click Restore
+
+Undo changes
+
+Restore previous versions
+
+Nothing should ever be permanently lost.
+
+==================================================
+ACTIVITY LOG
+==================================================
+
+Track all dashboard activity.
+
+Log:
+
+Logins
+
+Content edits
+
+Image uploads
+
+Course updates
+
+Price changes
+
+Square updates
+
+Event changes
+
+SEO changes
+
+User creation
+
+Role changes
+
+==================================================
+BACKUPS
+==================================================
+
+Automatically create backups before major content updates.
+
+Allow FSTS Super Admins to restore backups if needed.
+
+==================================================
+CLIENT SAFETY FEATURES
+==================================================
+
+Prevent accidental damage.
+
+Require confirmation before:
+
+Deleting events
+
+Deleting courses
+
+Deleting pages
+
+Replacing images
+
+Changing pricing
+
+Publishing changes
+
+Warn users before destructive actions.
+
+==================================================
+LOCKED FEATURES
+==================================================
+
+These are permanently locked for every client.
+
+Clients CANNOT edit:
+
+✖ Layout Builder
+
+✖ Theme Editor
+
+✖ CSS
+
+✖ HTML
+
+✖ JavaScript
+
+✖ React Components
+
+✖ Tailwind
+
+✖ Header Structure
+
+✖ Footer Structure
+
+✖ Navigation Layout
+
+✖ Animations
+
+✖ API Routes
+
+✖ Database
+
+✖ Authentication
+
+✖ Build Settings
+
+✖ Deployment
+
+✖ Environment Variables
+
+✖ Security
+
+Only Full Stack Tech Solutions Super Admins can access these sections.
+
+==================================================
+GLOBAL PLATFORM RULE
+==================================================
+
+These permissions are NOT specific to Corsair Tactical Solutions.
+
+These become the permanent operating rules for EVERY website managed through the FSTS Client Dashboard.
+
+Every future client automatically inherits these permissions and restrictions.
+
+No client should ever have the ability to alter website design, layout, or source code.
+
+==================================================
+FSTS BRANDING
+==================================================
+
+Every dashboard should display FSTS branding.
+
+Footer:
+
+Powered by Full Stack Tech Solutions
+
+Include:
+
+• FSTS Logo
+• Version Number
+• Copyright
+• Current Year
+
+Example:
+
+Powered by Full Stack Tech Solutions
+© Full Stack Tech Solutions 2026. All Rights Reserved.
+
+The branding should appear in the dashboard footer on every page.
+
+Only Super Admins can change or remove this branding.
+
+==================================================
+WHITE LABEL PREPARATION
+==================================================
+
+Build the platform so that Full Stack Tech Solutions can optionally enable or disable white-label branding in the future.
+
+Default behavior:
+
+FSTS branding remains visible on every dashboard.
+
+==================================================
+QA
+==================================================
+
+Verify:
+
+✓ Clients cannot modify layouts.
+
+✓ Clients cannot modify design.
+
+✓ Clients cannot modify code.
+
+✓ Clients cannot modify navigation structure.
+
+✓ Clients cannot modify styling.
+
+✓ Clients can edit content.
+
+✓ Clients can manage images.
+
+✓ Clients can manage courses.
+
+✓ Clients can manage events.
+
+✓ Clients can manage pricing.
+
+✓ Clients can manage Square product mappings.
+
+✓ Clients can manage payment links.
+
+✓ Clients can manage SEO.
+
+✓ Version history works.
+
+✓ Restore previous versions works.
+
+✓ Activity logging works.
+
+✓ Automatic backups work.
+
+✓ FSTS branding appears in the dashboard footer.
+
+✓ Dashboard rules apply to every future client automatically.
+
+✓ Platform remains modular and reusable.
+
+==================================================
+PROJECT STANDARD
+==================================================
+
+The FSTS Client Dashboard will become the official website management platform for Full Stack Tech Solutions.
+
+Every future website should be managed through this dashboard using the same permissions, workflows, and security rules.
+
+Clients should have complete control over their website content while the design, layout, branding, architecture, and source code remain protected by Full Stack Tech Solutions, ensuring consistent quality, long-term maintainability, and a professional experience across every FSTS-managed website.

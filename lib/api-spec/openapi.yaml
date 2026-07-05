@@ -3,13 +3,37 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: FSTS Client Dashboard Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: me
+    description: Current user
+  - name: sites
+    description: Client site management
+  - name: users
+    description: User & RBAC management
+  - name: content
+    description: Content management (homepage, courses, events, articles)
+  - name: seo
+    description: SEO settings
+  - name: media
+    description: Media library
+  - name: footer-contact
+    description: Footer and contact info
+  - name: square
+    description: Square payment configuration
+  - name: email
+    description: Email settings
+  - name: versions
+    description: Content version history
+  - name: activity
+    description: Activity log
+  - name: backups
+    description: Backups
 paths:
   /healthz:
     get:
@@ -24,6 +48,946 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [me]
+      summary: Get current authenticated user profile and role assignments
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+
+  /sites:
+    get:
+      operationId: listSites
+      tags: [sites]
+      summary: List all client sites visible to the current user
+      responses:
+        "200":
+          description: List of sites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Site"
+    post:
+      operationId: createSite
+      tags: [sites]
+      summary: Create a new client site (super admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+
+  /sites/{siteId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getSite
+      tags: [sites]
+      summary: Get a single site
+      responses:
+        "200":
+          description: Site
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+    patch:
+      operationId: updateSite
+      tags: [sites]
+      summary: Update site metadata / branding / white-label settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+    delete:
+      operationId: deleteSite
+      tags: [sites]
+      summary: Archive / delete a client site (super admin only, requires confirmation client-side)
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/dashboard-summary:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getSiteDashboardSummary
+      tags: [sites]
+      summary: Get aggregate counts and recent activity for a site's dashboard home
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all dashboard users and their site role assignments
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DashboardUser"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Invite / create a dashboard user with a role on one or more sites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardUser"
+
+  /users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user's role assignments or status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardUser"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Remove a dashboard user (requires confirmation client-side)
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/homepage:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getHomepageContent
+      tags: [content]
+      summary: Get the homepage content block for a site
+      responses:
+        "200":
+          description: Homepage content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomepageContent"
+    put:
+      operationId: updateHomepageContent
+      tags: [content]
+      summary: Update the homepage content block for a site (creates a version snapshot)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HomepageContentInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomepageContent"
+
+  /sites/{siteId}/courses:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listCourses
+      tags: [content]
+      summary: List courses for a site
+      responses:
+        "200":
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+    post:
+      operationId: createCourse
+      tags: [content]
+      summary: Create a course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+
+  /sites/{siteId}/courses/{courseId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: courseId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getCourse
+      tags: [content]
+      summary: Get a single course
+      responses:
+        "200":
+          description: Course
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+    patch:
+      operationId: updateCourse
+      tags: [content]
+      summary: Update a course (creates a version snapshot)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+    delete:
+      operationId: deleteCourse
+      tags: [content]
+      summary: Delete a course (requires confirmation client-side)
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/events:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listEvents
+      tags: [content]
+      summary: List events for a site
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [content]
+      summary: Create an event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /sites/{siteId}/events/{eventId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getEvent
+      tags: [content]
+      summary: Get a single event
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    patch:
+      operationId: updateEvent
+      tags: [content]
+      summary: Update an event (creates a version snapshot)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+    delete:
+      operationId: deleteEvent
+      tags: [content]
+      summary: Delete an event (requires confirmation client-side)
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/articles:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listArticles
+      tags: [content]
+      summary: List articles / blog posts for a site
+      responses:
+        "200":
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+    post:
+      operationId: createArticle
+      tags: [content]
+      summary: Create an article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+
+  /sites/{siteId}/articles/{articleId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: articleId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getArticle
+      tags: [content]
+      summary: Get a single article
+      responses:
+        "200":
+          description: Article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+    patch:
+      operationId: updateArticle
+      tags: [content]
+      summary: Update an article (creates a version snapshot)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+    delete:
+      operationId: deleteArticle
+      tags: [content]
+      summary: Delete an article (requires confirmation client-side)
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/seo:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listSeoSettings
+      tags: [seo]
+      summary: List per-page SEO settings for a site
+      responses:
+        "200":
+          description: List of SEO settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SeoSetting"
+    post:
+      operationId: createSeoSetting
+      tags: [seo]
+      summary: Create a per-page SEO setting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SeoSettingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeoSetting"
+
+  /sites/{siteId}/seo/{seoSettingId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: seoSettingId
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      operationId: updateSeoSetting
+      tags: [seo]
+      summary: Update a per-page SEO setting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SeoSettingUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeoSetting"
+    delete:
+      operationId: deleteSeoSetting
+      tags: [seo]
+      summary: Delete a per-page SEO setting
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/media:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listMediaAssets
+      tags: [media]
+      summary: List media library assets for a site
+      responses:
+        "200":
+          description: List of media assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MediaAsset"
+    post:
+      operationId: createMediaAsset
+      tags: [media]
+      summary: Register an uploaded/optimized media asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaAssetInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaAsset"
+
+  /sites/{siteId}/media/{mediaAssetId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: mediaAssetId
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      operationId: deleteMediaAsset
+      tags: [media]
+      summary: Delete a media asset (requires confirmation client-side)
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/footer:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getFooterContent
+      tags: [footer-contact]
+      summary: Get footer content for a site
+      responses:
+        "200":
+          description: Footer content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FooterContent"
+    put:
+      operationId: updateFooterContent
+      tags: [footer-contact]
+      summary: Update footer content for a site (creates a version snapshot)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FooterContentInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FooterContent"
+
+  /sites/{siteId}/contact:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getContactInfo
+      tags: [footer-contact]
+      summary: Get contact info for a site
+      responses:
+        "200":
+          description: Contact info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactInfo"
+    put:
+      operationId: updateContactInfo
+      tags: [footer-contact]
+      summary: Update contact info for a site (creates a version snapshot)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInfoInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactInfo"
+
+  /sites/{siteId}/square-config:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getSquareConfig
+      tags: [square]
+      summary: Get Square payment configuration for a site
+      responses:
+        "200":
+          description: Square config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SquareConfig"
+    put:
+      operationId: updateSquareConfig
+      tags: [square]
+      summary: Update Square payment configuration for a site
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SquareConfigInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SquareConfig"
+
+  /sites/{siteId}/square-mappings:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listSquareCatalogMappings
+      tags: [square]
+      summary: List Square catalog item mappings for a site
+      responses:
+        "200":
+          description: List of mappings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SquareCatalogMapping"
+    post:
+      operationId: createSquareCatalogMapping
+      tags: [square]
+      summary: Create a Square catalog item mapping
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SquareCatalogMappingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SquareCatalogMapping"
+
+  /sites/{siteId}/square-mappings/{mappingId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: mappingId
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      operationId: updateSquareCatalogMapping
+      tags: [square]
+      summary: Update a Square catalog item mapping
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SquareCatalogMappingUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SquareCatalogMapping"
+    delete:
+      operationId: deleteSquareCatalogMapping
+      tags: [square]
+      summary: Delete a Square catalog item mapping
+      responses:
+        "204":
+          description: Deleted
+
+  /sites/{siteId}/email-settings:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getEmailSettings
+      tags: [email]
+      summary: Get email settings for a site
+      responses:
+        "200":
+          description: Email settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSettings"
+    put:
+      operationId: updateEmailSettings
+      tags: [email]
+      summary: Update email settings for a site
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailSettingsInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSettings"
+
+  /sites/{siteId}/versions:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listContentVersions
+      tags: [versions]
+      summary: List all version history entries for a site (filter by entityType/entityId client-side)
+      responses:
+        "200":
+          description: List of content versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentVersion"
+
+  /sites/{siteId}/versions/{versionId}/restore:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: restoreContentVersion
+      tags: [versions]
+      summary: Restore a piece of content to a prior version snapshot (requires confirmation client-side)
+      responses:
+        "200":
+          description: Restored version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentVersion"
+
+  /sites/{siteId}/activity-log:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listActivityLog
+      tags: [activity]
+      summary: List the activity log for a site
+      responses:
+        "200":
+          description: List of activity log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityLogEntry"
+
+  /sites/{siteId}/backups:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listBackups
+      tags: [backups]
+      summary: List backups for a site
+      responses:
+        "200":
+          description: List of backups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Backup"
+    post:
+      operationId: createBackup
+      tags: [backups]
+      summary: Create a manual backup snapshot of a site's content
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Backup"
+
+  /sites/{siteId}/backups/{backupId}/restore:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: backupId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: restoreBackup
+      tags: [backups]
+      summary: Restore a site from a backup snapshot (requires confirmation client-side)
+      responses:
+        "200":
+          description: Restored backup
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Backup"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +998,560 @@ components:
       required:
         - status
 
+    Role:
+      type: string
+      enum:
+        - super_admin
+        - client_admin
+        - editor
+        - marketing
+        - training_manager
+        - read_only
+
+    SiteRoleAssignment:
+      type: object
+      required: [siteId, siteName, role]
+      properties:
+        siteId: { type: integer }
+        siteName: { type: string }
+        role:
+          $ref: "#/components/schemas/Role"
+
+    Me:
+      type: object
+      required: [id, clerkUserId, name, email, isSuperAdmin, roleAssignments]
+      properties:
+        id: { type: integer }
+        clerkUserId: { type: string }
+        name: { type: string }
+        email: { type: string }
+        isSuperAdmin: { type: boolean }
+        roleAssignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/SiteRoleAssignment"
+
+    DashboardUser:
+      type: object
+      required: [id, clerkUserId, name, email, isSuperAdmin, isActive, roleAssignments, createdAt]
+      properties:
+        id: { type: integer }
+        clerkUserId: { type: string }
+        name: { type: string }
+        email: { type: string }
+        isSuperAdmin: { type: boolean }
+        isActive: { type: boolean }
+        roleAssignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/SiteRoleAssignment"
+        createdAt: { type: string, format: date-time }
+
+    UserRoleAssignmentInput:
+      type: object
+      required: [siteId, role]
+      properties:
+        siteId: { type: integer }
+        role:
+          $ref: "#/components/schemas/Role"
+
+    UserInput:
+      type: object
+      required: [name, email]
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string, format: email }
+        isSuperAdmin: { type: boolean }
+        roleAssignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserRoleAssignmentInput"
+
+    UserUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        isSuperAdmin: { type: boolean }
+        isActive: { type: boolean }
+        roleAssignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserRoleAssignmentInput"
+
+    Site:
+      type: object
+      required: [id, name, slug, status, brandColorPrimary, brandColorSecondary, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        status:
+          type: string
+          enum: [active, staging, archived]
+        domain: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        faviconUrl: { type: ["string", "null"] }
+        brandColorPrimary: { type: string }
+        brandColorSecondary: { type: string }
+        whiteLabelEnabled: { type: boolean }
+        poweredByFsts: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    SiteInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [active, staging, archived]
+        domain: { type: string }
+        logoUrl: { type: string }
+        faviconUrl: { type: string }
+        brandColorPrimary: { type: string }
+        brandColorSecondary: { type: string }
+        whiteLabelEnabled: { type: boolean }
+        poweredByFsts: { type: boolean }
+
+    SiteUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [active, staging, archived]
+        domain: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        faviconUrl: { type: ["string", "null"] }
+        brandColorPrimary: { type: string }
+        brandColorSecondary: { type: string }
+        whiteLabelEnabled: { type: boolean }
+        poweredByFsts: { type: boolean }
+
+    DashboardSummary:
+      type: object
+      required: [siteId, courseCount, eventCount, articleCount, mediaCount, recentActivity]
+      properties:
+        siteId: { type: integer }
+        courseCount: { type: integer }
+        eventCount: { type: integer }
+        articleCount: { type: integer }
+        mediaCount: { type: integer }
+        lastBackupAt: { type: ["string", "null"], format: date-time }
+        squareConnected: { type: boolean }
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityLogEntry"
+
+    HomepageContent:
+      type: object
+      required: [siteId, heroHeadline, heroSubheadline, sections, updatedAt]
+      properties:
+        siteId: { type: integer }
+        heroHeadline: { type: string }
+        heroSubheadline: { type: string }
+        heroImageUrl: { type: ["string", "null"] }
+        sections:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        updatedAt: { type: string, format: date-time }
+
+    HomepageContentInput:
+      type: object
+      required: [heroHeadline, heroSubheadline]
+      properties:
+        heroHeadline: { type: string, minLength: 1 }
+        heroSubheadline: { type: string, minLength: 1 }
+        heroImageUrl: { type: string }
+        sections:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    Course:
+      type: object
+      required: [id, siteId, title, slug, status, description, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        title: { type: string }
+        slug: { type: string }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        description: { type: string }
+        durationLabel: { type: ["string", "null"] }
+        priceCents: { type: ["integer", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        squareItemId: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CourseInput:
+      type: object
+      required: [title, slug, description]
+      properties:
+        title: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        description: { type: string, minLength: 1 }
+        durationLabel: { type: string }
+        priceCents: { type: integer }
+        imageUrl: { type: string }
+        squareItemId: { type: string }
+
+    CourseUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        description: { type: string, minLength: 1 }
+        durationLabel: { type: ["string", "null"] }
+        priceCents: { type: ["integer", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        squareItemId: { type: ["string", "null"] }
+
+    Event:
+      type: object
+      required: [id, siteId, title, slug, status, description, startAt, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        title: { type: string }
+        slug: { type: string }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        description: { type: string }
+        startAt: { type: string, format: date-time }
+        endAt: { type: ["string", "null"], format: date-time }
+        location: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    EventInput:
+      type: object
+      required: [title, slug, description, startAt]
+      properties:
+        title: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        description: { type: string, minLength: 1 }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        location: { type: string }
+        imageUrl: { type: string }
+
+    EventUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        description: { type: string, minLength: 1 }
+        startAt: { type: string, format: date-time }
+        endAt: { type: ["string", "null"], format: date-time }
+        location: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+
+    Article:
+      type: object
+      required: [id, siteId, title, slug, status, body, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        title: { type: string }
+        slug: { type: string }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        excerpt: { type: ["string", "null"] }
+        body: { type: string }
+        coverImageUrl: { type: ["string", "null"] }
+        publishedAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    ArticleInput:
+      type: object
+      required: [title, slug, body]
+      properties:
+        title: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        excerpt: { type: string }
+        body: { type: string, minLength: 1 }
+        coverImageUrl: { type: string }
+        publishedAt: { type: string, format: date-time }
+
+    ArticleUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        status:
+          type: string
+          enum: [draft, published, archived]
+        excerpt: { type: ["string", "null"] }
+        body: { type: string, minLength: 1 }
+        coverImageUrl: { type: ["string", "null"] }
+        publishedAt: { type: ["string", "null"], format: date-time }
+
+    SeoSetting:
+      type: object
+      required: [id, siteId, pagePath, title, description, updatedAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        pagePath: { type: string }
+        title: { type: string }
+        description: { type: string }
+        ogImageUrl: { type: ["string", "null"] }
+        canonicalUrl: { type: ["string", "null"] }
+        updatedAt: { type: string, format: date-time }
+
+    SeoSettingInput:
+      type: object
+      required: [pagePath, title, description]
+      properties:
+        pagePath: { type: string, minLength: 1 }
+        title: { type: string, minLength: 1 }
+        description: { type: string, minLength: 1 }
+        ogImageUrl: { type: string }
+        canonicalUrl: { type: string }
+
+    SeoSettingUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string, minLength: 1 }
+        ogImageUrl: { type: ["string", "null"] }
+        canonicalUrl: { type: ["string", "null"] }
+
+    MediaAsset:
+      type: object
+      required: [id, siteId, url, fileName, mimeType, sizeBytes, createdAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        url: { type: string }
+        thumbnailUrl: { type: ["string", "null"] }
+        fileName: { type: string }
+        mimeType: { type: string }
+        sizeBytes: { type: integer }
+        optimizedSizeBytes: { type: ["integer", "null"] }
+        width: { type: ["integer", "null"] }
+        height: { type: ["integer", "null"] }
+        altText: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    MediaAssetInput:
+      type: object
+      required: [url, fileName, mimeType, sizeBytes]
+      properties:
+        url: { type: string, minLength: 1 }
+        thumbnailUrl: { type: string }
+        fileName: { type: string, minLength: 1 }
+        mimeType: { type: string, minLength: 1 }
+        sizeBytes: { type: integer }
+        optimizedSizeBytes: { type: integer }
+        width: { type: integer }
+        height: { type: integer }
+        altText: { type: string }
+
+    FooterContent:
+      type: object
+      required: [siteId, columns, socialLinks, copyrightText, updatedAt]
+      properties:
+        siteId: { type: integer }
+        columns:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        socialLinks:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        copyrightText: { type: string }
+        updatedAt: { type: string, format: date-time }
+
+    FooterContentInput:
+      type: object
+      required: [copyrightText]
+      properties:
+        columns:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        socialLinks:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        copyrightText: { type: string, minLength: 1 }
+
+    ContactInfo:
+      type: object
+      required: [siteId, email, phone, address, updatedAt]
+      properties:
+        siteId: { type: integer }
+        email: { type: string }
+        phone: { type: string }
+        address: { type: string }
+        mapEmbedUrl: { type: ["string", "null"] }
+        hours:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        updatedAt: { type: string, format: date-time }
+
+    ContactInfoInput:
+      type: object
+      required: [email, phone, address]
+      properties:
+        email: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        address: { type: string, minLength: 1 }
+        mapEmbedUrl: { type: string }
+        hours:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    SquareConfig:
+      type: object
+      required: [siteId, connected, environment, updatedAt]
+      properties:
+        siteId: { type: integer }
+        connected: { type: boolean }
+        environment:
+          type: string
+          enum: [sandbox, production]
+        applicationIdLast4: { type: ["string", "null"] }
+        locationId: { type: ["string", "null"] }
+        checkoutEnabled: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+
+    SquareConfigInput:
+      type: object
+      required: [environment]
+      properties:
+        environment:
+          type: string
+          enum: [sandbox, production]
+        applicationId: { type: string }
+        locationId: { type: string }
+        accessToken: { type: string }
+        checkoutEnabled: { type: boolean }
+
+    SquareCatalogMapping:
+      type: object
+      required: [id, siteId, entityType, entityId, squareItemId, squareVariationId, createdAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        entityType:
+          type: string
+          enum: [course, event]
+        entityId: { type: integer }
+        squareItemId: { type: string }
+        squareVariationId: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    SquareCatalogMappingInput:
+      type: object
+      required: [entityType, entityId, squareItemId, squareVariationId]
+      properties:
+        entityType:
+          type: string
+          enum: [course, event]
+        entityId: { type: integer }
+        squareItemId: { type: string, minLength: 1 }
+        squareVariationId: { type: string, minLength: 1 }
+
+    SquareCatalogMappingUpdate:
+      type: object
+      properties:
+        squareItemId: { type: string, minLength: 1 }
+        squareVariationId: { type: string, minLength: 1 }
+
+    EmailSettings:
+      type: object
+      required: [siteId, fromName, fromEmail, replyToEmail, updatedAt]
+      properties:
+        siteId: { type: integer }
+        fromName: { type: string }
+        fromEmail: { type: string }
+        replyToEmail: { type: string }
+        notifyOnNewLead: { type: boolean }
+        notifyOnBooking: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+
+    EmailSettingsInput:
+      type: object
+      required: [fromName, fromEmail, replyToEmail]
+      properties:
+        fromName: { type: string, minLength: 1 }
+        fromEmail: { type: string, minLength: 1 }
+        replyToEmail: { type: string, minLength: 1 }
+        notifyOnNewLead: { type: boolean }
+        notifyOnBooking: { type: boolean }
+
+    ContentVersion:
+      type: object
+      required: [id, siteId, entityType, entityId, snapshot, createdByName, createdAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        entityType: { type: string }
+        entityId: { type: integer }
+        snapshot:
+          type: object
+          additionalProperties: true
+        createdByName: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    ActivityLogEntry:
+      type: object
+      required: [id, siteId, actorName, action, entityType, createdAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        actorName: { type: string }
+        action: { type: string }
+        entityType: { type: ["string", "null"] }
+        entityId: { type: ["integer", "null"] }
+        details: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    Backup:
+      type: object
+      required: [id, siteId, label, sizeBytes, createdAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        label: { type: string }
+        sizeBytes: { type: integer }
+        createdAt: { type: string, format: date-time }
