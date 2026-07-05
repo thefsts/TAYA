@@ -13,6 +13,10 @@ import {
   crmConnectionsTable,
   contactInfoTable,
   emailSettingsTable,
+  homepageContentTable,
+  footerContentTable,
+  seoSettingsTable,
+  userSiteRolesTable,
   defaultModulesForWebsiteType,
   type UserSiteRole,
   type WebsiteType,
@@ -31,6 +35,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 import { requireSuperAdmin } from "../lib/rbac";
+import { logActivity } from "../lib/activityLog";
 
 const router: IRouter = Router();
 
@@ -59,6 +64,47 @@ router.post("/sites", requireAuth, requireSuperAdmin, async (req, res): Promise<
   const [site] = await db.insert(sitesTable).values(values).returning();
   // Every new site gets a default-installed-but-not-connected Operon Connector row.
   await db.insert(crmConnectionsTable).values({ siteId: site.id, provider: "operon" });
+
+  // FSTS-WOS client onboarding standard: no manual seeding should ever be required.
+  // Seed default content rows so dashboard editors work immediately for a new site.
+  await Promise.all([
+    db.insert(homepageContentTable).values({
+      siteId: site.id,
+      heroHeadline: `Welcome to ${site.name}`,
+      heroSubheadline: "Edit this hero section from the Homepage editor.",
+    }),
+    db.insert(footerContentTable).values({
+      siteId: site.id,
+      copyrightText: `© ${new Date().getFullYear()} ${site.name}. All rights reserved.`,
+    }),
+    db.insert(contactInfoTable).values({
+      siteId: site.id,
+      email: "",
+      phone: "",
+      address: "",
+    }),
+    db.insert(seoSettingsTable).values({
+      siteId: site.id,
+      pagePath: "/",
+      title: site.name,
+      description: `${site.name} — powered by Full Stack Tech Solutions.`,
+    }),
+  ]);
+
+  const creator = req.dashboardUser;
+  if (creator && !creator.isSuperAdmin) {
+    await db.insert(userSiteRolesTable).values({ userId: creator.id, siteId: site.id, role: "client_admin" });
+  }
+
+  await logActivity({
+    siteId: site.id,
+    actor: creator,
+    action: "created",
+    entityType: "site",
+    page: "Site Onboarding",
+    newValue: site,
+  });
+
   res.status(201).json(GetSiteResponse.parse(site));
 });
 

@@ -117,7 +117,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
             <p className="text-[11px] text-slate-400 leading-tight">
               Powered by <span className="font-semibold text-slate-500">Full Stack Tech Solutions</span>
             </p>
-            <p className="text-[10px] text-slate-400 leading-tight">FSTS Website Operating System™</p>
+            <p className="text-[10px] text-slate-400 leading-tight">FSTS Website Operating System™ v1.0</p>
           </div>
         )}
       </aside>
