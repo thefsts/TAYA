@@ -13,3 +13,4 @@ export * from "./email";
 export * from "./versions";
 export * from "./activityLog";
 export * from "./backups";
+export * from "./crm-connector";

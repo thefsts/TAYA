@@ -60,7 +60,8 @@ export const ListSitesResponseItem = zod.object({
   "footer": zod.boolean(),
   "seo": zod.boolean(),
   "payments": zod.boolean(),
-  "email": zod.boolean()
+  "email": zod.boolean(),
+  "crm": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 })
@@ -96,7 +97,8 @@ export const CreateSiteBody = zod.object({
   "footer": zod.boolean(),
   "seo": zod.boolean(),
   "payments": zod.boolean(),
-  "email": zod.boolean()
+  "email": zod.boolean(),
+  "crm": zod.boolean()
 }).optional()
 })
 
@@ -131,7 +133,8 @@ export const GetSiteResponse = zod.object({
   "footer": zod.boolean(),
   "seo": zod.boolean(),
   "payments": zod.boolean(),
-  "email": zod.boolean()
+  "email": zod.boolean(),
+  "crm": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 })
@@ -168,7 +171,8 @@ export const UpdateSiteBody = zod.object({
   "footer": zod.boolean(),
   "seo": zod.boolean(),
   "payments": zod.boolean(),
-  "email": zod.boolean()
+  "email": zod.boolean(),
+  "crm": zod.boolean()
 }).optional()
 })
 
@@ -195,7 +199,8 @@ export const UpdateSiteResponse = zod.object({
   "footer": zod.boolean(),
   "seo": zod.boolean(),
   "payments": zod.boolean(),
-  "email": zod.boolean()
+  "email": zod.boolean(),
+  "crm": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 })
@@ -1066,6 +1071,227 @@ export const UpdateSquareCatalogMappingResponse = zod.object({
 export const DeleteSquareCatalogMappingParams = zod.object({
   "siteId": zod.coerce.number(),
   "mappingId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get the CRM connector connection status for a site (Operon Connector)
+ */
+export const GetCrmConnectionParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const GetCrmConnectionResponse = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "status": zod.enum(['not_connected', 'pending', 'connected', 'error']),
+  "authMethod": zod.enum(['api_key', 'oauth', 'sso']),
+  "accountName": zod.string().nullish(),
+  "orgId": zod.string().nullish(),
+  "apiKeyLast4": zod.string().nullish(),
+  "ssoEnabled": zod.boolean(),
+  "apiHealth": zod.enum(['unknown', 'healthy', 'degraded', 'down']),
+  "lastHealthCheckAt": zod.coerce.date().nullish(),
+  "lastSyncAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Configure/update the CRM connection (API key is encrypted at rest, never returned)
+ */
+export const UpdateCrmConnectionParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const UpdateCrmConnectionBody = zod.object({
+  "authMethod": zod.enum(['api_key', 'oauth', 'sso']).optional(),
+  "accountName": zod.string().optional(),
+  "orgId": zod.string().optional(),
+  "apiKey": zod.string().optional().describe('Plaintext API key, encrypted server-side before storage. Omit to keep the current key.'),
+  "ssoEnabled": zod.boolean().optional()
+})
+
+export const UpdateCrmConnectionResponse = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "status": zod.enum(['not_connected', 'pending', 'connected', 'error']),
+  "authMethod": zod.enum(['api_key', 'oauth', 'sso']),
+  "accountName": zod.string().nullish(),
+  "orgId": zod.string().nullish(),
+  "apiKeyLast4": zod.string().nullish(),
+  "ssoEnabled": zod.boolean(),
+  "apiHealth": zod.enum(['unknown', 'healthy', 'degraded', 'down']),
+  "lastHealthCheckAt": zod.coerce.date().nullish(),
+  "lastSyncAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Disconnect the CRM connection (clears stored credentials, returns to not_connected)
+ */
+export const DisconnectCrmConnectionParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const DisconnectCrmConnectionResponse = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "status": zod.enum(['not_connected', 'pending', 'connected', 'error']),
+  "authMethod": zod.enum(['api_key', 'oauth', 'sso']),
+  "accountName": zod.string().nullish(),
+  "orgId": zod.string().nullish(),
+  "apiKeyLast4": zod.string().nullish(),
+  "ssoEnabled": zod.boolean(),
+  "apiHealth": zod.enum(['unknown', 'healthy', 'degraded', 'down']),
+  "lastHealthCheckAt": zod.coerce.date().nullish(),
+  "lastSyncAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Run an API health check against the connected CRM and record the result
+ */
+export const TestCrmConnectionParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const TestCrmConnectionResponse = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "status": zod.enum(['not_connected', 'pending', 'connected', 'error']),
+  "authMethod": zod.enum(['api_key', 'oauth', 'sso']),
+  "accountName": zod.string().nullish(),
+  "orgId": zod.string().nullish(),
+  "apiKeyLast4": zod.string().nullish(),
+  "ssoEnabled": zod.boolean(),
+  "apiHealth": zod.enum(['unknown', 'healthy', 'degraded', 'down']),
+  "lastHealthCheckAt": zod.coerce.date().nullish(),
+  "lastSyncAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Generate an SSO launch handoff for the "Marketing & CRM" nav item
+ */
+export const LaunchCrmSsoParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const LaunchCrmSsoResponse = zod.object({
+  "available": zod.boolean(),
+  "launchUrl": zod.string().nullish(),
+  "reason": zod.string().nullish()
+})
+
+
+/**
+ * @summary List per-entity sync toggles for a site's CRM connection
+ */
+export const ListCrmEntitySettingsParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const ListCrmEntitySettingsResponseItem = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "entityType": zod.enum(['contact_form', 'quote_request', 'consultation', 'event_registration', 'course_registration', 'order', 'customer', 'payment', 'newsletter_signup', 'application', 'custom_form', 'appointment_status', 'notes', 'campaign_status', 'lead_status', 'tags', 'profile_update']),
+  "direction": zod.enum(['outbound', 'inbound']),
+  "enabled": zod.boolean()
+})
+export const ListCrmEntitySettingsResponse = zod.array(ListCrmEntitySettingsResponseItem)
+
+
+/**
+ * @summary Enable/disable sync for one entity type + direction
+ */
+export const UpdateCrmEntitySettingParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const UpdateCrmEntitySettingBody = zod.object({
+  "entityType": zod.enum(['contact_form', 'quote_request', 'consultation', 'event_registration', 'course_registration', 'order', 'customer', 'payment', 'newsletter_signup', 'application', 'custom_form', 'appointment_status', 'notes', 'campaign_status', 'lead_status', 'tags', 'profile_update']),
+  "direction": zod.enum(['outbound', 'inbound']),
+  "enabled": zod.boolean()
+})
+
+export const UpdateCrmEntitySettingResponse = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "entityType": zod.enum(['contact_form', 'quote_request', 'consultation', 'event_registration', 'course_registration', 'order', 'customer', 'payment', 'newsletter_signup', 'application', 'custom_form', 'appointment_status', 'notes', 'campaign_status', 'lead_status', 'tags', 'profile_update']),
+  "direction": zod.enum(['outbound', 'inbound']),
+  "enabled": zod.boolean()
+})
+
+
+/**
+ * @summary List recent CRM sync log entries for a site
+ */
+export const ListCrmSyncLogsParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const ListCrmSyncLogsResponseItem = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "entityType": zod.enum(['contact_form', 'quote_request', 'consultation', 'event_registration', 'course_registration', 'order', 'customer', 'payment', 'newsletter_signup', 'application', 'custom_form', 'appointment_status', 'notes', 'campaign_status', 'lead_status', 'tags', 'profile_update']),
+  "direction": zod.enum(['outbound', 'inbound']),
+  "status": zod.enum(['success', 'failed', 'retrying', 'pending']),
+  "entityRef": zod.string().nullish(),
+  "message": zod.string().nullish(),
+  "attempt": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ListCrmSyncLogsResponse = zod.array(ListCrmSyncLogsResponseItem)
+
+
+/**
+ * @summary Retry a failed CRM sync log entry
+ */
+export const RetryCrmSyncLogParams = zod.object({
+  "siteId": zod.coerce.number(),
+  "logId": zod.coerce.number()
+})
+
+export const RetryCrmSyncLogResponse = zod.object({
+  "id": zod.number(),
+  "siteId": zod.number(),
+  "provider": zod.enum(['operon']),
+  "entityType": zod.enum(['contact_form', 'quote_request', 'consultation', 'event_registration', 'course_registration', 'order', 'customer', 'payment', 'newsletter_signup', 'application', 'custom_form', 'appointment_status', 'notes', 'campaign_status', 'lead_status', 'tags', 'profile_update']),
+  "direction": zod.enum(['outbound', 'inbound']),
+  "status": zod.enum(['success', 'failed', 'retrying', 'pending']),
+  "entityRef": zod.string().nullish(),
+  "message": zod.string().nullish(),
+  "attempt": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Public, unauthenticated ingestion point for outbound CRM sync events (e.g. a contact form or registration submitted on a public-facing site). No-ops silently if the site has no connected/enabled CRM.
+ */
+export const DispatchCrmSyncEventParams = zod.object({
+  "siteId": zod.coerce.number()
+})
+
+export const DispatchCrmSyncEventBody = zod.object({
+  "entityType": zod.enum(['contact_form', 'quote_request', 'consultation', 'event_registration', 'course_registration', 'order', 'customer', 'payment', 'newsletter_signup', 'application', 'custom_form']),
+  "entityRef": zod.string().optional(),
+  "data": zod.record(zod.string(), zod.unknown())
 })
 
 

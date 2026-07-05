@@ -100,6 +100,7 @@ export interface EnabledModules {
   seo: boolean;
   payments: boolean;
   email: boolean;
+  crm: boolean;
 }
 
 export type SiteStatus = typeof SiteStatus[keyof typeof SiteStatus];
@@ -696,5 +697,265 @@ export interface Backup {
   label: string;
   sizeBytes: number;
   createdAt: string;
+}
+
+export type CrmConnectionProvider = typeof CrmConnectionProvider[keyof typeof CrmConnectionProvider];
+
+
+export const CrmConnectionProvider = {
+  operon: 'operon',
+} as const;
+
+export type CrmConnectionStatus = typeof CrmConnectionStatus[keyof typeof CrmConnectionStatus];
+
+
+export const CrmConnectionStatus = {
+  not_connected: 'not_connected',
+  pending: 'pending',
+  connected: 'connected',
+  error: 'error',
+} as const;
+
+export type CrmConnectionAuthMethod = typeof CrmConnectionAuthMethod[keyof typeof CrmConnectionAuthMethod];
+
+
+export const CrmConnectionAuthMethod = {
+  api_key: 'api_key',
+  oauth: 'oauth',
+  sso: 'sso',
+} as const;
+
+export type CrmConnectionApiHealth = typeof CrmConnectionApiHealth[keyof typeof CrmConnectionApiHealth];
+
+
+export const CrmConnectionApiHealth = {
+  unknown: 'unknown',
+  healthy: 'healthy',
+  degraded: 'degraded',
+  down: 'down',
+} as const;
+
+export interface CrmConnection {
+  id: number;
+  siteId: number;
+  provider: CrmConnectionProvider;
+  status: CrmConnectionStatus;
+  authMethod: CrmConnectionAuthMethod;
+  /** @nullable */
+  accountName?: string | null;
+  /** @nullable */
+  orgId?: string | null;
+  /** @nullable */
+  apiKeyLast4?: string | null;
+  ssoEnabled: boolean;
+  apiHealth: CrmConnectionApiHealth;
+  /** @nullable */
+  lastHealthCheckAt?: string | null;
+  /** @nullable */
+  lastSyncAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CrmConnectionInputAuthMethod = typeof CrmConnectionInputAuthMethod[keyof typeof CrmConnectionInputAuthMethod];
+
+
+export const CrmConnectionInputAuthMethod = {
+  api_key: 'api_key',
+  oauth: 'oauth',
+  sso: 'sso',
+} as const;
+
+export interface CrmConnectionInput {
+  authMethod?: CrmConnectionInputAuthMethod;
+  accountName?: string;
+  orgId?: string;
+  /** Plaintext API key, encrypted server-side before storage. Omit to keep the current key. */
+  apiKey?: string;
+  ssoEnabled?: boolean;
+}
+
+export interface CrmSsoLaunch {
+  available: boolean;
+  /** @nullable */
+  launchUrl?: string | null;
+  /** @nullable */
+  reason?: string | null;
+}
+
+export type CrmEntitySyncSettingProvider = typeof CrmEntitySyncSettingProvider[keyof typeof CrmEntitySyncSettingProvider];
+
+
+export const CrmEntitySyncSettingProvider = {
+  operon: 'operon',
+} as const;
+
+export type CrmEntitySyncSettingEntityType = typeof CrmEntitySyncSettingEntityType[keyof typeof CrmEntitySyncSettingEntityType];
+
+
+export const CrmEntitySyncSettingEntityType = {
+  contact_form: 'contact_form',
+  quote_request: 'quote_request',
+  consultation: 'consultation',
+  event_registration: 'event_registration',
+  course_registration: 'course_registration',
+  order: 'order',
+  customer: 'customer',
+  payment: 'payment',
+  newsletter_signup: 'newsletter_signup',
+  application: 'application',
+  custom_form: 'custom_form',
+  appointment_status: 'appointment_status',
+  notes: 'notes',
+  campaign_status: 'campaign_status',
+  lead_status: 'lead_status',
+  tags: 'tags',
+  profile_update: 'profile_update',
+} as const;
+
+export type CrmEntitySyncSettingDirection = typeof CrmEntitySyncSettingDirection[keyof typeof CrmEntitySyncSettingDirection];
+
+
+export const CrmEntitySyncSettingDirection = {
+  outbound: 'outbound',
+  inbound: 'inbound',
+} as const;
+
+export interface CrmEntitySyncSetting {
+  id: number;
+  siteId: number;
+  provider: CrmEntitySyncSettingProvider;
+  entityType: CrmEntitySyncSettingEntityType;
+  direction: CrmEntitySyncSettingDirection;
+  enabled: boolean;
+}
+
+export type CrmEntitySyncSettingInputEntityType = typeof CrmEntitySyncSettingInputEntityType[keyof typeof CrmEntitySyncSettingInputEntityType];
+
+
+export const CrmEntitySyncSettingInputEntityType = {
+  contact_form: 'contact_form',
+  quote_request: 'quote_request',
+  consultation: 'consultation',
+  event_registration: 'event_registration',
+  course_registration: 'course_registration',
+  order: 'order',
+  customer: 'customer',
+  payment: 'payment',
+  newsletter_signup: 'newsletter_signup',
+  application: 'application',
+  custom_form: 'custom_form',
+  appointment_status: 'appointment_status',
+  notes: 'notes',
+  campaign_status: 'campaign_status',
+  lead_status: 'lead_status',
+  tags: 'tags',
+  profile_update: 'profile_update',
+} as const;
+
+export type CrmEntitySyncSettingInputDirection = typeof CrmEntitySyncSettingInputDirection[keyof typeof CrmEntitySyncSettingInputDirection];
+
+
+export const CrmEntitySyncSettingInputDirection = {
+  outbound: 'outbound',
+  inbound: 'inbound',
+} as const;
+
+export interface CrmEntitySyncSettingInput {
+  entityType: CrmEntitySyncSettingInputEntityType;
+  direction: CrmEntitySyncSettingInputDirection;
+  enabled: boolean;
+}
+
+export type CrmSyncLogProvider = typeof CrmSyncLogProvider[keyof typeof CrmSyncLogProvider];
+
+
+export const CrmSyncLogProvider = {
+  operon: 'operon',
+} as const;
+
+export type CrmSyncLogEntityType = typeof CrmSyncLogEntityType[keyof typeof CrmSyncLogEntityType];
+
+
+export const CrmSyncLogEntityType = {
+  contact_form: 'contact_form',
+  quote_request: 'quote_request',
+  consultation: 'consultation',
+  event_registration: 'event_registration',
+  course_registration: 'course_registration',
+  order: 'order',
+  customer: 'customer',
+  payment: 'payment',
+  newsletter_signup: 'newsletter_signup',
+  application: 'application',
+  custom_form: 'custom_form',
+  appointment_status: 'appointment_status',
+  notes: 'notes',
+  campaign_status: 'campaign_status',
+  lead_status: 'lead_status',
+  tags: 'tags',
+  profile_update: 'profile_update',
+} as const;
+
+export type CrmSyncLogDirection = typeof CrmSyncLogDirection[keyof typeof CrmSyncLogDirection];
+
+
+export const CrmSyncLogDirection = {
+  outbound: 'outbound',
+  inbound: 'inbound',
+} as const;
+
+export type CrmSyncLogStatus = typeof CrmSyncLogStatus[keyof typeof CrmSyncLogStatus];
+
+
+export const CrmSyncLogStatus = {
+  success: 'success',
+  failed: 'failed',
+  retrying: 'retrying',
+  pending: 'pending',
+} as const;
+
+export interface CrmSyncLog {
+  id: number;
+  siteId: number;
+  provider: CrmSyncLogProvider;
+  entityType: CrmSyncLogEntityType;
+  direction: CrmSyncLogDirection;
+  status: CrmSyncLogStatus;
+  /** @nullable */
+  entityRef?: string | null;
+  /** @nullable */
+  message?: string | null;
+  attempt: number;
+  createdAt: string;
+}
+
+export type CrmSyncEventInputEntityType = typeof CrmSyncEventInputEntityType[keyof typeof CrmSyncEventInputEntityType];
+
+
+export const CrmSyncEventInputEntityType = {
+  contact_form: 'contact_form',
+  quote_request: 'quote_request',
+  consultation: 'consultation',
+  event_registration: 'event_registration',
+  course_registration: 'course_registration',
+  order: 'order',
+  customer: 'customer',
+  payment: 'payment',
+  newsletter_signup: 'newsletter_signup',
+  application: 'application',
+  custom_form: 'custom_form',
+} as const;
+
+export type CrmSyncEventInputData = { [key: string]: unknown };
+
+export interface CrmSyncEventInput {
+  entityType: CrmSyncEventInputEntityType;
+  entityRef?: string;
+  data: CrmSyncEventInputData;
+}
+
+export interface CrmSyncEventAck {
+  accepted: boolean;
 }
 

@@ -34,6 +34,8 @@ tags:
     description: Activity log
   - name: backups
     description: Backups
+  - name: crm
+    description: CRM connector platform (Operon Connector and future multi-CRM providers)
 paths:
   /healthz:
     get:
@@ -830,6 +832,202 @@ paths:
         "204":
           description: Deleted
 
+  /sites/{siteId}/crm-connection:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getCrmConnection
+      tags: [crm]
+      summary: Get the CRM connector connection status for a site (Operon Connector)
+      responses:
+        "200":
+          description: CRM connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmConnection"
+    put:
+      operationId: updateCrmConnection
+      tags: [crm]
+      summary: Configure/update the CRM connection (API key is encrypted at rest, never returned)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrmConnectionInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmConnection"
+    delete:
+      operationId: disconnectCrmConnection
+      tags: [crm]
+      summary: Disconnect the CRM connection (clears stored credentials, returns to not_connected)
+      responses:
+        "200":
+          description: Disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmConnection"
+
+  /sites/{siteId}/crm-connection/test:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: testCrmConnection
+      tags: [crm]
+      summary: Run an API health check against the connected CRM and record the result
+      responses:
+        "200":
+          description: Health check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmConnection"
+
+  /sites/{siteId}/crm-connection/sso-launch:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: launchCrmSso
+      tags: [crm]
+      summary: Generate an SSO launch handoff for the "Marketing & CRM" nav item
+      responses:
+        "200":
+          description: Launch info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmSsoLaunch"
+
+  /sites/{siteId}/crm-entity-settings:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listCrmEntitySettings
+      tags: [crm]
+      summary: List per-entity sync toggles for a site's CRM connection
+      responses:
+        "200":
+          description: Entity sync settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrmEntitySyncSetting"
+    put:
+      operationId: updateCrmEntitySetting
+      tags: [crm]
+      summary: Enable/disable sync for one entity type + direction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrmEntitySyncSettingInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmEntitySyncSetting"
+
+  /sites/{siteId}/crm-sync-logs:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: listCrmSyncLogs
+      tags: [crm]
+      summary: List recent CRM sync log entries for a site
+      responses:
+        "200":
+          description: Sync logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrmSyncLog"
+
+  /sites/{siteId}/crm-sync-logs/{logId}/retry:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: logId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: retryCrmSyncLog
+      tags: [crm]
+      summary: Retry a failed CRM sync log entry
+      responses:
+        "200":
+          description: Retry result (new log entry)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmSyncLog"
+
+  /sites/{siteId}/crm-sync-events:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: dispatchCrmSyncEvent
+      tags: [crm]
+      summary: >-
+        Public, unauthenticated ingestion point for outbound CRM sync events
+        (e.g. a contact form or registration submitted on a public-facing
+        site). No-ops silently if the site has no connected/enabled CRM.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrmSyncEventInput"
+      responses:
+        "202":
+          description: Accepted for dispatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrmSyncEventAck"
+
   /sites/{siteId}/email-settings:
     parameters:
       - name: siteId
@@ -1099,7 +1297,7 @@ components:
 
     EnabledModules:
       type: object
-      required: [homepage, courses, events, articles, media, contact, footer, seo, payments, email]
+      required: [homepage, courses, events, articles, media, contact, footer, seo, payments, email, crm]
       properties:
         homepage: { type: boolean }
         courses: { type: boolean }
@@ -1111,6 +1309,7 @@ components:
         seo: { type: boolean }
         payments: { type: boolean }
         email: { type: boolean }
+        crm: { type: boolean }
 
     Site:
       type: object
@@ -1595,3 +1794,138 @@ components:
         label: { type: string }
         sizeBytes: { type: integer }
         createdAt: { type: string, format: date-time }
+
+    CrmConnection:
+      type: object
+      required: [id, siteId, provider, status, authMethod, ssoEnabled, apiHealth, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        provider:
+          type: string
+          enum: [operon]
+        status:
+          type: string
+          enum: [not_connected, pending, connected, error]
+        authMethod:
+          type: string
+          enum: [api_key, oauth, sso]
+        accountName: { type: ["string", "null"] }
+        orgId: { type: ["string", "null"] }
+        apiKeyLast4: { type: ["string", "null"] }
+        ssoEnabled: { type: boolean }
+        apiHealth:
+          type: string
+          enum: [unknown, healthy, degraded, down]
+        lastHealthCheckAt: { type: ["string", "null"], format: date-time }
+        lastSyncAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CrmConnectionInput:
+      type: object
+      properties:
+        authMethod:
+          type: string
+          enum: [api_key, oauth, sso]
+        accountName: { type: string }
+        orgId: { type: string }
+        apiKey: { type: string, description: "Plaintext API key, encrypted server-side before storage. Omit to keep the current key." }
+        ssoEnabled: { type: boolean }
+
+    CrmSsoLaunch:
+      type: object
+      required: [available]
+      properties:
+        available: { type: boolean }
+        launchUrl: { type: ["string", "null"] }
+        reason: { type: ["string", "null"] }
+
+    CrmEntitySyncSetting:
+      type: object
+      required: [id, siteId, provider, entityType, direction, enabled]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        provider:
+          type: string
+          enum: [operon]
+        entityType:
+          type: string
+          enum:
+            [
+              contact_form, quote_request, consultation, event_registration, course_registration,
+              order, customer, payment, newsletter_signup, application, custom_form,
+              appointment_status, notes, campaign_status, lead_status, tags, profile_update,
+            ]
+        direction:
+          type: string
+          enum: [outbound, inbound]
+        enabled: { type: boolean }
+
+    CrmEntitySyncSettingInput:
+      type: object
+      required: [entityType, direction, enabled]
+      properties:
+        entityType:
+          type: string
+          enum:
+            [
+              contact_form, quote_request, consultation, event_registration, course_registration,
+              order, customer, payment, newsletter_signup, application, custom_form,
+              appointment_status, notes, campaign_status, lead_status, tags, profile_update,
+            ]
+        direction:
+          type: string
+          enum: [outbound, inbound]
+        enabled: { type: boolean }
+
+    CrmSyncLog:
+      type: object
+      required: [id, siteId, provider, entityType, direction, status, attempt, createdAt]
+      properties:
+        id: { type: integer }
+        siteId: { type: integer }
+        provider:
+          type: string
+          enum: [operon]
+        entityType:
+          type: string
+          enum:
+            [
+              contact_form, quote_request, consultation, event_registration, course_registration,
+              order, customer, payment, newsletter_signup, application, custom_form,
+              appointment_status, notes, campaign_status, lead_status, tags, profile_update,
+            ]
+        direction:
+          type: string
+          enum: [outbound, inbound]
+        status:
+          type: string
+          enum: [success, failed, retrying, pending]
+        entityRef: { type: ["string", "null"] }
+        message: { type: ["string", "null"] }
+        attempt: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    CrmSyncEventInput:
+      type: object
+      required: [entityType, data]
+      properties:
+        entityType:
+          type: string
+          enum:
+            [
+              contact_form, quote_request, consultation, event_registration, course_registration,
+              order, customer, payment, newsletter_signup, application, custom_form,
+            ]
+        entityRef: { type: string }
+        data:
+          type: object
+          additionalProperties: true
+
+    CrmSyncEventAck:
+      type: object
+      required: [accepted]
+      properties:
+        accepted: { type: boolean }

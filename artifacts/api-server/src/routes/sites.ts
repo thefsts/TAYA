@@ -10,6 +10,7 @@ import {
   backupsTable,
   squareConfigTable,
   activityLogTable,
+  crmConnectionsTable,
   defaultModulesForWebsiteType,
   type UserSiteRole,
   type WebsiteType,
@@ -54,6 +55,8 @@ router.post("/sites", requireAuth, requireSuperAdmin, async (req, res): Promise<
     enabledModules: parsed.data.enabledModules ?? defaultModulesForWebsiteType(websiteType),
   };
   const [site] = await db.insert(sitesTable).values(values).returning();
+  // Every new site gets a default-installed-but-not-connected Operon Connector row.
+  await db.insert(crmConnectionsTable).values({ siteId: site.id, provider: "operon" });
   res.status(201).json(GetSiteResponse.parse(site));
 });
 

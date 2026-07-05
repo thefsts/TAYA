@@ -16,6 +16,7 @@ import emailRouter from "./email";
 import versionsRouter from "./versions";
 import activityLogRouter from "./activityLog";
 import backupsRouter from "./backups";
+import crmRouter from "./crm";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(emailRouter);
 router.use(versionsRouter);
 router.use(activityLogRouter);
 router.use(backupsRouter);
+router.use(crmRouter);
 
 export default router;

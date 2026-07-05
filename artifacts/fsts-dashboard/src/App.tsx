@@ -25,6 +25,7 @@ import FooterEditor from "@/pages/app/sites/FooterEditor";
 import ContactInfo from "@/pages/app/sites/ContactInfo";
 import PaymentsConfig from "@/pages/app/sites/PaymentsConfig";
 import EmailConfig from "@/pages/app/sites/EmailConfig";
+import CrmConnectionConfig from "@/pages/app/sites/CrmConnectionConfig";
 import VersionHistory from "@/pages/app/sites/VersionHistory";
 import ActivityLog from "@/pages/app/sites/ActivityLog";
 import BackupsList from "@/pages/app/sites/BackupsList";
@@ -193,6 +194,7 @@ function AppRouter() {
         <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
         <Route path="/app/sites/:siteId/payments" component={PaymentsConfig} />
         <Route path="/app/sites/:siteId/email" component={EmailConfig} />
+        <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfig} />
         <Route path="/app/sites/:siteId/history" component={VersionHistory} />
         <Route path="/app/sites/:siteId/activity" component={ActivityLog} />
         <Route path="/app/sites/:siteId/backups" component={BackupsList} />

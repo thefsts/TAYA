@@ -31,6 +31,14 @@ import type {
   Course,
   CourseInput,
   CourseUpdate,
+  CrmConnection,
+  CrmConnectionInput,
+  CrmEntitySyncSetting,
+  CrmEntitySyncSettingInput,
+  CrmSsoLaunch,
+  CrmSyncEventAck,
+  CrmSyncEventInput,
+  CrmSyncLog,
   DashboardSummary,
   DashboardUser,
   EmailSettings,
@@ -3498,6 +3506,735 @@ export const useDeleteSquareCatalogMapping = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteSquareCatalogMappingMutationOptions(options));
+    }
+
+export const getGetCrmConnectionUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-connection`
+}
+
+/**
+ * @summary Get the CRM connector connection status for a site (Operon Connector)
+ */
+export const getCrmConnection = async (siteId: number, options?: RequestInit): Promise<CrmConnection> => {
+
+  return customFetch<CrmConnection>(getGetCrmConnectionUrl(siteId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCrmConnectionQueryKey = (siteId: number,) => {
+    return [
+    `/api/sites/${siteId}/crm-connection`
+    ] as const;
+    }
+
+
+export const getGetCrmConnectionQueryOptions = <TData = Awaited<ReturnType<typeof getCrmConnection>>, TError = ErrorType<unknown>>(siteId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrmConnection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCrmConnectionQueryKey(siteId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCrmConnection>>> = ({ signal }) => getCrmConnection(siteId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(siteId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCrmConnection>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCrmConnectionQueryResult = NonNullable<Awaited<ReturnType<typeof getCrmConnection>>>
+export type GetCrmConnectionQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the CRM connector connection status for a site (Operon Connector)
+ */
+
+export function useGetCrmConnection<TData = Awaited<ReturnType<typeof getCrmConnection>>, TError = ErrorType<unknown>>(
+ siteId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrmConnection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCrmConnectionQueryOptions(siteId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateCrmConnectionUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-connection`
+}
+
+/**
+ * @summary Configure/update the CRM connection (API key is encrypted at rest, never returned)
+ */
+export const updateCrmConnection = async (siteId: number,
+    crmConnectionInput: CrmConnectionInput, options?: RequestInit): Promise<CrmConnection> => {
+
+  return customFetch<CrmConnection>(getUpdateCrmConnectionUrl(siteId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      crmConnectionInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCrmConnectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCrmConnection>>, TError,{siteId: number;data: BodyType<CrmConnectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCrmConnection>>, TError,{siteId: number;data: BodyType<CrmConnectionInput>}, TContext> => {
+
+const mutationKey = ['updateCrmConnection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCrmConnection>>, {siteId: number;data: BodyType<CrmConnectionInput>}> = (props) => {
+          const {siteId,data} = props ?? {};
+
+          return  updateCrmConnection(siteId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCrmConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof updateCrmConnection>>>
+    export type UpdateCrmConnectionMutationBody = BodyType<CrmConnectionInput>
+    export type UpdateCrmConnectionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Configure/update the CRM connection (API key is encrypted at rest, never returned)
+ */
+export const useUpdateCrmConnection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCrmConnection>>, TError,{siteId: number;data: BodyType<CrmConnectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCrmConnection>>,
+        TError,
+        {siteId: number;data: BodyType<CrmConnectionInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCrmConnectionMutationOptions(options));
+    }
+
+export const getDisconnectCrmConnectionUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-connection`
+}
+
+/**
+ * @summary Disconnect the CRM connection (clears stored credentials, returns to not_connected)
+ */
+export const disconnectCrmConnection = async (siteId: number, options?: RequestInit): Promise<CrmConnection> => {
+
+  return customFetch<CrmConnection>(getDisconnectCrmConnectionUrl(siteId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDisconnectCrmConnectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectCrmConnection>>, TError,{siteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof disconnectCrmConnection>>, TError,{siteId: number}, TContext> => {
+
+const mutationKey = ['disconnectCrmConnection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disconnectCrmConnection>>, {siteId: number}> = (props) => {
+          const {siteId} = props ?? {};
+
+          return  disconnectCrmConnection(siteId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DisconnectCrmConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof disconnectCrmConnection>>>
+
+    export type DisconnectCrmConnectionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Disconnect the CRM connection (clears stored credentials, returns to not_connected)
+ */
+export const useDisconnectCrmConnection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectCrmConnection>>, TError,{siteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof disconnectCrmConnection>>,
+        TError,
+        {siteId: number},
+        TContext
+      > => {
+      return useMutation(getDisconnectCrmConnectionMutationOptions(options));
+    }
+
+export const getTestCrmConnectionUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-connection/test`
+}
+
+/**
+ * @summary Run an API health check against the connected CRM and record the result
+ */
+export const testCrmConnection = async (siteId: number, options?: RequestInit): Promise<CrmConnection> => {
+
+  return customFetch<CrmConnection>(getTestCrmConnectionUrl(siteId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTestCrmConnectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testCrmConnection>>, TError,{siteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testCrmConnection>>, TError,{siteId: number}, TContext> => {
+
+const mutationKey = ['testCrmConnection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testCrmConnection>>, {siteId: number}> = (props) => {
+          const {siteId} = props ?? {};
+
+          return  testCrmConnection(siteId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestCrmConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof testCrmConnection>>>
+
+    export type TestCrmConnectionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run an API health check against the connected CRM and record the result
+ */
+export const useTestCrmConnection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testCrmConnection>>, TError,{siteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof testCrmConnection>>,
+        TError,
+        {siteId: number},
+        TContext
+      > => {
+      return useMutation(getTestCrmConnectionMutationOptions(options));
+    }
+
+export const getLaunchCrmSsoUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-connection/sso-launch`
+}
+
+/**
+ * @summary Generate an SSO launch handoff for the "Marketing & CRM" nav item
+ */
+export const launchCrmSso = async (siteId: number, options?: RequestInit): Promise<CrmSsoLaunch> => {
+
+  return customFetch<CrmSsoLaunch>(getLaunchCrmSsoUrl(siteId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getLaunchCrmSsoMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof launchCrmSso>>, TError,{siteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof launchCrmSso>>, TError,{siteId: number}, TContext> => {
+
+const mutationKey = ['launchCrmSso'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof launchCrmSso>>, {siteId: number}> = (props) => {
+          const {siteId} = props ?? {};
+
+          return  launchCrmSso(siteId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LaunchCrmSsoMutationResult = NonNullable<Awaited<ReturnType<typeof launchCrmSso>>>
+
+    export type LaunchCrmSsoMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate an SSO launch handoff for the "Marketing & CRM" nav item
+ */
+export const useLaunchCrmSso = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof launchCrmSso>>, TError,{siteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof launchCrmSso>>,
+        TError,
+        {siteId: number},
+        TContext
+      > => {
+      return useMutation(getLaunchCrmSsoMutationOptions(options));
+    }
+
+export const getListCrmEntitySettingsUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-entity-settings`
+}
+
+/**
+ * @summary List per-entity sync toggles for a site's CRM connection
+ */
+export const listCrmEntitySettings = async (siteId: number, options?: RequestInit): Promise<CrmEntitySyncSetting[]> => {
+
+  return customFetch<CrmEntitySyncSetting[]>(getListCrmEntitySettingsUrl(siteId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCrmEntitySettingsQueryKey = (siteId: number,) => {
+    return [
+    `/api/sites/${siteId}/crm-entity-settings`
+    ] as const;
+    }
+
+
+export const getListCrmEntitySettingsQueryOptions = <TData = Awaited<ReturnType<typeof listCrmEntitySettings>>, TError = ErrorType<unknown>>(siteId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrmEntitySettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCrmEntitySettingsQueryKey(siteId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCrmEntitySettings>>> = ({ signal }) => listCrmEntitySettings(siteId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(siteId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCrmEntitySettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCrmEntitySettingsQueryResult = NonNullable<Awaited<ReturnType<typeof listCrmEntitySettings>>>
+export type ListCrmEntitySettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List per-entity sync toggles for a site's CRM connection
+ */
+
+export function useListCrmEntitySettings<TData = Awaited<ReturnType<typeof listCrmEntitySettings>>, TError = ErrorType<unknown>>(
+ siteId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrmEntitySettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCrmEntitySettingsQueryOptions(siteId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateCrmEntitySettingUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-entity-settings`
+}
+
+/**
+ * @summary Enable/disable sync for one entity type + direction
+ */
+export const updateCrmEntitySetting = async (siteId: number,
+    crmEntitySyncSettingInput: CrmEntitySyncSettingInput, options?: RequestInit): Promise<CrmEntitySyncSetting> => {
+
+  return customFetch<CrmEntitySyncSetting>(getUpdateCrmEntitySettingUrl(siteId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      crmEntitySyncSettingInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCrmEntitySettingMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCrmEntitySetting>>, TError,{siteId: number;data: BodyType<CrmEntitySyncSettingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCrmEntitySetting>>, TError,{siteId: number;data: BodyType<CrmEntitySyncSettingInput>}, TContext> => {
+
+const mutationKey = ['updateCrmEntitySetting'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCrmEntitySetting>>, {siteId: number;data: BodyType<CrmEntitySyncSettingInput>}> = (props) => {
+          const {siteId,data} = props ?? {};
+
+          return  updateCrmEntitySetting(siteId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCrmEntitySettingMutationResult = NonNullable<Awaited<ReturnType<typeof updateCrmEntitySetting>>>
+    export type UpdateCrmEntitySettingMutationBody = BodyType<CrmEntitySyncSettingInput>
+    export type UpdateCrmEntitySettingMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Enable/disable sync for one entity type + direction
+ */
+export const useUpdateCrmEntitySetting = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCrmEntitySetting>>, TError,{siteId: number;data: BodyType<CrmEntitySyncSettingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCrmEntitySetting>>,
+        TError,
+        {siteId: number;data: BodyType<CrmEntitySyncSettingInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCrmEntitySettingMutationOptions(options));
+    }
+
+export const getListCrmSyncLogsUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-sync-logs`
+}
+
+/**
+ * @summary List recent CRM sync log entries for a site
+ */
+export const listCrmSyncLogs = async (siteId: number, options?: RequestInit): Promise<CrmSyncLog[]> => {
+
+  return customFetch<CrmSyncLog[]>(getListCrmSyncLogsUrl(siteId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCrmSyncLogsQueryKey = (siteId: number,) => {
+    return [
+    `/api/sites/${siteId}/crm-sync-logs`
+    ] as const;
+    }
+
+
+export const getListCrmSyncLogsQueryOptions = <TData = Awaited<ReturnType<typeof listCrmSyncLogs>>, TError = ErrorType<unknown>>(siteId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrmSyncLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCrmSyncLogsQueryKey(siteId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCrmSyncLogs>>> = ({ signal }) => listCrmSyncLogs(siteId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(siteId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCrmSyncLogs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCrmSyncLogsQueryResult = NonNullable<Awaited<ReturnType<typeof listCrmSyncLogs>>>
+export type ListCrmSyncLogsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List recent CRM sync log entries for a site
+ */
+
+export function useListCrmSyncLogs<TData = Awaited<ReturnType<typeof listCrmSyncLogs>>, TError = ErrorType<unknown>>(
+ siteId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrmSyncLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCrmSyncLogsQueryOptions(siteId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRetryCrmSyncLogUrl = (siteId: number,
+    logId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-sync-logs/${logId}/retry`
+}
+
+/**
+ * @summary Retry a failed CRM sync log entry
+ */
+export const retryCrmSyncLog = async (siteId: number,
+    logId: number, options?: RequestInit): Promise<CrmSyncLog> => {
+
+  return customFetch<CrmSyncLog>(getRetryCrmSyncLogUrl(siteId,logId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRetryCrmSyncLogMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryCrmSyncLog>>, TError,{siteId: number;logId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof retryCrmSyncLog>>, TError,{siteId: number;logId: number}, TContext> => {
+
+const mutationKey = ['retryCrmSyncLog'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retryCrmSyncLog>>, {siteId: number;logId: number}> = (props) => {
+          const {siteId,logId} = props ?? {};
+
+          return  retryCrmSyncLog(siteId,logId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetryCrmSyncLogMutationResult = NonNullable<Awaited<ReturnType<typeof retryCrmSyncLog>>>
+
+    export type RetryCrmSyncLogMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Retry a failed CRM sync log entry
+ */
+export const useRetryCrmSyncLog = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryCrmSyncLog>>, TError,{siteId: number;logId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof retryCrmSyncLog>>,
+        TError,
+        {siteId: number;logId: number},
+        TContext
+      > => {
+      return useMutation(getRetryCrmSyncLogMutationOptions(options));
+    }
+
+export const getDispatchCrmSyncEventUrl = (siteId: number,) => {
+
+
+
+
+  return `/api/sites/${siteId}/crm-sync-events`
+}
+
+/**
+ * @summary Public, unauthenticated ingestion point for outbound CRM sync events (e.g. a contact form or registration submitted on a public-facing site). No-ops silently if the site has no connected/enabled CRM.
+ */
+export const dispatchCrmSyncEvent = async (siteId: number,
+    crmSyncEventInput: CrmSyncEventInput, options?: RequestInit): Promise<CrmSyncEventAck> => {
+
+  return customFetch<CrmSyncEventAck>(getDispatchCrmSyncEventUrl(siteId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      crmSyncEventInput,)
+  }
+);}
+
+
+
+
+export const getDispatchCrmSyncEventMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dispatchCrmSyncEvent>>, TError,{siteId: number;data: BodyType<CrmSyncEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof dispatchCrmSyncEvent>>, TError,{siteId: number;data: BodyType<CrmSyncEventInput>}, TContext> => {
+
+const mutationKey = ['dispatchCrmSyncEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dispatchCrmSyncEvent>>, {siteId: number;data: BodyType<CrmSyncEventInput>}> = (props) => {
+          const {siteId,data} = props ?? {};
+
+          return  dispatchCrmSyncEvent(siteId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DispatchCrmSyncEventMutationResult = NonNullable<Awaited<ReturnType<typeof dispatchCrmSyncEvent>>>
+    export type DispatchCrmSyncEventMutationBody = BodyType<CrmSyncEventInput>
+    export type DispatchCrmSyncEventMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Public, unauthenticated ingestion point for outbound CRM sync events (e.g. a contact form or registration submitted on a public-facing site). No-ops silently if the site has no connected/enabled CRM.
+ */
+export const useDispatchCrmSyncEvent = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dispatchCrmSyncEvent>>, TError,{siteId: number;data: BodyType<CrmSyncEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof dispatchCrmSyncEvent>>,
+        TError,
+        {siteId: number;data: BodyType<CrmSyncEventInput>},
+        TContext
+      > => {
+      return useMutation(getDispatchCrmSyncEventMutationOptions(options));
     }
 
 export const getGetEmailSettingsUrl = (siteId: number,) => {

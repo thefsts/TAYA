@@ -17,4 +17,5 @@ export interface EnabledModules {
   seo: boolean;
   payments: boolean;
   email: boolean;
+  crm: boolean;
 }

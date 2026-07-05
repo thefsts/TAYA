@@ -1,6 +1,6 @@
-# [Project name]
+# FSTS Client Dashboard
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A multi-tenant client dashboard for managing site settings, integrations, and now CRM connectivity via the Operon Connector™.
 
 ## Run & Operate
 
@@ -33,7 +33,10 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Site owners can view and manage settings for their sites.
+- Settings → Operon CRM: a native "Operon Connector™" for bi-directional sync between the site and Operon CRM. Default-installed but not connected until an admin configures credentials. Supports per-entity sync toggles (outbound: contact form, quote request, orders, etc.; inbound: appointment status, lead status, tags, etc.), a sync activity log with retry, and API health monitoring.
+- Nav item "Marketing & CRM" surfaces this page via SSO to site admins.
+- The connector schema (`lib/db/src/schema/crm-connector.ts`) is intentionally modular/provider-agnostic (`CRM_PROVIDERS` array) so a second CRM vendor can be added without a schema rewrite — Operon is the first of potentially several registered providers.
 
 ## User preferences
 

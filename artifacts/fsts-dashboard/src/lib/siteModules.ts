@@ -34,6 +34,7 @@ export const MODULE_KEYS = [
   "seo",
   "payments",
   "email",
+  "crm",
 ] as const;
 
 export type ModuleKey = (typeof MODULE_KEYS)[number];
@@ -49,6 +50,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   seo: "SEO Settings",
   payments: "Square Payments",
   email: "Email Config",
+  crm: "Marketing & CRM",
 };
 
 const ALL_ON: EnabledModules = {
@@ -62,6 +64,7 @@ const ALL_ON: EnabledModules = {
   seo: true,
   payments: true,
   email: true,
+  crm: true,
 };
 
 function modules(overrides: Partial<EnabledModules>): EnabledModules {
