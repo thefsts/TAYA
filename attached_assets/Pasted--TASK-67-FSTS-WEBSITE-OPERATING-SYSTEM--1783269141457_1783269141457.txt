@@ -1,0 +1,516 @@
+==========================================================
+TASK 67 — FSTS WEBSITE OPERATING SYSTEM™ v1.0
+PLATFORM STABILIZATION & FOUNDATION
+Priority: CRITICAL
+Platform Wide
+==========================================================
+
+PROJECT OBJECTIVE
+
+Corsair Tactical Solutions is now the first live production website powered by the FSTS Website Operating System™ (FSTS-WOS).
+
+From this point forward, we are transitioning from building individual websites to building a scalable software platform.
+
+The goal of this phase is to stabilize, standardize, document, and prepare the platform for onboarding all future client websites.
+
+DO NOT redesign the dashboard.
+
+DO NOT redesign the websites.
+
+Focus on platform quality, scalability, maintainability, documentation, and production readiness.
+
+==========================================================
+1. PLATFORM VERSIONING
+==========================================================
+
+Officially release:
+
+FSTS Website Operating System™
+
+Version 1.0
+
+Display inside the dashboard footer:
+
+Powered by Full Stack Tech Solutions
+
+FSTS Website Operating System™ v1.0
+
+Maintain semantic versioning going forward.
+
+Examples:
+
+v1.0.0
+
+v1.1.0
+
+v2.0.0
+
+==========================================================
+2. PLATFORM DOCUMENTATION
+==========================================================
+
+Create complete internal documentation.
+
+Include:
+
+• Installation Guide
+• Deployment Guide
+• User Guide
+• Administrator Guide
+• Developer Guide
+• API Documentation
+• Backup & Restore Guide
+• Security Guide
+• Update Guide
+• Client Onboarding Guide
+• Troubleshooting Guide
+• Release Notes
+
+Documentation should be maintained with every platform release.
+
+==========================================================
+3. CLIENT ONBOARDING STANDARD
+==========================================================
+
+Standardize the onboarding workflow.
+
+Every new website should automatically:
+
+✓ Register the site
+✓ Seed default content
+✓ Create homepage content
+✓ Create footer content
+✓ Create contact information
+✓ Create default SEO
+✓ Create media folders
+✓ Assign branding
+✓ Assign dashboard permissions
+✓ Generate version history
+✓ Enable activity logging
+
+No manual seeding should ever be required.
+
+==========================================================
+4. WEBSITE TEMPLATE LIBRARY
+==========================================================
+
+Build reusable website templates.
+
+Initial templates:
+
+• Security Company
+• Firearms Training
+• Executive Protection
+• Church Security
+• Property Management
+• Construction
+• HVAC
+• Plumbing
+• Electrician
+• Roofing
+• Medical
+• Dental
+• Law Firm
+• Restaurant
+• Real Estate
+• Insurance
+• Nonprofit
+• Ecommerce
+
+Each template should inherit the same FSTS-WOS architecture.
+
+==========================================================
+5. DASHBOARD STANDARDIZATION
+==========================================================
+
+Every client dashboard should automatically include:
+
+Company Logo
+
+Company Name
+
+Website URL
+
+Website Status
+
+Last Backup
+
+Version Number
+
+Recent Activity
+
+Quick Actions
+
+Help Center
+
+Admin Portal
+
+Role Management
+
+Media Library
+
+Homepage Editor
+
+Course Manager
+
+Events Manager
+
+Article Manager
+
+SEO Manager
+
+Forms
+
+Square Settings
+
+Email Settings
+
+Version History
+
+Activity Log
+
+Backups
+
+Footer:
+
+Powered by Full Stack Tech Solutions
+
+FSTS Website Operating System™
+
+==========================================================
+6. BRANDING ENGINE
+==========================================================
+
+Automatically apply the client's branding.
+
+Use:
+
+Company Logo
+
+Business Name
+
+Brand Colors
+
+Website URL
+
+Dashboard Welcome Message
+
+Browser Favicon
+
+Dashboard Login Screen
+
+Each dashboard should feel custom-built for the client.
+
+==========================================================
+7. INTERNAL FSTS ADMIN CONSOLE
+==========================================================
+
+Create an internal administration area for Full Stack Tech Solutions.
+
+Features:
+
+All Client Websites
+
+Website Status
+
+SSL Status
+
+Domain Expiration
+
+Hosting Status
+
+Storage Usage
+
+Dashboard Version
+
+Client Subscription
+
+Support Tickets
+
+Deployment History
+
+Website Health
+
+Platform Updates
+
+Search All Clients
+
+Global Notifications
+
+This console is for FSTS administrators only.
+
+==========================================================
+8. PLATFORM HEALTH MONITORING
+==========================================================
+
+Monitor every connected website.
+
+Display:
+
+Website Online
+
+SSL
+
+Performance
+
+API Health
+
+Email Status
+
+Square Status
+
+Backups
+
+Forms
+
+Storage
+
+Deployments
+
+Errors
+
+Notify FSTS administrators of failures.
+
+==========================================================
+9. SECURITY
+==========================================================
+
+Verify:
+
+Role-Based Permissions
+
+Session Expiration
+
+Audit Logs
+
+Encrypted Credentials
+
+API Security
+
+Secure Headers
+
+Rate Limiting
+
+CSRF Protection
+
+Input Validation
+
+Backup Verification
+
+==========================================================
+10. PERFORMANCE
+==========================================================
+
+Review platform performance.
+
+Verify:
+
+Code Splitting
+
+Lazy Loading
+
+Bundle Size
+
+Dead Code Removal
+
+Unused Imports
+
+Duplicate Components
+
+Duplicate CSS
+
+TypeScript Health
+
+React Health
+
+Build Time
+
+Dashboard Load Time
+
+==========================================================
+11. ACCESSIBILITY
+==========================================================
+
+Verify:
+
+Keyboard Navigation
+
+Screen Reader Support
+
+ARIA Labels
+
+Focus States
+
+Responsive Typography
+
+Reduced Motion Support
+
+Color Contrast
+
+==========================================================
+12. QA AUTOMATION
+==========================================================
+
+Expand automated testing.
+
+Include:
+
+Authentication
+
+Permissions
+
+Homepage Editing
+
+Media Uploads
+
+Course CRUD
+
+Event CRUD
+
+Article CRUD
+
+SEO
+
+Square Settings
+
+Email Settings
+
+Version History
+
+Activity Log
+
+Backups
+
+Regression Testing
+
+==========================================================
+13. RELEASE PROCESS
+==========================================================
+
+Create a standard deployment pipeline.
+
+Development
+
+↓
+
+Testing
+
+↓
+
+Staging
+
+↓
+
+Production
+
+Include rollback support.
+
+==========================================================
+14. PLATFORM ROADMAP
+==========================================================
+
+Prepare for future releases.
+
+v1.1
+
+Additional templates
+
+Advanced reporting
+
+Performance analytics
+
+v1.2
+
+Multi-language dashboard
+
+Advanced permissions
+
+Workflow approvals
+
+v2.0
+
+Multi-site management
+
+Enterprise features
+
+White-label support
+
+API Marketplace
+
+==========================================================
+15. FUTURE CLIENT STANDARD
+==========================================================
+
+Every future website built by Full Stack Tech Solutions should automatically include:
+
+✓ FSTS Website Operating System™
+
+✓ Admin Portal
+
+✓ Secure Authentication
+
+✓ Branded Dashboard
+
+✓ Content Management
+
+✓ Role Permissions
+
+✓ Activity Logs
+
+✓ Version History
+
+✓ Media Library
+
+✓ SEO Manager
+
+✓ Forms
+
+✓ Square Configuration
+
+✓ Backups
+
+✓ Help Center
+
+✓ Production QA
+
+No custom development should be required to onboard a standard client.
+
+==========================================================
+16. PLATFORM COMPLETION CHECKLIST
+==========================================================
+
+Verify:
+
+✓ Platform Version Released
+
+✓ Documentation Complete
+
+✓ Onboarding Standardized
+
+✓ Templates Created
+
+✓ Dashboard Standardized
+
+✓ Branding Engine Complete
+
+✓ Admin Console Complete
+
+✓ Health Monitoring Operational
+
+✓ Security Verified
+
+✓ Performance Optimized
+
+✓ Accessibility Verified
+
+✓ QA Automation Expanded
+
+✓ Release Process Documented
+
+✓ Future Roadmap Published
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+The FSTS Website Operating System™ is now the core platform powering every Full Stack Tech Solutions client website. It provides a secure, scalable, professional content management experience while preserving the integrity of each website's design, codebase, and architecture. This release establishes the foundation for all future websites and prepares the platform for long-term growth, maintainability, and enterprise-level deployment.
