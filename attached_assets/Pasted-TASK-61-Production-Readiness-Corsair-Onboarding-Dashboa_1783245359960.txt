@@ -1,0 +1,402 @@
+TASK 61 — Production Readiness, Corsair Onboarding & Dashboard Integration
+
+PRIORITY: CRITICAL
+
+PROJECT OBJECTIVE
+
+The FSTS Client Dashboard has been successfully built and CRUD functionality is complete.
+
+The next objective is to fully integrate Corsair Tactical Solutions as the first production client while ensuring the platform is scalable for every future Full Stack Tech Solutions website.
+
+DO NOT redesign the dashboard.
+
+DO NOT change the existing UI.
+
+Only complete the production integration, security, permissions, and website connection.
+
+==================================================
+1. ONBOARD CORSAIR TACTICAL SOLUTIONS
+==================================================
+
+Create Corsair Tactical Solutions as the first production client.
+
+Populate the dashboard with:
+
+• Website Name
+• Business Information
+• Contact Information
+• Logo
+• Homepage Content
+• Courses
+• Events
+• Security Services
+• Knowledge Center
+• SEO
+• Footer
+• Contact Settings
+
+Verify all content loads correctly.
+
+==================================================
+2. CONNECT LIVE WEBSITE
+==================================================
+
+Connect:
+
+https://www.corsairtacticalsolution.com
+
+to the dashboard.
+
+Every editable section should read/write from the dashboard.
+
+No code deployment should be required for content changes.
+
+==================================================
+3. SQUARE MANAGEMENT
+==================================================
+
+Complete Square integration management.
+
+Clients should be able to update:
+
+• Application ID
+• Location ID
+• Payment Links
+• Catalog Item IDs
+• Event Payment Links
+• Course Payment Links
+
+Clients may NOT edit:
+
+• Backend payment logic
+• API code
+• Validation rules
+• Security
+
+All payment workflows must continue using the existing secure backend.
+
+==================================================
+4. CONTENT MANAGEMENT
+==================================================
+
+Verify clients can edit:
+
+Homepage
+
+About
+
+Security Services
+
+Courses
+
+Course Pricing
+
+Course Images
+
+Course Descriptions
+
+Events
+
+Articles
+
+Training & Knowledge Center
+
+SEO
+
+Footer
+
+Business Information
+
+Media Library
+
+==================================================
+5. LAYOUT PROTECTION
+==================================================
+
+Confirm clients CANNOT modify:
+
+Layout
+
+Templates
+
+Navigation structure
+
+Components
+
+CSS
+
+Animations
+
+JavaScript
+
+React Components
+
+API Routes
+
+Deployment Settings
+
+Environment Variables
+
+The website design must remain protected.
+
+==================================================
+6. VERSION HISTORY
+==================================================
+
+Every content change should automatically create a revision.
+
+Include:
+
+User
+
+Date
+
+Time
+
+Section
+
+Previous Version
+
+New Version
+
+Allow Super Admin to restore previous versions.
+
+==================================================
+7. ACTIVITY LOG
+==================================================
+
+Record:
+
+Content Changes
+
+Image Uploads
+
+Price Changes
+
+Square Changes
+
+User Logins
+
+Password Changes
+
+Role Changes
+
+Event Changes
+
+Course Changes
+
+SEO Updates
+
+==================================================
+8. MEDIA LIBRARY
+==================================================
+
+Support:
+
+Images
+
+PDFs
+
+Videos
+
+Documents
+
+Automatically:
+
+Optimize Images
+
+Generate Thumbnails
+
+Compress Files
+
+Prevent Duplicate Uploads
+
+Store Alt Text
+
+==================================================
+9. USER MANAGEMENT
+==================================================
+
+Verify:
+
+Client Admin
+
+Marketing
+
+Training Manager
+
+Editor
+
+Read Only
+
+All permissions match Task 59.
+
+==================================================
+10. CLIENT DASHBOARD QA
+==================================================
+
+Verify every dashboard page:
+
+Homepage
+
+Courses
+
+Events
+
+Knowledge Center
+
+SEO
+
+Media
+
+Users
+
+Payments
+
+Emails
+
+Footer
+
+Contact
+
+Settings
+
+Version History
+
+Activity Log
+
+Backups
+
+Loads correctly without errors.
+
+==================================================
+11. LIVE WEBSITE QA
+==================================================
+
+Verify changes made inside the dashboard appear correctly on:
+
+Desktop
+
+Tablet
+
+Mobile
+
+Without breaking:
+
+Layout
+
+Animations
+
+SEO
+
+Performance
+
+Accessibility
+
+==================================================
+12. SECURITY
+==================================================
+
+Verify:
+
+HTTPS
+
+Authentication
+
+Authorization
+
+Role Validation
+
+Audit Logs
+
+Encrypted Secrets
+
+Protected API Routes
+
+Rate Limiting
+
+CSRF Protection
+
+==================================================
+13. PERFORMANCE
+==================================================
+
+Verify:
+
+Fast dashboard loading
+
+Optimized queries
+
+Pagination
+
+Caching
+
+Image optimization
+
+No unnecessary API requests
+
+No console errors
+
+==================================================
+14. FUTURE CLIENT TEMPLATE
+==================================================
+
+Convert Corsair into the master template.
+
+Future websites should require only:
+
+Business Name
+
+Logo
+
+Domain
+
+Brand Colors
+
+Content
+
+Courses
+
+Services
+
+Square Credentials
+
+Everything else should provision automatically.
+
+==================================================
+15. FINAL QA
+==================================================
+
+Verify:
+
+✓ Dashboard controls Corsair website.
+
+✓ Layout remains protected.
+
+✓ Clients can edit content only.
+
+✓ Square settings save correctly.
+
+✓ Courses update correctly.
+
+✓ Events update correctly.
+
+✓ Homepage updates correctly.
+
+✓ SEO updates correctly.
+
+✓ Images update correctly.
+
+✓ Activity Log records changes.
+
+✓ Version History restores content.
+
+✓ Responsive on desktop, tablet, and mobile.
+
+✓ No console errors.
+
+✓ Production build passes.
+
+PROJECT STANDARD
+
+The FSTS Client Dashboard should now function as a secure, scalable, enterprise-grade website management platform. Corsair Tactical Solutions will serve as the first fully integrated production client, establishing the blueprint for all future Full Stack Tech Solutions websites.

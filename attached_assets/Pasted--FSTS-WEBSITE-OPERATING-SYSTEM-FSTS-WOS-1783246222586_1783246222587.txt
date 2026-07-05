@@ -1,0 +1,1041 @@
+==========================================================
+FSTS WEBSITE OPERATING SYSTEM™ (FSTS-WOS)
+ENTERPRISE PLATFORM MASTER BUILD
+Version 1.0
+Priority: ENTERPRISE / PLATFORM
+==========================================================
+
+PROJECT OBJECTIVE
+
+The existing dashboard is no longer just an admin panel.
+
+It will become the official FSTS Website Operating System™ (FSTS-WOS), the enterprise platform powering every Full Stack Tech Solutions website.
+
+This platform must support:
+
+• Business Websites
+• Security Companies
+• Training Academies
+• E-Commerce Stores
+• Churches
+• Property Management Companies
+• Medical Practices
+• Law Firms
+• Restaurants
+• Construction Companies
+• Membership Sites
+• Professional Services
+• Nonprofits
+• Custom Enterprise Websites
+
+The dashboard must automatically adapt to the client's website type while preserving the professionally designed layouts built by Full Stack Tech Solutions.
+
+Clients manage content.
+
+FSTS controls architecture, layouts, components, security, deployments, and platform updates.
+
+==========================================================
+1. WEBSITE TYPES
+==========================================================
+
+Support:
+
+• Business Website
+• E-Commerce
+• Security Company
+• Training Academy
+• Church
+• Property Management
+• Medical
+• Legal
+• Restaurant
+• Membership
+• Professional Services
+• Construction
+• Real Estate
+• Manufacturing
+• Custom Enterprise
+
+The selected website type automatically enables the correct modules.
+
+==========================================================
+2. CLIENT LOGIN EXPERIENCE
+==========================================================
+
+Every client receives:
+
+• Secure Login
+• Forgot Password
+• Password Reset
+• Remember Device
+• Multi-Factor Authentication (future)
+• Company Logo
+• Company Name
+• Brand Colors
+• Website Domain
+• Welcome Message
+
+Dashboard branding automatically matches the client's website.
+
+Each website footer includes:
+
+Client Login
+
+This becomes the standard login for every FSTS client.
+
+==========================================================
+3. FIRST LOGIN EXPERIENCE
+==========================================================
+
+Display:
+
+Welcome to Your Website Management Portal
+
+Provide:
+
+• Guided Tour
+• Quick Start
+• Watch Training Videos
+• Skip
+
+Progress should save automatically.
+
+==========================================================
+4. INTERACTIVE GUIDED TOUR
+==========================================================
+
+Walk users through:
+
+Dashboard
+
+Homepage
+
+Courses
+
+Products
+
+Events
+
+Articles
+
+Media
+
+Forms
+
+SEO
+
+Square
+
+Analytics
+
+Settings
+
+Help Center
+
+The tour should never interrupt normal work.
+
+==========================================================
+5. BUSINESS SETUP WIZARD
+==========================================================
+
+Configure:
+
+Business Name
+
+Logo
+
+Favicon
+
+Brand Colors
+
+Phone
+
+Email
+
+Address
+
+Business Hours
+
+Licenses
+
+Social Media
+
+Domain
+
+Square
+
+Resend
+
+SEO Defaults
+
+Automatically configure dashboard branding.
+
+==========================================================
+6. SMART CHECKLIST
+==========================================================
+
+Display onboarding progress.
+
+Examples:
+
+✓ Upload Logo
+
+✓ Add Contact Information
+
+✓ Connect Square
+
+✓ Publish Homepage
+
+✓ Add Products
+
+✓ Add Courses
+
+✓ Publish Events
+
+✓ Upload Team Photos
+
+✓ Complete SEO
+
+✓ Test Forms
+
+✓ Test Payments
+
+Show completion percentage.
+
+==========================================================
+7. CONTEXTUAL HELP
+==========================================================
+
+Every page includes:
+
+?
+
+Help explains:
+
+What this page controls.
+
+What clients can edit.
+
+What they cannot edit.
+
+Best practices.
+
+==========================================================
+8. SMART FORM BUILDER
+==========================================================
+
+Build a WordPress-style Form Builder—but better.
+
+Support:
+
+Short Text
+
+Long Text
+
+Email
+
+Phone
+
+Date
+
+Time
+
+Dropdown
+
+Radio Buttons
+
+Checkboxes
+
+File Upload
+
+Image Upload
+
+Signature
+
+Currency
+
+Address
+
+Rating
+
+Hidden Fields
+
+Course Selector
+
+Product Selector
+
+Event Selector
+
+Service Selector
+
+Conditional Logic
+
+Multi-Step Forms
+
+Validation
+
+Required Fields
+
+Templates include:
+
+Contact
+
+Quote Request
+
+Consultation
+
+Employment
+
+Course Registration
+
+Event Registration
+
+Product Inquiry
+
+Return Request
+
+Warranty Registration
+
+Church Assessment
+
+Property Management Request
+
+Private Investigation Request
+
+Executive Protection Request
+
+Newsletter Signup
+
+CSV Export
+
+Excel Export
+
+Dashboard Storage
+
+Spam Protection
+
+CAPTCHA
+
+Webhook
+
+CRM Ready
+
+==========================================================
+9. PAGE CONTENT EDITOR
+==========================================================
+
+Visual editor.
+
+Clients can update:
+
+Text
+
+Images
+
+Videos
+
+Buttons
+
+FAQs
+
+Testimonials
+
+Downloads
+
+Tables
+
+Maps
+
+Pricing
+
+Icons
+
+Callouts
+
+Accordions
+
+WITHOUT changing layouts.
+
+==========================================================
+10. MEDIA LIBRARY
+==========================================================
+
+Support:
+
+Folders
+
+Search
+
+Tags
+
+Bulk Upload
+
+Bulk Delete
+
+Replace Everywhere
+
+Auto Compression
+
+WebP
+
+Responsive Images
+
+Alt Text
+
+Cropping
+
+Unused Media Detection
+
+==========================================================
+11. COURSE MANAGER
+==========================================================
+
+Manage:
+
+Pricing
+
+Descriptions
+
+Images
+
+Duration
+
+Instructor
+
+Categories
+
+Add-ons
+
+Ammo
+
+Rental Firearms
+
+Packages
+
+Featured Status
+
+Square Mapping
+
+SEO
+
+==========================================================
+12. EVENT MANAGER
+==========================================================
+
+Manage:
+
+Flyers
+
+Dates
+
+Pricing
+
+Capacity
+
+Square
+
+Waivers
+
+Emails
+
+Homepage Display
+
+SEO
+
+Recurring Events
+
+==========================================================
+13. E-COMMERCE MODULE
+==========================================================
+
+Complete commerce platform.
+
+Manage:
+
+Products
+
+Inventory
+
+Orders
+
+Customers
+
+Categories
+
+Collections
+
+Coupons
+
+Shipping
+
+Taxes
+
+Gift Cards
+
+Variants
+
+Reviews
+
+Analytics
+
+Abandoned Carts
+
+Digital Products
+
+Subscriptions (future)
+
+==========================================================
+14. PRODUCT MANAGER
+==========================================================
+
+Manage:
+
+Name
+
+Description
+
+SKU
+
+Barcode
+
+Inventory
+
+Weight
+
+Dimensions
+
+Price
+
+Sale Price
+
+Images
+
+Videos
+
+Downloads
+
+SEO
+
+Publishing
+
+==========================================================
+15. INVENTORY
+==========================================================
+
+Track:
+
+Stock
+
+Low Stock
+
+Warehouses
+
+Multiple Locations
+
+Backorders
+
+Inventory History
+
+Notifications
+
+CSV Import
+
+Barcode
+
+==========================================================
+16. ORDER MANAGEMENT
+==========================================================
+
+Support:
+
+Orders
+
+Invoices
+
+Packing Slips
+
+Refunds
+
+Tracking
+
+Shipping Labels
+
+Order Timeline
+
+Customer Notes
+
+==========================================================
+17. PAYMENT GATEWAYS
+==========================================================
+
+Current:
+
+Square
+
+Future Ready:
+
+Stripe
+
+PayPal
+
+Authorize.net
+
+Apple Pay
+
+Google Pay
+
+Manual Invoice
+
+Bank Transfer
+
+Clients connect accounts themselves.
+
+==========================================================
+18. KNOWLEDGE CENTER
+==========================================================
+
+Manage:
+
+Articles
+
+Videos
+
+Downloads
+
+Authors
+
+Categories
+
+Drafts
+
+Publishing
+
+SEO
+
+Featured Articles
+
+Related Courses
+
+Related Products
+
+==========================================================
+19. SEO MANAGER
+==========================================================
+
+Support:
+
+Titles
+
+Descriptions
+
+Keywords
+
+Canonical URLs
+
+Open Graph
+
+Twitter Cards
+
+Schema
+
+Redirects
+
+XML Sitemap
+
+Robots
+
+Broken Links
+
+SEO Score
+
+==========================================================
+20. WEBSITE HEALTH
+==========================================================
+
+Display:
+
+Website Online
+
+SSL
+
+Forms
+
+Emails
+
+Square
+
+Performance
+
+Accessibility
+
+SEO Score
+
+Broken Links
+
+Image Health
+
+Recent Activity
+
+Recent Leads
+
+Orders
+
+Registrations
+
+==========================================================
+21. ANALYTICS
+==========================================================
+
+Dashboard displays:
+
+Visitors
+
+Revenue
+
+Products
+
+Orders
+
+Courses
+
+Events
+
+Popular Pages
+
+Popular Services
+
+Lead Sources
+
+Conversions
+
+==========================================================
+22. AI CONTENT ASSISTANT
+==========================================================
+
+Clients may use AI to:
+
+Write Articles
+
+Generate Product Descriptions
+
+Generate Course Descriptions
+
+Generate Event Descriptions
+
+SEO
+
+Meta Descriptions
+
+FAQs
+
+Emails
+
+Alt Text
+
+Grammar
+
+Content Expansion
+
+AI CANNOT:
+
+Modify Layouts
+
+Modify CSS
+
+Modify JavaScript
+
+Modify Components
+
+Modify APIs
+
+Modify Payments
+
+Modify Security
+
+Deploy Code
+
+==========================================================
+23. CLIENT EDITING PERMISSIONS
+==========================================================
+
+Clients MAY edit:
+
+Homepage Content
+
+Photos
+
+Videos
+
+Products
+
+Courses
+
+Events
+
+Articles
+
+Pricing
+
+Downloads
+
+Forms
+
+SEO
+
+Business Information
+
+Square Credentials
+
+Emails
+
+Team Members
+
+Testimonials
+
+==========================================================
+24. PROTECTED ITEMS
+==========================================================
+
+Clients MAY NOT edit:
+
+Layouts
+
+Templates
+
+React Components
+
+CSS
+
+JavaScript
+
+TypeScript
+
+Next.js
+
+Database
+
+API
+
+Authentication
+
+Security
+
+Deployments
+
+GitHub
+
+Vercel
+
+Navigation Structure
+
+Design System
+
+Responsive Layout
+
+Performance Optimizations
+
+==========================================================
+25. SUPER ADMIN
+==========================================================
+
+FSTS manages:
+
+Clients
+
+Sites
+
+Domains
+
+Deployments
+
+Templates
+
+Users
+
+Backups
+
+Billing
+
+Logs
+
+Platform Updates
+
+Support
+
+Security
+
+Feature Flags
+
+==========================================================
+26. PLATFORM BRANDING
+==========================================================
+
+Every dashboard footer displays:
+
+Powered by Full Stack Tech Solutions
+
+FSTS Website Operating System™
+
+Platform Version
+
+Support
+
+Documentation
+
+==========================================================
+27. PLATFORM STANDARD
+==========================================================
+
+Every future website automatically receives:
+
+✓ Guided Onboarding
+
+✓ Setup Wizard
+
+✓ Dashboard Branding
+
+✓ Smart Form Builder
+
+✓ Media Library
+
+✓ Course Manager
+
+✓ Product Manager
+
+✓ Event Manager
+
+✓ Knowledge Center
+
+✓ SEO Manager
+
+✓ Analytics
+
+✓ Website Health
+
+✓ AI Assistant
+
+✓ Role Permissions
+
+✓ Version History
+
+✓ Activity Log
+
+✓ Backups
+
+==========================================================
+28. DESIGN PROTECTION
+==========================================================
+
+This is a permanent platform rule.
+
+Clients manage content.
+
+Clients NEVER manage design.
+
+Layouts are permanently protected.
+
+Components are permanently protected.
+
+Navigation architecture is permanently protected.
+
+Responsive layouts are permanently protected.
+
+Only Full Stack Tech Solutions can modify:
+
+Design
+
+Layouts
+
+Templates
+
+Platform Architecture
+
+Code
+
+Security
+
+Infrastructure
+
+==========================================================
+29. PERFORMANCE
+==========================================================
+
+Maintain:
+
+Next.js Image Optimization
+
+Lazy Loading
+
+WebP
+
+Code Splitting
+
+High Lighthouse Scores
+
+Accessibility
+
+Fast Build Times
+
+Clean Code
+
+==========================================================
+30. FINAL QA
+==========================================================
+
+Verify:
+
+✓ Business Websites
+
+✓ E-Commerce Websites
+
+✓ Security Company Websites
+
+✓ Training Websites
+
+✓ Products
+
+✓ Orders
+
+✓ Courses
+
+✓ Events
+
+✓ Articles
+
+✓ Forms
+
+✓ Payments
+
+✓ Square
+
+✓ Emails
+
+✓ Analytics
+
+✓ SEO
+
+✓ Accessibility
+
+✓ Mobile
+
+✓ Tablet
+
+✓ Desktop
+
+✓ Performance
+
+✓ No Console Errors
+
+✓ No TypeScript Errors
+
+✓ No Hydration Errors
+
+✓ Production Build Passes
+
+==========================================================
+FINAL PLATFORM STANDARD
+==========================================================
+
+The completed FSTS Website Operating System™ (FSTS-WOS) will serve as the enterprise-grade operating system for every Full Stack Tech Solutions website. It will power business websites, security companies, training academies, and e-commerce stores from a single scalable platform. Clients will have a branded, intuitive management experience with guided onboarding, AI-assisted content management, analytics, forms, events, courses, products, and payments, while Full Stack Tech Solutions retains complete control over layouts, architecture, security, deployments, and the overall design system.
+
+This platform becomes the permanent foundation for all current and future Full Stack Tech Solutions client websites.

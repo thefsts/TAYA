@@ -1,0 +1,387 @@
+TASK 62 — LOCK PLATFORM FOR FULL PRODUCTION OPERATION
+
+PRIORITY: CRITICAL
+
+PROJECT OBJECTIVE
+
+The FSTS Client Dashboard and Corsair Tactical Solutions website are now entering FULL PRODUCTION.
+
+From this point forward, the platform should operate exclusively in the LIVE production environment.
+
+Development and sandbox functionality should be restricted to FSTS Super Admin accounts only.
+
+==================================================
+1. PRODUCTION MODE
+==================================================
+
+Configure the entire platform to operate in Production.
+
+Production must become the default environment.
+
+Verify:
+
+✓ Production API endpoints
+
+✓ Production database
+
+✓ Production authentication
+
+✓ Production email service
+
+✓ Production Square
+
+✓ Production domain
+
+No production workflow should reference sandbox endpoints.
+
+==================================================
+2. LIVE SQUARE ONLY
+==================================================
+
+Every paid product must use the LIVE Square environment.
+
+This includes:
+
+• Courses
+
+• Security Officer Training
+
+• Events
+
+• Add-ons
+
+• Ammo
+
+• Rental Firearms
+
+• Packages
+
+• Bundles
+
+• Consultation Payments
+
+Use only:
+
+Production Application ID
+
+Production Access Token
+
+Production Location ID
+
+Production Catalog
+
+Production Orders
+
+Production Payments
+
+Sandbox credentials must NEVER be used on live client websites.
+
+==================================================
+3. CLIENT SQUARE SETTINGS
+==================================================
+
+Within the dashboard clients may update:
+
+• Square Application ID
+
+• Square Location ID
+
+• Catalog IDs
+
+• Payment Links
+
+• Course Mapping
+
+• Event Mapping
+
+Clients may NOT modify:
+
+Payment APIs
+
+Server validation
+
+Pricing logic
+
+Checkout workflow
+
+Webhook handling
+
+Security validation
+
+==================================================
+4. PRODUCTION EMAILS
+==================================================
+
+Verify Resend is operating in production.
+
+Confirm:
+
+Contact Forms
+
+Course Registration
+
+Event Registration
+
+Payment Confirmation
+
+Admin Notifications
+
+Student Emails
+
+Waiver Emails
+
+Reply-To headers
+
+Branding
+
+All emails should send successfully from production.
+
+==================================================
+5. LIVE DOMAIN CONNECTION
+==================================================
+
+Verify the dashboard controls only production websites.
+
+Content updates should publish immediately.
+
+No code deployment should be required for:
+
+Text
+
+Images
+
+Events
+
+Courses
+
+Pricing
+
+SEO
+
+==================================================
+6. DASHBOARD SECURITY
+==================================================
+
+Enforce production security.
+
+Enable:
+
+HTTPS
+
+Secure Cookies
+
+Rate Limiting
+
+Audit Logging
+
+CSRF Protection
+
+Session Timeout
+
+Encrypted Secrets
+
+Optional Two-Factor Authentication
+
+==================================================
+7. ROLE SECURITY
+==================================================
+
+FSTS Super Admin
+
+Full platform access
+
+Client Admin
+
+Content management only
+
+Marketing
+
+Marketing content only
+
+Training Manager
+
+Training content only
+
+Editor
+
+Limited editing
+
+Read Only
+
+View only
+
+Clients must NEVER have access to:
+
+Code
+
+Templates
+
+Layouts
+
+Components
+
+CSS
+
+JavaScript
+
+API Routes
+
+GitHub
+
+Vercel
+
+Deployments
+
+Environment Variables
+
+==================================================
+8. CLIENT WEBSITE RULES
+==================================================
+
+Clients CAN update:
+
+✓ Photos
+
+✓ Videos
+
+✓ Courses
+
+✓ Events
+
+✓ Pricing
+
+✓ Square Payment Links
+
+✓ Business Information
+
+✓ SEO
+
+✓ Articles
+
+✓ Downloads
+
+✓ Knowledge Center
+
+✓ Team Members
+
+Clients CANNOT modify:
+
+✖ Design
+
+✖ Layout
+
+✖ Navigation Structure
+
+✖ Components
+
+✖ CSS
+
+✖ JavaScript
+
+✖ Branding Framework
+
+✖ Animations
+
+✖ Responsive Layout
+
+✖ Security
+
+==================================================
+9. GLOBAL PLATFORM RULES
+==================================================
+
+These restrictions become the permanent default for ALL FSTS websites.
+
+Every new website automatically inherits these permissions.
+
+==================================================
+10. PRODUCTION MONITORING
+==================================================
+
+Enable monitoring for:
+
+Website Health
+
+API Health
+
+Email Delivery
+
+Payment Success
+
+Failed Payments
+
+Form Errors
+
+Broken Links
+
+404 Errors
+
+Performance
+
+Image Optimization
+
+==================================================
+11. BACKUPS
+==================================================
+
+Automatically perform backups.
+
+Daily Database Backup
+
+Weekly Media Backup
+
+Version History
+
+Content Restore
+
+Disaster Recovery
+
+==================================================
+12. FINAL PRODUCTION QA
+==================================================
+
+Verify:
+
+✓ Live Square processes payments.
+
+✓ Order IDs generate correctly.
+
+✓ Payment IDs generate correctly.
+
+✓ Receipts generate correctly.
+
+✓ Admin emails send.
+
+✓ Student emails send.
+
+✓ Events register correctly.
+
+✓ Courses register correctly.
+
+✓ Dashboard updates live website.
+
+✓ Images update correctly.
+
+✓ SEO updates correctly.
+
+✓ Performance remains excellent.
+
+✓ Mobile responsive.
+
+✓ Accessibility passes.
+
+✓ Lighthouse remains high.
+
+✓ No console errors.
+
+✓ Production build succeeds.
+
+==================================================
+PROJECT STANDARD
+==================================================
+
+The FSTS Client Dashboard is now the official production platform for Full Stack Tech Solutions.
+
+All client websites will operate exclusively in the production environment using live services, live payment processing, secure authentication, protected layouts, and centralized dashboard management.
+
+Sandbox functionality will be available only to FSTS Super Admins for development and testing and must never be exposed to production client websites.

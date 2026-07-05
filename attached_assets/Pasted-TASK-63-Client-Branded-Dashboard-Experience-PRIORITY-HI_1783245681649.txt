@@ -1,0 +1,345 @@
+TASK 63 — Client-Branded Dashboard Experience
+
+PRIORITY: HIGH
+
+PROJECT OBJECTIVE
+
+Every client should feel like they are logging into a dashboard built specifically for their company.
+
+Although every client shares the same FSTS Client Dashboard platform, the dashboard should automatically display the client's branding after authentication.
+
+The experience should feel custom-built while still using one centralized system.
+
+DO NOT create separate dashboards.
+
+Maintain one secure multi-tenant platform.
+
+==================================================
+1. DYNAMIC CLIENT BRANDING
+==================================================
+
+When a client signs in, automatically load their company branding.
+
+Display:
+
+✓ Company Logo
+
+✓ Company Name
+
+✓ Brand Colors
+
+✓ Website Name
+
+✓ Company Tagline (optional)
+
+✓ Business Contact Information (optional)
+
+Every dashboard should feel personalized.
+
+==================================================
+2. LOGIN SCREEN
+==================================================
+
+Before login, display the standard FSTS branding.
+
+Example:
+
+Full Stack Tech Solutions
+
+Client Portal
+
+Secure Website Management
+
+Email
+
+Password
+
+Sign In
+
+Powered by Full Stack Tech Solutions
+
+After authentication, automatically switch to the client's branding.
+
+==================================================
+3. DASHBOARD HEADER
+==================================================
+
+Replace the generic logo with the client's logo.
+
+Example:
+
+Corsair Tactical Solutions Logo
+
+Corsair Tactical Solutions Dashboard
+
+Protecting Those We Will Never Meet
+
+If another client logs in:
+
+Gideon Training Solutions Logo
+
+Gideon Training Solutions Dashboard
+
+Their own tagline
+
+The same platform should dynamically change branding.
+
+==================================================
+4. CLIENT COLOR SCHEME
+==================================================
+
+Load each client's stored brand settings.
+
+Examples:
+
+Primary Color
+
+Secondary Color
+
+Accent Color
+
+Use these for:
+
+Buttons
+
+Highlights
+
+Icons
+
+Charts
+
+Links
+
+Status Indicators
+
+The dashboard layout remains the same.
+
+Only branding colors change.
+
+==================================================
+5. CLIENT HOMEPAGE
+==================================================
+
+After login display:
+
+Company Logo
+
+Welcome Back, [Client Name]
+
+Website Status
+
+Today's Activity
+
+Recent Leads
+
+Recent Course Registrations
+
+Upcoming Events
+
+Recent Payments
+
+Website Analytics
+
+Quick Actions
+
+The dashboard should immediately feel like it belongs to that business.
+
+==================================================
+6. QUICK ACTIONS
+==================================================
+
+Display:
+
+Edit Homepage
+
+Manage Services
+
+Manage Courses
+
+Manage Events
+
+Training & Knowledge Center
+
+Media Library
+
+Square Payments
+
+Contact Forms
+
+SEO
+
+Team Members
+
+Business Information
+
+Analytics
+
+==================================================
+7. WEBSITE PREVIEW
+==================================================
+
+Display a Live Website Preview card.
+
+Show:
+
+Current Domain
+
+Website Status
+
+Last Updated
+
+Open Website
+
+Preview Website
+
+==================================================
+8. BUSINESS PROFILE
+==================================================
+
+Every client profile stores:
+
+Business Name
+
+Logo
+
+Favicon
+
+Tagline
+
+Phone
+
+Email
+
+Website
+
+Address
+
+Brand Colors
+
+Social Links
+
+License Numbers (optional)
+
+These values automatically populate the dashboard branding.
+
+==================================================
+9. MULTI-WEBSITE OWNERS
+==================================================
+
+If a client owns multiple websites:
+
+After login display:
+
+Select Your Business
+
+Example:
+
+Corsair Tactical Solutions
+
+Gideon Training Solutions
+
+Be Secure Services
+
+After selection:
+
+Load that company's branding immediately.
+
+==================================================
+10. FSTS SUPER ADMIN
+==================================================
+
+When FSTS Super Admin logs in:
+
+Show Full Stack Tech Solutions branding.
+
+Display:
+
+All Clients
+
+Platform Health
+
+Deployments
+
+Analytics
+
+Support Tickets
+
+Backups
+
+GitHub
+
+Vercel
+
+Domains
+
+Platform Settings
+
+No client branding should override the Super Admin experience.
+
+==================================================
+11. FOOTER
+==================================================
+
+Keep the dashboard footer consistent across all clients.
+
+Example:
+
+Powered by Full Stack Tech Solutions
+
+Website Management Platform
+
+Version x.x.x
+
+© 2026 Full Stack Tech Solutions
+
+This branding should remain visible to reinforce that the platform is professionally managed by FSTS.
+
+==================================================
+12. PERFORMANCE
+==================================================
+
+Client branding must load instantly.
+
+Use cached branding assets.
+
+Optimize logos.
+
+Lazy load non-critical images.
+
+Avoid layout shift.
+
+==================================================
+13. QA
+==================================================
+
+Verify:
+
+✓ Login page uses FSTS branding.
+
+✓ Client logo loads immediately after login.
+
+✓ Dashboard title changes automatically.
+
+✓ Client colors load correctly.
+
+✓ Business information displays correctly.
+
+✓ Live Website Preview works.
+
+✓ Multi-site selection works.
+
+✓ Super Admin retains FSTS branding.
+
+✓ Responsive on desktop, tablet, and mobile.
+
+✓ No layout changes.
+
+✓ No performance regressions.
+
+✓ No console errors.
+
+==================================================
+PROJECT STANDARD
+==================================================
+
+The FSTS Client Dashboard should provide a premium white-labeled experience where every client feels they are using a dashboard designed specifically for their business, while Full Stack Tech Solutions continues to operate and maintain one centralized, secure, enterprise-grade platform. The only persistent platform branding should be the professional "Powered by Full Stack Tech Solutions" footer and Super Admin interface.

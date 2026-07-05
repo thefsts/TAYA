@@ -1,0 +1,495 @@
+TASK 64 — Smart Client Onboarding, Guided Dashboard & Self-Service Training
+
+PRIORITY: CRITICAL
+
+PROJECT OBJECTIVE
+
+The FSTS Client Dashboard should require little to no training for new clients.
+
+The dashboard should guide users through managing their website with built-in onboarding, contextual help, and step-by-step workflows.
+
+The goal is for clients to feel confident using the platform without needing Full Stack Tech Solutions to teach them every feature.
+
+DO NOT redesign the dashboard.
+
+DO NOT change the established UI.
+
+Build upon the existing dashboard with guided onboarding and contextual assistance.
+
+==================================================
+1. FIRST LOGIN EXPERIENCE
+==================================================
+
+When a client logs in for the first time:
+
+Display a welcome experience.
+
+Example:
+
+Welcome to your Website Management Portal!
+
+"We'll help you learn your dashboard in just a few minutes."
+
+Provide:
+
+• Start Guided Tour
+
+• Skip for Now
+
+• Watch Quick Overview
+
+Progress should be saved automatically.
+
+==================================================
+2. INTERACTIVE DASHBOARD TOUR
+==================================================
+
+Guide clients through:
+
+Dashboard Home
+
+Homepage Editor
+
+Courses
+
+Events
+
+Training & Knowledge Center
+
+Media Library
+
+Square Payments
+
+SEO
+
+Contact Forms
+
+Analytics
+
+Settings
+
+Use small tooltips and highlights.
+
+Clients should be able to:
+
+Next
+
+Back
+
+Skip
+
+Finish
+
+The tour should never interrupt normal work.
+
+==================================================
+3. CONTEXTUAL HELP
+==================================================
+
+Every major page should include a "?" Help button.
+
+Explain:
+
+What this section controls.
+
+What can be edited.
+
+What cannot be edited.
+
+Best practices.
+
+Helpful tips.
+
+Use plain, non-technical language.
+
+==================================================
+4. BUSINESS SETUP WIZARD
+==================================================
+
+Create a guided setup wizard.
+
+Allow setup of:
+
+Business Name
+
+Logo
+
+Favicon
+
+Brand Colors
+
+Tagline
+
+Business Phone
+
+Business Email
+
+Address
+
+Business Hours
+
+Website Domain
+
+Social Media Links
+
+Square Credentials
+
+Resend Email Settings
+
+License Numbers
+
+SEO Defaults
+
+The wizard should automatically configure dashboard branding and website settings.
+
+==================================================
+5. SMART CHECKLIST
+==================================================
+
+Display onboarding progress.
+
+Examples:
+
+✓ Upload Logo
+
+✓ Add Contact Information
+
+✓ Connect Square
+
+✓ Publish First Event
+
+✓ Add Courses
+
+✓ Upload Team Photos
+
+✓ Complete SEO
+
+✓ Test Contact Form
+
+✓ Test Payment
+
+Show overall completion percentage.
+
+==================================================
+6. DASHBOARD ASSISTANT
+==================================================
+
+Display a "Getting Started" panel.
+
+Examples:
+
+Edit Homepage
+
+Add an Event
+
+Update Pricing
+
+Replace Images
+
+View Contact Leads
+
+Connect Square
+
+Publish an Article
+
+Update Business Hours
+
+The assistant should suggest logical next steps.
+
+==================================================
+7. QUICK START VIDEOS
+==================================================
+
+Each section should include an optional short help video.
+
+Topics:
+
+Editing Homepage
+
+Managing Courses
+
+Managing Events
+
+Uploading Images
+
+Updating Prices
+
+Connecting Square
+
+Viewing Leads
+
+SEO Basics
+
+Videos should be easy for FSTS to replace or update.
+
+==================================================
+8. INLINE TIPS
+==================================================
+
+Use short informational notes.
+
+Examples:
+
+"Changes are saved automatically."
+
+"Updating this image will update your live website."
+
+"Changing prices does not affect your website layout."
+
+Avoid technical terminology.
+
+==================================================
+9. SAFETY WARNINGS
+==================================================
+
+Before critical actions display clear warnings.
+
+Examples:
+
+Deleting a course.
+
+Removing an event.
+
+Replacing SEO.
+
+Disconnecting Square.
+
+Users should confirm before permanent actions.
+
+==================================================
+10. SEARCHABLE HELP CENTER
+==================================================
+
+Include a searchable help library.
+
+Topics:
+
+Homepage
+
+Courses
+
+Events
+
+Payments
+
+Images
+
+SEO
+
+Media
+
+Forms
+
+Analytics
+
+Users
+
+Settings
+
+Version History
+
+The help content should be editable by FSTS.
+
+==================================================
+11. LIVE WEBSITE PREVIEW
+==================================================
+
+Every major editing page should include:
+
+Open Live Website
+
+Preview Changes (if supported)
+
+Last Published
+
+Clients should always know what is live.
+
+==================================================
+12. ROLE-AWARE EXPERIENCE
+==================================================
+
+Only display features available to that user's role.
+
+Hide restricted sections completely.
+
+Never confuse users with unavailable options.
+
+==================================================
+13. CLIENT BRANDING
+==================================================
+
+After login:
+
+Automatically load:
+
+Company Logo
+
+Company Name
+
+Brand Colors
+
+Website Domain
+
+Tagline
+
+Business Contact Information
+
+The dashboard should feel custom-built for that client.
+
+==================================================
+14. FSTS BRANDING
+==================================================
+
+Maintain platform branding.
+
+Dashboard footer:
+
+Powered by Full Stack Tech Solutions
+
+Website Management Platform
+
+Version Number
+
+Copyright
+
+The footer remains consistent for all clients.
+
+==================================================
+15. AUTOMATIC WEBSITE HEALTH
+==================================================
+
+Dashboard should continuously display:
+
+Website Online
+
+SSL Status
+
+Contact Form Status
+
+Email Status
+
+Square Status
+
+Recent Backups
+
+Last Content Update
+
+Recent Registrations
+
+Recent Leads
+
+This gives clients confidence that their website is operating correctly.
+
+==================================================
+16. CLIENT RESTRICTIONS
+==================================================
+
+Clients CAN edit:
+
+✓ Text
+
+✓ Photos
+
+✓ Videos
+
+✓ Events
+
+✓ Courses
+
+✓ Pricing
+
+✓ Square mappings
+
+✓ SEO
+
+✓ Downloads
+
+✓ Articles
+
+✓ Business Information
+
+Clients CANNOT edit:
+
+✖ Layout
+
+✖ CSS
+
+✖ JavaScript
+
+✖ Components
+
+✖ Templates
+
+✖ Navigation Structure
+
+✖ APIs
+
+✖ Security
+
+✖ Deployments
+
+✖ GitHub
+
+✖ Vercel
+
+==================================================
+17. FUTURE CLIENT TEMPLATE
+==================================================
+
+Everything created here becomes the default onboarding experience for every future FSTS client.
+
+All new websites automatically inherit:
+
+• Login Experience
+
+• Guided Tour
+
+• Setup Wizard
+
+• Help Center
+
+• Smart Checklist
+
+• Website Health Dashboard
+
+• Client Branding
+
+• Security Rules
+
+==================================================
+18. QA
+==================================================
+
+Verify:
+
+✓ First-time onboarding works.
+
+✓ Guided Tour functions.
+
+✓ Setup Wizard completes successfully.
+
+✓ Business branding loads correctly.
+
+✓ Help Center is searchable.
+
+✓ Help videos are easy to update.
+
+✓ Checklist updates automatically.
+
+✓ Website Health displays correctly.
+
+✓ Clients only see permitted features.
+
+✓ Dashboard remains fast and responsive.
+
+✓ Mobile and tablet experience is polished.
+
+✓ No console errors.
+
+✓ Production build passes.
+
+==================================================
+PROJECT STANDARD
+==================================================
+
+The FSTS Client Dashboard should feel like a premium website management platform with built-in training. Clients should be able to confidently manage their content without requiring individual onboarding sessions, while Full Stack Tech Solutions retains complete control over design, layouts, architecture, deployments, and platform security. The onboarding experience, guided tours, contextual help, and setup wizard become the standard for every future FSTS website.
