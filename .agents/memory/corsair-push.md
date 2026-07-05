@@ -5,8 +5,11 @@ description: How to push file changes to thefsts/Corsair-Tactical-Solutions via 
 
 ## Push pattern
 blob → tree → commit → PATCH refs/heads/main (force: false)
-Author: name "Thefsts" — email stored in GITHUB_PERSONAL_ACCESS_TOKEN owner's git config.
 Token: GITHUB_PERSONAL_ACCESS_TOKEN secret.
+User's requested commit author identity is stored in `replit.md` under "User preferences"
+(not here, since it's an email address) — always pass an explicit `author`/`committer` object
+on the `POST /git/commits` call using that identity rather than relying on the token's default
+git config, which may not match.
 
 ## Anchor safety rules for courses.ts str.replace
 1. Always use `count=1` and check `old in content` before replacing.

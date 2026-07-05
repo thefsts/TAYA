@@ -40,7 +40,7 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- All commits pushed to GitHub repos on this user's behalf (e.g. the `thefsts/*` GitHub org repos) must be authored as `Thefsts <amorebey@gmail.com>`.
 
 ## Gotchas
 
