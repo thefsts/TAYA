@@ -43,3 +43,22 @@ save round-tripped an empty required field back and got rejected by the update Z
 **How to apply:** When onboarding a new site, seed at least homepage_content and contact_info
 with real (or real-ish, pulled from the live site's source) values before considering the site
 "connected" — don't rely on the empty-string GET fallback as a substitute for real seed data.
+
+## Bulk repo-replace push (whole-monorepo-subset → external GitHub repo)
+Same blob/tree/commit/PATCH primitives scale to a full multi-hundred-file push that fully
+replaces an existing repo's contents (e.g. porting a pnpm-workspace subset into a separate
+GitHub repo for external hosting), not just single-file edits:
+1. Build the file list explicitly (curated allowlist, not everything) — exclude Replit-only
+   infra (`.replit`, `replit.nix`), dev-only workspace packages irrelevant to the ported app's
+   runtime/build (test suites, internal tooling artifacts), and large binary asset dirs unless
+   actually referenced by import paths.
+2. Text files can go straight into the tree entry as `content` (no blob call needed); only
+   true binary files (images, fonts) need an explicit `POST /git/blobs` with base64 encoding.
+3. Create the tree WITHOUT `base_tree` when the intent is a full replace — this makes the new
+   tree the complete file set, dropping anything not in your list (e.g. an old unrelated
+   starter template previously in the repo).
+4. Commit with `parents: [current-head-sha]` and PATCH the ref with `force: false` — this stays
+   a valid fast-forward since the new commit's parent is the old HEAD, even though the tree
+   contents are unrelated to the parent's tree.
+**Why:** Ported the FSTS dashboard (Express+Postgres+Vite monorepo subset) into a GitHub repo
+that previously held an unrelated Next.js+Sanity starter, for Vercel hosting.
