@@ -4,7 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT;
+// On Vercel, `vite build` runs without PORT/BASE_PATH (those only matter for
+// the Replit dev/preview server) and the app is served from the domain root.
+const isVercelBuild = process.env.VERCEL === "1";
+
+const rawPort = process.env.PORT ?? (isVercelBuild ? "0" : undefined);
 
 if (!rawPort) {
   throw new Error(
@@ -14,11 +18,11 @@ if (!rawPort) {
 
 const port = Number(rawPort);
 
-if (Number.isNaN(port) || port <= 0) {
+if (Number.isNaN(port) || port < 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH;
+const basePath = process.env.BASE_PATH ?? (isVercelBuild ? "/" : undefined);
 
 if (!basePath) {
   throw new Error(
