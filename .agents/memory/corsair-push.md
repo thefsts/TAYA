@@ -87,3 +87,16 @@ correctly and worked).
 `recordVersion()` helper (mirrors `logActivity`'s pattern: `{siteId, actor, entityType, entityId,
 snapshot}`) after every create/update — don't assume version history "just works" alongside
 activity logging.
+
+## Backend route path must match the OpenAPI spec exactly, not just "close enough"
+The versions backend route was registered at `/sites/:siteId/content-versions`, but the OpenAPI
+spec (source of truth) and the Orval-generated frontend client both call `/sites/:siteId/versions`.
+DB writes succeeded (confirmed via direct psql) but the UI always showed an empty list, because the
+GET request 404'd silently against the wrong path — no runtime error surfaced, since content-version
+writes and reads are wired to different codepaths.
+**Why:** A feature can pass "does the DB write happen?" checks and still be completely broken
+end-to-end if the read-side route path drifts from the spec; typecheck doesn't catch this because
+route strings aren't type-checked against the OpenAPI paths.
+**How to apply:** When a UI list/table appears empty despite confirmed DB writes, diff the actual
+registered Express route path against `lib/api-spec/openapi.yaml` and the generated client call —
+don't assume the bug is in the write path just because that's where you were last working.
