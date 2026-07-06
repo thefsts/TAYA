@@ -1,0 +1,308 @@
+==========================================================
+TASK 68 — CONNECT THE LIVE FSTS WEBSITE OPERATING SYSTEM™
+TO THE CORSAIR TACTICAL SOLUTIONS WEBSITE
+Priority: CRITICAL
+Production Deployment
+==========================================================
+
+PROJECT OBJECTIVE
+
+The FSTS Website Operating System™ is now live in production.
+
+Connect the live Corsair Tactical Solutions website to the production FSTS Website Operating System™ and make it the first fully managed production website on the platform.
+
+This implementation will become the standard for every future Full Stack Tech Solutions client website.
+
+DO NOT redesign the website.
+
+DO NOT modify the existing website layout.
+
+DO NOT change branding.
+
+Only connect the production dashboard and verify all management functionality.
+
+==========================================================
+1. CONNECT TO PRODUCTION DASHBOARD
+==========================================================
+
+Connect the live website:
+
+https://www.corsairtacticalsolution.com
+
+to the production FSTS Website Operating System™.
+
+Verify:
+
+• Website successfully registers with the production dashboard.
+• Dashboard recognizes Corsair as its assigned website.
+• Website status displays Online.
+• All API connections are healthy.
+• SSL status is reported correctly.
+• No broken integrations.
+
+==========================================================
+2. ADMIN PORTAL
+==========================================================
+
+Add a permanent footer link on every page.
+
+Footer Link:
+
+Admin Portal
+
+Requirements:
+
+• Small professional text
+• Match existing footer styling
+• Responsive on Desktop, Tablet and Mobile
+• Do NOT make it a primary CTA
+• Open the production FSTS Website Operating System™ login page
+
+==========================================================
+3. LOGIN EXPERIENCE
+==========================================================
+
+After authentication:
+
+Display:
+
+• Corsair Tactical Solutions Logo
+• Company Name
+• Website URL
+• Dashboard Home
+• Welcome Message
+• Website Status
+• Quick Actions
+
+The dashboard should automatically load the Corsair workspace.
+
+No client should ever have to choose their website manually.
+
+==========================================================
+4. CONTENT MANAGEMENT
+==========================================================
+
+Verify the dashboard controls:
+
+✓ Homepage
+✓ About
+✓ Security Services
+✓ Property Management
+✓ Church Security
+✓ Private Investigations
+✓ Security Training
+✓ Courses
+✓ Course Pricing
+✓ Events
+✓ Event Flyers
+✓ Blog / Training & Knowledge Center
+✓ SEO
+✓ Images
+✓ Media Library
+✓ Testimonials
+✓ FAQs
+✓ Footer
+✓ Contact Information
+✓ Contact Forms
+✓ Downloads
+
+==========================================================
+5. SQUARE MANAGEMENT
+==========================================================
+
+Verify the client can manage:
+
+• Square Payment Links
+• Course Payment Mapping
+• Event Payment Mapping
+• Square Location ID
+• Product Mapping
+
+WITHOUT changing website code.
+
+Existing checkout workflow must remain unchanged.
+
+==========================================================
+6. PROTECTED WEBSITE
+==========================================================
+
+The dashboard MUST NOT allow the client to modify:
+
+✗ Website Layout
+✗ Navigation Structure
+✗ CSS
+✗ React Components
+✗ TypeScript
+✗ Next.js
+✗ APIs
+✗ Database Schema
+✗ Authentication
+✗ Performance Settings
+✗ Responsive Layout
+✗ Vercel Configuration
+✗ GitHub Repository
+
+These remain Full Stack Tech Solutions administrator functions only.
+
+==========================================================
+7. ROLE PERMISSIONS
+==========================================================
+
+Administrator (FSTS)
+
+• Full Access
+
+Website Manager (Client)
+
+• Content Management
+• Pricing
+• Images
+• Events
+• Courses
+• Square Configuration
+
+Editor
+
+• Content Only
+
+Marketing
+
+• Articles
+• Events
+• Media
+• SEO
+
+Read Only
+
+• View Only
+
+==========================================================
+8. VERSION HISTORY
+==========================================================
+
+Verify every content change creates:
+
+• Version Record
+• Timestamp
+• User
+• Before / After Changes
+• Rollback Point
+
+==========================================================
+9. ACTIVITY LOG
+==========================================================
+
+Log every action.
+
+Include:
+
+• Login
+• Logout
+• Content Updates
+• Image Uploads
+• Price Changes
+• Event Changes
+• Course Changes
+• SEO Changes
+• Form Updates
+• Square Updates
+
+==========================================================
+10. HELP CENTER
+==========================================================
+
+Verify Help Center contains:
+
+• Getting Started
+• User Guide
+• Video Tutorials
+• FAQs
+• Contact Full Stack Tech Solutions
+
+This should minimize client training.
+
+==========================================================
+11. DASHBOARD BRANDING
+==========================================================
+
+Display throughout the dashboard:
+
+Corsair Tactical Solutions Logo
+
+Company Name
+
+Website URL
+
+Dashboard Footer:
+
+Powered by Full Stack Tech Solutions
+
+FSTS Website Operating System™ v1.0
+
+==========================================================
+12. PERFORMANCE
+==========================================================
+
+Verify dashboard integration does NOT affect:
+
+✓ Website Speed
+✓ SEO
+✓ Lighthouse
+✓ Core Web Vitals
+✓ Accessibility
+✓ Responsive Layouts
+
+==========================================================
+13. QA
+==========================================================
+
+Verify:
+
+✓ Admin Portal appears on every page.
+✓ Login works.
+✓ Dashboard loads correctly.
+✓ Corsair branding displays.
+✓ Homepage edits save.
+✓ Courses update.
+✓ Events update.
+✓ Pricing updates.
+✓ Images upload.
+✓ SEO updates.
+✓ Activity Log records changes.
+✓ Version History works.
+✓ Square settings save.
+✓ Dashboard loads without errors.
+✓ Website remains fully functional.
+✓ No broken links.
+✓ No console errors.
+✓ Production deployment successful.
+
+==========================================================
+14. FUTURE PLATFORM STANDARD
+==========================================================
+
+Once Corsair is verified, use this implementation as the deployment template for every future Full Stack Tech Solutions client website.
+
+Every future website should automatically include:
+
+• FSTS Website Operating System™ connection
+• Admin Portal footer link
+• Secure login
+• Branded dashboard
+• Role-based permissions
+• Version history
+• Activity logging
+• Protected layouts
+• Content-only editing
+• Media library
+• Square management
+• SEO manager
+• Help Center
+
+No custom integration should be required for future client websites.
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+Corsair Tactical Solutions will serve as the reference implementation for the FSTS Website Operating System™. The production website and dashboard must operate as a unified platform while preserving the website's design, branding, performance, and security. This implementation establishes the standard architecture for all future client websites delivered by Full Stack Tech Solutions.
