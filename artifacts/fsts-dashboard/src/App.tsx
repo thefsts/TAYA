@@ -7,6 +7,7 @@ import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { useEffect, useRef } from "react";
 import { queryClient, configureAuthTokenGetter } from "@/lib/queryClient";
+import fstsLogo from "@assets/fsts_header_logo_1783377175328.PNG";
 
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
@@ -55,7 +56,7 @@ const clerkAppearance = {
   options: {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+    logoImageUrl: `${window.location.origin}${fstsLogo}`,
   },
   variables: {
     colorPrimary: "hsl(84 65% 25%)",
@@ -98,9 +99,21 @@ const clerkAppearance = {
   },
 };
 
+function AuthPageBrand() {
+  return (
+    <div className="flex flex-col items-center mb-8">
+      <img src={fstsLogo} alt="Full Stack Tech Solutions" className="h-16 w-auto mb-3" />
+      <p className="text-sm font-medium text-slate-500 tracking-wide">
+        Client Dashboard
+      </p>
+    </div>
+  );
+}
+
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+    <div className="flex flex-col min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-12">
+      <AuthPageBrand />
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
     </div>
   );
@@ -108,7 +121,8 @@ function SignInPage() {
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+    <div className="flex flex-col min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-12">
+      <AuthPageBrand />
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
     </div>
   );

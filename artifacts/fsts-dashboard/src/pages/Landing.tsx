@@ -1,14 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { ArrowRight, ShieldCheck, Zap, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import fstsLogo from "@assets/fsts_header_logo_1783377175328.PNG";
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <header className="px-6 lg:px-12 py-6 flex items-center justify-between border-b border-slate-200 bg-white">
         <div className="flex items-center gap-3">
-          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="FSTS Logo" className="h-8 w-8" />
-          <span className="font-bold text-xl tracking-tight text-slate-900">FSTS Platform</span>
+          <img src={fstsLogo} alt="Full Stack Tech Solutions" className="h-14 w-auto" />
         </div>
         <div className="flex items-center gap-4">
           <Link href="/sign-in">
