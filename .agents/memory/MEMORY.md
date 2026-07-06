@@ -4,3 +4,4 @@
 - [Corsair mobile audit](corsair-mobile-audit.md) — site is already largely responsive; only bare form grids (BookingForm/EventBookingForm) needed fixing; correct grep pattern documented
 - [FSTS dashboard superadmin bootstrap](fsts-dashboard-superadmin.md) — only the first-ever Clerk signup is superadmin; new e2e test users can't access /app/admin/* routes
 - [testClerkAuth flag required](testing-clerk-auth-flag.md) — omitting it causes flaky Clerk sign-in that masquerades as a backend 401 bug; verify with a direct minted-token curl instead
+- [Vercel serverless Node16 import extensions](vercel-serverless-node16-imports.md) — Vercel's function compiler enforces strict ESM import rules; import a prebuilt bundle, not raw TS source
