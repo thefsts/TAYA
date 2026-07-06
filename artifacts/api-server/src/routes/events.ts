@@ -16,6 +16,7 @@ import {
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, trainingRoles } from "../lib/rbac";
 import { logActivity } from "../lib/activityLog";
+import { recordVersion } from "../lib/contentVersions";
 
 const router: IRouter = Router();
 
@@ -61,6 +62,13 @@ router.post(
       entityId: event.id,
       page: "Events",
       newValue: event,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "event",
+      entityId: event.id,
+      snapshot: event,
     });
     res.status(201).json(GetEventResponse.parse(event));
   },
@@ -125,6 +133,13 @@ router.patch(
       page: "Events",
       previousValue: existing,
       newValue: event,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "event",
+      entityId: event.id,
+      snapshot: event,
     });
     res.json(UpdateEventResponse.parse(event));
   },

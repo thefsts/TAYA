@@ -11,6 +11,7 @@ import {
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, contentEditorRoles, anySiteRole } from "../lib/rbac";
 import { logActivity } from "../lib/activityLog";
+import { recordVersion } from "../lib/contentVersions";
 
 const router: IRouter = Router();
 
@@ -85,6 +86,13 @@ router.put(
       page: "Homepage",
       previousValue: existing,
       newValue: content,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "homepage",
+      entityId: content.id,
+      snapshot: content,
     });
 
     res.json(UpdateHomepageContentResponse.parse(content));

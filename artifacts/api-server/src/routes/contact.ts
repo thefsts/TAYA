@@ -11,6 +11,7 @@ import {
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, contentEditorRoles } from "../lib/rbac";
 import { logActivity } from "../lib/activityLog";
+import { recordVersion } from "../lib/contentVersions";
 
 const router: IRouter = Router();
 
@@ -80,6 +81,13 @@ router.put(
       page: "Contact Info",
       previousValue: existing,
       newValue: info,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "contact_info",
+      entityId: info.id,
+      snapshot: info,
     });
     res.json(UpdateContactInfoResponse.parse(info));
   },

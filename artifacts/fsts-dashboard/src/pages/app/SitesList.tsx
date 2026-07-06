@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetMe, useListSites } from "@workspace/api-client-react";
 import { useClerk } from "@clerk/react";
@@ -20,6 +21,19 @@ export default function SitesList() {
   
   const { data: me, isLoading: loadingMe } = useGetMe();
   const { data: sites, isLoading: loadingSites } = useListSites();
+
+  // Single-site clients (e.g. a client_admin/editor with access to exactly one
+  // site) skip the picker entirely and land directly in that site's workspace.
+  // Super admins always see the picker since they typically manage multiple sites.
+  useEffect(() => {
+    if (!loadingMe && !loadingSites && !me?.isSuperAdmin && sites?.length === 1) {
+      setLocation(`/app/sites/${sites[0].id}`, { replace: true });
+    }
+  }, [loadingMe, loadingSites, me?.isSuperAdmin, sites, setLocation]);
+
+  if (!loadingMe && !loadingSites && !me?.isSuperAdmin && sites?.length === 1) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">

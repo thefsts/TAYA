@@ -65,3 +65,25 @@ GitHub repo for external hosting), not just single-file edits:
    contents are unrelated to the parent's tree.
 **Why:** Ported the FSTS dashboard (Express+Postgres+Vite monorepo subset) into a GitHub repo
 that previously held an unrelated Next.js+Sanity starter, for Vercel hosting.
+
+## Local corsair-source clone can drift from GitHub production
+The local `corsair-source/` working copy is a separate clone, not a live mirror — it can silently
+fall behind the `thefsts/Corsair-Tactical-Solutions` GitHub `main` branch if edits happened
+upstream (e.g. via the GitHub API directly) without a corresponding local pull.
+**Why:** Found local history several commits behind remote HEAD when starting unrelated dashboard
+work — editing the stale local copy would have produced a push that reverted newer production
+content.
+**How to apply:** Before editing anything under `corsair-source/`, diff/pull from GitHub `main`
+first and resync local files if they differ, rather than trusting the working directory as-is.
+
+## `content_versions` / Version History requires explicit wiring per content route
+The dashboard's DB schema has a `content_versions` table and a `versions.ts` route that reads/
+restores from it, but no content route (homepage, footer, contact, courses, events, articles)
+ever wrote to it — "Version History" silently did nothing for every site, not just one client.
+**Why:** Found while verifying Version History worked for a specific client (Corsair) during
+onboarding QA; the gap was global, tracked separately from `activity_log` (which was wired
+correctly and worked).
+**How to apply:** When adding a new content-editing route, call both `logActivity()` and a
+`recordVersion()` helper (mirrors `logActivity`'s pattern: `{siteId, actor, entityType, entityId,
+snapshot}`) after every create/update — don't assume version history "just works" alongside
+activity logging.

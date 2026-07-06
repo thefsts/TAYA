@@ -16,6 +16,7 @@ import {
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, marketingRoles } from "../lib/rbac";
 import { logActivity } from "../lib/activityLog";
+import { recordVersion } from "../lib/contentVersions";
 
 const router: IRouter = Router();
 
@@ -61,6 +62,13 @@ router.post(
       entityId: article.id,
       page: "Articles",
       newValue: article,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "article",
+      entityId: article.id,
+      snapshot: article,
     });
     res.status(201).json(GetArticleResponse.parse(article));
   },
@@ -125,6 +133,13 @@ router.patch(
       page: "Articles",
       previousValue: existing,
       newValue: article,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "article",
+      entityId: article.id,
+      snapshot: article,
     });
     res.json(UpdateArticleResponse.parse(article));
   },

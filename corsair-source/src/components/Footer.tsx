@@ -362,6 +362,13 @@ export default function Footer() {
                   Cookie Settings
                 </button>
                 <span className="text-corsair-gray-700 text-xs">&middot;</span>
+                <a
+                  href="https://fsts-client-dashboard-for-sites.vercel.app/"
+                  className="text-xs text-corsair-gray-500 hover:text-corsair-gray-300 transition-colors"
+                >
+                  Admin Portal
+                </a>
+                <span className="text-corsair-gray-700 text-xs">&middot;</span>
                 <span className="text-xs text-corsair-gray-600">{tc('trustLine')}</span>
               </div>
             </div>

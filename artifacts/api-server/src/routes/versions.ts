@@ -8,7 +8,7 @@ import { requireSiteRole, anySiteRole, contentEditorRoles } from "../lib/rbac";
 const router: IRouter = Router();
 
 router.get(
-  "/sites/:siteId/content-versions",
+  "/sites/:siteId/versions",
   requireAuth,
   requireSiteRole(...anySiteRole),
   async (req, res): Promise<void> => {
@@ -27,7 +27,7 @@ router.get(
 );
 
 router.post(
-  "/sites/:siteId/content-versions/:versionId/restore",
+  "/sites/:siteId/versions/:versionId/restore",
   requireAuth,
   requireSiteRole(...contentEditorRoles),
   async (req, res): Promise<void> => {

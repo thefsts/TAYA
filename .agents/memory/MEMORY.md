@@ -5,3 +5,5 @@
 - [FSTS dashboard superadmin bootstrap](fsts-dashboard-superadmin.md) — only the first-ever Clerk signup is superadmin; new e2e test users can't access /app/admin/* routes
 - [testClerkAuth flag required](testing-clerk-auth-flag.md) — omitting it causes flaky Clerk sign-in that masquerades as a backend 401 bug; verify with a direct minted-token curl instead
 - [Vercel serverless Node16 import extensions](vercel-serverless-node16-imports.md) — Vercel's function compiler enforces strict ESM import rules; import a prebuilt bundle, not raw TS source
+- [Corsair source drift](corsair-push.md) — local corsair-source clone can silently fall behind GitHub main; always resync before editing
+- [Version history gap](corsair-push.md) — content_versions table existed but no route wrote to it; recordVersion() must be called alongside logActivity() on every content route

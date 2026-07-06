@@ -698,8 +698,16 @@ export interface TrainingVideo {
 }
 
 export const trainingVideos: TrainingVideo[] = [
-  /* Video embeds will be wired when Corsair Tactical uploads their training library to YouTube.
-     Contact: amorebey@gmail.com for embed ID updates. */
+  { id: 'v1', title: 'Firearm Safety Rules Every Shooter Must Know',           description: 'The four fundamental rules of firearm safety explained by a DPS-certified instructor.',        embedId: 'placeholder-1', category: 'Firearms Safety',        duration: '4:32' },
+  { id: 'v2', title: 'Choosing Your First Handgun — A Beginner\'s Guide',       description: 'What new gun owners should consider when selecting their first firearm for home defense.',    embedId: 'placeholder-2', category: 'Firearms Safety',        duration: '6:15' },
+  { id: 'v3', title: 'Level III Security Officer Qualification',                description: 'A walkthrough of the Texas Level III firearms qualification course.',                         embedId: 'placeholder-3', category: 'Security Officer Training', duration: '8:40' },
+  { id: 'v4', title: 'Church Security Volunteer Best Practices',              description: 'How church safety teams prepare for and respond to potential threats.',                      embedId: 'placeholder-4', category: 'Church Security',        duration: '5:22' },
+  { id: 'v5', title: 'Defensive Shooting Fundamentals: Grip, Stance, Draw',   description: 'Core skills for developing a reliable defensive draw and accurate fire under pressure.',     embedId: 'placeholder-5', category: 'Defensive Shooting',     duration: '7:10' },
+  { id: 'v6', title: 'Executive Protection: Advance Work Basics',             description: 'How PPOs conduct advance work and route planning before a principal arrives.',             embedId: 'placeholder-6', category: 'Executive Protection',   duration: '9:05' },
+  { id: 'v7', title: 'Texas LTC Shooting Proficiency Walkthrough',            description: 'Step-by-step guide to passing the Texas LTC range qualification at 3, 7, and 15 yards.', embedId: 'placeholder-7', category: 'License to Carry',       duration: '5:48' },
+  { id: 'v8', title: 'Situational Awareness for Everyday Carry',                description: 'How to maintain awareness in public spaces without appearing paranoid or anxious.',          embedId: 'placeholder-8', category: 'Defensive Shooting',     duration: '4:55' },
+  { id: 'v9', title: 'Home Firearm Storage and Child Safety',                 description: 'Best practices for securing firearms at home, including quick-access options for adults.',  embedId: 'placeholder-9', category: 'Firearms Safety',        duration: '3:40' },
+  { id: 'v10', title: 'De-escalation Techniques for Security Professionals',  description: 'Verbal and physical techniques security officers use to de-escalate confrontations safely.',  embedId: 'placeholder-10', category: 'Security Officer Training', duration: '6:30' },
 ];
 
 export const videoCategories = [

@@ -11,6 +11,7 @@ import {
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, contentEditorRoles } from "../lib/rbac";
 import { logActivity } from "../lib/activityLog";
+import { recordVersion } from "../lib/contentVersions";
 
 const router: IRouter = Router();
 
@@ -81,6 +82,13 @@ router.put(
       page: "Footer",
       previousValue: existing,
       newValue: content,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "footer",
+      entityId: content.id,
+      snapshot: content,
     });
     res.json(UpdateFooterContentResponse.parse(content));
   },

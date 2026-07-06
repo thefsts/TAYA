@@ -16,6 +16,7 @@ import {
 import { requireAuth } from "../middlewares/auth";
 import { requireSiteRole, anySiteRole, trainingRoles } from "../lib/rbac";
 import { logActivity } from "../lib/activityLog";
+import { recordVersion } from "../lib/contentVersions";
 
 const router: IRouter = Router();
 
@@ -61,6 +62,13 @@ router.post(
       entityId: course.id,
       page: "Courses",
       newValue: course,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "course",
+      entityId: course.id,
+      snapshot: course,
     });
     res.status(201).json(GetCourseResponse.parse(course));
   },
@@ -125,6 +133,13 @@ router.patch(
       page: "Courses",
       previousValue: existing,
       newValue: course,
+    });
+    await recordVersion({
+      siteId: params.data.siteId,
+      actor: req.dashboardUser,
+      entityType: "course",
+      entityId: course.id,
+      snapshot: course,
     });
     res.json(UpdateCourseResponse.parse(course));
   },
