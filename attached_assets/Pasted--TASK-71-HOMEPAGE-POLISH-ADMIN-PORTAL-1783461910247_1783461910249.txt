@@ -1,0 +1,154 @@
+==========================================================
+TASK 71 — HOMEPAGE POLISH & ADMIN PORTAL FIX
+Priority: CRITICAL
+Production Fixes
+==========================================================
+
+DO NOT redesign the website.
+
+DO NOT change the branding.
+
+DO NOT change the overall layout or style.
+
+These are production polish items and bug fixes only.
+
+==========================================================
+1. FEATURED TRAINING PROGRAMS
+==========================================================
+
+Update the "Featured Training Programs" section.
+
+Current layout is not ideal.
+
+Display the training programs in:
+
+Row 1 (4 Cards)
+
+• Level II Security Officer Training
+• Level III Security Officer Training
+• Level IV Personal Protection Officer
+• Level III + IV Complete Package
+
+Row 2 (4 Cards)
+
+• Texas License to Carry Certification / Basic Handgun
+• Basic Handgun Skills Training (Personal 1:1)
+• Shotgun Course
+• AR-15 Rifle Course
+
+Requirements:
+
+• 4 equal-width cards per row on Desktop
+• 2 cards per row on Tablet
+• 1 card per row on Mobile
+• Equal spacing
+• Equal image sizes
+• Equal card heights
+• Consistent button alignment
+• Smooth responsive behavior
+
+==========================================================
+2. UPCOMING EVENTS SECTION
+==========================================================
+
+Completely polish the Upcoming Events section.
+
+Current section feels off-balance.
+
+Improve:
+
+• Center the section
+• Better spacing
+• Better typography hierarchy
+• Better alignment
+• More premium card layout
+• Better flyer presentation
+• Better CTA placement
+• Consistent padding
+• Equal card heights
+
+The section should feel like a premium events showcase.
+
+Maintain existing branding.
+
+==========================================================
+3. OUR TRAINING TEAM
+==========================================================
+
+Update the instructor photos.
+
+Current issue:
+
+Dr. Casilda Maxwell and Shannon Gulley photos are cropped too low and leave excessive empty space above their heads.
+
+Adjust image positioning using object-fit / object-position (or equivalent).
+
+Requirements:
+
+• Faces centered
+• Less empty space above the head
+• More of each instructor visible
+• Maintain aspect ratio
+• No stretching
+• No distortion
+• Match all other instructor cards
+
+Review ALL instructor photos for consistency.
+
+==========================================================
+4. ADMIN PORTAL BUG
+==========================================================
+
+Current Error:
+
+404: NOT_FOUND
+
+Code:
+DEPLOYMENT_NOT_FOUND
+
+This indicates the footer Admin Portal link is pointing to an invalid or outdated deployment URL.
+
+Locate the Admin Portal link used in the website footer.
+
+Replace it with the CURRENT production dashboard URL.
+
+DO NOT point to a temporary Vercel preview deployment.
+
+It MUST point to the permanent production deployment.
+
+Verify:
+
+✓ Desktop
+✓ Tablet
+✓ Mobile
+
+Requirements:
+
+• Admin Portal opens correctly.
+• No 404.
+• No Deployment Not Found error.
+• Login page loads.
+• Clerk authentication works.
+• Client can sign in.
+• Single-site auto redirect functions.
+• Corsair dashboard loads successfully.
+
+==========================================================
+5. FINAL QA
+==========================================================
+
+Verify:
+
+✓ Featured Training Programs layout is correct.
+✓ Upcoming Events section is centered and polished.
+✓ Instructor photos display correctly.
+✓ Admin Portal link works.
+✓ No console errors.
+✓ No broken links.
+✓ Responsive on Desktop, Tablet and Mobile.
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+These are final production polish items. The homepage should present a clean, premium, professionally balanced experience while ensuring the Admin Portal reliably connects to the live FSTS Website Operating System™ production dashboard.
