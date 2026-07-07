@@ -9,10 +9,9 @@ The FSTS dashboard grants `isSuperAdmin` only to the very first Clerk user ever 
 
 ## Convex deploy command
 ```
-mkdir -p /home/runner/workspace/.convex-tmp && \
-CONVEX_DEPLOY_KEY="..." CONVEX_TMPDIR=/home/runner/workspace/.convex-tmp npx convex deploy --yes
+bash scripts/deploy-convex.sh
 ```
-`CONVEX_TMPDIR` must be on the same filesystem as the project (not `/tmp`). Key is not stored as a secret — must be obtained from the user each session.
+`CONVEX_DEPLOY_KEY` is stored as a Replit secret — no manual key entry needed. `CONVEX_TMPDIR` is pinned to `/home/runner/workspace/.convex-tmp` inside the script to avoid cross-filesystem `mkdtemp` failures (do not use `/tmp`).
 
 **Why:** `/tmp` is on a different filesystem from the workspace on Replit, causing `mkdtemp` to fail.
 
