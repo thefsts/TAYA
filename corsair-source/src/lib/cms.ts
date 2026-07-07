@@ -13,16 +13,14 @@ const CONVEX_URL =
 
 const SITE_SLUG = "corsair-tactical";
 
-const FETCH_OPTS: RequestInit = {
-  // 4-second timeout; fall back gracefully if Convex is slow
-  next: { revalidate: 60 }, // ISR: re-validate every 60 seconds
-  signal: AbortSignal.timeout(4000),
-};
-
 async function cmsGet<T>(resource: string): Promise<T | null> {
   try {
     const url = `${CONVEX_URL}/api/public/${resource}?slug=${SITE_SLUG}`;
-    const res = await fetch(url, FETCH_OPTS);
+    const res = await fetch(url, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      next: { revalidate: 60 } as any,
+      signal: AbortSignal.timeout(4000),
+    });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
