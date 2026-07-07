@@ -1,15 +1,14 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useGetMe, useListSites } from "@workspace/api-client-react";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 import { useClerk } from "@clerk/react";
-import { 
-  Building2, 
-  Settings, 
-  Users, 
-  LogOut, 
+import {
+  Building2,
+  Settings,
+  Users,
+  LogOut,
   ChevronRight,
-  Shield,
-  Activity,
   Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,16 +17,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function SitesList() {
   const [, setLocation] = useLocation();
   const { signOut } = useClerk();
-  
-  const { data: me, isLoading: loadingMe } = useGetMe();
-  const { data: sites, isLoading: loadingSites } = useListSites();
 
-  // Single-site clients (e.g. a client_admin/editor with access to exactly one
-  // site) skip the picker entirely and land directly in that site's workspace.
-  // Super admins always see the picker since they typically manage multiple sites.
+  const me = useQuery(api.users.me);
+  const sites = useQuery(api.sites.list);
+
+  const loadingMe = me === undefined;
+  const loadingSites = sites === undefined;
+
   useEffect(() => {
     if (!loadingMe && !loadingSites && !me?.isSuperAdmin && sites?.length === 1) {
-      setLocation(`/app/sites/${sites[0].id}`, { replace: true });
+      setLocation(`/app/sites/${sites[0]._id}`, { replace: true });
     }
   }, [loadingMe, loadingSites, me?.isSuperAdmin, sites, setLocation]);
 
@@ -54,9 +53,9 @@ export default function SitesList() {
               </>
             )}
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="text-slate-300 hover:text-white hover:bg-slate-800"
             onClick={() => signOut({ redirectUrl: import.meta.env.BASE_URL || "/" })}
           >
@@ -72,7 +71,7 @@ export default function SitesList() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Your Sites</h1>
             <p className="text-slate-500 mt-1">Select a client site to enter its workspace.</p>
           </div>
-          
+
           {me?.isSuperAdmin && (
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setLocation("/app/admin/users")}>
@@ -102,14 +101,14 @@ export default function SitesList() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {sites?.map(site => (
-              <Link 
-                key={site.id} 
-                href={`/app/sites/${site.id}`}
+              <Link
+                key={site._id}
+                href={`/app/sites/${site._id}`}
                 className="group flex flex-col bg-white border border-slate-200 rounded-md shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 overflow-hidden"
               >
-                <div 
-                  className="h-2 w-full" 
-                  style={{ backgroundColor: site.brandColorPrimary || 'hsl(84 65% 25%)' }} 
+                <div
+                  className="h-2 w-full"
+                  style={{ backgroundColor: site.brandColorPrimary || 'hsl(84 65% 25%)' }}
                 />
                 <div className="p-5 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-4">
@@ -130,7 +129,7 @@ export default function SitesList() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-100">
                     <div className="flex items-center gap-2">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${

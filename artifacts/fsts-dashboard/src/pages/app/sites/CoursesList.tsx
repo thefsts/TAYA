@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import {
-  useListCourses,
-  useCreateCourse,
-  useUpdateCourse,
-  useDeleteCourse,
-  CourseInputStatus,
-  type Course,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,10 +36,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
 
+type CourseStatus = "draft" | "published" | "archived";
+
 type CourseFormState = {
   title: string;
   slug: string;
-  status: CourseInputStatus;
+  status: CourseStatus;
   description: string;
   durationLabel: string;
   priceCents: string;
@@ -54,7 +51,7 @@ type CourseFormState = {
 const emptyForm: CourseFormState = {
   title: "",
   slug: "",
-  status: CourseInputStatus.draft,
+  status: "draft",
   description: "",
   durationLabel: "",
   priceCents: "",
@@ -68,17 +65,19 @@ function statusVariant(status: string) {
 }
 
 export default function CoursesList({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useListCourses(siteId);
-  const createMutation = useCreateCourse();
-  const updateMutation = useUpdateCourse();
-  const deleteMutation = useDeleteCourse();
+  const data = useQuery(api.courses.list, { siteId });
+  const createCourse = useMutation(api.courses.create);
+  const updateCourse = useMutation(api.courses.update);
+  const deleteCourse = useMutation(api.courses.remove);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Course | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState<CourseFormState>(emptyForm);
-  const [deleteTarget, setDeleteTarget] = useState<Course | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function openCreate() {
     setEditing(null);
@@ -86,12 +85,12 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
     setDialogOpen(true);
   }
 
-  function openEdit(course: Course) {
+  function openEdit(course: any) {
     setEditing(course);
     setForm({
       title: course.title,
       slug: course.slug,
-      status: course.status as CourseInputStatus,
+      status: course.status as CourseStatus,
       description: course.description,
       durationLabel: course.durationLabel ?? "",
       priceCents: course.priceCents != null ? String(course.priceCents) : "",
@@ -100,61 +99,65 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
     setDialogOpen(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload = {
-      title: form.title,
-      slug: form.slug,
-      status: form.status,
-      description: form.description,
-      durationLabel: form.durationLabel || undefined,
-      priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
-      imageUrl: form.imageUrl || undefined,
-    };
-
-    const onSuccess = () => {
-      toast({ title: editing ? "Course updated" : "Course created" });
+    setIsPending(true);
+    try {
+      if (editing) {
+        await updateCourse({
+          siteId,
+          courseId: editing._id,
+          title: form.title,
+          slug: form.slug,
+          status: form.status,
+          description: form.description,
+          durationLabel: form.durationLabel || undefined,
+          priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
+          imageUrl: form.imageUrl || undefined,
+        });
+        toast({ title: "Course updated" });
+      } else {
+        await createCourse({
+          siteId,
+          title: form.title,
+          slug: form.slug,
+          status: form.status,
+          description: form.description,
+          durationLabel: form.durationLabel || undefined,
+          priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
+          imageUrl: form.imageUrl || undefined,
+        });
+        toast({ title: "Course created" });
+      }
       setDialogOpen(false);
-    };
-    const onError = (err: unknown) => {
+    } catch (err) {
       toast({
         title: "Something went wrong",
         description: err instanceof Error ? err.message : String(err),
         variant: "destructive",
       });
-    };
-
-    if (editing) {
-      updateMutation.mutate(
-        { siteId, courseId: editing.id, data: payload },
-        { onSuccess, onError },
-      );
-    } else {
-      createMutation.mutate({ siteId, data: payload }, { onSuccess, onError });
+    } finally {
+      setIsPending(false);
     }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
-    deleteMutation.mutate(
-      { siteId, courseId: deleteTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "Course deleted" });
-          setDeleteTarget(null);
-        },
-        onError: (err) => {
-          toast({
-            title: "Couldn't delete course",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          });
-        },
-      },
-    );
+    setIsDeleting(true);
+    try {
+      await deleteCourse({ siteId, courseId: deleteTarget._id });
+      toast({ title: "Course deleted" });
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't delete course",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   }
-
-  const saving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -169,11 +172,11 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
         </Button>
       </div>
 
-      {isLoading ? (
+      {data === undefined ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
-      ) : data?.length === 0 ? (
+      ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <BookOpen className="mx-auto h-10 w-10 text-slate-300 mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No courses yet</h3>
@@ -193,8 +196,8 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data?.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+              {data.map((c: any) => (
+                <tr key={c._id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-900">{c.title}</td>
                   <td className="px-4 py-3">
                     <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
@@ -203,7 +206,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                   <td className="px-4 py-3 text-slate-500">
                     {c.priceCents != null ? `$${(c.priceCents / 100).toFixed(2)}` : "—"}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{new Date(c.updatedAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-slate-500">{new Date(c._creationTime).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>
                       <Pencil className="h-4 w-4" />
@@ -242,12 +245,12 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as CourseInputStatus })}>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as CourseStatus })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={CourseInputStatus.draft}>Draft</SelectItem>
-                    <SelectItem value={CourseInputStatus.published}>Published</SelectItem>
-                    <SelectItem value={CourseInputStatus.archived}>Archived</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -266,7 +269,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+              <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -280,7 +283,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

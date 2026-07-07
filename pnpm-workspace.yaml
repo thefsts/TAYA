@@ -33,15 +33,16 @@ minimumReleaseAgeExclude:
   # this setting guards against does not apply to our own packages.
   - '@replit/*'
   - stripe-replit-sync
+  # Convex is a well-established BaaS (Convex Inc.) with a stable release cadence.
+  - convex
 
 packages:
   - artifacts/*
-  - lib/*
-  - lib/integrations/*
   - scripts
   - tests/*
 
 catalog:
+  convex: ^1.25.4
   '@replit/vite-plugin-cartographer': ^0.5.1
   '@replit/vite-plugin-dev-banner': ^0.1.1
   '@replit/vite-plugin-runtime-error-modal': ^0.0.6

@@ -1,4 +1,4 @@
-import { WebsiteType, type EnabledModules } from "@workspace/api-client-react";
+export type EnabledModules = Record<string, boolean>;
 
 export const WEBSITE_TYPE_LABELS: Record<string, string> = {
   business_website: "Business Website",
@@ -18,9 +18,9 @@ export const WEBSITE_TYPE_LABELS: Record<string, string> = {
   custom_enterprise: "Custom Enterprise",
 };
 
-export const WEBSITE_TYPE_OPTIONS = Object.values(WebsiteType).map((value) => ({
+export const WEBSITE_TYPE_OPTIONS = Object.keys(WEBSITE_TYPE_LABELS).map((value) => ({
   value,
-  label: WEBSITE_TYPE_LABELS[value] ?? value,
+  label: WEBSITE_TYPE_LABELS[value],
 }));
 
 export const MODULE_KEYS = [
@@ -68,7 +68,11 @@ const ALL_ON: EnabledModules = {
 };
 
 function modules(overrides: Partial<EnabledModules>): EnabledModules {
-  return { ...ALL_ON, ...overrides };
+  const result = { ...ALL_ON } as EnabledModules;
+  for (const key of Object.keys(overrides) as (keyof EnabledModules)[]) {
+    if (overrides[key] !== undefined) result[key] = overrides[key]!;
+  }
+  return result;
 }
 
 export const DEFAULT_MODULES_BY_WEBSITE_TYPE: Record<string, EnabledModules> = {

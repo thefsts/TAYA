@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import {
-  useListEvents,
-  useCreateEvent,
-  useUpdateEvent,
-  useDeleteEvent,
-  EventInputStatus,
-  type Event,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,10 +36,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Pencil, Plus, Trash2 } from "lucide-react";
 
+type EventStatus = "draft" | "published" | "archived";
+
 type EventFormState = {
   title: string;
   slug: string;
-  status: EventInputStatus;
+  status: EventStatus;
   description: string;
   startAt: string;
   endAt: string;
@@ -62,7 +59,7 @@ function toLocalInput(iso?: string | null): string {
 const emptyForm: EventFormState = {
   title: "",
   slug: "",
-  status: EventInputStatus.draft,
+  status: "draft",
   description: "",
   startAt: "",
   endAt: "",
@@ -77,17 +74,19 @@ function statusVariant(status: string) {
 }
 
 export default function EventsList({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useListEvents(siteId);
-  const createMutation = useCreateEvent();
-  const updateMutation = useUpdateEvent();
-  const deleteMutation = useDeleteEvent();
+  const data = useQuery(api.events.list, { siteId });
+  const createEvent = useMutation(api.events.create);
+  const updateEvent = useMutation(api.events.update);
+  const deleteEvent = useMutation(api.events.remove);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Event | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState<EventFormState>(emptyForm);
-  const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function openCreate() {
     setEditing(null);
@@ -95,12 +94,12 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
     setDialogOpen(true);
   }
 
-  function openEdit(ev: Event) {
+  function openEdit(ev: any) {
     setEditing(ev);
     setForm({
       title: ev.title,
       slug: ev.slug,
-      status: ev.status as EventInputStatus,
+      status: ev.status as EventStatus,
       description: ev.description,
       startAt: toLocalInput(ev.startAt),
       endAt: toLocalInput(ev.endAt),
@@ -110,59 +109,67 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
     setDialogOpen(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload = {
-      title: form.title,
-      slug: form.slug,
-      status: form.status,
-      description: form.description,
-      startAt: new Date(form.startAt).toISOString(),
-      endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
-      location: form.location || undefined,
-      imageUrl: form.imageUrl || undefined,
-    };
-
-    const onSuccess = () => {
-      toast({ title: editing ? "Event updated" : "Event created" });
+    setIsPending(true);
+    try {
+      if (editing) {
+        await updateEvent({
+          siteId,
+          eventId: editing._id,
+          title: form.title,
+          slug: form.slug,
+          status: form.status,
+          description: form.description,
+          startAt: new Date(form.startAt).toISOString(),
+          endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
+          location: form.location || undefined,
+          imageUrl: form.imageUrl || undefined,
+        });
+        toast({ title: "Event updated" });
+      } else {
+        await createEvent({
+          siteId,
+          title: form.title,
+          slug: form.slug,
+          status: form.status,
+          description: form.description,
+          startAt: new Date(form.startAt).toISOString(),
+          endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
+          location: form.location || undefined,
+          imageUrl: form.imageUrl || undefined,
+        });
+        toast({ title: "Event created" });
+      }
       setDialogOpen(false);
-    };
-    const onError = (err: unknown) => {
+    } catch (err) {
       toast({
         title: "Something went wrong",
         description: err instanceof Error ? err.message : String(err),
         variant: "destructive",
       });
-    };
-
-    if (editing) {
-      updateMutation.mutate({ siteId, eventId: editing.id, data: payload }, { onSuccess, onError });
-    } else {
-      createMutation.mutate({ siteId, data: payload }, { onSuccess, onError });
+    } finally {
+      setIsPending(false);
     }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
-    deleteMutation.mutate(
-      { siteId, eventId: deleteTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "Event deleted" });
-          setDeleteTarget(null);
-        },
-        onError: (err) => {
-          toast({
-            title: "Couldn't delete event",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          });
-        },
-      },
-    );
+    setIsDeleting(true);
+    try {
+      await deleteEvent({ siteId, eventId: deleteTarget._id });
+      toast({ title: "Event deleted" });
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't delete event",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   }
-
-  const saving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -177,11 +184,11 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
         </Button>
       </div>
 
-      {isLoading ? (
+      {data === undefined ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
-      ) : data?.length === 0 ? (
+      ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <CalendarDays className="mx-auto h-10 w-10 text-slate-300 mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No events yet</h3>
@@ -200,8 +207,8 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data?.map((ev) => (
-                <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
+              {data.map((ev: any) => (
+                <tr key={ev._id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-900">{ev.title}</td>
                   <td className="px-4 py-3"><Badge variant={statusVariant(ev.status)}>{ev.status}</Badge></td>
                   <td className="px-4 py-3 text-slate-500">{new Date(ev.startAt).toLocaleString()}</td>
@@ -254,12 +261,12 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as EventInputStatus })}>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as EventStatus })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={EventInputStatus.draft}>Draft</SelectItem>
-                    <SelectItem value={EventInputStatus.published}>Published</SelectItem>
-                    <SelectItem value={EventInputStatus.archived}>Archived</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -274,7 +281,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+              <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -288,7 +295,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

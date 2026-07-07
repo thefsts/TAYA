@@ -1,11 +1,8 @@
 import { useRef, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import {
-  useListMediaAssets,
-  useCreateMediaAsset,
-  useDeleteMediaAsset,
-  type MediaAsset,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,73 +34,69 @@ function formatBytes(bytes: number): string {
 }
 
 export default function MediaLibrary({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useListMediaAssets(siteId);
-  const createMutation = useCreateMediaAsset();
-  const deleteMutation = useDeleteMediaAsset();
+  const data = useQuery(api.media.list, { siteId });
+  const createMediaAsset = useMutation(api.media.create);
+  const deleteMediaAsset = useMutation(api.media.remove);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<MediaAsset | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [form, setForm] = useState({ url: "", fileName: "", altText: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function openCreate() {
     setForm({ url: "", fileName: "", altText: "" });
     setDialogOpen(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.url || !form.fileName) return;
     const ext = form.fileName.split(".").pop()?.toLowerCase() ?? "";
     const mimeType = ext === "png" ? "image/png" : ext === "svg" ? "image/svg+xml" : ext === "webp" ? "image/webp" : "image/jpeg";
 
-    createMutation.mutate(
-      {
+    setIsPending(true);
+    try {
+      await createMediaAsset({
         siteId,
-        data: {
-          url: form.url,
-          fileName: form.fileName,
-          mimeType,
-          sizeBytes: 0,
-          altText: form.altText || undefined,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({ title: "Media asset added" });
-          setDialogOpen(false);
-        },
-        onError: (err) => {
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          });
-        },
-      },
-    );
+        url: form.url,
+        fileName: form.fileName,
+        mimeType,
+        sizeBytes: 0,
+        altText: form.altText || undefined,
+      });
+      toast({ title: "Media asset added" });
+      setDialogOpen(false);
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
-    deleteMutation.mutate(
-      { siteId, mediaAssetId: deleteTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "Media asset deleted" });
-          setDeleteTarget(null);
-        },
-        onError: (err) => {
-          toast({
-            title: "Couldn't delete asset",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          });
-        },
-      },
-    );
+    setIsDeleting(true);
+    try {
+      await deleteMediaAsset({ siteId, mediaAssetId: deleteTarget._id });
+      toast({ title: "Media asset deleted" });
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't delete asset",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
@@ -119,11 +112,11 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
         </Button>
       </div>
 
-      {isLoading ? (
+      {data === undefined ? (
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-40 w-full" />)}
         </div>
-      ) : data?.length === 0 ? (
+      ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <ImageIcon className="mx-auto h-10 w-10 text-slate-300 mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No media yet</h3>
@@ -131,8 +124,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {data?.map((m) => (
-            <div key={m.id} className="group relative bg-white border border-slate-200 rounded-md overflow-hidden">
+          {data.map((m: any) => (
+            <div key={m._id} className="group relative bg-white border border-slate-200 rounded-md overflow-hidden">
               <div className="aspect-square bg-slate-100 flex items-center justify-center overflow-hidden">
                 {m.mimeType.startsWith("image/") ? (
                   <img src={m.thumbnailUrl ?? m.url} alt={m.altText ?? m.fileName} className="w-full h-full object-cover" />
@@ -177,7 +170,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
             <input ref={fileInputRef} type="file" className="hidden" />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? "Saving…" : "Save"}</Button>
+              <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -191,7 +184,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

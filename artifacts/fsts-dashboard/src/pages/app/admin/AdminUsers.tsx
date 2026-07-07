@@ -1,14 +1,7 @@
 import { useState } from "react";
-import {
-  useGetMe,
-  useListUsers,
-  useListSites,
-  useCreateUser,
-  useUpdateUser,
-  useDeleteUser,
-  Role,
-  type DashboardUser,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Redirect } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -46,28 +39,32 @@ const ROLE_LABELS: Record<string, string> = {
   read_only: "Read Only",
 };
 
+const ROLES = ["client_admin", "editor", "marketing", "training_manager", "read_only"];
+
 type RoleAssignmentForm = { siteId: string; role: string };
 
 export default function AdminUsers() {
-  const { data: me, isLoading: meLoading } = useGetMe();
-  const { data: users, isLoading: usersLoading } = useListUsers();
-  const { data: sites } = useListSites();
+  const me = useQuery(api.users.me);
+  const users = useQuery(api.users.list);
+  const sites = useQuery(api.sites.list);
   const { toast } = useToast();
 
-  const createMutation = useCreateUser();
-  const updateMutation = useUpdateUser();
-  const deleteMutation = useDeleteUser();
+  const createUser = useMutation(api.users.create);
+  const updateUser = useMutation(api.users.update);
+  const deleteUser = useMutation(api.users.remove);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<DashboardUser | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<DashboardUser | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [assignments, setAssignments] = useState<RoleAssignmentForm[]>([]);
+  const [isPending, setIsPending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  if (meLoading) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
+  if (me === undefined) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
   if (me && !me.isSuperAdmin) return <Redirect to="/app" />;
 
   function openCreate() {
@@ -80,74 +77,59 @@ export default function AdminUsers() {
     setDialogOpen(true);
   }
 
-  function openEdit(u: DashboardUser) {
+  function openEdit(u: any) {
     setEditing(u);
     setName(u.name);
     setEmail(u.email);
     setIsSuperAdmin(u.isSuperAdmin);
     setIsActive(u.isActive);
-    setAssignments(u.roleAssignments.map((r) => ({ siteId: String(r.siteId), role: r.role })));
+    setAssignments((u.roleAssignments ?? []).map((r: any) => ({ siteId: String(r.siteId), role: r.role })));
     setDialogOpen(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const roleAssignments = assignments
       .filter((a) => a.siteId && a.role)
-      .map((a) => ({ siteId: parseInt(a.siteId, 10), role: a.role as (typeof Role)[keyof typeof Role] }));
+      .map((a) => ({ siteId: a.siteId as Id<"sites">, role: a.role }));
 
-    if (editing) {
-      updateMutation.mutate(
-        { userId: editing.id, data: { name, isSuperAdmin, isActive, roleAssignments } },
-        {
-          onSuccess: () => {
-            toast({ title: "User updated" });
-            setDialogOpen(false);
-          },
-          onError: (err) =>
-            toast({
-              title: "Something went wrong",
-              description: err instanceof Error ? err.message : String(err),
-              variant: "destructive",
-            }),
-        },
-      );
-    } else {
-      createMutation.mutate(
-        { data: { name, email, isSuperAdmin, roleAssignments } },
-        {
-          onSuccess: () => {
-            toast({ title: "User created" });
-            setDialogOpen(false);
-          },
-          onError: (err) =>
-            toast({
-              title: "Something went wrong",
-              description: err instanceof Error ? err.message : String(err),
-              variant: "destructive",
-            }),
-        },
-      );
+    setIsPending(true);
+    try {
+      if (editing) {
+        await updateUser({ userId: editing._id, name, isSuperAdmin, isActive, roleAssignments });
+        toast({ title: "User updated" });
+      } else {
+        await createUser({ name, email, isSuperAdmin, roleAssignments });
+        toast({ title: "User created" });
+      }
+      setDialogOpen(false);
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
     }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
-    deleteMutation.mutate(
-      { userId: deleteTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "User removed" });
-          setDeleteTarget(null);
-        },
-        onError: (err) =>
-          toast({
-            title: "Couldn't remove user",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+    setIsDeleting(true);
+    try {
+      await deleteUser({ userId: deleteTarget._id });
+      toast({ title: "User removed" });
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't remove user",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
@@ -162,7 +144,7 @@ export default function AdminUsers() {
         </Button>
       </div>
 
-      {usersLoading ? (
+      {users === undefined ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
         </div>
@@ -179,8 +161,8 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {users?.map((user) => (
-                <tr key={user.id}>
+              {(users ?? []).map((user: any) => (
+                <tr key={user._id}>
                   <td className="px-4 py-3 font-medium text-slate-900">{user.name}</td>
                   <td className="px-4 py-3 text-slate-500">{user.email}</td>
                   <td className="px-4 py-3">
@@ -188,10 +170,10 @@ export default function AdminUsers() {
                       <Badge variant="secondary">Super Admin</Badge>
                     ) : (
                       <div className="flex flex-wrap gap-1">
-                        {user.roleAssignments.length === 0 ? (
+                        {(user.roleAssignments ?? []).length === 0 ? (
                           <span className="text-slate-400 text-xs">No sites</span>
                         ) : (
-                          user.roleAssignments.map((r) => (
+                          (user.roleAssignments ?? []).map((r: any) => (
                             <Badge key={r.siteId} variant="outline">
                               {r.siteName}: {ROLE_LABELS[r.role] ?? r.role}
                             </Badge>
@@ -207,7 +189,7 @@ export default function AdminUsers() {
                   </td>
                 </tr>
               ))}
-              {users?.length === 0 && (
+              {(users ?? []).length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-slate-500">No users found.</td>
                 </tr>
@@ -250,7 +232,7 @@ export default function AdminUsers() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setAssignments([...assignments, { siteId: "", role: Role.editor }])}
+                    onClick={() => setAssignments([...assignments, { siteId: "", role: "editor" }])}
                   >
                     <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
@@ -264,7 +246,7 @@ export default function AdminUsers() {
                     }}>
                       <SelectTrigger><SelectValue placeholder="Site" /></SelectTrigger>
                       <SelectContent>
-                        {sites?.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
+                        {sites?.map((s: any) => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Select value={a.role} onValueChange={(v) => {
@@ -274,7 +256,7 @@ export default function AdminUsers() {
                     }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {Object.values(Role).filter((r) => r !== Role.super_admin).map((r) => (
+                        {ROLES.map((r) => (
                           <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
                         ))}
                       </SelectContent>
@@ -289,8 +271,8 @@ export default function AdminUsers() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? "Saving…" : "Save"}
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Saving…" : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -305,7 +287,7 @@ export default function AdminUsers() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Remove</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">Remove</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

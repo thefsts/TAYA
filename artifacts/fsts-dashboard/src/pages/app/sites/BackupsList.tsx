@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useListBackups, useCreateBackup, useRestoreBackup, type Backup } from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,46 +25,48 @@ function formatBytes(bytes: number): string {
 }
 
 export default function BackupsList({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useListBackups(siteId);
-  const createMutation = useCreateBackup();
-  const restoreMutation = useRestoreBackup();
+  const data = useQuery(api.backups.list, { siteId });
+  const createBackup = useMutation(api.backups.create);
+  const restoreBackup = useMutation(api.backups.restore);
 
-  const [restoreTarget, setRestoreTarget] = useState<Backup | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<any | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
 
-  function handleCreate() {
-    createMutation.mutate(
-      { siteId },
-      {
-        onSuccess: () => toast({ title: "Backup created" }),
-        onError: (err) =>
-          toast({
-            title: "Couldn't create backup",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function handleCreate() {
+    setIsCreating(true);
+    try {
+      await createBackup({ siteId });
+      toast({ title: "Backup created" });
+    } catch (err) {
+      toast({
+        title: "Couldn't create backup",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   }
 
-  function confirmRestore() {
+  async function confirmRestore() {
     if (!restoreTarget) return;
-    restoreMutation.mutate(
-      { siteId, backupId: restoreTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "Site restored from backup" });
-          setRestoreTarget(null);
-        },
-        onError: (err) =>
-          toast({
-            title: "Couldn't restore backup",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+    setIsRestoring(true);
+    try {
+      await restoreBackup({ siteId, backupId: restoreTarget._id });
+      toast({ title: "Site restored from backup" });
+      setRestoreTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't restore backup",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsRestoring(false);
+    }
   }
 
   return (
@@ -72,13 +76,13 @@ export default function BackupsList({ params }: { params: { siteId: string } }) 
           <h1 className="text-2xl font-bold text-slate-900">Backups</h1>
           <p className="text-sm text-slate-500 mt-0.5">Point-in-time snapshots of the entire site.</p>
         </div>
-        <Button onClick={handleCreate} disabled={createMutation.isPending}>
-          {createMutation.isPending ? "Creating…" : "Create Backup"}
+        <Button onClick={handleCreate} disabled={isCreating}>
+          {isCreating ? "Creating…" : "Create Backup"}
         </Button>
       </div>
-      {isLoading ? (
+      {data === undefined ? (
         <Skeleton className="h-64" />
-      ) : data?.length === 0 ? (
+      ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <Archive className="mx-auto h-10 w-10 text-slate-300 mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No backups yet</h3>
@@ -96,11 +100,11 @@ export default function BackupsList({ params }: { params: { siteId: string } }) 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data?.map((b) => (
-                <tr key={b.id}>
+              {data.map((b) => (
+                <tr key={b._id}>
                   <td className="px-4 py-3 font-medium text-slate-900">{b.label}</td>
                   <td className="px-4 py-3 text-slate-500">{formatBytes(b.sizeBytes)}</td>
-                  <td className="px-4 py-3 text-slate-500">{new Date(b.createdAt).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-slate-500">{new Date(b._creationTime).toLocaleString()}</td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="outline" size="sm" onClick={() => setRestoreTarget(b)}>
                       <RotateCcw className="h-4 w-4 mr-1" /> Restore
@@ -123,7 +127,7 @@ export default function BackupsList({ params }: { params: { siteId: string } }) 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRestore} className="bg-red-600 hover:bg-red-700">Restore</AlertDialogAction>
+            <AlertDialogAction onClick={confirmRestore} disabled={isRestoring} className="bg-red-600 hover:bg-red-700">Restore</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

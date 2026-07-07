@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import {
-  useGetSquareConfig,
-  useUpdateSquareConfig,
-  useListSquareCatalogMappings,
-  useCreateSquareCatalogMapping,
-  useUpdateSquareCatalogMapping,
-  useDeleteSquareCatalogMapping,
-  SquareConfigInputEnvironment,
-  type SquareCatalogMapping,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,68 +29,70 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, CreditCard } from "lucide-react";
 
+type SquareEnv = "sandbox" | "production";
+
 export default function PaymentsConfig({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
 
-  const { data: config, isLoading: configLoading } = useGetSquareConfig(siteId);
-  const updateConfigMutation = useUpdateSquareConfig();
+  const config = useQuery(api.square.getConfig, { siteId });
+  const updateSquareConfig = useMutation(api.square.updateConfig);
 
-  const { data: mappings, isLoading: mappingsLoading } = useListSquareCatalogMappings(siteId);
-  const createMappingMutation = useCreateSquareCatalogMapping();
-  const updateMappingMutation = useUpdateSquareCatalogMapping();
-  const deleteMappingMutation = useDeleteSquareCatalogMapping();
+  const mappings = useQuery(api.square.listMappings, { siteId });
+  const createSquareCatalogMapping = useMutation(api.square.createMapping);
+  const updateSquareCatalogMapping = useMutation(api.square.updateMapping);
+  const deleteSquareCatalogMapping = useMutation(api.square.removeMapping);
 
-  const [environment, setEnvironment] = useState<SquareConfigInputEnvironment>(SquareConfigInputEnvironment.sandbox);
+  const [environment, setEnvironment] = useState<SquareEnv>("sandbox");
   const [applicationId, setApplicationId] = useState("");
   const [locationId, setLocationId] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [checkoutEnabled, setCheckoutEnabled] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
 
   useEffect(() => {
     if (config) {
-      setEnvironment(config.environment as SquareConfigInputEnvironment);
+      setEnvironment((config.environment as SquareEnv) ?? "sandbox");
       setLocationId(config.locationId ?? "");
       setCheckoutEnabled(config.checkoutEnabled ?? false);
     }
   }, [config]);
 
-  function handleSaveConfig() {
-    updateConfigMutation.mutate(
-      {
+  async function handleSaveConfig() {
+    setIsSavingConfig(true);
+    try {
+      await updateSquareConfig({
         siteId,
-        data: {
-          environment,
-          applicationId: applicationId || undefined,
-          locationId: locationId || undefined,
-          accessToken: accessToken || undefined,
-          checkoutEnabled,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({ title: "Square configuration saved" });
-          setAccessToken("");
-        },
-        onError: (err) =>
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+        environment,
+        applicationId: applicationId || undefined,
+        locationId: locationId || undefined,
+        accessToken: accessToken || undefined,
+        checkoutEnabled,
+      });
+      toast({ title: "Square configuration saved" });
+      setAccessToken("");
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingConfig(false);
+    }
   }
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<SquareCatalogMapping | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<SquareCatalogMapping | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [form, setForm] = useState({
     entityType: "course" as "course" | "event",
     entityId: "",
     squareItemId: "",
     squareVariationId: "",
   });
+  const [isSavingMapping, setIsSavingMapping] = useState(false);
+  const [isDeletingMapping, setIsDeletingMapping] = useState(false);
 
   function openCreate() {
     setEditing(null);
@@ -105,7 +100,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
     setDialogOpen(true);
   }
 
-  function openEdit(m: SquareCatalogMapping) {
+  function openEdit(m: any) {
     setEditing(m);
     setForm({
       entityType: m.entityType,
@@ -116,72 +111,56 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
     setDialogOpen(true);
   }
 
-  function handleMappingSubmit(e: React.FormEvent) {
+  async function handleMappingSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (editing) {
-      updateMappingMutation.mutate(
-        {
+    setIsSavingMapping(true);
+    try {
+      if (editing) {
+        await updateSquareCatalogMapping({
           siteId,
-          mappingId: editing.id,
-          data: { squareItemId: form.squareItemId, squareVariationId: form.squareVariationId },
-        },
-        {
-          onSuccess: () => {
-            toast({ title: "Mapping updated" });
-            setDialogOpen(false);
-          },
-          onError: (err) =>
-            toast({
-              title: "Something went wrong",
-              description: err instanceof Error ? err.message : String(err),
-              variant: "destructive",
-            }),
-        },
-      );
-    } else {
-      createMappingMutation.mutate(
-        {
+          mappingId: editing._id,
+          squareItemId: form.squareItemId,
+          squareVariationId: form.squareVariationId,
+        });
+        toast({ title: "Mapping updated" });
+      } else {
+        await createSquareCatalogMapping({
           siteId,
-          data: {
-            entityType: form.entityType,
-            entityId: parseInt(form.entityId, 10),
-            squareItemId: form.squareItemId,
-            squareVariationId: form.squareVariationId,
-          },
-        },
-        {
-          onSuccess: () => {
-            toast({ title: "Mapping created" });
-            setDialogOpen(false);
-          },
-          onError: (err) =>
-            toast({
-              title: "Something went wrong",
-              description: err instanceof Error ? err.message : String(err),
-              variant: "destructive",
-            }),
-        },
-      );
+          entityType: form.entityType,
+          entityId: form.entityId,
+          squareItemId: form.squareItemId,
+          squareVariationId: form.squareVariationId,
+        });
+        toast({ title: "Mapping created" });
+      }
+      setDialogOpen(false);
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingMapping(false);
     }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
-    deleteMappingMutation.mutate(
-      { siteId, mappingId: deleteTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "Mapping deleted" });
-          setDeleteTarget(null);
-        },
-        onError: (err) =>
-          toast({
-            title: "Couldn't delete mapping",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+    setIsDeletingMapping(true);
+    try {
+      await deleteSquareCatalogMapping({ siteId, mappingId: deleteTarget._id });
+      toast({ title: "Mapping deleted" });
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't delete mapping",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingMapping(false);
+    }
   }
 
   return (
@@ -189,7 +168,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
       <h1 className="text-2xl font-bold text-slate-900 mb-1">Payments</h1>
       <p className="text-sm text-slate-500 mb-6">Square connection and catalog mappings for courses and events.</p>
 
-      {configLoading ? (
+      {config === undefined ? (
         <Skeleton className="h-56 max-w-xl" />
       ) : (
         <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm max-w-xl mb-8 space-y-4">
@@ -202,11 +181,11 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
           </div>
           <div className="space-y-1.5">
             <Label>Environment</Label>
-            <Select value={environment} onValueChange={(v) => setEnvironment(v as SquareConfigInputEnvironment)}>
+            <Select value={environment} onValueChange={(v) => setEnvironment(v as SquareEnv)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={SquareConfigInputEnvironment.sandbox}>Sandbox</SelectItem>
-                <SelectItem value={SquareConfigInputEnvironment.production}>Production</SelectItem>
+                <SelectItem value="sandbox">Sandbox</SelectItem>
+                <SelectItem value="production">Production</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -226,8 +205,8 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
             <Label>Enable Checkout</Label>
             <Switch checked={checkoutEnabled} onCheckedChange={setCheckoutEnabled} />
           </div>
-          <Button onClick={handleSaveConfig} disabled={updateConfigMutation.isPending}>
-            {updateConfigMutation.isPending ? "Saving…" : "Save Configuration"}
+          <Button onClick={handleSaveConfig} disabled={isSavingConfig}>
+            {isSavingConfig ? "Saving…" : "Save Configuration"}
           </Button>
         </div>
       )}
@@ -239,9 +218,9 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
         </Button>
       </div>
 
-      {mappingsLoading ? (
+      {mappings === undefined ? (
         <Skeleton className="h-40" />
-      ) : mappings?.length === 0 ? (
+      ) : mappings.length === 0 ? (
         <p className="text-sm text-slate-500 bg-white border border-slate-200 rounded-md p-6 text-center">
           No catalog mappings yet. Link a course or event to a Square item.
         </p>
@@ -258,8 +237,8 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {mappings?.map((m) => (
-                <tr key={m.id}>
+              {mappings.map((m: any) => (
+                <tr key={m._id}>
                   <td className="px-4 py-2 capitalize">{m.entityType}</td>
                   <td className="px-4 py-2">{m.entityId}</td>
                   <td className="px-4 py-2 font-mono text-xs">{m.squareItemId}</td>
@@ -295,7 +274,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
                 </div>
                 <div className="space-y-1.5">
                   <Label>Entity ID</Label>
-                  <Input required type="number" value={form.entityId} onChange={(e) => setForm({ ...form, entityId: e.target.value })} />
+                  <Input required value={form.entityId} onChange={(e) => setForm({ ...form, entityId: e.target.value })} />
                 </div>
               </>
             )}
@@ -309,8 +288,8 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={createMappingMutation.isPending || updateMappingMutation.isPending}>
-                {createMappingMutation.isPending || updateMappingMutation.isPending ? "Saving…" : "Save"}
+              <Button type="submit" disabled={isSavingMapping}>
+                {isSavingMapping ? "Saving…" : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -325,7 +304,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeletingMapping} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

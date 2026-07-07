@@ -1,12 +1,14 @@
 import { useLocation, useParams, Link } from "wouter";
-import { useGetSite, useGetSiteDashboardSummary } from "@workspace/api-client-react";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit } from "lucide-react";
-import { 
-  ArrowLeft, 
-  LayoutTemplate, 
-  BookOpen, 
-  Calendar, 
-  FileText, 
+import {
+  ArrowLeft,
+  LayoutTemplate,
+  BookOpen,
+  Calendar,
+  FileText,
   Image as ImageIcon,
   Search,
   Settings,
@@ -26,11 +28,11 @@ import { Button } from "@/components/ui/button";
 function NavItem({ icon: Icon, label, href }: { icon: any, label: string, href: string }) {
   const [location] = useLocation();
   const isActive = location === href;
-  
+
   return (
     <Link href={href}>
-      <Button 
-        variant={isActive ? "secondary" : "ghost"} 
+      <Button
+        variant={isActive ? "secondary" : "ghost"}
         className={`w-full justify-start h-10 px-3 ${isActive ? 'bg-primary/10 text-primary font-medium hover:bg-primary/15' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-normal'}`}
       >
         <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-primary' : 'text-slate-500'}`} />
@@ -41,11 +43,10 @@ function NavItem({ icon: Icon, label, href }: { icon: any, label: string, href: 
 }
 
 export function AppLayout({ children, siteId }: { children: React.ReactNode, siteId: string }) {
-  const id = parseInt(siteId, 10);
-  const { data: site, isLoading } = useGetSite(id);
+  const site = useQuery(api.sites.get, { siteId: siteId as Id<"sites"> });
   const [location] = useLocation();
-  const modules = site?.enabledModules;
-  const isEnabled = (key: keyof NonNullable<typeof modules>) => modules?.[key] ?? true;
+  const modules = site?.enabledModules as Record<string, boolean> | undefined;
+  const isEnabled = (key: string) => modules?.[key] ?? true;
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -59,9 +60,9 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
             </Button>
           </Link>
         </div>
-        
+
         <div className="p-4 border-b border-slate-200">
-          {isLoading ? (
+          {site === undefined ? (
             <div className="flex items-center gap-3">
               <Skeleton className="h-10 w-10 rounded" />
               <div className="space-y-2 flex-1">
@@ -155,18 +156,13 @@ function StatCard({ title, value, label }: { title: string, value: string | numb
 
 export default function SiteDashboard() {
   const params = useParams();
-  const siteIdStr = params.siteId;
-  const siteId = parseInt(siteIdStr || "0", 10);
-  
-  const { data: summary, isLoading } = useGetSiteDashboardSummary(siteId, {
-    query: { enabled: !!siteId, queryKey: ['site-summary', siteId] }
-  });
-  const { data: site } = useGetSite(siteId, {
-    query: { enabled: !!siteId, queryKey: ["site", siteId] },
-  });
+  const siteId = params.siteId as unknown as Id<"sites">;
+
+  const summary = useQuery(api.sites.getDashboardSummary, { siteId });
+  const site = useQuery(api.sites.get, { siteId });
 
   return (
-    <AppLayout siteId={siteIdStr!}>
+    <AppLayout siteId={siteId}>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Welcome back, {site?.name ?? "there"}</h1>
@@ -184,7 +180,7 @@ export default function SiteDashboard() {
         </div>
       </div>
 
-      {isLoading ? (
+      {summary === undefined ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[1,2,3,4].map(i => <Skeleton key={i} className="h-28 rounded-xl bg-slate-200" />)}
         </div>
@@ -206,15 +202,15 @@ export default function SiteDashboard() {
                 <CardContent>
                   {summary.recentActivity && summary.recentActivity.length > 0 ? (
                     <div className="space-y-4">
-                      {summary.recentActivity.map(activity => (
-                        <div key={activity.id} className="flex gap-4 text-sm">
+                      {summary.recentActivity.map((activity: any) => (
+                        <div key={activity._id} className="flex gap-4 text-sm">
                           <div className="mt-0.5 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                           <div>
                             <p className="text-slate-900">
                               <span className="font-semibold">{activity.actorName}</span> {activity.action} {activity.entityType} {activity.details && <span className="text-slate-500">— {activity.details}</span>}
                             </p>
                             <p className="text-xs text-slate-400 mt-1 font-mono">
-                              {new Date(activity.createdAt).toLocaleString()}
+                              {new Date(activity._creationTime).toLocaleString()}
                             </p>
                           </div>
                         </div>
@@ -226,7 +222,7 @@ export default function SiteDashboard() {
                 </CardContent>
               </Card>
             </div>
-            
+
             <div className="space-y-4">
               <Card className="shadow-sm border-slate-200">
                 <CardHeader>
@@ -255,7 +251,7 @@ export default function SiteDashboard() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-600">Performance</span>
                     <span className="text-slate-900 font-mono text-xs">
-                      {summary.responseTimeMs !== null && summary.responseTimeMs !== undefined ? `${summary.responseTimeMs}ms` : '—'}
+                      {summary.responseTimeMs != null ? `${summary.responseTimeMs}ms` : '—'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">

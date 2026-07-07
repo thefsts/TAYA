@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useGetEmailSettings, useUpdateEmailSettings } from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,47 +11,49 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
 export default function EmailConfig({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useGetEmailSettings(siteId);
-  const updateMutation = useUpdateEmailSettings();
+  const data = useQuery(api.email.get, { siteId });
+  const updateEmailSettings = useMutation(api.email.update);
 
   const [fromName, setFromName] = useState("");
   const [fromEmail, setFromEmail] = useState("");
   const [replyToEmail, setReplyToEmail] = useState("");
   const [notifyOnNewLead, setNotifyOnNewLead] = useState(false);
   const [notifyOnBooking, setNotifyOnBooking] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (data) {
-      setFromName(data.fromName);
-      setFromEmail(data.fromEmail);
-      setReplyToEmail(data.replyToEmail);
+      setFromName(data.fromName ?? "");
+      setFromEmail(data.fromEmail ?? "");
+      setReplyToEmail(data.replyToEmail ?? "");
       setNotifyOnNewLead(data.notifyOnNewLead ?? false);
       setNotifyOnBooking(data.notifyOnBooking ?? false);
     }
   }, [data]);
 
-  function handleSave() {
-    updateMutation.mutate(
-      { siteId, data: { fromName, fromEmail, replyToEmail, notifyOnNewLead, notifyOnBooking } },
-      {
-        onSuccess: () => toast({ title: "Email settings updated" }),
-        onError: (err) =>
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function handleSave() {
+    setIsPending(true);
+    try {
+      await updateEmailSettings({ siteId, fromName, fromEmail, replyToEmail, notifyOnNewLead, notifyOnBooking });
+      toast({ title: "Email settings updated" });
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
     <AppLayout siteId={params.siteId}>
       <h1 className="text-2xl font-bold text-slate-900 mb-1">Email Settings</h1>
       <p className="text-sm text-slate-500 mb-6">Outbound email identity and notification preferences.</p>
-      {isLoading ? (
+      {data === undefined ? (
         <Skeleton className="h-64 max-w-xl" />
       ) : (
         <div className="bg-white p-6 border border-slate-200 rounded-md shadow-sm max-w-xl space-y-4">
@@ -74,8 +78,8 @@ export default function EmailConfig({ params }: { params: { siteId: string } }) 
             <Switch checked={notifyOnBooking} onCheckedChange={setNotifyOnBooking} />
           </div>
           <div className="pt-2">
-            <Button onClick={handleSave} disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Saving…" : "Save Settings"}
+            <Button onClick={handleSave} disabled={isPending}>
+              {isPending ? "Saving…" : "Save Settings"}
             </Button>
           </div>
         </div>

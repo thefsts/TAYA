@@ -1,15 +1,6 @@
 import { useState } from "react";
-import {
-  useGetMe,
-  useListSites,
-  useCreateSite,
-  useUpdateSite,
-  useDeleteSite,
-  SiteStatus,
-  WebsiteType,
-  type Site,
-  type EnabledModules,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
 import {
   WEBSITE_TYPE_OPTIONS,
   WEBSITE_TYPE_LABELS,
@@ -45,32 +36,38 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
+type SiteStatus = "active" | "staging" | "archived";
+type WebsiteType = string;
+type EnabledModules = Record<string, boolean>;
+
 export default function AdminSites() {
-  const { data: me, isLoading: meLoading } = useGetMe();
-  const { data: sites, isLoading: sitesLoading } = useListSites();
+  const me = useQuery(api.users.me);
+  const sites = useQuery(api.sites.list);
   const { toast } = useToast();
 
-  const createMutation = useCreateSite();
-  const updateMutation = useUpdateSite();
-  const deleteMutation = useDeleteSite();
+  const createSite = useMutation(api.sites.create);
+  const updateSite = useMutation(api.sites.update);
+  const deleteSite = useMutation(api.sites.remove);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Site | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Site | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [form, setForm] = useState({
     name: "",
     slug: "",
-    status: SiteStatus.staging as string,
+    status: "staging" as SiteStatus,
     domain: "",
     brandColorPrimary: "#1d4ed8",
     brandColorSecondary: "#0f172a",
     whiteLabelEnabled: false,
     poweredByFsts: true,
-    websiteType: WebsiteType.business_website as string,
-    enabledModules: defaultModulesForWebsiteType(WebsiteType.business_website) as EnabledModules,
+    websiteType: "business_website" as WebsiteType,
+    enabledModules: defaultModulesForWebsiteType("business_website") as EnabledModules,
   });
+  const [isPending, setIsPending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  if (meLoading) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
+  if (me === undefined) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
   if (me && !me.isSuperAdmin) return <Redirect to="/app" />;
 
   function openCreate() {
@@ -78,31 +75,31 @@ export default function AdminSites() {
     setForm({
       name: "",
       slug: "",
-      status: SiteStatus.staging,
+      status: "staging",
       domain: "",
       brandColorPrimary: "#1d4ed8",
       brandColorSecondary: "#0f172a",
       whiteLabelEnabled: false,
       poweredByFsts: true,
-      websiteType: WebsiteType.business_website,
-      enabledModules: defaultModulesForWebsiteType(WebsiteType.business_website),
+      websiteType: "business_website",
+      enabledModules: defaultModulesForWebsiteType("business_website"),
     });
     setDialogOpen(true);
   }
 
-  function openEdit(s: Site) {
+  function openEdit(s: any) {
     setEditing(s);
     setForm({
       name: s.name,
       slug: s.slug,
-      status: s.status,
+      status: s.status as SiteStatus,
       domain: s.domain ?? "",
       brandColorPrimary: s.brandColorPrimary,
       brandColorSecondary: s.brandColorSecondary,
       whiteLabelEnabled: s.whiteLabelEnabled ?? false,
       poweredByFsts: s.poweredByFsts ?? true,
       websiteType: s.websiteType,
-      enabledModules: s.enabledModules ?? defaultModulesForWebsiteType(s.websiteType),
+      enabledModules: (s.enabledModules as EnabledModules) ?? defaultModulesForWebsiteType(s.websiteType),
     });
     setDialogOpen(true);
   }
@@ -111,86 +108,67 @@ export default function AdminSites() {
     setForm((f) => ({ ...f, websiteType: type, enabledModules: defaultModulesForWebsiteType(type) }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (editing) {
-      updateMutation.mutate(
-        {
-          siteId: editing.id,
-          data: {
-            name: form.name,
-            status: form.status as (typeof SiteStatus)[keyof typeof SiteStatus],
-            domain: form.domain || undefined,
-            brandColorPrimary: form.brandColorPrimary,
-            brandColorSecondary: form.brandColorSecondary,
-            whiteLabelEnabled: form.whiteLabelEnabled,
-            poweredByFsts: form.poweredByFsts,
-            websiteType: form.websiteType as (typeof WebsiteType)[keyof typeof WebsiteType],
-            enabledModules: form.enabledModules,
-          },
-        },
-        {
-          onSuccess: () => {
-            toast({ title: "Site updated" });
-            setDialogOpen(false);
-          },
-          onError: (err) =>
-            toast({
-              title: "Something went wrong",
-              description: err instanceof Error ? err.message : String(err),
-              variant: "destructive",
-            }),
-        },
-      );
-    } else {
-      createMutation.mutate(
-        {
-          data: {
-            name: form.name,
-            slug: form.slug,
-            status: form.status as (typeof SiteStatus)[keyof typeof SiteStatus],
-            domain: form.domain || undefined,
-            brandColorPrimary: form.brandColorPrimary,
-            brandColorSecondary: form.brandColorSecondary,
-            whiteLabelEnabled: form.whiteLabelEnabled,
-            poweredByFsts: form.poweredByFsts,
-            websiteType: form.websiteType as (typeof WebsiteType)[keyof typeof WebsiteType],
-            enabledModules: form.enabledModules,
-          },
-        },
-        {
-          onSuccess: () => {
-            toast({ title: "Site created" });
-            setDialogOpen(false);
-          },
-          onError: (err) =>
-            toast({
-              title: "Something went wrong",
-              description: err instanceof Error ? err.message : String(err),
-              variant: "destructive",
-            }),
-        },
-      );
+    setIsPending(true);
+    try {
+      if (editing) {
+        await updateSite({
+          siteId: editing._id,
+          name: form.name,
+          status: form.status,
+          domain: form.domain || undefined,
+          brandColorPrimary: form.brandColorPrimary,
+          brandColorSecondary: form.brandColorSecondary,
+          whiteLabelEnabled: form.whiteLabelEnabled,
+          poweredByFsts: form.poweredByFsts,
+          websiteType: form.websiteType,
+          enabledModules: form.enabledModules,
+        });
+        toast({ title: "Site updated" });
+      } else {
+        await createSite({
+          name: form.name,
+          slug: form.slug,
+          status: form.status,
+          domain: form.domain || undefined,
+          brandColorPrimary: form.brandColorPrimary,
+          brandColorSecondary: form.brandColorSecondary,
+          whiteLabelEnabled: form.whiteLabelEnabled,
+          poweredByFsts: form.poweredByFsts,
+          websiteType: form.websiteType,
+          enabledModules: form.enabledModules,
+        });
+        toast({ title: "Site created" });
+      }
+      setDialogOpen(false);
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
     }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
-    deleteMutation.mutate(
-      { siteId: deleteTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "Site deleted" });
-          setDeleteTarget(null);
-        },
-        onError: (err) =>
-          toast({
-            title: "Couldn't delete site",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+    setIsDeleting(true);
+    try {
+      await deleteSite({ siteId: deleteTarget._id });
+      toast({ title: "Site deleted" });
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't delete site",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
@@ -205,7 +183,7 @@ export default function AdminSites() {
         </Button>
       </div>
 
-      {sitesLoading ? (
+      {sites === undefined ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
         </div>
@@ -223,10 +201,10 @@ export default function AdminSites() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {sites?.map((site) => (
-                <tr key={site.id}>
+              {sites.map((site: any) => (
+                <tr key={site._id}>
                   <td className="px-4 py-3 font-medium text-slate-900">
-                    <Link href={`/app/sites/${site.id}`} className="hover:underline">{site.name}</Link>
+                    <Link href={`/app/sites/${site._id}`} className="hover:underline">{site.name}</Link>
                   </td>
                   <td className="px-4 py-3 text-slate-500">{site.slug}</td>
                   <td className="px-4 py-3 text-slate-500">{WEBSITE_TYPE_LABELS[site.websiteType] ?? site.websiteType}</td>
@@ -240,7 +218,7 @@ export default function AdminSites() {
                   </td>
                 </tr>
               ))}
-              {sites?.length === 0 && (
+              {sites.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-slate-500">No sites found.</td>
                 </tr>
@@ -266,12 +244,12 @@ export default function AdminSites() {
             </div>
             <div className="space-y-1.5">
               <Label>Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as SiteStatus })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={SiteStatus.active}>Active</SelectItem>
-                  <SelectItem value={SiteStatus.staging}>Staging</SelectItem>
-                  <SelectItem value={SiteStatus.archived}>Archived</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="staging">Staging</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -327,8 +305,8 @@ export default function AdminSites() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? "Saving…" : "Save"}
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Saving…" : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -343,7 +321,7 @@ export default function AdminSites() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

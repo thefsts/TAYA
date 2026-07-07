@@ -1,20 +1,8 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import {
-  useGetCrmConnection,
-  useUpdateCrmConnection,
-  useDisconnectCrmConnection,
-  useTestCrmConnection,
-  useLaunchCrmSso,
-  useListCrmEntitySettings,
-  useUpdateCrmEntitySetting,
-  useListCrmSyncLogs,
-  useRetryCrmSyncLog,
-  CrmConnectionInputAuthMethod,
-  CrmEntitySyncSettingInputEntityType,
-  CrmEntitySyncSettingInputDirection,
-  type CrmEntitySyncSetting,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +22,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Building2, RefreshCw, Unplug, ExternalLink } from "lucide-react";
 
-const ENTITY_TYPE_LABELS: Record<CrmEntitySyncSettingInputEntityType, string> = {
+type AuthMethod = "api_key" | "oauth" | "sso";
+type EntityType =
+  | "contact_form" | "quote_request" | "consultation" | "event_registration"
+  | "course_registration" | "order" | "customer" | "payment" | "newsletter_signup"
+  | "application" | "custom_form" | "appointment_status" | "notes"
+  | "campaign_status" | "lead_status" | "tags" | "profile_update";
+
+const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   contact_form: "Contact Form Submissions",
   quote_request: "Quote Requests",
   consultation: "Consultation Requests",
@@ -54,20 +49,12 @@ const ENTITY_TYPE_LABELS: Record<CrmEntitySyncSettingInputEntityType, string> = 
   profile_update: "Profile Updates",
 };
 
-const ENTITY_TYPES = Object.keys(ENTITY_TYPE_LABELS) as CrmEntitySyncSettingInputEntityType[];
+const ENTITY_TYPES = Object.keys(ENTITY_TYPE_LABELS) as EntityType[];
 
-const OUTBOUND_ENTITY_TYPES = new Set<CrmEntitySyncSettingInputEntityType>([
-  "contact_form",
-  "quote_request",
-  "consultation",
-  "event_registration",
-  "course_registration",
-  "order",
-  "customer",
-  "payment",
-  "newsletter_signup",
-  "application",
-  "custom_form",
+const OUTBOUND_ENTITY_TYPES = new Set<EntityType>([
+  "contact_form", "quote_request", "consultation", "event_registration",
+  "course_registration", "order", "customer", "payment", "newsletter_signup",
+  "application", "custom_form",
 ]);
 
 const STATUS_BADGE: Record<string, string> = {
@@ -85,171 +72,162 @@ const LOG_STATUS_BADGE: Record<string, string> = {
 };
 
 export default function CrmConnectionConfig({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
 
-  const { data: connection, isLoading: connectionLoading } = useGetCrmConnection(siteId);
-  const updateConnectionMutation = useUpdateCrmConnection();
-  const disconnectMutation = useDisconnectCrmConnection();
-  const testMutation = useTestCrmConnection();
-  const ssoMutation = useLaunchCrmSso();
+  const connection = useQuery(api.crm.getConnection, { siteId });
+  const updateCrmConnection = useMutation(api.crm.updateConnection);
+  const disconnectCrmConnection = useMutation(api.crm.disconnectConnection);
+  const testCrmConnection = useMutation(api.crm.testConnection);
+  const launchCrmSso = useMutation(api.crm.launchSso);
 
-  const { data: entitySettings, isLoading: entitySettingsLoading } = useListCrmEntitySettings(siteId);
-  const updateEntitySettingMutation = useUpdateCrmEntitySetting();
+  const entitySettings = useQuery(api.crm.listEntitySettings, { siteId });
+  const updateCrmEntitySetting = useMutation(api.crm.updateEntitySetting);
 
-  const { data: syncLogs, isLoading: syncLogsLoading } = useListCrmSyncLogs(siteId);
-  const retryMutation = useRetryCrmSyncLog();
+  const syncLogs = useQuery(api.crm.listSyncLogs, { siteId });
+  const retryCrmSyncLog = useMutation(api.crm.retrySyncLog);
 
-  const [authMethod, setAuthMethod] = useState<CrmConnectionInputAuthMethod>(CrmConnectionInputAuthMethod.api_key);
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("api_key");
   const [accountName, setAccountName] = useState("");
   const [orgId, setOrgId] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [ssoEnabled, setSsoEnabled] = useState(false);
   const [disconnectOpen, setDisconnectOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isSsoLaunching, setIsSsoLaunching] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   useEffect(() => {
     if (connection) {
-      setAuthMethod(connection.authMethod as CrmConnectionInputAuthMethod);
+      setAuthMethod((connection.authMethod as AuthMethod) ?? "api_key");
       setAccountName(connection.accountName ?? "");
       setOrgId(connection.orgId ?? "");
-      setSsoEnabled(connection.ssoEnabled);
+      setSsoEnabled(connection.ssoEnabled ?? false);
     }
   }, [connection]);
 
-  function settingFor(entityType: CrmEntitySyncSettingInputEntityType): CrmEntitySyncSetting | undefined {
-    return entitySettings?.find((s) => s.entityType === entityType);
+  function settingFor(entityType: EntityType) {
+    return entitySettings?.find((s: any) => s.entityType === entityType);
   }
 
-  function defaultDirection(entityType: CrmEntitySyncSettingInputEntityType): CrmEntitySyncSettingInputDirection {
-    return OUTBOUND_ENTITY_TYPES.has(entityType)
-      ? CrmEntitySyncSettingInputDirection.outbound
-      : CrmEntitySyncSettingInputDirection.inbound;
+  function defaultDirection(entityType: EntityType) {
+    return OUTBOUND_ENTITY_TYPES.has(entityType) ? "outbound" : "inbound";
   }
 
-  function handleSaveConnection() {
-    updateConnectionMutation.mutate(
-      {
+  async function handleSaveConnection() {
+    setIsSaving(true);
+    try {
+      await updateCrmConnection({
         siteId,
-        data: {
-          authMethod,
-          accountName: accountName || undefined,
-          orgId: orgId || undefined,
-          apiKey: apiKey || undefined,
-          ssoEnabled,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({ title: "Operon CRM connection saved" });
-          setApiKey("");
-        },
-        onError: (err) =>
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+        authMethod,
+        accountName: accountName || undefined,
+        orgId: orgId || undefined,
+        apiKey: apiKey || undefined,
+        ssoEnabled,
+      });
+      toast({ title: "Operon CRM connection saved" });
+      setApiKey("");
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function handleTest() {
-    testMutation.mutate(
-      { siteId },
-      {
-        onSuccess: (result) =>
-          toast({
-            title: result.status === "connected" ? "Connection healthy" : "Connection test finished",
-            description: `API health: ${result.apiHealth}`,
-          }),
-        onError: (err) =>
-          toast({
-            title: "Test failed",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function handleTest() {
+    setIsTesting(true);
+    try {
+      const result = await testCrmConnection({ siteId }) as any;
+      toast({
+        title: result.status === "connected" ? "Connection healthy" : "Connection test finished",
+        description: `API health: ${result.apiHealth}`,
+      });
+    } catch (err) {
+      toast({
+        title: "Test failed",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsTesting(false);
+    }
   }
 
-  function handleSsoLaunch() {
-    ssoMutation.mutate(
-      { siteId },
-      {
-        onSuccess: (result) => {
-          if (result.available && result.launchUrl) {
-            window.open(result.launchUrl, "_blank", "noopener,noreferrer");
-          } else {
-            toast({
-              title: "SSO not available",
-              description: result.reason ?? "SSO launch is not currently available for this connection.",
-              variant: "destructive",
-            });
-          }
-        },
-        onError: (err) =>
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function handleSsoLaunch() {
+    setIsSsoLaunching(true);
+    try {
+      const result = await launchCrmSso({ siteId }) as any;
+      if (result.available && result.launchUrl) {
+        window.open(result.launchUrl, "_blank", "noopener,noreferrer");
+      } else {
+        toast({
+          title: "SSO not available",
+          description: result.reason ?? "SSO launch is not currently available for this connection.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSsoLaunching(false);
+    }
   }
 
-  function confirmDisconnect() {
-    disconnectMutation.mutate(
-      { siteId },
-      {
-        onSuccess: () => {
-          toast({ title: "Disconnected from Operon CRM" });
-          setDisconnectOpen(false);
-        },
-        onError: (err) =>
-          toast({
-            title: "Couldn't disconnect",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function confirmDisconnect() {
+    setIsDisconnecting(true);
+    try {
+      await disconnectCrmConnection({ siteId });
+      toast({ title: "Disconnected from Operon CRM" });
+      setDisconnectOpen(false);
+    } catch (err) {
+      toast({
+        title: "Couldn't disconnect",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDisconnecting(false);
+    }
   }
 
-  function toggleEntity(entityType: CrmEntitySyncSettingInputEntityType, enabled: boolean) {
+  async function toggleEntity(entityType: EntityType, enabled: boolean) {
     const existing = settingFor(entityType);
-    updateEntitySettingMutation.mutate(
-      {
+    try {
+      await updateCrmEntitySetting({
         siteId,
-        data: {
-          entityType,
-          direction: (existing?.direction as CrmEntitySyncSettingInputDirection) ?? defaultDirection(entityType),
-          enabled,
-        },
-      },
-      {
-        onError: (err) =>
-          toast({
-            title: "Couldn't update sync setting",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+        entityType,
+        direction: (existing?.direction as string) ?? defaultDirection(entityType),
+        enabled,
+      });
+    } catch (err) {
+      toast({
+        title: "Couldn't update sync setting",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    }
   }
 
-  function handleRetry(logId: number) {
-    retryMutation.mutate(
-      { siteId, logId },
-      {
-        onSuccess: () => toast({ title: "Retry queued" }),
-        onError: (err) =>
-          toast({
-            title: "Retry failed",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function handleRetry(logId: string) {
+    try {
+      await retryCrmSyncLog({ siteId, syncLogId: logId as Id<"crmSyncLogs"> });
+      toast({ title: "Retry queued" });
+    } catch (err) {
+      toast({
+        title: "Retry failed",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -259,7 +237,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
         Connect this site to Operon CRM to sync leads, contacts, and marketing activity via the Operon Connector.
       </p>
 
-      {connectionLoading ? (
+      {connection === undefined ? (
         <Skeleton className="h-72 max-w-xl" />
       ) : (
         <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm max-w-xl mb-8 space-y-4">
@@ -275,12 +253,12 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
 
           <div className="space-y-1.5">
             <Label>Authentication Method</Label>
-            <Select value={authMethod} onValueChange={(v) => setAuthMethod(v as CrmConnectionInputAuthMethod)}>
+            <Select value={authMethod} onValueChange={(v) => setAuthMethod(v as AuthMethod)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={CrmConnectionInputAuthMethod.api_key}>API Key</SelectItem>
-                <SelectItem value={CrmConnectionInputAuthMethod.oauth}>OAuth</SelectItem>
-                <SelectItem value={CrmConnectionInputAuthMethod.sso}>SSO</SelectItem>
+                <SelectItem value="api_key">API Key</SelectItem>
+                <SelectItem value="oauth">OAuth</SelectItem>
+                <SelectItem value="sso">SSO</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -295,7 +273,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
             <Input value={orgId} onChange={(e) => setOrgId(e.target.value)} />
           </div>
 
-          {authMethod === CrmConnectionInputAuthMethod.api_key && (
+          {authMethod === "api_key" && (
             <div className="space-y-1.5">
               <Label>
                 API Key {connection?.apiKeyLast4 && <span className="text-slate-400">(current: …{connection.apiKeyLast4})</span>}
@@ -317,14 +295,14 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
           )}
 
           <div className="flex flex-wrap gap-2 pt-2">
-            <Button onClick={handleSaveConnection} disabled={updateConnectionMutation.isPending}>
-              {updateConnectionMutation.isPending ? "Saving…" : "Save Connection"}
+            <Button onClick={handleSaveConnection} disabled={isSaving}>
+              {isSaving ? "Saving…" : "Save Connection"}
             </Button>
-            <Button variant="outline" onClick={handleTest} disabled={testMutation.isPending}>
-              <RefreshCw className="h-4 w-4 mr-1" /> {testMutation.isPending ? "Testing…" : "Test Connection"}
+            <Button variant="outline" onClick={handleTest} disabled={isTesting}>
+              <RefreshCw className="h-4 w-4 mr-1" /> {isTesting ? "Testing…" : "Test Connection"}
             </Button>
             {ssoEnabled && (
-              <Button variant="outline" onClick={handleSsoLaunch} disabled={ssoMutation.isPending}>
+              <Button variant="outline" onClick={handleSsoLaunch} disabled={isSsoLaunching}>
                 <ExternalLink className="h-4 w-4 mr-1" /> Launch Operon SSO
               </Button>
             )}
@@ -341,7 +319,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
         <h2 className="font-medium text-slate-900 mb-1">Entity Sync Settings</h2>
         <p className="text-sm text-slate-500 mb-4">Choose which data types sync between this site and Operon CRM.</p>
 
-        {entitySettingsLoading ? (
+        {entitySettings === undefined ? (
           <Skeleton className="h-64" />
         ) : (
           <div className="bg-white border border-slate-200 rounded-md divide-y divide-slate-100 max-w-2xl">
@@ -367,9 +345,9 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
         <h2 className="font-medium text-slate-900 mb-1">Sync Logs</h2>
         <p className="text-sm text-slate-500 mb-4">Recent sync attempts between this site and Operon CRM.</p>
 
-        {syncLogsLoading ? (
+        {syncLogs === undefined ? (
           <Skeleton className="h-40" />
-        ) : syncLogs?.length === 0 ? (
+        ) : syncLogs.length === 0 ? (
           <p className="text-sm text-slate-500 bg-white border border-slate-200 rounded-md p-6 text-center">
             No sync activity yet.
           </p>
@@ -388,9 +366,9 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {syncLogs?.map((log) => (
-                  <tr key={log.id}>
-                    <td className="px-4 py-2">{ENTITY_TYPE_LABELS[log.entityType as CrmEntitySyncSettingInputEntityType] ?? log.entityType}</td>
+                {syncLogs.map((log: any) => (
+                  <tr key={log._id}>
+                    <td className="px-4 py-2">{ENTITY_TYPE_LABELS[log.entityType as EntityType] ?? log.entityType}</td>
                     <td className="px-4 py-2 capitalize">{log.direction}</td>
                     <td className="px-4 py-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${LOG_STATUS_BADGE[log.status] ?? LOG_STATUS_BADGE.pending}`}>
@@ -399,10 +377,10 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
                     </td>
                     <td className="px-4 py-2">{log.attempt}</td>
                     <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{log.message ?? "—"}</td>
-                    <td className="px-4 py-2 text-slate-500">{new Date(log.createdAt).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-slate-500">{new Date(log._creationTime).toLocaleString()}</td>
                     <td className="px-4 py-2 text-right">
                       {log.status === "failed" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleRetry(log.id)} disabled={retryMutation.isPending}>
+                        <Button variant="ghost" size="sm" onClick={() => handleRetry(log._id)}>
                           <RefreshCw className="h-4 w-4 mr-1" /> Retry
                         </Button>
                       )}
@@ -425,7 +403,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDisconnect} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={confirmDisconnect} disabled={isDisconnecting} className="bg-red-600 hover:bg-red-700">
               Disconnect
             </AlertDialogAction>
           </AlertDialogFooter>

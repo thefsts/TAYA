@@ -1,11 +1,13 @@
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useListActivityLog } from "@workspace/api-client-react";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ActivityLog({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
-  const { data, isLoading } = useListActivityLog(siteId);
+  const siteId = params.siteId as Id<"sites">;
+  const data = useQuery(api.activityLog.list, { siteId });
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -20,7 +22,7 @@ export default function ActivityLog({ params }: { params: { siteId: string } }) 
           <CardTitle className="text-sm">Recent Changes</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {isLoading ? (
+          {data === undefined ? (
             <div className="p-6 space-y-3">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
@@ -40,12 +42,12 @@ export default function ActivityLog({ params }: { params: { siteId: string } }) 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {data && data.length > 0 ? (
+                  {data.length > 0 ? (
                     data.map((log) => (
-                      <tr key={log.id} className="align-top hover:bg-slate-50">
+                      <tr key={log._id} className="align-top hover:bg-slate-50">
                         <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{log.actorName}</td>
                         <td className="px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">
-                          {new Date(log.createdAt).toLocaleString()}
+                          {new Date(log._creationTime).toLocaleString()}
                         </td>
                         <td className="px-4 py-3 text-slate-700 capitalize">
                           {log.action}

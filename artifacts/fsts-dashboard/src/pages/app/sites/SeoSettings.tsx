@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import {
-  useListSeoSettings,
-  useCreateSeoSetting,
-  useUpdateSeoSetting,
-  useDeleteSeoSetting,
-  type SeoSetting,
-} from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,17 +45,19 @@ const emptyForm: SeoFormState = {
 };
 
 export default function SeoSettings({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useListSeoSettings(siteId);
-  const createMutation = useCreateSeoSetting();
-  const updateMutation = useUpdateSeoSetting();
-  const deleteMutation = useDeleteSeoSetting();
+  const data = useQuery(api.seo.list, { siteId });
+  const createSeoSetting = useMutation(api.seo.create);
+  const updateSeoSetting = useMutation(api.seo.update);
+  const deleteSeoSetting = useMutation(api.seo.remove);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<SeoSetting | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState<SeoFormState>(emptyForm);
-  const [deleteTarget, setDeleteTarget] = useState<SeoSetting | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function openCreate() {
     setEditing(null);
@@ -67,7 +65,7 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
     setDialogOpen(true);
   }
 
-  function openEdit(s: SeoSetting) {
+  function openEdit(s: any) {
     setEditing(s);
     setForm({
       pagePath: s.pagePath,
@@ -79,72 +77,60 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
     setDialogOpen(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const onSuccess = () => {
-      toast({ title: editing ? "SEO setting updated" : "SEO setting created" });
+    setIsPending(true);
+    try {
+      if (editing) {
+        await updateSeoSetting({
+          siteId,
+          seoSettingId: editing._id,
+          title: form.title,
+          description: form.description,
+          ogImageUrl: form.ogImageUrl || undefined,
+          canonicalUrl: form.canonicalUrl || undefined,
+        });
+        toast({ title: "SEO setting updated" });
+      } else {
+        await createSeoSetting({
+          siteId,
+          pagePath: form.pagePath,
+          title: form.title,
+          description: form.description,
+          ogImageUrl: form.ogImageUrl || undefined,
+          canonicalUrl: form.canonicalUrl || undefined,
+        });
+        toast({ title: "SEO setting created" });
+      }
       setDialogOpen(false);
-    };
-    const onError = (err: unknown) => {
+    } catch (err) {
       toast({
         title: "Something went wrong",
         description: err instanceof Error ? err.message : String(err),
         variant: "destructive",
       });
-    };
-
-    if (editing) {
-      updateMutation.mutate(
-        {
-          siteId,
-          seoSettingId: editing.id,
-          data: {
-            title: form.title,
-            description: form.description,
-            ogImageUrl: form.ogImageUrl || undefined,
-            canonicalUrl: form.canonicalUrl || undefined,
-          },
-        },
-        { onSuccess, onError },
-      );
-    } else {
-      createMutation.mutate(
-        {
-          siteId,
-          data: {
-            pagePath: form.pagePath,
-            title: form.title,
-            description: form.description,
-            ogImageUrl: form.ogImageUrl || undefined,
-            canonicalUrl: form.canonicalUrl || undefined,
-          },
-        },
-        { onSuccess, onError },
-      );
+    } finally {
+      setIsPending(false);
     }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteTarget) return;
-    deleteMutation.mutate(
-      { siteId, seoSettingId: deleteTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "SEO setting deleted" });
-          setDeleteTarget(null);
-        },
-        onError: (err) => {
-          toast({
-            title: "Couldn't delete SEO setting",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          });
-        },
-      },
-    );
+    setIsDeleting(true);
+    try {
+      await deleteSeoSetting({ siteId, seoSettingId: deleteTarget._id });
+      toast({ title: "SEO setting deleted" });
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't delete SEO setting",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   }
-
-  const saving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -159,11 +145,11 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
         </Button>
       </div>
 
-      {isLoading ? (
+      {data === undefined ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
-      ) : data?.length === 0 ? (
+      ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <Search className="mx-auto h-10 w-10 text-slate-300 mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No SEO settings yet</h3>
@@ -181,8 +167,8 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data?.map((s) => (
-                <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+              {data.map((s: any) => (
+                <tr key={s._id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3 font-mono text-xs text-slate-700">{s.pagePath}</td>
                   <td className="px-4 py-3 font-medium text-slate-900">{s.title}</td>
                   <td className="px-4 py-3 text-slate-500 max-w-xs truncate">{s.description}</td>
@@ -237,7 +223,7 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+              <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -251,7 +237,7 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

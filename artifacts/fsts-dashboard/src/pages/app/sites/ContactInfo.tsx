@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useGetContactInfo, useUpdateContactInfo } from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,43 +18,52 @@ function asHours(raw: unknown[]): Hours[] {
 }
 
 export default function ContactInfo({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useGetContactInfo(siteId);
-  const updateMutation = useUpdateContactInfo();
+  const data = useQuery(api.contact.get, { siteId });
+  const updateContactInfo = useMutation(api.contact.update);
 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [mapEmbedUrl, setMapEmbedUrl] = useState("");
   const [hours, setHours] = useState<Hours[]>([]);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (data) {
-      setEmail(data.email);
-      setPhone(data.phone);
-      setAddress(data.address);
+      setEmail(data.email ?? "");
+      setPhone(data.phone ?? "");
+      setAddress(data.address ?? "");
       setMapEmbedUrl(data.mapEmbedUrl ?? "");
-      setHours(asHours(data.hours ?? []));
+      setHours(asHours((data.hours as unknown[]) ?? []));
     }
   }, [data]);
 
-  function handleSave() {
-    updateMutation.mutate(
-      { siteId, data: { email, phone, address, mapEmbedUrl: mapEmbedUrl || undefined, hours } },
-      {
-        onSuccess: () => toast({ title: "Contact info updated" }),
-        onError: (err) =>
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function handleSave() {
+    setIsPending(true);
+    try {
+      await updateContactInfo({
+        siteId,
+        email,
+        phone,
+        address,
+        mapEmbedUrl: mapEmbedUrl || undefined,
+        hours,
+      });
+      toast({ title: "Contact info updated" });
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
   }
 
-  if (isLoading) {
+  if (data === undefined) {
     return (
       <AppLayout siteId={params.siteId}>
         <Skeleton className="h-64" />
@@ -67,8 +78,8 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
           <h1 className="text-2xl font-bold text-slate-900">Contact Info</h1>
           <p className="text-sm text-slate-500 mt-0.5">Contact details shown across the public site.</p>
         </div>
-        <Button onClick={handleSave} disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "Saving…" : "Save Changes"}
+        <Button onClick={handleSave} disabled={isPending}>
+          {isPending ? "Saving…" : "Save Changes"}
         </Button>
       </div>
 

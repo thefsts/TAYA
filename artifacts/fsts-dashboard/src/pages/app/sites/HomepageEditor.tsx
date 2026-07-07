@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useGetHomepageContent, useUpdateHomepageContent } from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,49 +18,49 @@ function asSections(raw: unknown[]): Section[] {
 }
 
 export default function HomepageEditor({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useGetHomepageContent(siteId);
-  const updateMutation = useUpdateHomepageContent();
+  const data = useQuery(api.homepage.get, { siteId });
+  const updateHomepageContent = useMutation(api.homepage.update);
 
   const [heroHeadline, setHeroHeadline] = useState("");
   const [heroSubheadline, setHeroSubheadline] = useState("");
   const [heroImageUrl, setHeroImageUrl] = useState("");
   const [sections, setSections] = useState<Section[]>([]);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (data) {
-      setHeroHeadline(data.heroHeadline);
-      setHeroSubheadline(data.heroSubheadline);
+      setHeroHeadline(data.heroHeadline ?? "");
+      setHeroSubheadline(data.heroSubheadline ?? "");
       setHeroImageUrl(data.heroImageUrl ?? "");
-      setSections(asSections(data.sections));
+      setSections(asSections((data.sections as unknown[]) ?? []));
     }
   }, [data]);
 
-  function handleSave() {
-    updateMutation.mutate(
-      {
+  async function handleSave() {
+    setIsPending(true);
+    try {
+      await updateHomepageContent({
         siteId,
-        data: {
-          heroHeadline,
-          heroSubheadline,
-          heroImageUrl: heroImageUrl || undefined,
-          sections,
-        },
-      },
-      {
-        onSuccess: () => toast({ title: "Homepage updated" }),
-        onError: (err) =>
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+        heroHeadline,
+        heroSubheadline,
+        heroImageUrl: heroImageUrl || undefined,
+        sections,
+      });
+      toast({ title: "Homepage updated" });
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
   }
 
-  if (isLoading) {
+  if (data === undefined) {
     return (
       <AppLayout siteId={params.siteId}>
         <Skeleton className="h-64" />
@@ -73,8 +75,8 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
           <h1 className="text-2xl font-bold text-slate-900">Homepage Editor</h1>
           <p className="text-sm text-slate-500 mt-0.5">Edit the hero section and content sections shown on the homepage.</p>
         </div>
-        <Button onClick={handleSave} disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "Saving…" : "Save Changes"}
+        <Button onClick={handleSave} disabled={isPending}>
+          {isPending ? "Saving…" : "Save Changes"}
         </Button>
       </div>
 

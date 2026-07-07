@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useListContentVersions, useRestoreContentVersion, type ContentVersion } from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,31 +25,31 @@ import { useToast } from "@/hooks/use-toast";
 import { History, RotateCcw } from "lucide-react";
 
 export default function VersionHistory({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useListContentVersions(siteId);
-  const restoreMutation = useRestoreContentVersion();
+  const data = useQuery(api.versions.list, { siteId });
+  const restoreVersion = useMutation(api.versions.restore);
 
-  const [restoreTarget, setRestoreTarget] = useState<ContentVersion | null>(null);
-  const [viewTarget, setViewTarget] = useState<ContentVersion | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<any | null>(null);
+  const [viewTarget, setViewTarget] = useState<any | null>(null);
+  const [isPending, setIsPending] = useState(false);
 
-  function confirmRestore() {
+  async function confirmRestore() {
     if (!restoreTarget) return;
-    restoreMutation.mutate(
-      { siteId, versionId: restoreTarget.id },
-      {
-        onSuccess: () => {
-          toast({ title: "Version restored" });
-          setRestoreTarget(null);
-        },
-        onError: (err) =>
-          toast({
-            title: "Couldn't restore version",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+    setIsPending(true);
+    try {
+      await restoreVersion({ siteId, versionId: restoreTarget._id as Id<"contentVersions"> });
+      toast({ title: "Version restored", description: `${restoreTarget.entityType} content has been restored.` });
+      setRestoreTarget(null);
+    } catch (err) {
+      toast({
+        title: "Couldn't restore version",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
@@ -55,9 +57,9 @@ export default function VersionHistory({ params }: { params: { siteId: string } 
       <h1 className="text-2xl font-bold text-slate-900 mb-1">Version History</h1>
       <p className="text-sm text-slate-500 mb-6">Snapshots of content saved before each change. Restore a prior version if needed.</p>
 
-      {isLoading ? (
+      {data === undefined ? (
         <Skeleton className="h-64" />
-      ) : data?.length === 0 ? (
+      ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <History className="mx-auto h-10 w-10 text-slate-300 mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No versions yet</h3>
@@ -76,12 +78,12 @@ export default function VersionHistory({ params }: { params: { siteId: string } 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data?.map((v) => (
-                <tr key={v.id}>
+              {data.map((v: any) => (
+                <tr key={v._id}>
                   <td className="px-4 py-2 capitalize">{v.entityType}</td>
-                  <td className="px-4 py-2">{v.entityId}</td>
+                  <td className="px-4 py-2 text-slate-500 font-mono text-xs">{v.entityId}</td>
                   <td className="px-4 py-2">{v.createdByName}</td>
-                  <td className="px-4 py-2 text-slate-500">{new Date(v.createdAt).toLocaleString()}</td>
+                  <td className="px-4 py-2 text-slate-500">{new Date(v._creationTime).toLocaleString()}</td>
                   <td className="px-4 py-2 text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => setViewTarget(v)}>View</Button>
                     <Button variant="ghost" size="sm" onClick={() => setRestoreTarget(v)}>
@@ -95,6 +97,23 @@ export default function VersionHistory({ params }: { params: { siteId: string } 
         </div>
       )}
 
+      <AlertDialog open={!!restoreTarget} onOpenChange={(open) => !open && setRestoreTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore this version?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will overwrite the current <strong>{restoreTarget?.entityType}</strong> content with this saved snapshot from {restoreTarget ? new Date(restoreTarget._creationTime).toLocaleString() : ""}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRestore} disabled={isPending}>
+              {isPending ? "Restoring…" : "Restore"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={!!viewTarget} onOpenChange={(open) => !open && setViewTarget(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -105,21 +124,6 @@ export default function VersionHistory({ params }: { params: { siteId: string } 
           </pre>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={!!restoreTarget} onOpenChange={(open) => !open && setRestoreTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Restore this version?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will overwrite the current {restoreTarget?.entityType} content with this saved snapshot.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRestore}>Restore</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppLayout>
   );
 }

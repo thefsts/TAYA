@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useGetFooterContent, useUpdateFooterContent } from "@workspace/api-client-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,39 +22,41 @@ function asSocialLinks(raw: unknown[]): SocialLink[] {
 }
 
 export default function FooterEditor({ params }: { params: { siteId: string } }) {
-  const siteId = parseInt(params.siteId, 10);
+  const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-  const { data, isLoading } = useGetFooterContent(siteId);
-  const updateMutation = useUpdateFooterContent();
+  const data = useQuery(api.footer.get, { siteId });
+  const updateFooterContent = useMutation(api.footer.update);
 
   const [copyrightText, setCopyrightText] = useState("");
   const [columns, setColumns] = useState<LinkColumn[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (data) {
-      setCopyrightText(data.copyrightText);
-      setColumns(asColumns(data.columns));
-      setSocialLinks(asSocialLinks(data.socialLinks));
+      setCopyrightText(data.copyrightText ?? "");
+      setColumns(asColumns((data.columns as unknown[]) ?? []));
+      setSocialLinks(asSocialLinks((data.socialLinks as unknown[]) ?? []));
     }
   }, [data]);
 
-  function handleSave() {
-    updateMutation.mutate(
-      { siteId, data: { copyrightText, columns, socialLinks } },
-      {
-        onSuccess: () => toast({ title: "Footer updated" }),
-        onError: (err) =>
-          toast({
-            title: "Something went wrong",
-            description: err instanceof Error ? err.message : String(err),
-            variant: "destructive",
-          }),
-      },
-    );
+  async function handleSave() {
+    setIsPending(true);
+    try {
+      await updateFooterContent({ siteId, copyrightText, columns, socialLinks });
+      toast({ title: "Footer updated" });
+    } catch (err) {
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
   }
 
-  if (isLoading) {
+  if (data === undefined) {
     return (
       <AppLayout siteId={params.siteId}>
         <Skeleton className="h-64" />
@@ -67,8 +71,8 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
           <h1 className="text-2xl font-bold text-slate-900">Footer</h1>
           <p className="text-sm text-slate-500 mt-0.5">Footer link columns, social links, and copyright text.</p>
         </div>
-        <Button onClick={handleSave} disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "Saving…" : "Save Changes"}
+        <Button onClick={handleSave} disabled={isPending}>
+          {isPending ? "Saving…" : "Save Changes"}
         </Button>
       </div>
 

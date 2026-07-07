@@ -1,12 +1,13 @@
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk, useAuth } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, Show, useAuth } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
+import { ConvexReactClient, useConvexAuth, useMutation } from "convex/react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { useEffect, useRef } from "react";
-import { queryClient, configureAuthTokenGetter } from "@/lib/queryClient";
+import { api } from "@convex/_generated/api";
 import fstsLogo from "@assets/fsts_header_logo_1783377175328.PNG";
 
 import NotFound from "@/pages/not-found";
@@ -49,6 +50,12 @@ function stripBase(path: string): string {
 if (!clerkPubKey) {
   throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
 }
+
+const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
+if (!convexUrl) {
+  throw new Error("Missing VITE_CONVEX_URL in .env file");
+}
+const convex = new ConvexReactClient(convexUrl);
 
 const clerkAppearance = {
   theme: shadcn,
@@ -98,6 +105,21 @@ const clerkAppearance = {
     main: "p-6",
   },
 };
+
+function AuthBootstrap() {
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const provisionMe = useMutation(api.users.provisionMe);
+  const provisioned = useRef(false);
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading && !provisioned.current) {
+      provisioned.current = true;
+      provisionMe().catch(() => {});
+    }
+  }, [isAuthenticated, isLoading, provisionMe]);
+
+  return null;
+}
 
 function AuthPageBrand() {
   return (
@@ -149,32 +171,6 @@ function HomeRedirect() {
   );
 }
 
-function ClerkQueryClientCacheInvalidator() {
-  const { addListener } = useClerk();
-  const { getToken } = useAuth();
-  const prevUserIdRef = useRef<string | null | undefined>(undefined);
-
-  useEffect(() => {
-    configureAuthTokenGetter(() => getToken());
-  }, [getToken]);
-
-  useEffect(() => {
-    const unsubscribe = addListener(({ user }) => {
-      const userId = user?.id ?? null;
-      if (
-        prevUserIdRef.current !== undefined &&
-        prevUserIdRef.current !== userId
-      ) {
-        queryClient.clear();
-      }
-      prevUserIdRef.current = userId;
-    });
-    return unsubscribe;
-  }, [addListener]);
-
-  return null;
-}
-
 function AppRouter() {
   const [, setLocation] = useLocation();
 
@@ -188,49 +184,49 @@ function AppRouter() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
-      <ClerkQueryClientCacheInvalidator />
-      <Switch>
-        <Route path="/" component={HomeRedirect} />
-        <Route path="/sign-in/*?" component={SignInPage} />
-        <Route path="/sign-up/*?" component={SignUpPage} />
-        
-        <Route path="/app" component={SitesList} />
-        <Route path="/app/admin/users" component={AdminUsers} />
-        <Route path="/app/admin/sites" component={AdminSites} />
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <AuthBootstrap />
+        <Switch>
+          <Route path="/" component={HomeRedirect} />
+          <Route path="/sign-in/*?" component={SignInPage} />
+          <Route path="/sign-up/*?" component={SignUpPage} />
 
-        <Route path="/app/sites/:siteId" component={SiteDashboard} />
-        <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />
-        <Route path="/app/sites/:siteId/courses" component={CoursesList} />
-        <Route path="/app/sites/:siteId/events" component={EventsList} />
-        <Route path="/app/sites/:siteId/articles" component={ArticlesList} />
-        <Route path="/app/sites/:siteId/seo" component={SeoSettings} />
-        <Route path="/app/sites/:siteId/media" component={MediaLibrary} />
-        <Route path="/app/sites/:siteId/footer" component={FooterEditor} />
-        <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
-        <Route path="/app/sites/:siteId/payments" component={PaymentsConfig} />
-        <Route path="/app/sites/:siteId/email" component={EmailConfig} />
-        <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfig} />
-        <Route path="/app/sites/:siteId/history" component={VersionHistory} />
-        <Route path="/app/sites/:siteId/activity" component={ActivityLog} />
-        <Route path="/app/sites/:siteId/backups" component={BackupsList} />
-        <Route path="/app/sites/:siteId/help" component={HelpCenter} />
-        
-        <Route component={NotFound} />
-      </Switch>
+          <Route path="/app" component={SitesList} />
+          <Route path="/app/admin/users" component={AdminUsers} />
+          <Route path="/app/admin/sites" component={AdminSites} />
+
+          <Route path="/app/sites/:siteId" component={SiteDashboard} />
+          <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />
+          <Route path="/app/sites/:siteId/courses" component={CoursesList} />
+          <Route path="/app/sites/:siteId/events" component={EventsList} />
+          <Route path="/app/sites/:siteId/articles" component={ArticlesList} />
+          <Route path="/app/sites/:siteId/seo" component={SeoSettings} />
+          <Route path="/app/sites/:siteId/media" component={MediaLibrary} />
+          <Route path="/app/sites/:siteId/footer" component={FooterEditor} />
+          <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
+          <Route path="/app/sites/:siteId/payments" component={PaymentsConfig} />
+          <Route path="/app/sites/:siteId/email" component={EmailConfig} />
+          <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfig} />
+          <Route path="/app/sites/:siteId/history" component={VersionHistory} />
+          <Route path="/app/sites/:siteId/activity" component={ActivityLog} />
+          <Route path="/app/sites/:siteId/backups" component={BackupsList} />
+          <Route path="/app/sites/:siteId/help" component={HelpCenter} />
+
+          <Route component={NotFound} />
+        </Switch>
+      </ConvexProviderWithClerk>
     </ClerkProvider>
   );
 }
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={basePath}>
-          <AppRouter />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <TooltipProvider>
+      <WouterRouter base={basePath}>
+        <AppRouter />
+      </WouterRouter>
+      <Toaster />
+    </TooltipProvider>
   );
 }
 
