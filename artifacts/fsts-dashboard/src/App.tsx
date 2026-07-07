@@ -32,6 +32,10 @@ import VersionHistory from "@/pages/app/sites/VersionHistory";
 import ActivityLog from "@/pages/app/sites/ActivityLog";
 import BackupsList from "@/pages/app/sites/BackupsList";
 import HelpCenter from "@/pages/app/sites/HelpCenter";
+import FaqManager from "@/pages/app/sites/FaqManager";
+import TestimonialsManager from "@/pages/app/sites/TestimonialsManager";
+import FormSubmissions from "@/pages/app/sites/FormSubmissions";
+import HealthMonitor from "@/pages/app/sites/HealthMonitor";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -233,6 +237,10 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/payments" component={PaymentsConfig} />
           <Route path="/app/sites/:siteId/email" component={EmailConfig} />
           <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfig} />
+          <Route path="/app/sites/:siteId/faq" component={FaqManager} />
+          <Route path="/app/sites/:siteId/testimonials" component={TestimonialsManager} />
+          <Route path="/app/sites/:siteId/inbox" component={FormSubmissions} />
+          <Route path="/app/sites/:siteId/health" component={HealthMonitor} />
           <Route path="/app/sites/:siteId/history" component={VersionHistory} />
           <Route path="/app/sites/:siteId/activity" component={ActivityLog} />
           <Route path="/app/sites/:siteId/backups" component={BackupsList} />

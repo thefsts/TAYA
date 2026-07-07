@@ -19,7 +19,11 @@ import {
   DatabaseBackup,
   Phone,
   Building2,
-  LifeBuoy
+  LifeBuoy,
+  HelpCircle,
+  MessageSquareQuote,
+  Inbox,
+  HeartPulse,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,6 +99,9 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} />}
           {isEnabled("articles") && <NavItem icon={FileText} label="Articles" href={`/app/sites/${siteId}/articles`} />}
           {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} />}
+          <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} />
+          <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} />
+          <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} />
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Configuration</div>
           {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} />}
@@ -107,6 +114,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           {isEnabled("crm") && <NavItem icon={Building2} label="Marketing & CRM" href={`/app/sites/${siteId}/crm`} />}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">System</div>
+          <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} />
           <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} />
           <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} />
           <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} />

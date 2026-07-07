@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
 
@@ -74,5 +74,62 @@ export const restore = mutation({
     }
 
     return { success: true, restoredAt: new Date().toISOString() };
+  },
+});
+
+export const getAllSiteIds = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const sites = await ctx.db.query("sites").collect();
+    return sites.map((s) => s._id);
+  },
+});
+
+export const createForSite = internalMutation({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const [homepage, footer, contact, courses, events, articles, seo, media, square, email, crm] = await Promise.all([
+      ctx.db.query("homepageContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+      ctx.db.query("footerContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+      ctx.db.query("contactInfo").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+      ctx.db.query("courses").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+      ctx.db.query("events").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+      ctx.db.query("articles").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+      ctx.db.query("seoSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+      ctx.db.query("mediaAssets").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+      ctx.db.query("squareConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+      ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+      ctx.db.query("crmConnections").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+    ]);
+    const snapshot = { homepage, footer, contact, courses, events, articles, seo, media, square, email, crm };
+    const sizeBytes = new TextEncoder().encode(JSON.stringify(snapshot)).length;
+    const label = `Auto-backup ${new Date().toLocaleString("en-US", { timeZone: "UTC" })} UTC`;
+    await ctx.db.insert("backups", { siteId, label, sizeBytes, snapshot });
+  },
+});
+
+export const autoBackupAllSites = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const siteIds = await ctx.db.query("sites").collect().then((s) => s.map((x) => x._id));
+    for (const siteId of siteIds) {
+      const [homepage, footer, contact, courses, events, articles, seo, media, square, email, crm] = await Promise.all([
+        ctx.db.query("homepageContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+        ctx.db.query("footerContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+        ctx.db.query("contactInfo").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+        ctx.db.query("courses").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+        ctx.db.query("events").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+        ctx.db.query("articles").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+        ctx.db.query("seoSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+        ctx.db.query("mediaAssets").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+        ctx.db.query("squareConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+        ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+        ctx.db.query("crmConnections").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
+      ]);
+      const snapshot = { homepage, footer, contact, courses, events, articles, seo, media, square, email, crm };
+      const sizeBytes = new TextEncoder().encode(JSON.stringify(snapshot)).length;
+      const label = `Auto-backup ${new Date().toLocaleString("en-US", { timeZone: "UTC" })} UTC`;
+      await ctx.db.insert("backups", { siteId, label, sizeBytes, snapshot });
+    }
   },
 });

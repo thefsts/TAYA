@@ -207,4 +207,65 @@ export default defineSchema({
     message: v.optional(v.string()),
     attempt: v.number(),
   }).index("by_site", ["siteId"]),
+
+  faqs: defineTable({
+    siteId: v.id("sites"),
+    question: v.string(),
+    answer: v.string(),
+    order: v.number(),
+    isActive: v.boolean(),
+  }).index("by_site", ["siteId"]),
+
+  testimonials: defineTable({
+    siteId: v.id("sites"),
+    name: v.string(),
+    role: v.optional(v.string()),
+    company: v.optional(v.string()),
+    rating: v.optional(v.number()),
+    text: v.string(),
+    avatarUrl: v.optional(v.string()),
+    isActive: v.boolean(),
+    order: v.number(),
+  }).index("by_site", ["siteId"]),
+
+  pricingTiers: defineTable({
+    siteId: v.id("sites"),
+    planName: v.string(),
+    price: v.optional(v.string()),
+    interval: v.optional(v.string()),
+    description: v.optional(v.string()),
+    features: v.any(),
+    isHighlighted: v.boolean(),
+    ctaLabel: v.string(),
+    ctaUrl: v.optional(v.string()),
+    isActive: v.boolean(),
+    order: v.number(),
+  }).index("by_site", ["siteId"]),
+
+  formSubmissions: defineTable({
+    siteId: v.id("sites"),
+    formType: v.string(),
+    submitterName: v.optional(v.string()),
+    submitterEmail: v.optional(v.string()),
+    submitterPhone: v.optional(v.string()),
+    message: v.optional(v.string()),
+    data: v.any(),
+    status: v.string(),
+    submittedAt: v.number(),
+    readAt: v.optional(v.number()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_status", ["siteId", "status"]),
+
+  siteHealthLogs: defineTable({
+    siteId: v.id("sites"),
+    url: v.string(),
+    statusCode: v.optional(v.number()),
+    responseMs: v.optional(v.number()),
+    isUp: v.boolean(),
+    error: v.optional(v.string()),
+    checkedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_checkedAt", ["siteId", "checkedAt"]),
 });

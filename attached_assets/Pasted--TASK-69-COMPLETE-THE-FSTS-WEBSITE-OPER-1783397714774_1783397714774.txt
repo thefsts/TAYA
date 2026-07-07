@@ -1,0 +1,350 @@
+==========================================================
+TASK 69 — COMPLETE THE FSTS WEBSITE OPERATING SYSTEM™
+PRODUCTION PIPELINE (V1.0 COMPLETION)
+Priority: CRITICAL
+THIS IS THE HIGHEST PRIORITY TASK
+==========================================================
+
+PROJECT OBJECTIVE
+
+The dashboard is approximately 65% complete and the core CMS, authentication, RBAC, version history, activity logs, and content editors are working.
+
+DO NOT continue building additional dashboard modules until the production content pipeline is complete.
+
+The highest priority is making the live Corsair Tactical Solutions website fully managed by the dashboard.
+
+The dashboard must become the single source of truth for website content.
+
+==========================================================
+PHASE 1 — COMPLETE CORSAIR CONNECTION
+==========================================================
+
+1.
+
+Seed the Corsair Tactical Solutions production site into Convex.
+
+Verify:
+
+✓ Site Record Exists
+
+✓ Branding Exists
+
+✓ Domain Exists
+
+✓ Dashboard Assignment Exists
+
+✓ Production Status
+
+==========================================================
+
+2.
+
+Assign:
+
+corsairtacticalsolutions@gmail.com
+
+Role:
+
+client_admin
+
+Verify:
+
+✓ Login
+
+✓ Permissions
+
+✓ Auto Redirect
+
+✓ Corsair Workspace Loads Automatically
+
+==========================================================
+PHASE 2 — BUILD THE LIVE CONTENT PIPELINE
+==========================================================
+
+THIS IS NOW THE MOST IMPORTANT TASK.
+
+Currently:
+
+Dashboard
+
+↓
+
+Convex
+
+↓
+
+Stops
+
+We need:
+
+Dashboard
+
+↓
+
+Convex
+
+↓
+
+Corsair Website
+
+↓
+
+Live Website Updates
+
+The public website must render content stored inside Convex.
+
+Do NOT duplicate content.
+
+Convex becomes the CMS.
+
+==========================================================
+
+The following pages must load from Convex.
+
+Homepage
+
+About
+
+Security Services
+
+Property Management
+
+Church Security
+
+Private Investigations
+
+Security Training
+
+Courses
+
+Course Details
+
+Events
+
+Knowledge Center
+
+Contact
+
+Footer
+
+SEO
+
+==========================================================
+
+Every dashboard save should immediately update the live website.
+
+==========================================================
+PHASE 3 — MEDIA PIPELINE
+==========================================================
+
+The Media Library currently has UI only.
+
+Implement:
+
+Cloud Storage
+
+Recommended:
+
+Cloudflare R2
+
+or
+
+UploadThing
+
+Requirements:
+
+Image Upload
+
+Delete
+
+Replace
+
+Optimization
+
+Compression
+
+Responsive Sizes
+
+Alt Text
+
+CDN Delivery
+
+==========================================================
+PHASE 4 — COMPLETE MISSING EDITORS
+==========================================================
+
+Build:
+
+FAQ Manager
+
+Testimonials Manager
+
+Contact Form Inbox
+
+About Page Editor
+
+Services Page Editor
+
+Pricing Editor
+
+Event Flyer Manager
+
+==========================================================
+PHASE 5 — CONTACT FORM MANAGEMENT
+==========================================================
+
+Every website form should save to Convex.
+
+Dashboard should display:
+
+New Leads
+
+Unread
+
+Archived
+
+Spam
+
+Search
+
+Export
+
+Reply Status
+
+==========================================================
+PHASE 6 — AUTOMATED BACKUPS
+==========================================================
+
+Implement nightly backups.
+
+Keep:
+
+Daily
+
+Weekly
+
+Monthly
+
+One-click restore.
+
+==========================================================
+PHASE 7 — SQUARE PRODUCTION
+==========================================================
+
+Complete production wiring.
+
+Verify:
+
+Square Production Keys
+
+Catalog Mapping
+
+Course Mapping
+
+Event Mapping
+
+Payment Links
+
+Order IDs
+
+Receipts
+
+Admin Emails
+
+Student Emails
+
+==========================================================
+PHASE 8 — WEBSITE HEALTH
+==========================================================
+
+Dashboard should monitor:
+
+Website Online
+
+SSL
+
+Performance
+
+API Health
+
+Emails
+
+Square
+
+Backups
+
+Storage
+
+Deployments
+
+Domain Expiration
+
+==========================================================
+PHASE 9 — FINAL QA
+==========================================================
+
+Verify:
+
+Dashboard edits update live website.
+
+Homepage updates.
+
+Course updates.
+
+Event updates.
+
+Footer updates.
+
+Images update.
+
+SEO updates.
+
+FAQ updates.
+
+Testimonials update.
+
+Forms save.
+
+Media uploads work.
+
+Square works.
+
+Emails work.
+
+Backups work.
+
+Version History works.
+
+Activity Log works.
+
+No console errors.
+
+No build warnings.
+
+No hydration errors.
+
+No TypeScript errors.
+
+==========================================================
+STOP BUILDING NEW FEATURES
+==========================================================
+
+Until this pipeline is complete:
+
+DO NOT build new dashboard modules.
+
+DO NOT build new UI.
+
+DO NOT redesign anything.
+
+Complete the production content pipeline first.
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+The dashboard must become the authoritative content management system for Corsair Tactical Solutions.
+
+When a client edits their website inside the FSTS Website Operating System™, those edits must automatically appear on the live website without developer involvement.
+
+Once Corsair is fully connected and validated, this architecture becomes the deployment standard for every future Full Stack Tech Solutions client website.

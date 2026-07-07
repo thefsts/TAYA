@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
   memo,
   Fragment,
 } from 'react';
@@ -879,7 +880,28 @@ function EditorialSlide({ slide, triggerKey }: { slide: Slide; triggerKey: numbe
 
 // ─── Carousel Shell ───────────────────────────────────────────────────────────
 
-export default function HeroCarousel() {
+export default function HeroCarousel({
+  cmsSlide0Headline,
+  cmsSlide0Subheadline,
+}: {
+  cmsSlide0Headline?: string;
+  cmsSlide0Subheadline?: string;
+} = {}) {
+  // If the CMS provides a headline/subheadline override for the first slide,
+  // merge it in so dashboard edits appear on the live site without a deploy.
+  const slides = useMemo(() => {
+    if (!cmsSlide0Headline && !cmsSlide0Subheadline) return SLIDES;
+    return SLIDES.map((s, i) =>
+      i === 0
+        ? {
+            ...s,
+            ...(cmsSlide0Headline ? { headline: cmsSlide0Headline } : {}),
+            ...(cmsSlide0Subheadline ? { subheadline: cmsSlide0Subheadline } : {}),
+          }
+        : s,
+    );
+  }, [cmsSlide0Headline, cmsSlide0Subheadline]);
+
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [triggerKey, setTriggerKey] = useState(0);
@@ -911,8 +933,8 @@ export default function HeroCarousel() {
     [isTransitioning],
   );
 
-  const next = useCallback(() => goTo((current + 1) % SLIDES.length), [current, goTo]);
-  const prev = useCallback(() => goTo((current - 1 + SLIDES.length) % SLIDES.length), [current, goTo]);
+  const next = useCallback(() => goTo((current + 1) % slides.length), [current, goTo, slides.length]);
+  const prev = useCallback(() => goTo((current - 1 + slides.length) % slides.length), [current, goTo, slides.length]);
 
   const resetAutoplay = useCallback(() => {
     setProgress(0);
@@ -924,7 +946,7 @@ export default function HeroCarousel() {
       setProgress(Math.min((elapsed / AUTOPLAY_MS) * 100, 100));
     }, PROGRESS_STEP);
     intervalRef.current = setInterval(() => {
-      setCurrent((c) => (c + 1) % SLIDES.length);
+      setCurrent((c) => (c + 1) % slides.length);
       setTriggerKey((k) => k + 1);
       setProgress(0);
     }, AUTOPLAY_MS);
@@ -964,7 +986,7 @@ export default function HeroCarousel() {
     else if (d < -50) { prev(); resetAutoplay(); }
   };
 
-  const slide  = SLIDES[current];
+  const slide  = slides[current];
   const isDark = slide.layout !== 'editorial';
 
   return (
@@ -1016,7 +1038,7 @@ export default function HeroCarousel() {
           </button>
 
           <div className="flex gap-2" role="tablist">
-            {SLIDES.map((_, i) => (
+            {slides.map((_, i) => (
               <button
                 key={i}
                 role="tab"
@@ -1044,7 +1066,7 @@ export default function HeroCarousel() {
       <div className={`absolute top-5 right-5 z-30 flex items-center gap-1 rounded-lg px-2.5 py-1.5 backdrop-blur-sm text-sm ${isDark ? 'bg-black/35 text-white' : 'bg-white/70 text-corsair-blue-950'}`}>
         <span className="font-black">{String(current + 1).padStart(2, '0')}</span>
         <span className="opacity-40 text-xs mx-0.5">/</span>
-        <span className="opacity-50 text-xs">{String(SLIDES.length).padStart(2, '0')}</span>
+        <span className="opacity-50 text-xs">{String(slides.length).padStart(2, '0')}</span>
       </div>
     </section>
   );

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { submitFormToCms } from '@/lib/cms';
 
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
@@ -90,6 +91,16 @@ export async function POST(request: Request) {
     console.warn('[Contact] RESEND_API_KEY not set — form data logged only');
     console.info('[Contact]', { name, email, phone, course, message: message.slice(0, 100) });
   }
+
+  // Forward submission to the FSTS Dashboard inbox (fire-and-forget)
+  void submitFormToCms({
+    formType: "contact",
+    name,
+    email,
+    phone,
+    message,
+    data: { course: course ?? null, inquiryLabel: inquiryLabel ?? null },
+  });
 
   return NextResponse.json({ success: true });
 }
