@@ -478,39 +478,30 @@ export default async function HomePage({
 
       {/* ───── UPCOMING EVENTS (preview) ───── */}
       <ScrollReveal delay={0.05}>
-        <section className="py-16 bg-white border-t border-corsair-gray-200">
+        <section className="py-20 bg-corsair-gray-50 border-t border-corsair-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
-              <div>
-                <span className="text-xs font-bold text-corsair-red-500 uppercase tracking-widest">
-                  {t('eventsPreview.label')}
-                </span>
-                <h2 className="text-3xl font-black text-corsair-blue-900 mt-2">
-                  {t('eventsPreview.title')}
-                </h2>
-                <p className="text-corsair-gray-600 mt-2 max-w-xl text-sm">
-                  {t('eventsPreview.description')}
-                </p>
-              </div>
-              <Link
-                href="/events"
-                className="inline-flex items-center gap-2 text-corsair-red-500 hover:text-corsair-red-600 font-bold text-sm uppercase tracking-wider self-start md:self-auto"
-              >
-                {t('eventsPreview.viewAll')}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+            {/* Centered header */}
+            <div className="text-center mb-12">
+              <span className="text-xs font-bold text-corsair-red-500 uppercase tracking-widest">
+                {t('eventsPreview.label')}
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black text-corsair-blue-900 mt-2 mb-3">
+                {t('eventsPreview.title')}
+              </h2>
+              <p className="text-corsair-gray-600 max-w-2xl mx-auto text-sm leading-relaxed">
+                {t('eventsPreview.description')}
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {homepageEventsPreview.map((event) => (
                 <Link
                   key={event.id}
                   href={event.registrationUrl ?? '/events'}
-                  className="group bg-white rounded-2xl overflow-hidden border border-corsair-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                  className="group bg-white rounded-2xl overflow-hidden border border-corsair-gray-200 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col"
                 >
-                  <div className="relative w-full aspect-[16/10] overflow-hidden bg-corsair-blue-900">
+                  {/* Flyer image — taller for more visual impact */}
+                  <div className="relative w-full aspect-[4/3] overflow-hidden bg-corsair-blue-900">
                     <Image
                       src={event.heroImage}
                       alt={event.title}
@@ -518,36 +509,63 @@ export default async function HomePage({
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                       sizes="(max-width: 768px) 100vw, 33vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-                    <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white text-corsair-blue-900">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                    {/* Category badge */}
+                    <span className="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-white/95 text-corsair-blue-900 shadow-sm">
                       {event.category}
                     </span>
-                    <span className="absolute bottom-3 left-3 text-xs font-semibold text-white inline-flex items-center gap-1 bg-black/55 backdrop-blur rounded-full px-2.5 py-1">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {event.dateDisplay}
-                    </span>
+                    {/* Date pill over image */}
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-2">
+                      <span className="text-sm font-black text-white drop-shadow-md leading-tight">
+                        {event.dateDisplay}
+                      </span>
+                      <span className="text-[10px] font-bold text-white/80 bg-black/40 backdrop-blur rounded-full px-2.5 py-1 whitespace-nowrap">
+                        {event.time}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="text-base font-black text-corsair-blue-900 leading-tight mb-1 group-hover:text-corsair-red-500 transition-colors">
+                  {/* Card body */}
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="text-base font-black text-corsair-blue-900 leading-snug mb-2 group-hover:text-corsair-red-500 transition-colors">
                       {event.title}
                     </h3>
-                    <p className="text-xs text-corsair-gray-500 mb-3">
-                      {event.time} · {event.location}
+                    <p className="text-xs text-corsair-gray-500 mb-3 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 flex-shrink-0 text-corsair-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {event.location}
                     </p>
-                    <p className="text-sm text-corsair-gray-600 leading-relaxed line-clamp-2">
+                    <p className="text-sm text-corsair-gray-600 leading-relaxed line-clamp-2 flex-1">
                       {event.shortDescription}
                     </p>
-                    <span className="mt-4 inline-flex items-center gap-1 text-corsair-red-500 font-bold text-xs uppercase tracking-wider">
-                      {t('eventsPreview.cardCta')}
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
+                    <div className="mt-5 pt-4 border-t border-corsair-gray-100 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-corsair-red-500 font-bold text-xs uppercase tracking-wider group-hover:text-corsair-red-600 transition-colors">
+                        {t('eventsPreview.cardCta')}
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                      <span className="text-[10px] font-bold text-corsair-blue-900 bg-corsair-blue-50 border border-corsair-blue-100 px-2.5 py-1 rounded-full">
+                        Register Now
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}
+            </div>
+
+            {/* Centered view-all CTA */}
+            <div className="text-center mt-10">
+              <Link
+                href="/events"
+                className="inline-flex items-center gap-2 bg-corsair-blue-900 hover:bg-corsair-blue-950 text-white px-8 py-3.5 rounded-lg text-sm font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                {t('eventsPreview.viewAll')}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
           </div>
         </section>
@@ -769,9 +787,9 @@ export default async function HomePage({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
                 { name: 'Steve Hopwood',        role: 'Founder & Lead Instructor',   tag: 'Navy Veteran · 14 Yrs',        img: '/images/corsair-real/meet-steve-hopwood.jpg',       link: undefined, imgClass: 'object-contain object-center' },
-                { name: 'Hilton Jackson',        role: 'Vice President of Operations',  tag: 'DPS Licensed · Armed Officer', img: '/images/corsair-real/hilton-jackson-bio-01.jpg', link: 'https://www.gideontrainingsolutions.com/', imgClass: 'object-cover object-top' },
-                { name: 'Dr. Casilda Maxwell',   role: 'Lead Firearms Instructor',     tag: 'USCCA · NRA Certified',        img: '/images/corsair-real/dr-casilda-maxwell.jpg',       link: 'https://lowkeydefense.com/#home', imgClass: 'object-cover object-top' },
-                { name: 'Shannon Gulley',        role: 'Certified LTC Instructor',     tag: 'LTC · NRA Certified',          img: '/images/instructors/shannon-gulley.jpg',            link: undefined, imgClass: 'object-cover object-top' },
+                { name: 'Hilton Jackson',        role: 'Vice President of Operations',  tag: 'DPS Licensed · Armed Officer', img: '/images/corsair-real/hilton-jackson-bio-01.jpg', link: 'https://www.gideontrainingsolutions.com/', imgClass: 'object-cover object-[center_20%]' },
+                { name: 'Dr. Casilda Maxwell',   role: 'Lead Firearms Instructor',     tag: 'USCCA · NRA Certified',        img: '/images/corsair-real/dr-casilda-maxwell.jpg',       link: 'https://lowkeydefense.com/#home', imgClass: 'object-cover object-[center_25%]' },
+                { name: 'Shannon Gulley',        role: 'Certified LTC Instructor',     tag: 'LTC · NRA Certified',          img: '/images/instructors/shannon-gulley.jpg',            link: undefined, imgClass: 'object-cover object-[center_20%]' },
               ].map((inst) => (
                 <div key={inst.name} className="text-center group">
                   <div className="relative h-48 rounded-2xl overflow-hidden mb-3 shadow-sm border border-corsair-gray-100">
