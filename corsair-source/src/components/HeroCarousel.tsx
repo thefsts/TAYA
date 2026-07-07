@@ -880,13 +880,15 @@ function EditorialSlide({ slide, triggerKey }: { slide: Slide; triggerKey: numbe
 
 // ─── Carousel Shell ───────────────────────────────────────────────────────────
 
+interface HeroCarouselProps {
+  cmsSlide0Headline?: string;
+  cmsSlide0Subheadline?: string;
+}
+
 export default function HeroCarousel({
   cmsSlide0Headline,
   cmsSlide0Subheadline,
-}: {
-  cmsSlide0Headline?: string;
-  cmsSlide0Subheadline?: string;
-} = {}) {
+}: HeroCarouselProps = {}) {
   // If the CMS provides a headline/subheadline override for the first slide,
   // merge it in so dashboard edits appear on the live site without a deploy.
   const slides = useMemo(() => {
