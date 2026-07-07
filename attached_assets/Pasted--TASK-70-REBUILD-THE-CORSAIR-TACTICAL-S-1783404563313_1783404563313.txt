@@ -1,0 +1,334 @@
+==========================================================
+TASK 70 — REBUILD THE CORSAIR TACTICAL SOLUTIONS HOMEPAGE
+Priority: CRITICAL
+Production Homepage 2.0
+==========================================================
+
+PROJECT OBJECTIVE
+
+Rebuild the Corsair Tactical Solutions homepage to better represent the company's primary business model.
+
+DO NOT redesign the website.
+
+DO NOT change the established branding.
+
+DO NOT change the color palette.
+
+DO NOT change the overall layout style.
+
+Instead, reorganize the homepage so it presents Corsair Tactical Solutions as a professional security services company first, with security officer training and firearms training supporting the business.
+
+The homepage should feel like the website of a premium security company capable of earning large commercial contracts.
+
+==========================================================
+1. HERO SECTION
+==========================================================
+
+Headline:
+
+Professional Security Services Built on Experience, Training & Accountability
+
+Subheadline:
+
+Corsair Tactical Solutions provides licensed security services throughout Texas, specializing in armed security, executive protection, church security, property management security, private investigations, and state-approved security officer training.
+
+Primary CTA:
+
+Request a Security Consultation
+
+Secondary CTA:
+
+View Security Services
+
+Add trust badges beneath the hero:
+
+• Texas Licensed Security Contractor
+• Licensed Private Investigation Company
+• Security Officer Training School
+• Fully Insured
+• Professional Security Services
+
+Use one of the updated professional security hero images.
+
+==========================================================
+2. 4D PROTECTION MODEL™
+==========================================================
+
+Move the 4D Protection Model™ directly below the hero.
+
+Display four interactive cards:
+
+• Deter
+• Detect
+• Deflect
+• Defend
+
+Each card should include:
+
+• Icon
+• Brief description
+• Expand on hover (desktop)
+• Expand on tap (mobile)
+
+CTA:
+
+Learn More About the 4D Protection Model™
+
+==========================================================
+3. SECURITY SERVICES
+==========================================================
+
+This should become the primary homepage section.
+
+Feature service cards for:
+
+• Armed Security Officers
+• Church Security
+• Executive Protection
+• Property Management Security
+• HOA Security
+• Corporate Security
+• Event Security
+• Private Investigations
+
+Each card should include:
+
+• Professional image
+• Short summary
+• Learn More button
+
+==========================================================
+4. INDUSTRIES WE SERVE
+==========================================================
+
+Create a dedicated section highlighting the industries Corsair protects.
+
+Include:
+
+• Churches & Faith-Based Organizations
+• Property Management & HOA Communities
+• Commercial Properties
+• Corporate Offices
+• Healthcare Facilities
+• Schools & Educational Institutions
+• Construction Sites
+• Retail Centers
+• Executive Clients
+• Special Events
+
+==========================================================
+5. WHY CHOOSE CORSAIR
+==========================================================
+
+Professional statistics section.
+
+Animate only once when visible.
+
+Include:
+
+• Years of Experience
+• Security Officers Trained
+• Students Certified
+• Organizations Protected
+• Professional Training Hours
+• Texas Licensed & Insured
+
+==========================================================
+6. FEATURED TRAINING PROGRAMS
+==========================================================
+
+Rename the section:
+
+Featured Training Programs
+
+Top Row:
+
+• Level II Security Officer Training
+• Level III Security Officer Training
+• Level IV Personal Protection Officer
+• Level III + IV Complete Package
+
+Second Row:
+
+• Texas License to Carry Certification / Basic Handgun
+• Basic Handgun Skills Training (Personal 1:1)
+• Shotgun Course
+• AR-15 Rifle Course
+
+Each course card should display:
+
+• Image
+• Duration
+• Difficulty
+• Price
+• Register button
+
+==========================================================
+7. UPCOMING EVENTS
+==========================================================
+
+Display current events in chronological order.
+
+Include:
+
+• July 6–10, 2026 — Level III & IV Security Officer Training
+• July 25, 2026 — Texas License to Carry Certification
+
+Each event should include:
+
+• Flyer
+• Date
+• Location
+• Register button
+• Square payment workflow
+
+==========================================================
+8. MEET OUR TEAM
+==========================================================
+
+Highlight the instructional team.
+
+Use updated professional photos.
+
+Display:
+
+• Hilton Jackson
+• Steve
+• Remaining instructors
+
+Include:
+
+• Professional title
+• Certifications
+• Experience
+• Short biography
+
+==========================================================
+9. TRAINING & KNOWLEDGE CENTER
+==========================================================
+
+Replace the simple blog preview with a richer knowledge center preview.
+
+Feature:
+
+• Featured Article
+• Security Articles
+• Firearms Safety
+• Church Security
+• Security Officer Training
+• Home Defense
+• Investigations
+
+Also include:
+
+• Featured Video
+• Training Tip of the Week
+
+==========================================================
+10. TESTIMONIALS
+==========================================================
+
+Display testimonials from:
+
+• Commercial Clients
+• Churches
+• Property Managers
+• Training Students
+
+==========================================================
+11. FINAL CALL TO ACTION
+==========================================================
+
+Headline:
+
+Ready to Protect Your Organization?
+
+Buttons:
+
+• Schedule a Security Consultation
+• Request a Security Proposal
+
+Include contact phone number and email.
+
+==========================================================
+12. FOOTER
+==========================================================
+
+Keep the existing footer.
+
+Verify it includes:
+
+• Licenses
+• Privacy Policy
+• Accessibility
+• Contact Information
+• Social Links
+• Admin Portal
+
+==========================================================
+13. PERFORMANCE
+==========================================================
+
+Optimize:
+
+✓ Image loading
+✓ Lazy loading
+✓ Responsive images
+✓ Code splitting
+✓ Lighthouse scores
+✓ Core Web Vitals
+
+==========================================================
+14. RESPONSIVE QA
+==========================================================
+
+Verify the homepage on:
+
+✓ Desktop
+✓ Tablet
+✓ iPhone
+✓ Android
+
+Ensure:
+
+• Proper spacing
+• Readable typography
+• Touch-friendly buttons
+• Responsive images
+• Smooth animations
+• No layout shift
+
+==========================================================
+15. DASHBOARD INTEGRATION
+==========================================================
+
+The homepage must be powered by the FSTS Website Operating System™.
+
+The client should be able to update:
+
+✓ Hero content
+✓ Hero images
+✓ Featured services
+✓ Featured courses
+✓ Events
+✓ Team members
+✓ Testimonials
+✓ Featured article
+✓ Knowledge Center content
+
+The client MUST NOT be able to change:
+
+✗ Layout
+✗ Navigation
+✗ Styling
+✗ Components
+✗ Branding
+
+Only content should be editable.
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+The rebuilt homepage should immediately communicate that Corsair Tactical Solutions is a premier Texas security services provider, while naturally showcasing its professional security officer training academy and firearms training programs. The experience should be polished, modern, responsive, and optimized for commercial lead generation without changing the established visual identity of the website.
+```
