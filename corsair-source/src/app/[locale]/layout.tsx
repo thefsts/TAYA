@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 import { locales, isRTL } from '@/i18n/config';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import StickyCTA from "@/components/StickyCTA";
 import CookieConsent from "@/components/CookieConsent";
 import AccessibilityWidget from "@/components/AccessibilityWidget";
 import Analytics from "@/components/Analytics";
@@ -125,7 +124,6 @@ export default async function LocaleLayout({
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
-          <StickyCTA />
           {/* Global compliance & accessibility components */}
           <CookieConsent />
           <AccessibilityWidget />
