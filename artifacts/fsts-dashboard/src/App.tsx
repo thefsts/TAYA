@@ -59,10 +59,29 @@ const clerkKeyIsTestInProd =
   import.meta.env.PROD === true && clerkPubKey.startsWith("pk_test_");
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
-if (!convexUrl) {
-  throw new Error("Missing VITE_CONVEX_URL in .env file");
+
+function isValidConvexUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
-const convex = new ConvexReactClient(convexUrl);
+
+const convexUrlPresent = !!convexUrl;
+const convexUrlValid = convexUrlPresent && isValidConvexUrl(convexUrl);
+
+if (!import.meta.env.PROD && (!convexUrlPresent || !convexUrlValid)) {
+  throw new Error("Missing or invalid VITE_CONVEX_URL in .env file");
+}
+
+const convexUrlMissingInProd = import.meta.env.PROD === true && !convexUrlPresent;
+const convexUrlInvalidInProd = import.meta.env.PROD === true && convexUrlPresent && !convexUrlValid;
+
+const convex: ConvexReactClient | null = convexUrlValid
+  ? new ConvexReactClient(convexUrl)
+  : null;
 
 const clerkAppearance = {
   theme: shadcn,
@@ -206,6 +225,8 @@ function HomeRedirect() {
 function AppRouter() {
   const [, setLocation] = useLocation();
 
+  if (!convex) return null;
+
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
@@ -270,6 +291,45 @@ function App() {
           <p className="text-sm font-medium text-red-800">
             Fix: Set <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CLERK_PUBLISHABLE_KEY</code> to a{" "}
             <code className="rounded bg-red-100 px-1 font-mono text-xs">pk_live_</code> key in your Vercel project settings.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (convexUrlMissingInProd) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-lg rounded-lg border border-red-200 bg-red-50 p-8 shadow-sm">
+          <h1 className="mb-2 text-xl font-semibold text-red-800">
+            Missing Convex URL
+          </h1>
+          <p className="mb-4 text-sm text-red-700">
+            <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CONVEX_URL</code> is not set. Without it the app cannot connect to the backend and shows a blank page or crash.
+          </p>
+          <p className="text-sm font-medium text-red-800">
+            Fix: Set <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CONVEX_URL</code> to your Convex deployment URL in your Vercel project settings. Find it in the{" "}
+            <strong>Convex Dashboard → your deployment → Settings → URL &amp; Deploy Key</strong>.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (convexUrlInvalidInProd) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-lg rounded-lg border border-red-200 bg-red-50 p-8 shadow-sm">
+          <h1 className="mb-2 text-xl font-semibold text-red-800">
+            Invalid Convex URL
+          </h1>
+          <p className="mb-4 text-sm text-red-700">
+            <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CONVEX_URL</code> is set but is not a valid URL. The app cannot connect to the backend and will crash on load.
+          </p>
+          <p className="text-sm font-medium text-red-800">
+            Fix: Set <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CONVEX_URL</code> to a valid{" "}
+            <code className="rounded bg-red-100 px-1 font-mono text-xs">https://</code> URL from{" "}
+            <strong>Convex Dashboard → your deployment → Settings → URL &amp; Deploy Key</strong>.
           </p>
         </div>
       </div>
