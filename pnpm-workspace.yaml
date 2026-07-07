@@ -42,7 +42,7 @@ packages:
   - tests/*
 
 catalog:
-  convex: ^1.25.4
+  convex: ^1.42.1
   '@replit/vite-plugin-cartographer': ^0.5.1
   '@replit/vite-plugin-dev-banner': ^0.1.1
   '@replit/vite-plugin-runtime-error-modal': ^0.0.6

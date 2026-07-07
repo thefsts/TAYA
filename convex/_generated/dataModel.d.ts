@@ -18,7 +18,7 @@ import type { GenericId } from "convex/values";
 import schema from "../schema.js";
 
 /**
- * The names of all tables in your schema.
+ * The names of all of your Convex tables.
  */
 export type TableNames = TableNamesInDataModel<DataModel>;
 
@@ -35,7 +35,13 @@ export type Doc<TableName extends TableNames> = DocumentByName<
 /**
  * An identifier for a document in Convex.
  *
- * Convex generates IDs automatically and they are globally unique per deployment.
+ * Convex documents are uniquely identified by their `Id`, which is accessible
+ * on the `_id` field. To learn more, see [Document IDs](https://docs.convex.dev/using/document-ids).
+ *
+ * Documents can be loaded using `db.get(tableName, id)` in query and mutation functions.
+ *
+ * IDs are just strings at runtime, but this type can be used to distinguish them from other
+ * strings when type checking.
  *
  * @typeParam TableName - A string literal type of the table name (like "users").
  */
@@ -46,6 +52,9 @@ export type Id<TableName extends TableNames | SystemTableNames> =
  * A type describing your Convex data model.
  *
  * This type includes information about what tables you have, the type of
- * documents stored in those tables, and the indexes defined on each table.
+ * documents stored in those tables, and the indexes defined on them.
+ *
+ * This type is used to parameterize methods like `queryGeneric` and
+ * `mutationGeneric` to make them type-safe.
  */
 export type DataModel = DataModelFromSchemaDefinition<typeof schema>;
