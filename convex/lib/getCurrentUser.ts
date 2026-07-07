@@ -43,9 +43,10 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
   const isFirstUser = allUsers.length === 0;
 
   const name =
-    identity.name ??
-    ([identity.givenName, identity.familyName].filter(Boolean).join(" ") ||
-      (identity.email ?? identity.subject));
+    identity.name ||
+    [identity.givenName, identity.familyName].filter(Boolean).join(" ") ||
+    identity.email ||
+    identity.subject;
 
   const userId = await ctx.db.insert("users", {
     clerkUserId: identity.subject,

@@ -1,10 +1,42 @@
 ---
 name: FSTS dashboard superadmin bootstrap
-description: How isSuperAdmin is assigned in the FSTS Client Dashboard, relevant when e2e-testing any /app/admin/* route.
+description: Convex deploy, Clerk JWT setup, and auth guard details for the FSTS Client Dashboard
 ---
 
-The FSTS dashboard (`artifacts/api-server/src/middlewares/auth.ts`) grants `isSuperAdmin` only to the very first Clerk user ever created in the DB (`isFirstUser` check). Every subsequently signed-up test/demo user is a regular (non-admin) user and gets redirected away from `/app/admin/*` routes to the plain `/app` "Your Sites" view.
+The FSTS dashboard grants `isSuperAdmin` only to the very first Clerk user ever provisioned in the Convex `users` table (`isFirstUser` check in `convex/lib/getCurrentUser.ts`). Every subsequent user is a regular user and gets redirected from `/app/admin/*` to `/app`.
 
-**Why:** simple single-tenant bootstrap pattern — there's no invite/promote-admin flow yet.
+**Why:** simple bootstrap pattern — no invite/promote-admin flow exists yet.
 
-**How to apply:** when e2e-testing admin-only pages (site management, user management) with `runTest`/Clerk auth, a freshly created test user will NOT have access — the test will look like a routing bug but isn't. Prefer verifying admin-gated flows via direct DB checks (`psql "$DATABASE_URL"`) or an unauthenticated `screenshot` call (which skips the client-side `me.isSuperAdmin` gate entirely since `me` is undefined) rather than assuming a new signup can act as admin.
+## Convex deploy command
+```
+mkdir -p /home/runner/workspace/.convex-tmp && \
+CONVEX_DEPLOY_KEY="..." CONVEX_TMPDIR=/home/runner/workspace/.convex-tmp npx convex deploy --yes
+```
+`CONVEX_TMPDIR` must be on the same filesystem as the project (not `/tmp`). Key is not stored as a secret — must be obtained from the user each session.
+
+**Why:** `/tmp` is on a different filesystem from the workspace on Replit, causing `mkdtemp` to fail.
+
+## Clerk JWT issuer domain (for first Convex deploy)
+Decode from `VITE_CLERK_PUBLISHABLE_KEY` in bash:
+```python
+python3 -c "import base64,os; pk=os.environ['VITE_CLERK_PUBLISHABLE_KEY']; b64=pk.split('_',2)[2]; b64+='='*(4-len(b64)%4); print(base64.b64decode(b64).decode().strip('\$'))"
+# → e.g. musical-shiner-39.clerk.accounts.dev
+```
+Set in Convex before first deploy: `npx convex env set CLERK_JWT_ISSUER_DOMAIN "https://<decoded>"`
+
+## Admin guard — null-safety fix applied
+Both `AdminUsers.tsx` and `AdminSites.tsx` now use:
+```tsx
+if (!me || !me.isSuperAdmin) return <Redirect to="/app" />;
+```
+**Why:** The old `if (me && !me.isSuperAdmin)` let `null` (unprovisioned/unauthenticated user) fall through to the full admin page. Correct pattern redirects both null and non-superadmin.
+
+## Name resolution — use || not ??
+`convex/lib/getCurrentUser.ts` `provisionUser` uses `||` for the name chain (fixed):
+```ts
+const name = identity.name || [identity.givenName, identity.familyName].filter(Boolean).join(" ") || identity.email || identity.subject;
+```
+**Why:** `??` only bypasses null/undefined. Clerk can emit empty string for `identity.name`; `||` falls through empty strings to givenName+familyName or email.
+
+## E2E testing note
+When testing admin-gated pages with `runTest`/Clerk auth, a freshly created test user will NOT have superadmin access (DB already has users from prior sessions). Verify admin flows by checking the role badge in the header ("SUPER_ADMIN" vs "USER") before asserting admin page access.

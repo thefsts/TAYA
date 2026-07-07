@@ -65,7 +65,7 @@ export default function AdminUsers() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (me === undefined) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
-  if (me && !me.isSuperAdmin) return <Redirect to="/app" />;
+  if (!me || !me.isSuperAdmin) return <Redirect to="/app" />;
 
   function openCreate() {
     setEditing(null);
