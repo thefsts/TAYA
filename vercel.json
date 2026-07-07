@@ -3,7 +3,8 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter @workspace/fsts-dashboard run build",
   "outputDirectory": "artifacts/fsts-dashboard/dist/public",
-  "rewrites": [
-    { "source": "/((?!.*\\.)(.*)?)", "destination": "/index.html" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

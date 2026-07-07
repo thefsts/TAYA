@@ -45,6 +45,11 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Gotchas
 
+- **Vercel deployment requires two environment variables set in the Vercel project settings:**
+  - `VITE_CLERK_PUBLISHABLE_KEY` — must be a **production** key starting with `pk_live_` (find it in Clerk Dashboard → API Keys). A development key (`pk_test_`) will be blocked by Clerk in production and crash the app.
+  - `VITE_CONVEX_URL` — the Convex deployment URL for the production deployment (find it in Convex Dashboard → your deployment → Settings → URL & Deploy Key).
+  - Without both vars the app throws on load and Vercel serves a 404.
+
 - Visual regression tests (`pnpm run test:visual`) require the Component Preview Server workflow to be running (PORT=8081). Start it first or the tests will fail with connection errors.
 - Missing baselines are auto-generated on first run — adding a new mockup will never cause a red build just because its snapshot doesn't exist yet. The pre-test script (`tests/visual-regression/scripts/ensure-baselines.mjs`) detects the gap and runs a targeted `--update-snapshots` pass before the comparison run.
 - After intentional style changes, regenerate baselines with `pnpm run test:visual:update` and commit the updated snapshots in `tests/visual-regression/snapshots/`.
