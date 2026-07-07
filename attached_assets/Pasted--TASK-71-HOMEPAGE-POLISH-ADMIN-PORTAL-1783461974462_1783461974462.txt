@@ -1,0 +1,182 @@
+==========================================================
+TASK 71 — HOMEPAGE POLISH & ADMIN PORTAL FIX
+Priority: CRITICAL
+Production Release Fixes
+==========================================================
+
+DO NOT redesign the website.
+
+DO NOT change the branding.
+
+DO NOT change the color palette.
+
+DO NOT change the established layout.
+
+These are production polish items and bug fixes only.
+
+==========================================================
+1. FEATURED TRAINING PROGRAMS
+==========================================================
+
+Update the "Featured Training Programs" section.
+
+The layout should display exactly:
+
+ROW 1 (4 Cards)
+
+• Level II Security Officer Training
+• Level III Security Officer Training
+• Level IV Personal Protection Officer
+• Level III + IV Complete Package
+
+ROW 2 (4 Cards)
+
+• Texas License to Carry Certification / Basic Handgun
+• Basic Handgun Skills Training (Personal 1:1)
+• Shotgun Course
+• AR-15 Rifle Course
+
+Requirements:
+
+✓ Four equal-width cards on Desktop
+✓ Two cards per row on Tablet
+✓ One card per row on Mobile
+✓ Equal spacing
+✓ Equal card heights
+✓ Consistent image sizing
+✓ Buttons aligned evenly
+✓ Fully responsive
+
+==========================================================
+2. UPCOMING EVENTS
+==========================================================
+
+Redesign ONLY this section while keeping the existing website style.
+
+Current issues:
+
+• Not centered
+• Uneven spacing
+• Weak visual hierarchy
+• Cards feel unbalanced
+
+Improve:
+
+✓ Center the entire section
+✓ Better spacing
+✓ Better typography
+✓ Equal card heights
+✓ Larger event flyers
+✓ Better CTA placement
+✓ Better date presentation
+✓ Professional premium appearance
+
+Maintain the current branding.
+
+==========================================================
+3. OUR TRAINING TEAM
+==========================================================
+
+Adjust all instructor profile images.
+
+Current issue:
+
+Dr. Casilda Maxwell and Shannon Gulley have too much empty space above their heads.
+
+Requirements:
+
+• Reposition images using object-position (or equivalent)
+• Show more of each instructor
+• Center faces properly
+• Remove excess empty space
+• Keep aspect ratio
+• No stretching
+• No distortion
+
+Review every instructor photo for consistency across the entire section.
+
+==========================================================
+4. ADMIN PORTAL BUG (CRITICAL)
+==========================================================
+
+Current Error:
+
+404: NOT_FOUND
+
+Code:
+
+DEPLOYMENT_NOT_FOUND
+
+This indicates the footer is pointing to an old Vercel deployment URL instead of the permanent production dashboard.
+
+Locate every Admin Portal link in the project.
+
+Replace ALL references with the permanent production dashboard URL.
+
+DO NOT use:
+
+• Preview Deployment URLs
+• Temporary Deployment URLs
+• Old Deployment IDs
+
+Use ONLY the permanent production dashboard URL or production custom domain.
+
+Verify:
+
+✓ Desktop
+✓ Tablet
+✓ Mobile
+
+Requirements:
+
+✓ Admin Portal opens successfully
+✓ Login page loads
+✓ Clerk authentication loads
+✓ Client can sign in
+✓ Single-site auto redirect works
+✓ Corsair workspace opens
+✓ No 404 errors
+✓ No Deployment Not Found errors
+
+==========================================================
+5. VERIFY DASHBOARD CONNECTION
+==========================================================
+
+After fixing the Admin Portal link, verify:
+
+✓ Corsair website connects to the production FSTS Website Operating System™
+✓ Dashboard opens correctly
+✓ Homepage editor loads
+✓ Courses load
+✓ Events load
+✓ Media Library loads
+✓ Activity Log works
+✓ Version History works
+✓ Dashboard recognizes Corsair automatically
+
+==========================================================
+6. FINAL QA
+==========================================================
+
+Verify:
+
+✓ Featured Training Programs displays as 4 × 2 layout.
+✓ Upcoming Events section is centered and professionally styled.
+✓ Instructor photos are properly positioned.
+✓ Admin Portal works from every page.
+✓ No broken links.
+✓ No console errors.
+✓ No layout shifts.
+✓ Desktop verified.
+✓ Tablet verified.
+✓ Mobile verified.
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+These are final production polish items before client handoff.
+
+The homepage should present a polished, premium, commercial-quality experience while ensuring the Admin Portal reliably connects to the live FSTS Website Operating System™.
+
+This should be considered a production blocking task and must be completed before final release.
