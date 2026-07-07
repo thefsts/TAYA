@@ -9,7 +9,8 @@ import {
   Users,
   LogOut,
   ChevronRight,
-  Globe
+  Globe,
+  ShieldX
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +33,29 @@ export default function SitesList() {
 
   if (!loadingMe && !loadingSites && !me?.isSuperAdmin && sites?.length === 1) {
     return null;
+  }
+
+  if (!loadingMe && me !== null && me?.isActive === false) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
+        <div className="max-w-sm w-full text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+            <ShieldX className="h-7 w-7 text-red-600" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Account Deactivated</h1>
+          <p className="text-slate-500 text-sm mb-6">
+            Your account has been deactivated. Please contact your administrator for assistance.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => signOut({ redirectUrl: window.location.origin })}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (

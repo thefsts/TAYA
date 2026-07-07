@@ -1,10 +1,10 @@
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ClerkProvider, SignIn, SignUp, Show, useAuth } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
-import { ConvexReactClient, useConvexAuth, useMutation } from "convex/react";
+import { ConvexReactClient, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { useEffect, useRef } from "react";
 import { api } from "@convex/_generated/api";
@@ -110,13 +110,32 @@ function AuthBootstrap() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const provisionMe = useMutation(api.users.provisionMe);
   const provisioned = useRef(false);
+  const { signOut } = useClerk();
 
   useEffect(() => {
     if (isAuthenticated && !isLoading && !provisioned.current) {
       provisioned.current = true;
-      provisionMe().catch(() => {});
+      provisionMe().catch((err: Error) => {
+        if (err?.message?.includes("Account is deactivated")) {
+          signOut({ redirectUrl: `${basePath}/sign-in?deactivated=1` });
+        }
+      });
     }
-  }, [isAuthenticated, isLoading, provisionMe]);
+  }, [isAuthenticated, isLoading, provisionMe, signOut]);
+
+  return null;
+}
+
+function DeactivationGuard() {
+  const { isAuthenticated } = useConvexAuth();
+  const me = useQuery(api.users.me);
+  const { signOut } = useClerk();
+
+  useEffect(() => {
+    if (isAuthenticated && me !== undefined && me !== null && me.isActive === false) {
+      signOut({ redirectUrl: `${basePath}/sign-in?deactivated=1` });
+    }
+  }, [isAuthenticated, me, signOut]);
 
   return null;
 }
@@ -133,9 +152,15 @@ function AuthPageBrand() {
 }
 
 function SignInPage() {
+  const isDeactivated = new URLSearchParams(window.location.search).get("deactivated") === "1";
   return (
     <div className="flex flex-col min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-12">
       <AuthPageBrand />
+      {isDeactivated && (
+        <div className="mb-4 w-full max-w-[440px] rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Your account has been deactivated. Please contact your administrator.
+        </div>
+      )}
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
     </div>
   );
@@ -186,6 +211,7 @@ function AppRouter() {
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <AuthBootstrap />
+        <DeactivationGuard />
         <Switch>
           <Route path="/" component={HomeRedirect} />
           <Route path="/sign-in/*?" component={SignInPage} />
