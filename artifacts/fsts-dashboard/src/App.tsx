@@ -55,6 +55,9 @@ if (!clerkPubKey) {
   throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
 }
 
+const clerkKeyIsTestInProd =
+  import.meta.env.PROD === true && clerkPubKey.startsWith("pk_test_");
+
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
 if (!convexUrl) {
   throw new Error("Missing VITE_CONVEX_URL in .env file");
@@ -254,6 +257,25 @@ function AppRouter() {
 }
 
 function App() {
+  if (clerkKeyIsTestInProd) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-lg rounded-lg border border-red-200 bg-red-50 p-8 shadow-sm">
+          <h1 className="mb-2 text-xl font-semibold text-red-800">
+            Invalid Clerk Key for Production
+          </h1>
+          <p className="mb-4 text-sm text-red-700">
+            A development Clerk key (<code className="rounded bg-red-100 px-1 font-mono text-xs">pk_test_…</code>) is set but this app is running in production mode. Clerk blocks development keys in production, which causes a blank page or crash.
+          </p>
+          <p className="text-sm font-medium text-red-800">
+            Fix: Set <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CLERK_PUBLISHABLE_KEY</code> to a{" "}
+            <code className="rounded bg-red-100 px-1 font-mono text-xs">pk_live_</code> key in your Vercel project settings.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider>
       <WouterRouter base={basePath}>
