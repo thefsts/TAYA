@@ -885,10 +885,10 @@ interface HeroCarouselProps {
   cmsSlide0Subheadline?: string;
 }
 
-export default function HeroCarousel({
+const HeroCarousel = ({
   cmsSlide0Headline,
   cmsSlide0Subheadline,
-}: HeroCarouselProps = {}) {
+}: HeroCarouselProps) => {
   // If the CMS provides a headline/subheadline override for the first slide,
   // merge it in so dashboard edits appear on the live site without a deploy.
   const slides = useMemo(() => {
@@ -1072,4 +1072,6 @@ export default function HeroCarousel({
       </div>
     </section>
   );
-}
+};
+
+export default HeroCarousel;
