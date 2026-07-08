@@ -880,15 +880,24 @@ function EditorialSlide({ slide, triggerKey }: { slide: Slide; triggerKey: numbe
 
 // ─── Carousel Shell ───────────────────────────────────────────────────────────
 
-interface HeroCarouselProps {
-  cmsSlide0Headline?: string;
-  cmsSlide0Subheadline?: string;
-}
+const HeroCarousel = () => {
+  const [cmsSlide0Headline, setCmsSlide0Headline] = useState<string | undefined>(undefined);
+  const [cmsSlide0Subheadline, setCmsSlide0Subheadline] = useState<string | undefined>(undefined);
 
-const HeroCarousel = ({
-  cmsSlide0Headline,
-  cmsSlide0Subheadline,
-}: HeroCarouselProps) => {
+  useEffect(() => {
+    const convexUrl =
+      process.env.NEXT_PUBLIC_CONVEX_URL ?? 'https://clean-marlin-94.convex.cloud';
+    fetch(`${convexUrl}/api/public/homepage?slug=corsair-tactical`, {
+      signal: AbortSignal.timeout(4000),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.heroHeadline) setCmsSlide0Headline(data.heroHeadline);
+        if (data?.heroSubheadline) setCmsSlide0Subheadline(data.heroSubheadline);
+      })
+      .catch(() => {});
+  }, []);
+
   // If the CMS provides a headline/subheadline override for the first slide,
   // merge it in so dashboard edits appear on the live site without a deploy.
   const slides = useMemo(() => {

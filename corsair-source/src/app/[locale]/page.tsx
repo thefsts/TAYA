@@ -9,7 +9,6 @@ import { getHomepageCourses } from '@/lib/courses';
 import { getLocalizedCourse } from '@/lib/courseTranslations';
 import HeroCarousel from '@/components/HeroCarousel';
 import DiscountsBanner from '@/components/DiscountsBanner';
-import { getCmsHomepage } from '@/lib/cms';
 
 export async function generateMetadata({
   params,
@@ -44,9 +43,6 @@ export default async function HomePage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'home' });
   const tc = await getTranslations({ locale, namespace: 'common' });
-
-  // Fetch CMS hero content from Convex — falls back gracefully if unavailable
-  const cmsHero = await getCmsHomepage();
 
   const levelColorMap: Record<string, string> = {
     Beginner: 'bg-green-100 text-green-700',
@@ -160,11 +156,7 @@ export default async function HomePage({
       {/* ═══════════ APPROVED HOMEPAGE STYLE ═══════════ */}
 
       {/* ── HERO CAROUSEL ── */}
-      {/* cmsSlide0Headline/Subheadline: when set in Convex dashboard, overrides the first slide */}
-      <HeroCarousel
-        cmsSlide0Headline={cmsHero?.heroHeadline}
-        cmsSlide0Subheadline={cmsHero?.heroSubheadline}
-      />
+      <HeroCarousel />
 
       {/* ── STATS COUNTER ── */}
       <StatsCounter />
