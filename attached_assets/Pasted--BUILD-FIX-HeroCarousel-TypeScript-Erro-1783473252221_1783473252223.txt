@@ -1,0 +1,74 @@
+==========================================================
+BUILD FIX — HeroCarousel TypeScript Error
+Priority: CRITICAL
+==========================================================
+
+Current Build Error:
+
+Type '{ cmsSlide0Headline: string | undefined;
+cmsSlide0Subheadline: string | undefined; }'
+is not assignable to type 'IntrinsicAttributes'.
+
+Property 'cmsSlide0Headline' does not exist on type 'IntrinsicAttributes'.
+
+==========================================================
+CAUSE
+==========================================================
+
+The homepage is passing these props into HeroCarousel:
+
+cmsSlide0Headline
+cmsSlide0Subheadline
+
+However, the HeroCarousel component's props interface/type has not been updated to accept them.
+
+==========================================================
+FIX
+==========================================================
+
+Locate:
+
+HeroCarousel.tsx (or HeroCarousel component)
+
+Update the HeroCarouselProps interface to include:
+
+interface HeroCarouselProps {
+  cmsSlide0Headline?: string;
+  cmsSlide0Subheadline?: string;
+}
+
+Then update the component signature:
+
+export default function HeroCarousel({
+  cmsSlide0Headline,
+  cmsSlide0Subheadline,
+}: HeroCarouselProps) {
+  ...
+}
+
+Use the CMS values as overrides only when they exist.
+
+Example:
+
+const headline =
+  cmsSlide0Headline ?? defaultSlides[0].headline;
+
+const subheadline =
+  cmsSlide0Subheadline ?? defaultSlides[0].subheadline;
+
+Do NOT remove the default content.
+
+If the dashboard has no value, HeroCarousel should continue using the existing hardcoded defaults.
+
+==========================================================
+VERIFY
+==========================================================
+
+✓ TypeScript passes
+✓ next build succeeds
+✓ Homepage renders
+✓ Dashboard overrides work
+✓ Existing HeroCarousel functionality remains unchanged
+
+If HeroCarousel is not intended to receive these props yet, remove the props from the homepage until the component is fully wired. Do NOT leave the project in a broken build state.
+==========================================================
