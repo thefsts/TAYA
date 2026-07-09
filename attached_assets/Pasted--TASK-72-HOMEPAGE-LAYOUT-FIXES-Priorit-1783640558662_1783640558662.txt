@@ -1,0 +1,110 @@
+==========================================================
+TASK 72 — HOMEPAGE LAYOUT FIXES
+Priority: HIGH
+Production UI Polish
+==========================================================
+
+DO NOT redesign the homepage.
+
+DO NOT change the branding, colors, typography, or overall style.
+
+These are layout corrections only.
+
+==========================================================
+1. FEATURED TRAINING PROGRAMS
+==========================================================
+
+Current issue:
+
+The course cards are stacking vertically.
+
+This section should display in a professional grid.
+
+Required Layout:
+
+DESKTOP
+--------------------------------
+
+Row 1 (4 Cards Across)
+
+• Level II Security Officer Training
+• Level III Security Officer Training
+• Level IV Personal Protection Officer
+• Level III + IV Complete Package
+
+Row 2 (4 Cards Across)
+
+• Texas License to Carry Certification / Basic Handgun
+• Basic Handgun Skills Training (Personal 1:1)
+• Shotgun Course
+• AR-15 Rifle Course
+
+Requirements:
+
+✓ 4 cards across on Desktop
+✓ 2 cards across on Tablet
+✓ 1 card across on Mobile
+✓ Equal card widths
+✓ Equal card heights
+✓ Consistent spacing
+✓ Images aligned
+✓ Buttons aligned
+✓ Responsive with no overflow
+
+If using CSS Grid:
+
+Desktop:
+grid-template-columns: repeat(4, 1fr);
+
+Tablet:
+repeat(2, 1fr);
+
+Mobile:
+repeat(1, 1fr);
+
+==========================================================
+2. JOIN US / UPCOMING EVENTS
+==========================================================
+
+Current issue:
+
+The entire "Join Us / Upcoming Events" section is pushed to the left side of the page and looks unbalanced.
+
+Fix the layout so the section is properly centered within the site's content container.
+
+Requirements:
+
+✓ Center the entire section horizontally
+✓ Use the same max-width/container as the rest of the homepage
+✓ Center the section heading
+✓ Center the event cards
+✓ Equal spacing on left and right
+✓ Maintain consistent padding with all other homepage sections
+✓ Improve vertical spacing between heading and cards
+✓ Ensure cards align evenly
+
+Do NOT change the existing branding or design language.
+
+==========================================================
+3. RESPONSIVE QA
+==========================================================
+
+Verify on:
+
+✓ Desktop
+✓ Tablet
+✓ Mobile
+
+Ensure:
+
+• No layout shifts
+• No horizontal scrolling
+• Proper spacing
+• Professional alignment
+• Consistent with the rest of the homepage
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+These are production polish fixes only. The Featured Training Programs section should display as a clean 4×2 grid on desktop, and the Upcoming Events section should be perfectly centered and visually balanced with the rest of the homepage before final client release.

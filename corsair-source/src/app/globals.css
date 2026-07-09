@@ -69,30 +69,16 @@
   padding-bottom: 4rem;
 }
 
-/* ── Two-column grid: courses (left) + why card (right) ── */
+/* ── Single-column container: courses full-width above why card ── */
 .home-grid-approved {
   max-width: 80rem;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 2.5rem;
-}
-
-@media (min-width: 1024px) {
-  .home-grid-approved {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    align-items: start;
-  }
-}
-
-@media (min-width: 1280px) {
-  .home-grid-approved {
-    grid-template-columns: 3fr 2fr;
-  }
 }
 
 /* ── Section heading ── */
@@ -240,7 +226,7 @@
   transform: translateY(-1px);
 }
 
-/* ── Why Choose Corsair card (dark navy sidebar) ── */
+/* ── Why Choose Corsair card (dark navy, full-width horizontal at desktop) ── */
 .why-card-approved {
   background: #0D1E2B;
   border-radius: 1.25rem;
@@ -263,6 +249,33 @@
   color: rgba(255, 255, 255, 0.6);
   margin-top: -0.875rem;
   line-height: 1.5;
+}
+
+/* At 768px+: header row + items in a 2-col grid */
+@media (min-width: 768px) {
+  .why-card-approved {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem 2rem;
+    align-items: start;
+  }
+  .why-card-approved h3 {
+    grid-column: 1 / -1;
+    font-size: 1.35rem;
+    margin-bottom: 0;
+  }
+  .why-card-approved .why-card-subtitle {
+    grid-column: 1 / -1;
+    margin-top: -0.5rem;
+  }
+}
+
+/* At 1024px+: items spread across 3 columns */
+@media (min-width: 1024px) {
+  .why-card-approved {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 2rem 2.5rem;
+  }
 }
 
 .why-item-approved {
