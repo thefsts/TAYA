@@ -1,0 +1,249 @@
+==========================================================
+TASK 73 — HOMEPAGE REDESIGN (SECURITY-FIRST EXPERIENCE)
+Priority: CRITICAL
+Homepage Only
+==========================================================
+
+PROJECT OBJECTIVE
+
+We are redesigning ONLY the Homepage of the Corsair Tactical Solutions website.
+
+NO OTHER PAGE should be modified.
+
+The goal is to transform the homepage into a premium security company experience that clearly communicates Corsair Tactical Solutions as a professional security services provider first, with firearms and security officer training supporting the business.
+
+==========================================================
+IMPORTANT RULES
+==========================================================
+
+✓ HOMEPAGE ONLY
+
+DO NOT modify:
+
+• Security Services page
+• Training pages
+• Course pages
+• Events
+• Contact
+• About
+• Footer
+• Navigation
+• Any other page
+
+DO NOT change the Hero section.
+
+The Hero is approved.
+
+Leave the Hero exactly as it is.
+
+Do not change:
+
+• Hero image
+• Hero wording
+• Hero layout
+• Hero buttons
+• Hero animations
+
+==========================================================
+REMOVE THESE COURSES FROM THE HOMEPAGE
+==========================================================
+
+These courses should NO LONGER appear on the Homepage.
+
+Remove ONLY from the Homepage.
+
+They should still exist elsewhere on the website.
+
+Remove:
+
+• Level II Unarmed Security Officer
+• Level III Armed Security Officer – Commissioned
+• Level IV Bodyguard (Personal Protection Officer)
+• Texas License to Carry Certification / Basic Handgun
+• Basic Handgun Skills Training (Personal 1:1)
+
+==========================================================
+REMOVE THESE HOMEPAGE SECTIONS
+==========================================================
+
+Remove completely:
+
+• About Your Instructor
+
+• Our Training Team
+
+These sections are no longer needed on the Homepage.
+
+They can remain elsewhere on the website if applicable.
+
+==========================================================
+NEW HOMEPAGE DIRECTION
+==========================================================
+
+After the Hero, the homepage should immediately feel like a modern security company.
+
+Visitors should instantly understand that Corsair Tactical Solutions provides:
+
+• Professional Security Services
+• Executive Protection
+• Church Security
+• Property Management Security
+• Corporate Security
+• Private Investigations
+• Emergency Preparedness
+• Security Officer Training
+
+Training should support the business—not dominate the homepage.
+
+==========================================================
+ADD MORE SECURITY FUNCTIONALITY
+==========================================================
+
+Increase interaction throughout the homepage while maintaining professionalism.
+
+Examples:
+
+• Interactive security service cards
+• Animated shield effects
+• Radar sweep graphics
+• Security perimeter animations
+• Location pulse indicators
+• Command-center inspired UI elements
+• Smooth scroll-triggered reveals
+• Hover interactions
+• Animated statistics
+• Professional icon animations
+• Layered parallax backgrounds
+• Security operations visual elements
+
+Animations should be subtle, premium, GPU-accelerated, and mobile friendly.
+
+==========================================================
+FIREARMS & TRAINING VISUALS
+==========================================================
+
+Add tasteful instructional visuals that reinforce Corsair's training expertise.
+
+Examples:
+
+• Interactive qualification target graphics
+• Training progression timeline
+• Safety checklist animations
+• Course progression graphics
+• Qualification score examples
+• Tactical equipment illustrations
+• Scenario-based training callouts
+
+Do NOT add:
+
+✗ Arcade effects
+✗ Muzzle flashes
+✗ Video game animations
+✗ Cartoon effects
+
+Everything should remain professional and instructional.
+
+==========================================================
+NEW SECURITY-FOCUSED HOMEPAGE FLOW
+==========================================================
+
+Keep the Hero exactly as it is.
+
+Then reorganize the homepage into the following experience:
+
+1. Hero (UNCHANGED)
+
+↓
+
+2. The 4D Protection Model™
+
+↓
+
+3. Professional Security Services
+
+↓
+
+4. Industries We Protect
+
+↓
+
+5. Why Choose Corsair
+
+↓
+
+6. Featured Security Solutions
+
+↓
+
+7. Featured Training Programs
+(Fewer, higher-value courses only)
+
+↓
+
+8. Upcoming Events
+(Redesign and center this section)
+
+↓
+
+9. Training & Knowledge Center Preview
+
+↓
+
+10. Commercial Client Testimonials
+
+↓
+
+11. Final Security Consultation CTA
+
+==========================================================
+PREMIUM USER EXPERIENCE
+==========================================================
+
+The homepage should feel alive without becoming distracting.
+
+Improve:
+
+✓ Scroll animations
+✓ Hover interactions
+✓ Card transitions
+✓ Image animations
+✓ CTA button effects
+✓ Section reveals
+✓ Visual hierarchy
+✓ Typography rhythm
+✓ Spacing
+✓ Premium polish
+
+Maintain:
+
+✓ Fast performance
+✓ Accessibility
+✓ Lighthouse scores
+✓ Responsive layouts
+
+==========================================================
+MOBILE EXPERIENCE
+==========================================================
+
+Verify:
+
+✓ Desktop
+✓ Tablet
+✓ iPhone
+✓ Android
+
+Ensure:
+
+• Smooth scrolling
+• Responsive layouts
+• Touch-friendly interactions
+• Fast loading
+• No layout shifts
+• No overflow
+• Professional spacing
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+The redesigned homepage should immediately establish Corsair Tactical Solutions as a premier Texas security services company while naturally showcasing its professional training capabilities. The experience should feel custom-designed, premium, and engaging, encouraging commercial clients to request consultations while still supporting training registrations. Preserve the approved Hero section and limit all changes to the homepage only.
