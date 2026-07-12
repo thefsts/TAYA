@@ -100,3 +100,16 @@ route strings aren't type-checked against the OpenAPI paths.
 **How to apply:** When a UI list/table appears empty despite confirmed DB writes, diff the actual
 registered Express route path against `lib/api-spec/openapi.yaml` and the generated client call —
 don't assume the bug is in the write path just because that's where you were last working.
+
+## Vercel project coordinates (fullstacksolutions team)
+- Team: `fullstacksolutions` — `team_00AzAewtangFumhXtrI6kseh`
+- Project: `corsair-tactical-solutions` — `prj_dUtXgicvwQB5DDhsdMbfs6tLilL2`
+- Old token (`VERCEL_TOKEN` secret) returns 403 on project listing — wrong team scope.
+- Working token is in Replit secrets as `VERCEL_FULL_TOKEN` (full-account VCP token).
+- Build log endpoint: `GET /v3/deployments/{uid}/events?teamId=…&limit=2000&direction=forward&follow=0` with `Accept: application/x-ndjson`
+
+## ConvexArticle optional fields — index guard pattern
+- `ConvexArticle.category` is `string | undefined` (and most other fields are optional).
+- Indexing `Record<string, …>` with `string | undefined` is a TS strict-mode error.
+- Pattern: `CATEGORY_STYLES[article.category ?? '']` — always use `?? ''` when indexing with an optional string field.
+- Same applies to `featured.category ?? ''`, `article.topic ?? ''`, etc.

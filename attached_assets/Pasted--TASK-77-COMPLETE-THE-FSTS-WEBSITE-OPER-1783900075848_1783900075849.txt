@@ -1,0 +1,640 @@
+==========================================================
+TASK 77 — COMPLETE THE FSTS WEBSITE OPERATING SYSTEM™
+VERSION 1.0
+Priority: CRITICAL
+==========================================================
+
+Effective immediately, all development focus shifts away from individual client websites.
+
+DO NOT onboard additional websites yet.
+
+DO NOT add new cosmetic features.
+
+DO NOT redesign any websites.
+
+The objective now is to COMPLETE the FSTS Website Operating System™ so it becomes the production platform used for every current and future Full Stack Tech Solutions website.
+
+We are no longer building a dashboard.
+
+We are building a complete Website Operating System (FSTS-WOS).
+
+This must become the core platform of Full Stack Tech Solutions.
+
+==========================================================
+PRIMARY OBJECTIVE
+==========================================================
+
+Complete Version 1.0.
+
+When Version 1.0 is complete, any future website should require configuration—not custom development.
+
+Every website should connect to the exact same backend architecture.
+
+Website
+
+↓
+
+Convex
+
+↓
+
+FSTS Website Operating System™
+
+↓
+
+Operon CRM
+
+==========================================================
+PHASE 1 — COMPLETE ALL CMS PIPELINES
+(HIGHEST PRIORITY)
+==========================================================
+
+Every editable section of every website must read from Convex.
+
+Finish all remaining pipelines.
+
+Homepage
+
+Hero
+
+Buttons
+
+Homepage Sections
+
+Featured Services
+
+Featured Courses
+
+Featured Events
+
+Testimonials
+
+Footer
+
+Contact Information
+
+Business Hours
+
+Locations
+
+Course Catalog
+
+Course Pricing
+
+Course Add-ons
+
+Events
+
+FAQs
+
+Testimonials
+
+Media Library
+
+SEO
+
+Knowledge Center
+
+Privacy Policy
+
+Terms
+
+Cookie Policy
+
+Accessibility Statement
+
+Every dashboard edit must update the live website automatically.
+
+Static code should become fallback protection only.
+
+==========================================================
+PHASE 2 — COMPLETE ALL REMAINING DASHBOARD MODULES
+==========================================================
+
+Finish every unfinished module.
+
+Complete:
+
+✓ FAQ Manager
+
+✓ Testimonials Manager
+
+✓ Contact Form Inbox
+
+✓ Forms Builder
+
+✓ Pricing Manager
+
+✓ About Page Editor
+
+✓ Services Page Editor
+
+✓ Policy Page Editors
+
+✓ Navigation Manager
+
+✓ Announcement Banner Manager
+
+✓ Homepage Section Manager
+
+✓ CTA Manager
+
+✓ Downloads Manager
+
+✓ Resource Manager
+
+✓ Image Gallery Manager
+
+✓ Team Member Manager
+
+✓ Careers Manager
+
+✓ Job Posting Manager
+
+✓ Pop-up / Modal Manager
+
+==========================================================
+PHASE 3 — FORM BUILDER
+==========================================================
+
+Build a professional drag-and-drop Form Builder.
+
+Clients should be able to create:
+
+Contact Forms
+
+Estimate Requests
+
+Employment Applications
+
+Course Registration
+
+Event Registration
+
+Quote Requests
+
+Newsletter Signup
+
+Custom Forms
+
+Support:
+
+Required Fields
+
+Conditional Logic
+
+File Uploads
+
+Spam Protection
+
+Email Routing
+
+CRM Routing
+
+Success Pages
+
+Redirect URLs
+
+Hidden Fields
+
+Webhooks
+
+Every form should automatically connect to Operon CRM.
+
+==========================================================
+PHASE 4 — MEDIA LIBRARY
+==========================================================
+
+Complete Media Library.
+
+Support:
+
+Images
+
+Videos
+
+PDFs
+
+Documents
+
+Logos
+
+Icons
+
+Brand Assets
+
+Downloads
+
+Cloud Storage
+
+Automatic Optimization
+
+Compression
+
+Responsive Images
+
+Alt Text
+
+Search
+
+Folders
+
+Collections
+
+Reuse Anywhere
+
+==========================================================
+PHASE 5 — SQUARE COMMERCE
+==========================================================
+
+Complete Square integration.
+
+Clients should configure their own Square account without code changes.
+
+Support:
+
+Products
+
+Services
+
+Courses
+
+Events
+
+Invoices
+
+Deposits
+
+Gift Cards
+
+Subscriptions
+
+Discount Codes
+
+Taxes
+
+Receipts
+
+Refund Status
+
+Payment History
+
+Dashboard Analytics
+
+==========================================================
+PHASE 6 — EMAIL SYSTEM
+==========================================================
+
+Complete production email.
+
+Support:
+
+SMTP
+
+Resend
+
+SendGrid
+
+Future Providers
+
+Templates
+
+Branding
+
+Automations
+
+Admin Notifications
+
+Customer Notifications
+
+==========================================================
+PHASE 7 — WEBSITE SETTINGS
+==========================================================
+
+Create one central Website Settings module.
+
+Business Name
+
+Logo
+
+Favicon
+
+Colors
+
+Social Links
+
+Phone Numbers
+
+Addresses
+
+Email Addresses
+
+Business Hours
+
+Licenses
+
+Footer Information
+
+Legal Pages
+
+Analytics
+
+Meta Defaults
+
+Everything updates globally.
+
+==========================================================
+PHASE 8 — CLIENT PERMISSIONS
+==========================================================
+
+Clients must NEVER be able to modify:
+
+Website Layout
+
+Design
+
+Navigation Structure
+
+Components
+
+Animations
+
+Code
+
+Brand Framework
+
+Templates
+
+Global Styling
+
+Clients MAY edit:
+
+Text
+
+Images
+
+Videos
+
+Prices
+
+Events
+
+Courses
+
+Articles
+
+FAQs
+
+Testimonials
+
+Downloads
+
+Forms
+
+SEO
+
+Business Information
+
+Payment Settings
+
+==========================================================
+PHASE 9 — WEBSITE TEMPLATE ENGINE
+==========================================================
+
+Convert the system into reusable templates.
+
+Corporate Website
+
+Security Company
+
+Training Academy
+
+E-Commerce
+
+Cleaning Company
+
+Insurance Agency
+
+Construction
+
+Medical
+
+Law Firm
+
+Non-Profit
+
+Church
+
+Restaurant
+
+Real Estate
+
+Every template uses the same dashboard.
+
+Only content changes.
+
+==========================================================
+PHASE 10 — ADMIN EXPERIENCE
+==========================================================
+
+The dashboard should feel more powerful than WordPress.
+
+Features:
+
+Global Search
+
+Quick Actions
+
+Keyboard Shortcuts
+
+Recent Activity
+
+Drafts
+
+Version History
+
+Restore
+
+Undo
+
+Bulk Edit
+
+Bulk Publish
+
+Scheduling
+
+Dark Mode
+
+Notifications
+
+Task Center
+
+AI Assistant
+
+Help Center
+
+Interactive Tutorials
+
+==========================================================
+PHASE 11 — PLATFORM AUTOMATION
+==========================================================
+
+Complete automation.
+
+Automatic Backups
+
+Health Monitoring
+
+SSL Monitoring
+
+Performance Monitoring
+
+Broken Link Detection
+
+Accessibility Reports
+
+SEO Reports
+
+Image Optimization
+
+Database Cleanup
+
+Scheduled Jobs
+
+==========================================================
+PHASE 12 — DEVELOPER PLATFORM
+==========================================================
+
+Create developer tools.
+
+API Documentation
+
+Webhook Manager
+
+Environment Manager
+
+Deployment Manager
+
+Feature Flags
+
+Audit Logs
+
+System Logs
+
+Debug Console
+
+==========================================================
+PHASE 13 — QUALITY ASSURANCE
+==========================================================
+
+Complete a platform-wide QA.
+
+Verify:
+
+✓ Every module works.
+
+✓ Every page saves.
+
+✓ Every role works.
+
+✓ Multi-tenant isolation.
+
+✓ Convex permissions.
+
+✓ Clerk authentication.
+
+✓ Media uploads.
+
+✓ Forms.
+
+✓ Emails.
+
+✓ Square.
+
+✓ SEO.
+
+✓ Accessibility.
+
+✓ Mobile.
+
+✓ Desktop.
+
+✓ Tablet.
+
+✓ Performance.
+
+✓ Security.
+
+==========================================================
+PHASE 14 — PLATFORM DOCUMENTATION
+==========================================================
+
+Create documentation for:
+
+Administrators
+
+Site Owners
+
+Editors
+
+Developers
+
+API
+
+Deployment
+
+Backups
+
+Recovery
+
+Permissions
+
+Integrations
+
+Troubleshooting
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+The FSTS Website Operating System™ should become the flagship software platform of Full Stack Tech Solutions.
+
+This is not just a dashboard.
+
+It is a complete multi-tenant Website Operating System capable of powering unlimited client websites from a single secure platform.
+
+The architecture must be modular, scalable, secure, and future-proof.
+
+Every feature should be built for long-term reuse across all future client websites.
+
+No unfinished modules.
+
+No placeholder functionality.
+
+No technical debt.
+
+No duplicate code.
+
+No hardcoded client-specific logic.
+
+The dashboard should be production-ready and capable of managing enterprise websites while remaining simple enough for non-technical business owners to use confidently.
+
+When complete, provide a Version 1.0 Completion Report including:
+
+• Modules Completed
+• Remaining Technical Debt
+• Performance Metrics
+• Security Review
+• Accessibility Review
+• API Documentation Status
+• Convex Status
+• Clerk Status
+• Square Status
+• Email Status
+• Media Library Status
+• Forms Status
+• CMS Pipeline Status
+• QA Results
+
+Do not begin onboarding additional client websites until Version 1.0 is fully complete, tested, documented, and approved.
+==========================================================
