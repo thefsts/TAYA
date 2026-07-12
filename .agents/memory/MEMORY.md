@@ -8,3 +8,4 @@
 - [Corsair source drift](corsair-push.md) — local corsair-source clone can silently fall behind GitHub main; always resync before editing
 - [Version history gap](corsair-push.md) — content_versions table existed but no route wrote to it; recordVersion() must be called alongside logActivity() on every content route
 - [Route path drift from OpenAPI spec](corsair-push.md) — backend route registered at wrong path vs spec/generated client caused silent empty UI despite confirmed DB writes; diff route path against spec, not just the write logic
+- [Corsair Vercel root directory](corsair-vercel-root.md) — Vercel builds repo ROOT (not corsair-source/); changes to root src/app/globals.css go live, corsair-source/ changes do not
