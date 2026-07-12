@@ -1,0 +1,161 @@
+==========================================================
+TASK 75 — FSTS Website Operating System™ Status Review
+Priority: CRITICAL
+Planning & Integration
+==========================================================
+
+Now that the Corsair Tactical Solutions website is essentially complete, I want to shift our focus to the FSTS Website Operating System™ (Dashboard) and its Convex backend.
+
+Please provide a comprehensive status report covering where we are today, what is complete, what remains, and when we can begin managing live websites through the dashboard.
+
+==========================================================
+1. DASHBOARD STATUS
+==========================================================
+
+Provide the current completion status for every module.
+
+Include:
+
+• Dashboard Home
+• Authentication (Clerk)
+• Multi-Tenant Architecture
+• Role-Based Permissions (RBAC)
+• Site Management
+• User Management
+• Homepage Editor
+• Courses Manager
+• Events Manager
+• Articles / Training & Knowledge Center
+• Media Library
+• SEO Manager
+• Contact Information
+• Footer Manager
+• FAQ Manager
+• Testimonials Manager
+• Forms Manager
+• Contact Form Inbox
+• Payments / Square Manager
+• Email Settings
+• Version History
+• Activity Log
+• Backups
+• Health Monitoring
+• Operon Connector
+• Help Center
+
+For each module indicate:
+
+✓ Complete
+🟡 Partial
+❌ Not Started
+
+==========================================================
+2. CONVEX DATABASE STATUS
+==========================================================
+
+Explain the current state of the Convex production database.
+
+Specifically answer:
+
+• Is the production Convex database fully deployed?
+• Is the schema finalized?
+• Are all tables/collections created?
+• Is multi-tenant isolation working correctly?
+• Is every client isolated by siteId?
+• Are permissions enforced server-side?
+• Are indexes complete?
+• Are scheduled functions configured?
+• Are backups configured?
+• Are migrations complete?
+
+==========================================================
+3. WEBSITE ↔ DASHBOARD PIPELINE
+==========================================================
+
+This is the most important question.
+
+Tell me exactly where we are with connecting live websites to the dashboard.
+
+Can the dashboard currently:
+
+✓ Read website content?
+✓ Update website content?
+✓ Publish changes to live websites?
+✓ Push homepage edits?
+✓ Push event updates?
+✓ Push course updates?
+✓ Push article updates?
+✓ Push SEO updates?
+
+If not:
+
+What is still missing?
+
+==========================================================
+4. CORSAIR STATUS
+==========================================================
+
+Using Corsair Tactical Solutions as the first production client:
+
+Please answer:
+
+• Is Corsair fully connected?
+• Is Corsair reading from Convex?
+• Is Corsair writing to Convex?
+• Are dashboard edits reflected on the live site?
+• Is the Admin Portal fully operational?
+• Is the client account provisioned correctly?
+• Is the site record seeded in production?
+• Is Square production connected?
+• Is email production connected?
+
+==========================================================
+5. WHAT IS REQUIRED BEFORE WE ADD MORE WEBSITES?
+==========================================================
+
+Before onboarding additional client websites, identify everything that must be completed.
+
+Include:
+
+• Technical blockers
+• Missing dashboard modules
+• Database work
+• API work
+• CMS pipeline work
+• QA work
+• Security review
+• Performance review
+
+==========================================================
+6. NEXT PHASE ROADMAP
+==========================================================
+
+Provide the recommended roadmap for Version 1.0.
+
+Prioritize the remaining work in order.
+
+Include estimated effort for each major milestone.
+
+==========================================================
+7. WEBSITE ONBOARDING READINESS
+==========================================================
+
+When can we begin onboarding additional websites into the FSTS Website Operating System™?
+
+Can we begin now?
+
+If not:
+
+What specific milestones must be completed first?
+
+Please provide a recommended "Go Live" checklist for adding future client websites.
+
+==========================================================
+PROJECT GOAL
+==========================================================
+
+The objective is to make the FSTS Website Operating System™ the central management platform for all current and future client websites.
+
+Every website should connect to the same multi-tenant Convex backend while maintaining complete data isolation, allowing clients to manage only their own content without ever being able to modify the site's design, layout, branding, or code.
+
+I want a complete readiness assessment before we begin onboarding additional production websites.
