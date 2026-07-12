@@ -1,0 +1,253 @@
+==========================================================
+TASK 74 — TRAINING & KNOWLEDGE CENTER (BLOG) + DASHBOARD INTEGRATION
+Priority: CRITICAL
+Production Feature
+==========================================================
+
+PROJECT OBJECTIVE
+
+Transform the Corsair Tactical Solutions Blog into a true "Training & Knowledge Center."
+
+The current homepage article previews and the /blog page should display REAL articles managed through the FSTS Website Operating System™.
+
+Maintain the existing branding and design language while making this one of the most valuable sections of the website.
+
+==========================================================
+1. REAL ARTICLE SYSTEM
+==========================================================
+
+Replace all placeholder, demo, or static article cards.
+
+Every article displayed on:
+
+• Homepage
+• /blog (Training & Knowledge Center)
+
+must come from the dashboard database.
+
+Each article should support:
+
+✓ Title
+✓ Slug
+✓ Featured Image
+✓ Category
+✓ Author
+✓ Publish Date
+✓ Last Updated
+✓ Reading Time
+✓ Short Excerpt
+✓ Full Rich Text Content
+✓ SEO Title
+✓ Meta Description
+✓ Open Graph Image
+✓ Featured Toggle
+✓ Published / Draft / Archived Status
+
+==========================================================
+2. HOMEPAGE ARTICLE SECTION
+==========================================================
+
+The homepage should automatically display:
+
+• 1 Featured Article
+• 3–6 Latest Articles
+
+Each card should include:
+
+• Featured image
+• Category
+• Title
+• Short excerpt
+• Estimated reading time
+• "Read Article" button
+
+Clicking a card should open the full article.
+
+==========================================================
+3. TRAINING & KNOWLEDGE CENTER
+==========================================================
+
+The /blog page should become the Training & Knowledge Center.
+
+Organize articles into categories such as:
+
+• Security Services
+• Church Security
+• Executive Protection
+• Property Management Security
+• Private Investigations
+• Security Officer Training
+• Firearms Safety
+• Home Defense
+• Texas License to Carry
+• Emergency Preparedness
+• Women's Training
+• Industry News
+
+Support:
+
+✓ Search
+✓ Category filters
+✓ Keyword search
+✓ Pagination or infinite scroll
+
+==========================================================
+4. ARTICLE EXPERIENCE
+==========================================================
+
+Each article page should include:
+
+✓ Hero image
+✓ Breadcrumbs
+✓ Author
+✓ Publish date
+✓ Reading time
+✓ Table of contents (if long)
+✓ Related articles
+✓ Related training courses
+✓ Related security services
+✓ Call-to-action section
+✓ Social share buttons
+✓ Previous / Next article navigation
+
+==========================================================
+5. DASHBOARD ARTICLE MANAGER
+==========================================================
+
+Expand the existing Articles Manager to support:
+
+✓ Create Article
+✓ Edit Article
+✓ Delete Article
+✓ Publish / Draft / Archive
+✓ Schedule publish date
+✓ Upload featured image
+✓ Manage categories
+✓ Add tags
+✓ SEO fields
+✓ Featured article toggle
+
+No code changes should be required for new articles.
+
+==========================================================
+6. AUTOMATIC HOMEPAGE UPDATES
+==========================================================
+
+When a new article is published:
+
+• Homepage updates automatically.
+• Featured article updates (when selected).
+• Latest article list refreshes automatically.
+
+No manual homepage editing should be required.
+
+==========================================================
+7. SOCIAL MEDIA READY (Dashboard Side)
+==========================================================
+
+Prepare the dashboard so every published article includes metadata for future social sharing.
+
+For each article, store:
+
+✓ Social title
+✓ Social description
+✓ Social image
+✓ Canonical URL
+✓ Open Graph tags
+✓ Twitter/X Card metadata
+
+IMPORTANT:
+
+Do NOT build direct posting to social media into the dashboard.
+
+The dashboard's responsibility is only to generate and expose the correct metadata and API endpoints.
+
+Future publishing automation will be handled by the Operon CRM platform.
+
+==========================================================
+8. OPERON CRM PREPARATION
+==========================================================
+
+Prepare an API endpoint or webhook so Operon CRM can securely read published content.
+
+Expose only published articles.
+
+Suggested payload:
+
+• Article ID
+• Title
+• Slug
+• URL
+• Category
+• Excerpt
+• Full Content
+• Featured Image
+• Publish Date
+• SEO Metadata
+• Social Metadata
+
+This allows Operon CRM to automatically:
+
+• Generate social posts
+• Schedule campaigns
+• Create newsletters
+• Build email campaigns
+• Generate AI-assisted content variations
+
+without adding social media functionality to the dashboard.
+
+==========================================================
+9. SEO
+==========================================================
+
+Every article should automatically generate:
+
+✓ SEO-friendly URL
+✓ Meta title
+✓ Meta description
+✓ Open Graph
+✓ Twitter Card
+✓ Canonical URL
+✓ Article Schema
+✓ Breadcrumb Schema
+✓ Internal links
+✓ Alt text
+
+==========================================================
+10. PERFORMANCE
+==========================================================
+
+Verify:
+
+✓ Optimized images
+✓ Lazy loading
+✓ Fast search
+✓ Responsive layouts
+✓ Lighthouse performance maintained
+
+==========================================================
+11. FINAL QA
+==========================================================
+
+Verify:
+
+✓ Homepage displays live dashboard articles.
+✓ /blog displays live dashboard articles.
+✓ Featured article works.
+✓ Related articles work.
+✓ Search works.
+✓ Category filters work.
+✓ Dashboard CRUD works.
+✓ SEO metadata renders correctly.
+✓ Operon-ready API endpoint returns published articles.
+✓ No placeholder content remains.
+
+==========================================================
+PROJECT STANDARD
+==========================================================
+
+The Training & Knowledge Center should become a living knowledge base that continuously grows with new content, strengthens SEO, and establishes Corsair Tactical Solutions as a trusted authority in professional security services, investigations, executive protection, church security, and firearms training.
+
+The dashboard will manage the content.
+
+Operon CRM will handle future marketing automation, social publishing, newsletters, and campaign distribution.

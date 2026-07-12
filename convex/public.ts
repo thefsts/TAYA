@@ -108,6 +108,16 @@ export const getCoursesBySlug = internalQuery({
   },
 });
 
+function articleToPublic(d: any) {
+  return {
+    ...d,
+    id: d._id,
+    siteId: d.siteId,
+    publishedAt: d.publishedAt ? new Date(d.publishedAt).toISOString() : null,
+    scheduledAt: d.scheduledAt ? new Date(d.scheduledAt).toISOString() : null,
+  };
+}
+
 export const getArticlesBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
@@ -122,11 +132,69 @@ export const getArticlesBySlug = internalQuery({
       .collect();
     return docs
       .filter((d) => d.status === "published")
+      .sort((a, b) => (b.publishedAt ?? b._creationTime) - (a.publishedAt ?? a._creationTime))
+      .map(articleToPublic);
+  },
+});
+
+export const getArticleByArticleSlug = internalQuery({
+  args: { siteSlug: v.string(), articleSlug: v.string() },
+  handler: async (ctx, { siteSlug, articleSlug }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", siteSlug))
+      .first();
+    if (!site) return null;
+    const docs = await ctx.db
+      .query("articles")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    const doc = docs.find((d) => d.slug === articleSlug && d.status === "published");
+    if (!doc) return null;
+    return articleToPublic(doc);
+  },
+});
+
+export const getArticlesForOperon = internalQuery({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!site) return [];
+    const docs = await ctx.db
+      .query("articles")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    return docs
+      .filter((d) => d.status === "published")
+      .sort((a, b) => (b.publishedAt ?? b._creationTime) - (a.publishedAt ?? a._creationTime))
       .map((d) => ({
-        ...d,
         id: d._id,
-        siteId: d.siteId,
+        title: d.title,
+        slug: d.slug,
+        url: `https://www.corsairtacticalsolutions.com/blog/${d.slug}`,
+        category: d.category ?? null,
+        excerpt: d.excerpt ?? null,
+        body: d.body,
+        featuredImage: d.coverImageUrl ?? null,
         publishedAt: d.publishedAt ? new Date(d.publishedAt).toISOString() : null,
+        author: d.author ?? "Corsair Tactical Solutions",
+        readingTime: d.readingTime ?? null,
+        tags: d.tags ?? [],
+        featured: d.featured ?? false,
+        seo: {
+          title: d.seoTitle ?? d.title,
+          description: d.metaDescription ?? d.excerpt ?? null,
+          ogImage: d.ogImageUrl ?? d.coverImageUrl ?? null,
+          canonicalUrl: d.canonicalUrl ?? `https://www.corsairtacticalsolutions.com/blog/${d.slug}`,
+        },
+        social: {
+          title: d.socialTitle ?? d.seoTitle ?? d.title,
+          description: d.socialDescription ?? d.metaDescription ?? d.excerpt ?? null,
+          image: d.socialImageUrl ?? d.ogImageUrl ?? d.coverImageUrl ?? null,
+        },
       }));
   },
 });

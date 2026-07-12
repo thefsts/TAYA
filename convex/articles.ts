@@ -5,7 +5,15 @@ import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
 function toResponse(doc: any) {
-  return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString(), updatedAt: new Date(doc._creationTime).toISOString(), publishedAt: doc.publishedAt ? new Date(doc.publishedAt).toISOString() : null };
+  return {
+    ...doc,
+    id: doc._id,
+    siteId: doc.siteId,
+    createdAt: new Date(doc._creationTime).toISOString(),
+    updatedAt: new Date(doc._creationTime).toISOString(),
+    publishedAt: doc.publishedAt ? new Date(doc.publishedAt).toISOString() : null,
+    scheduledAt: doc.scheduledAt ? new Date(doc.scheduledAt).toISOString() : null,
+  };
 }
 
 export const list = query({
@@ -36,10 +44,29 @@ export const create = mutation({
     excerpt: v.optional(v.string()),
     coverImageUrl: v.optional(v.string()),
     publishedAt: v.optional(v.string()),
+    category: v.optional(v.string()),
+    author: v.optional(v.string()),
+    readingTime: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    featured: v.optional(v.boolean()),
+    scheduledAt: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    metaDescription: v.optional(v.string()),
+    ogImageUrl: v.optional(v.string()),
+    canonicalUrl: v.optional(v.string()),
+    socialTitle: v.optional(v.string()),
+    socialDescription: v.optional(v.string()),
+    socialImageUrl: v.optional(v.string()),
   },
-  handler: async (ctx, { siteId, publishedAt, ...fields }) => {
+  handler: async (ctx, { siteId, publishedAt, scheduledAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
-    const id = await ctx.db.insert("articles", { siteId, status: "draft", publishedAt: publishedAt ? new Date(publishedAt).getTime() : undefined, ...fields });
+    const id = await ctx.db.insert("articles", {
+      siteId,
+      status: "draft",
+      publishedAt: publishedAt ? new Date(publishedAt).getTime() : undefined,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).getTime() : undefined,
+      ...fields,
+    });
     const doc = (await ctx.db.get(id))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "article", entityId: id, page: "Articles", newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "article", entityId: id, snapshot: doc });
@@ -58,13 +85,27 @@ export const update = mutation({
     excerpt: v.optional(v.string()),
     coverImageUrl: v.optional(v.string()),
     publishedAt: v.optional(v.string()),
+    category: v.optional(v.string()),
+    author: v.optional(v.string()),
+    readingTime: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    featured: v.optional(v.boolean()),
+    scheduledAt: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    metaDescription: v.optional(v.string()),
+    ogImageUrl: v.optional(v.string()),
+    canonicalUrl: v.optional(v.string()),
+    socialTitle: v.optional(v.string()),
+    socialDescription: v.optional(v.string()),
+    socialImageUrl: v.optional(v.string()),
   },
-  handler: async (ctx, { siteId, articleId, publishedAt, ...fields }) => {
+  handler: async (ctx, { siteId, articleId, publishedAt, scheduledAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const existing = await ctx.db.get(articleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Article not found");
     const patch: Record<string, unknown> = { ...fields };
     if (publishedAt !== undefined) patch.publishedAt = publishedAt ? new Date(publishedAt).getTime() : undefined;
+    if (scheduledAt !== undefined) patch.scheduledAt = scheduledAt ? new Date(scheduledAt).getTime() : undefined;
     await ctx.db.patch(articleId, patch as any);
     const doc = (await ctx.db.get(articleId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "article", entityId: articleId, page: "Articles", previousValue: existing, newValue: doc });

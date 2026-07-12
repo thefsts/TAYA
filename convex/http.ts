@@ -40,6 +40,8 @@ http.route({ path: "/api/public/contact", method: "OPTIONS", handler: preflight 
 http.route({ path: "/api/public/events", method: "OPTIONS", handler: preflight });
 http.route({ path: "/api/public/courses", method: "OPTIONS", handler: preflight });
 http.route({ path: "/api/public/articles", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/articles/by-slug", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/articles/operon", method: "OPTIONS", handler: preflight });
 http.route({ path: "/api/public/seo", method: "OPTIONS", handler: preflight });
 http.route({ path: "/api/public/site", method: "OPTIONS", handler: preflight });
 http.route({ path: "/api/public/media", method: "OPTIONS", handler: preflight });
@@ -120,6 +122,33 @@ http.route({
     if (!slug) return notFound("slug required");
     const data = await ctx.runQuery(internal.public.getArticlesBySlug, { slug });
     return ok(data);
+  }),
+});
+
+/* ── GET /api/public/articles/by-slug?site=&article= ────────────────────── */
+http.route({
+  path: "/api/public/articles/by-slug",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const params = new URL(request.url).searchParams;
+    const siteSlug = params.get("site") ?? "";
+    const articleSlug = params.get("article") ?? "";
+    if (!siteSlug || !articleSlug) return notFound("site and article params required");
+    const data = await ctx.runQuery(internal.public.getArticleByArticleSlug, { siteSlug, articleSlug });
+    if (!data) return notFound("Article not found");
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/articles/operon?slug= ───────────────────────────────── */
+http.route({
+  path: "/api/public/articles/operon",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getArticlesForOperon, { slug });
+    return ok({ source: "FSTS Website Operating System", site: slug, count: (data as any[]).length, articles: data });
   }),
 });
 

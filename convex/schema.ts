@@ -90,7 +90,22 @@ export default defineSchema({
     body: v.string(),
     coverImageUrl: v.optional(v.string()),
     publishedAt: v.optional(v.number()),
-  }).index("by_site", ["siteId"]),
+    category: v.optional(v.string()),
+    author: v.optional(v.string()),
+    readingTime: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    featured: v.optional(v.boolean()),
+    scheduledAt: v.optional(v.number()),
+    seoTitle: v.optional(v.string()),
+    metaDescription: v.optional(v.string()),
+    ogImageUrl: v.optional(v.string()),
+    canonicalUrl: v.optional(v.string()),
+    socialTitle: v.optional(v.string()),
+    socialDescription: v.optional(v.string()),
+    socialImageUrl: v.optional(v.string()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_status", ["siteId", "status"]),
 
   seoSettings: defineTable({
     siteId: v.id("sites"),
