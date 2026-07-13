@@ -16,6 +16,7 @@
     "test:e2e": "pnpm --filter @workspace/e2e run test",
     "test:e2e:report": "pnpm --filter @workspace/e2e run test:report"
   },
+  "packageManager": "pnpm@10.26.1",
   "private": true,
   "devDependencies": {
     "convex": "^1.25.4",
