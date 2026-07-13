@@ -146,7 +146,7 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {items.map((member) => (
+          {items.map((member: NonNullable<typeof items>[number]) => (
             <div key={member.id} className="bg-white border border-slate-200 rounded-xl p-5">
               <div className="flex gap-3 mb-3">
                 {member.photoUrl ? (

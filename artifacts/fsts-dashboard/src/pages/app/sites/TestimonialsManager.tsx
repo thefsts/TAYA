@@ -146,7 +146,7 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {items.map((item) => (
+          {items.map((item: NonNullable<typeof items>[number]) => (
             <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-5">
               <div className="flex justify-between items-start mb-3">
                 <div>

@@ -148,7 +148,7 @@ export default function CareersManager({ params }: { params: { siteId: string } 
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((job) => (
+          {items.map((job: NonNullable<typeof items>[number]) => (
             <div key={job.id} className="bg-white border border-slate-200 rounded-xl p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">

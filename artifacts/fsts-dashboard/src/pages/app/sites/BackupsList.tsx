@@ -100,7 +100,7 @@ export default function BackupsList({ params }: { params: { siteId: string } }) 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data.map((b) => (
+              {data.map((b: NonNullable<typeof data>[number]) => (
                 <tr key={b._id}>
                   <td className="px-4 py-3 font-medium text-slate-900">{b.label}</td>
                   <td className="px-4 py-3 text-slate-500">{formatBytes(b.sizeBytes)}</td>

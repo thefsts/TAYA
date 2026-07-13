@@ -139,7 +139,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {faqs.map((faq, i) => (
+          {faqs.map((faq: NonNullable<typeof faqs>[number], i) => (
             <div
               key={faq.id}
               className="bg-white border border-slate-200 rounded-xl p-4 flex gap-4 items-start"

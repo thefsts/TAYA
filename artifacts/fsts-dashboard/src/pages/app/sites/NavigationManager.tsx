@@ -139,7 +139,7 @@ export default function NavigationManager({ params }: { params: { siteId: string
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map((item, i) => (
+          {items.map((item: NonNullable<typeof items>[number], i) => (
             <div
               key={item.id}
               className="bg-white border border-slate-200 rounded-xl p-4 flex gap-3 items-center"

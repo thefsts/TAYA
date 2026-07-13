@@ -149,7 +149,7 @@ export default function DownloadsManager({ params }: { params: { siteId: string 
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((item) => (
+          {items.map((item: NonNullable<typeof items>[number]) => (
             <div
               key={item.id}
               className="bg-white border border-slate-200 rounded-xl p-4 flex gap-4 items-center"

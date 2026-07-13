@@ -159,7 +159,7 @@ export const testHarness = action({
     categoryScores: v.optional(v.any()),
     scannedAt: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<unknown> => {
     if (process.env.CONVEX_TEST_MODE !== "true") {
       throw new Error("testHarness is only available in test environments (CONVEX_TEST_MODE=true)");
     }
@@ -183,6 +183,7 @@ export const testHarness = action({
     if (args.op === "deleteAllScans") {
       return ctx.runMutation(internal.healthScans._deleteAllScans, { siteId: args.siteId });
     }
+    return undefined;
   },
 });
 

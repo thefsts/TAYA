@@ -63,7 +63,8 @@ export default function FormSubmissions({ params }: { params: { siteId: string }
   const updateStatus = useMutation(api.formSubmissions.updateStatus);
   const remove = useMutation(api.formSubmissions.remove);
 
-  const viewing = submissions?.find((s) => s.id === viewId);
+  type Submission = NonNullable<typeof submissions>[number];
+  const viewing = submissions?.find((s: Submission) => s.id === viewId);
 
   async function markAs(id: string, status: Status) {
     try {
@@ -76,7 +77,7 @@ export default function FormSubmissions({ params }: { params: { siteId: string }
 
   async function openView(id: string) {
     setViewId(id);
-    const sub = submissions?.find((s) => s.id === id);
+    const sub = submissions?.find((s: Submission) => s.id === id);
     if (sub?.status === "new") {
       await markAs(id, "read");
     }
@@ -121,7 +122,7 @@ export default function FormSubmissions({ params }: { params: { siteId: string }
         </div>
       ) : (
         <div className="space-y-2">
-          {submissions.map((sub) => (
+          {submissions.map((sub: Submission) => (
             <div
               key={sub.id}
               className={`bg-white border rounded-xl p-4 flex gap-4 items-start cursor-pointer hover:border-slate-300 transition-colors ${sub.status === "new" ? "border-blue-200 bg-blue-50/30" : "border-slate-200"}`}

@@ -153,7 +153,7 @@ export default function SitesList() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sites?.map(site => (
+            {sites?.map((site: NonNullable<typeof sites>[number]) => (
               <Link
                 key={site._id}
                 href={`/app/sites/${site._id}`}

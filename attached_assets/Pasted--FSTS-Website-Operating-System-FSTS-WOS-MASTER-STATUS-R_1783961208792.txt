@@ -1,0 +1,374 @@
+# FSTS Website Operating System™ (FSTS-WOS™)
+
+## MASTER STATUS REQUEST — COMPLETE ENGINEERING UPDATE
+
+**Priority:** HIGH
+
+Before beginning any additional feature work, perform a complete engineering review of the FSTS Website Operating System™ and provide an honest, detailed status report.
+
+Do **not** estimate or assume completion. Inspect the actual codebase, Convex deployment, GitHub repository, Vercel deployment, and production environment.
+
+---
+
+# 1. PLATFORM OVERVIEW
+
+Provide:
+
+* Overall completion percentage
+* Version number
+* Current milestone
+* Production readiness score
+* Estimated remaining work to Version 1.0
+
+Summarize the current architecture including:
+
+* Frontend
+* Backend
+* Convex
+* Clerk
+* Vercel
+* GitHub
+* Multi-tenant system
+* APIs
+* Authentication
+* RBAC
+
+---
+
+# 2. DASHBOARD MODULE STATUS
+
+For every module provide:
+
+* Complete %
+* Production Ready (Yes/No)
+* Connected to live websites (Yes/No)
+* Remaining work
+* Blockers
+
+Include:
+
+* Dashboard Home
+* Homepage Editor
+* Hero Editor
+* Courses Manager
+* Events Manager
+* Articles / Knowledge Center
+* Media Library
+* Smart Image Manager™
+* SEO Manager
+* Contact Manager
+* Footer Manager
+* FAQ Manager
+* Testimonials Manager
+* Forms Builder™
+* Navigation Manager™
+* Policy Editors™
+* Announcement Banner™
+* CTA Manager™
+* Downloads Manager™
+* Team Member Manager™
+* Careers Manager™
+* Popup Manager™
+* Membership & Client Portal™
+* Learning Management System™
+* Compliance Center™
+* Business Intelligence Dashboard™
+* Automation Marketplace™
+* Website Reviews Module
+* Payment Connector Framework™
+* Square Integration
+* Operon Connector™
+* AI Dashboard Assistant™
+* Responsive Live Preview Studio™
+* Website Health Command Center™
+* Version History
+* Activity Log
+* Backup Manager
+* Health Monitoring
+* Help Center
+* User Management
+* Site Management
+
+---
+
+# 3. CMS CONTENT PIPELINES
+
+For each content type report whether the full pipeline is complete:
+
+Dashboard
+
+↓
+
+Convex
+
+↓
+
+Live Website
+
+↓
+
+Published
+
+↓
+
+Cached/Revalidated
+
+↓
+
+Visible to Visitors
+
+Review:
+
+* Homepage
+* Hero
+* Courses
+* Events
+* Articles
+* FAQ
+* Testimonials
+* Contact
+* Footer
+* SEO
+* Policies
+* Downloads
+* Team Members
+* Navigation
+* Announcement Banner
+* CTA Manager
+
+Identify every remaining static file that still bypasses Convex.
+
+---
+
+# 4. CONVEX STATUS
+
+Report:
+
+* Deployment URL
+* Environment
+* Tables
+* Indexes
+* Scheduled jobs
+* Cron functions
+* Storage
+* Authentication
+* Security
+* Multi-tenant isolation
+* Performance
+* Outstanding schema work
+
+Include a table of every Convex table and its purpose.
+
+---
+
+# 5. WEBSITE CONNECTION STATUS
+
+For each connected website provide:
+
+* Site name
+* Domain
+* Connected to dashboard?
+* Reads from Convex?
+* Writes to Convex?
+* Production ready?
+* Remaining work
+
+Specifically include Corsair Tactical Solutions.
+
+---
+
+# 6. PAYMENT FRAMEWORK
+
+Provide the status of:
+
+Square
+
+Future connectors:
+
+* Stripe
+* PayPal
+* Authorize.Net
+* Clover
+* Helcim
+* Worldpay
+* Global Payments
+* Fiserv
+* Elavon
+
+Report:
+
+* Architecture
+* APIs
+* Security
+* Credentials
+* Production readiness
+
+---
+
+# 7. WEBSITE REVIEWS MODULE
+
+Report the implementation status of:
+
+* Google Reviews
+* Facebook Reviews
+* Yelp Reviews
+
+Confirm that the dashboard only displays and manages reviews.
+
+Confirm that Reputation Management remains exclusive to Operon CRM™.
+
+---
+
+# 8. WHITE-LABEL PLATFORM
+
+Report current status of:
+
+* Client branding
+* Company logos
+* Login branding
+* Dashboard branding
+* Agency branding
+* Future reseller support
+* Powered by Full Stack Tech Solutions™ footer
+
+---
+
+# 9. AI DASHBOARD ASSISTANT™
+
+Report:
+
+* Current implementation
+* Remaining work
+* Context awareness
+* Client onboarding
+* Validation engine
+* Publish assistant
+* SEO assistance
+* Accessibility assistance
+
+Confirm it cannot modify layouts or developer settings.
+
+---
+
+# 10. WEBSITE HEALTH COMMAND CENTER™
+
+Report status of:
+
+* Health score
+* Performance scans
+* SEO scans
+* Accessibility scans
+* Security scans
+* Payment monitoring
+* Form monitoring
+* Email monitoring
+* Uptime monitoring
+* SSL monitoring
+* Notifications
+* One-click fixes
+* Trend history
+
+---
+
+# 11. SMART IMAGE MANAGER™
+
+Report status of:
+
+* Upload pipeline
+* Crop
+* Resize
+* Compression
+* Responsive images
+* AI crop suggestions
+* Alt text generation
+* Optimization
+* File size validation
+
+---
+
+# 12. RESPONSIVE LIVE PREVIEW STUDIO™
+
+Report:
+
+* Desktop preview
+* Laptop preview
+* Tablet preview
+* Mobile preview
+* Live rendering
+* Draft preview
+* Publish preview
+
+---
+
+# 13. SECURITY AUDIT
+
+Review:
+
+* Authentication
+* Authorization
+* RBAC
+* Convex permissions
+* Secrets
+* Environment variables
+* API protection
+* Cross-site isolation
+* Encryption
+* File uploads
+* Payment security
+
+Report any vulnerabilities.
+
+---
+
+# 14. PERFORMANCE AUDIT
+
+Review:
+
+* Bundle size
+* Lighthouse
+* Lazy loading
+* Image optimization
+* Code splitting
+* Dead code
+* Duplicate components
+* Console errors
+* Build warnings
+
+Provide recommendations.
+
+---
+
+# 15. VERSION 1.0 READINESS
+
+Provide an honest assessment of:
+
+* Overall completion %
+* Remaining blockers
+* Estimated engineering effort remaining
+* Critical path
+* Recommended priorities
+
+List the next 10 engineering tasks in priority order.
+
+---
+
+# FINAL DELIVERABLE
+
+Return a comprehensive engineering report that includes:
+
+* Executive Summary
+* Platform Completion Dashboard
+* Module-by-Module Status
+* Convex Status
+* Website Integration Status
+* Payment Framework Status
+* AI Assistant Status
+* Health Command Center Status
+* Security Audit
+* Performance Audit
+* Technical Debt
+* Remaining Blockers
+* Next Engineering Priorities
+* Version 1.0 Readiness Score
+
+This report should be based on the current codebase and production environment—not assumptions—and should clearly identify what is complete, what is partially complete, and what remains before the FSTS Website Operating System™ is ready to onboard multiple production client websites.

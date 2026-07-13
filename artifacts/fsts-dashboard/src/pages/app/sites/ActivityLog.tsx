@@ -43,7 +43,7 @@ export default function ActivityLog({ params }: { params: { siteId: string } }) 
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {data.length > 0 ? (
-                    data.map((log) => (
+                    data.map((log: NonNullable<typeof data>[number]) => (
                       <tr key={log._id} className="align-top hover:bg-slate-50">
                         <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{log.actorName}</td>
                         <td className="px-4 py-3 text-slate-500 font-mono text-xs whitespace-nowrap">
