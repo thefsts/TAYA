@@ -30,14 +30,23 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **Product boundary — FSTS-WOS™ vs. Operon CRM™:** This dashboard is FSTS Website Operating System™ (FSTS-WOS™). Features that act on customers or leads (marketing automation, reputation management, appointment management, lead intelligence, advanced ecommerce) belong in the separate Operon CRM™ product. FSTS-WOS™ is connected to Operon CRM™ exclusively through the Operon Connector™. See `docs/product-boundaries.md` for the full, authoritative boundary specification.
+- _Populate as you build — additional non-obvious choices a reader couldn't infer from the code._
 
 ## Product
 
-- Site owners can view and manage settings for their sites.
-- Settings → Operon CRM: a native "Operon Connector™" for bi-directional sync between the site and Operon CRM. Default-installed but not connected until an admin configures credentials. Supports per-entity sync toggles (outbound: contact form, quote request, orders, etc.; inbound: appointment status, lead status, tags, etc.), a sync activity log with retry, and API health monitoring.
-- Nav item "Marketing & CRM" surfaces this page via SSO to site admins.
-- The connector schema (`lib/db/src/schema/crm-connector.ts`) is intentionally modular/provider-agnostic (`CRM_PROVIDERS` array) so a second CRM vendor can be added without a schema rewrite — Operon is the first of potentially several registered providers.
+This repository implements **FSTS Website Operating System™ (FSTS-WOS™)** — one of two flagship products from Full Stack Tech Solutions.
+
+**FSTS-WOS™** is the client-facing dashboard for managing a client's website and its direct digital operations: site settings, pages & content, forms, SEO, payment connectors, and website analytics.
+
+**Operon CRM™** is a separate product covering relationship management, marketing automation, and advanced business operations (AI Content Studio™, Review & Reputation Manager™, Appointment & Booking Suite™, Lead Intelligence™, Ecommerce Pro™). These features must not be built into FSTS-WOS™.
+
+**Operon Connector™** is the sole sanctioned integration point between the two products, providing bi-directional data sync. It is default-installed in every FSTS-WOS™ dashboard but inactive until an admin configures credentials. Supports per-entity sync toggles (outbound: contact form, quote request, orders, etc.; inbound: appointment status, lead status, tags, etc.), a sync activity log with retry, and API health monitoring. The connector schema (`lib/db/src/schema/crm-connector.ts`) is provider-agnostic (`CRM_PROVIDERS` array) so additional CRM vendors can be added without a schema rewrite — Operon is the first registered provider.
+
+**Website Reviews Module™** is a display-only feature inside FSTS-WOS™ that imports and renders external reviews (Google, Facebook, Yelp) on client websites. It is explicitly not a reputation-management tool — requesting, responding to, or campaigning for reviews belongs in Operon CRM™ (Review & Reputation Manager™).
+
+- Nav item "Marketing & CRM" surfaces the Operon Connector™ configuration page via SSO to site admins.
+- See `docs/product-boundaries.md` for the full boundary specification including module lists, payment connectors, data-flow examples, Business Intelligence Dashboard™ scope, AI Dashboard Assistant™ hard limits, and the Website Reviews Module™ extension pattern.
 
 ## User preferences
 
