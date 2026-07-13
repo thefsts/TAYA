@@ -9,7 +9,7 @@ export const getPolicy = query({
   args: { siteId: v.id("sites"), type: v.string() },
   handler: async (ctx, { siteId, type }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
-    return ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("type", type)).first();
+    return ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", type)).first();
   },
 });
 
@@ -24,21 +24,20 @@ export const listPolicies = query({
 export const upsertPolicy = mutation({
   args: {
     siteId: v.id("sites"),
-    type: v.string(),
-    title: v.string(),
-    body: v.string(),
+    policyType: v.string(),
+    content: v.string(),
   },
-  handler: async (ctx, { siteId, type, title, body }) => {
+  handler: async (ctx, { siteId, policyType, content }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
-    const existing = await ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("type", type)).first();
-    const lastUpdated = Date.now();
+    const existing = await ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", policyType)).first();
+    const updatedAt = Date.now();
     if (existing) {
-      await ctx.db.patch(existing._id, { title, body, lastUpdated });
-      await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "policy_page", entityId: existing._id, page: "Policy Editor", details: type });
+      await ctx.db.patch(existing._id, { content, updatedAt });
+      await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "policy_page", entityId: existing._id, page: "Policy Editor", details: policyType });
       return existing._id;
     } else {
-      const id = await ctx.db.insert("policyPages", { siteId, type, title, body, lastUpdated });
-      await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "policy_page", entityId: id, page: "Policy Editor", details: type });
+      const id = await ctx.db.insert("policyPages", { siteId, policyType, content, updatedAt });
+      await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "policy_page", entityId: id, page: "Policy Editor", details: policyType });
       return id;
     }
   },
@@ -56,7 +55,7 @@ export const listNavItems = query({
 });
 
 export const createNavItem = mutation({
-  args: { siteId: v.id("sites"), label: v.string(), href: v.string(), target: v.optional(v.string()), visible: v.boolean() },
+  args: { siteId: v.id("sites"), label: v.string(), href: v.string(), openInNewTab: v.optional(v.boolean()), isVisible: v.boolean() },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const count = (await ctx.db.query("navigationItems").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
@@ -67,7 +66,7 @@ export const createNavItem = mutation({
 });
 
 export const updateNavItem = mutation({
-  args: { siteId: v.id("sites"), itemId: v.id("navigationItems"), label: v.optional(v.string()), href: v.optional(v.string()), target: v.optional(v.string()), visible: v.optional(v.boolean()) },
+  args: { siteId: v.id("sites"), itemId: v.id("navigationItems"), label: v.optional(v.string()), href: v.optional(v.string()), openInNewTab: v.optional(v.boolean()), isVisible: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, itemId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const existing = await ctx.db.get(itemId);
@@ -114,10 +113,9 @@ export const upsertAnnouncement = mutation({
   args: {
     siteId: v.id("sites"),
     text: v.string(),
-    linkUrl: v.optional(v.string()),
-    linkLabel: v.optional(v.string()),
-    bgColor: v.optional(v.string()),
-    enabled: v.boolean(),
+    bgColor: v.string(),
+    link: v.optional(v.string()),
+    isEnabled: v.boolean(),
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
@@ -235,7 +233,7 @@ export const listTeamMembers = query({
 });
 
 export const createTeamMember = mutation({
-  args: { siteId: v.id("sites"), name: v.string(), role: v.string(), bio: v.optional(v.string()), photoUrl: v.optional(v.string()), credentials: v.optional(v.array(v.string())), isActive: v.boolean() },
+  args: { siteId: v.id("sites"), name: v.string(), role: v.optional(v.string()), bio: v.optional(v.string()), photoUrl: v.optional(v.string()), credentials: v.optional(v.string()), isActive: v.boolean() },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const count = (await ctx.db.query("teamMembers").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
@@ -246,7 +244,7 @@ export const createTeamMember = mutation({
 });
 
 export const updateTeamMember = mutation({
-  args: { siteId: v.id("sites"), memberId: v.id("teamMembers"), name: v.optional(v.string()), role: v.optional(v.string()), bio: v.optional(v.string()), photoUrl: v.optional(v.string()), credentials: v.optional(v.array(v.string())), isActive: v.optional(v.boolean()) },
+  args: { siteId: v.id("sites"), memberId: v.id("teamMembers"), name: v.optional(v.string()), role: v.optional(v.string()), bio: v.optional(v.string()), photoUrl: v.optional(v.string()), credentials: v.optional(v.string()), isActive: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, memberId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const existing = await ctx.db.get(memberId);
@@ -291,7 +289,7 @@ export const listJobs = query({
 });
 
 export const createJob = mutation({
-  args: { siteId: v.id("sites"), title: v.string(), type: v.string(), location: v.optional(v.string()), description: v.string(), applyUrl: v.optional(v.string()), isActive: v.boolean() },
+  args: { siteId: v.id("sites"), title: v.string(), jobType: v.string(), location: v.optional(v.string()), description: v.string(), applyUrl: v.optional(v.string()), isActive: v.boolean() },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const id = await ctx.db.insert("jobPostings", { siteId, ...fields });
@@ -301,7 +299,7 @@ export const createJob = mutation({
 });
 
 export const updateJob = mutation({
-  args: { siteId: v.id("sites"), jobId: v.id("jobPostings"), title: v.optional(v.string()), type: v.optional(v.string()), location: v.optional(v.string()), description: v.optional(v.string()), applyUrl: v.optional(v.string()), isActive: v.optional(v.boolean()) },
+  args: { siteId: v.id("sites"), jobId: v.id("jobPostings"), title: v.optional(v.string()), jobType: v.optional(v.string()), location: v.optional(v.string()), description: v.optional(v.string()), applyUrl: v.optional(v.string()), isActive: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, jobId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const existing = await ctx.db.get(jobId);
@@ -341,8 +339,8 @@ export const upsertPopup = mutation({
     ctaLabel: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
     triggerType: v.string(),
-    delaySeconds: v.optional(v.number()),
-    enabled: v.boolean(),
+    delaySecs: v.optional(v.number()),
+    isEnabled: v.boolean(),
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);

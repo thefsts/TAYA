@@ -12,7 +12,7 @@ export const listOrders = query({
     if (!await checkSiteAccess(ctx, siteId)) return [];
     const orders = await ctx.db
       .query("squareOrders")
-      .withIndex("by_site_createdAt", (q) => q.eq("siteId", siteId))
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
       .order("desc")
       .take(limit);
     return orders.map((o) => ({ ...o, id: o._id }));
@@ -120,11 +120,11 @@ export const upsertCatalogItem = internalMutation({
     squareItemId: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
-    type: v.optional(v.string()),
+    category: v.optional(v.string()),
     priceCents: v.optional(v.number()),
-    variationId: v.optional(v.string()),
+    squareVariationId: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    syncedAt: v.number(),
+    lastSyncedAt: v.number(),
   },
   handler: async (ctx, { siteId, squareItemId, ...fields }) => {
     const existing = await ctx.db
@@ -176,11 +176,11 @@ export const syncCatalog = action({
           squareItemId: obj.id,
           name: obj.item_data?.name ?? obj.id,
           description: obj.item_data?.description,
-          type: obj.type,
+          category: obj.type,
           priceCents: priceMoney?.amount ?? undefined,
-          variationId: variation?.id,
+          squareVariationId: variation?.id,
           imageUrl: undefined,
-          syncedAt,
+          lastSyncedAt: syncedAt,
         });
       }
 
@@ -209,13 +209,14 @@ export const createDiscount = mutation({
     name: v.string(),
     code: v.optional(v.string()),
     discountType: v.string(),
-    amountCents: v.optional(v.number()),
-    percentage: v.optional(v.number()),
+    amount: v.optional(v.number()),
+    percentage: v.optional(v.string()),
     expiresAt: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
-    const id = await ctx.db.insert("squareDiscounts", { siteId, ...fields, isActive: true });
+    const squareDiscountId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = await ctx.db.insert("squareDiscounts", { siteId, squareDiscountId, ...fields });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "square_discount", entityId: id, page: "Commerce", details: fields.name });
     return id;
   },

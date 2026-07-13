@@ -232,8 +232,8 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
         name: form.name,
         code: form.code || undefined,
         discountType: form.discountType,
-        amountCents: form.discountType === "FIXED_AMOUNT" && form.amountCents ? Math.round(parseFloat(form.amountCents) * 100) : undefined,
-        percentage: form.discountType === "FIXED_PERCENTAGE" && form.percentage ? parseFloat(form.percentage) : undefined,
+        amount: form.discountType === "FIXED_AMOUNT" && form.amountCents ? Math.round(parseFloat(form.amountCents) * 100) : undefined,
+        percentage: form.discountType === "FIXED_PERCENTAGE" && form.percentage ? form.percentage : undefined,
         expiresAt: form.expiresAt ? new Date(form.expiresAt).getTime() : undefined,
       });
       toast({ title: "Discount created" });
