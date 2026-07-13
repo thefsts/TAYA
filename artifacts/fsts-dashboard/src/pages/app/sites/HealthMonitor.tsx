@@ -439,56 +439,76 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
             {/* Mini category overview */}
             {categories && (
               <div className="mt-5 grid grid-cols-6 gap-2 pt-5 border-t border-slate-100">
-                {orderedCategories.slice(0, 12).map((key) => {
-                  const cat = categories[key];
-                  if (!cat) return null;
-                  const meta = CATEGORY_META[key];
-                  const fixPath = meta?.fixRoute ? `/app/sites/${siteId}/${meta.fixRoute}` : null;
-                  const scoreColor = cat.score >= 75 ? "text-green-600" : cat.score >= 50 ? "text-amber-600" : "text-red-600";
-                  const isTooltipActive = activeTooltip === key;
-                  const tooltip = meta ? (
-                    <div className={`pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 rounded-md bg-slate-800 px-2.5 py-2 text-left shadow-lg transition-opacity ${isTooltipActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                      <p className="text-[11px] font-semibold text-white leading-tight">{meta.label}</p>
-                      <p className="mt-0.5 text-[10px] text-slate-300 leading-snug">{meta.description}</p>
-                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
-                    </div>
-                  ) : null;
-                  return fixPath ? (
-                    <Link
-                      key={key}
-                      href={fixPath}
-                      className="relative text-center rounded hover:bg-slate-50 transition-colors cursor-pointer group"
-                      onPointerDown={(e) => {
-                        if (e.pointerType === "touch") {
-                          e.stopPropagation();
-                          if (!isTooltipActive) {
-                            e.preventDefault();
-                            setActiveTooltip(key);
-                          } else {
-                            setActiveTooltip(null);
+                {(() => {
+                  const prevCategoryScores = scanHistory && scanHistory.length > 1
+                    ? (scanHistory[1] as any)?.categoryScores ?? null
+                    : null;
+                  return orderedCategories.slice(0, 12).map((key) => {
+                    const cat = categories[key];
+                    if (!cat) return null;
+                    const meta = CATEGORY_META[key];
+                    const fixPath = meta?.fixRoute ? `/app/sites/${siteId}/${meta.fixRoute}` : null;
+                    const scoreColor = cat.score >= 75 ? "text-green-600" : cat.score >= 50 ? "text-amber-600" : "text-red-600";
+                    const isTooltipActive = activeTooltip === key;
+
+                    const prevScore: number | undefined = prevCategoryScores?.[key]?.score;
+                    const diff = prevScore !== undefined ? cat.score - prevScore : null;
+                    const TrendIcon = diff === null ? null : diff > 0 ? TrendingUp : diff < 0 ? TrendingDown : Minus;
+                    const trendColor = diff === null ? "" : diff > 0 ? "text-green-500" : diff < 0 ? "text-red-500" : "text-slate-400";
+
+                    const scoreRow = (
+                      <div className="flex items-center justify-center gap-0.5">
+                        <span className={`text-lg font-bold ${scoreColor}`}>{cat.score}</span>
+                        {TrendIcon && (
+                          <TrendIcon className={`h-3 w-3 shrink-0 ${trendColor}`} />
+                        )}
+                      </div>
+                    );
+
+                    const tooltip = meta ? (
+                      <div className={`pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 rounded-md bg-slate-800 px-2.5 py-2 text-left shadow-lg transition-opacity ${isTooltipActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                        <p className="text-[11px] font-semibold text-white leading-tight">{meta.label}</p>
+                        <p className="mt-0.5 text-[10px] text-slate-300 leading-snug">{meta.description}</p>
+                        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                      </div>
+                    ) : null;
+                    return fixPath ? (
+                      <Link
+                        key={key}
+                        href={fixPath}
+                        className="relative text-center rounded hover:bg-slate-50 transition-colors cursor-pointer group"
+                        onPointerDown={(e) => {
+                          if (e.pointerType === "touch") {
+                            e.stopPropagation();
+                            if (!isTooltipActive) {
+                              e.preventDefault();
+                              setActiveTooltip(key);
+                            } else {
+                              setActiveTooltip(null);
+                            }
                           }
-                        }
-                      }}
-                    >
-                      {tooltip}
-                      <div className={`text-lg font-bold ${scoreColor} group-hover:underline`}>{cat.score}</div>
-                      <div className="text-[10px] text-slate-400 truncate group-hover:text-slate-600">{meta?.label ?? key}</div>
-                    </Link>
-                  ) : (
-                    <div
-                      key={key}
-                      className="relative text-center group cursor-pointer"
-                      onPointerDown={(e) => {
-                        e.stopPropagation();
-                        setActiveTooltip(isTooltipActive ? null : key);
-                      }}
-                    >
-                      {tooltip}
-                      <div className={`text-lg font-bold ${scoreColor}`}>{cat.score}</div>
-                      <div className="text-[10px] text-slate-400 truncate">{meta?.label ?? key}</div>
-                    </div>
-                  );
-                })}
+                        }}
+                      >
+                        {tooltip}
+                        <div className="group-hover:[&_span]:underline">{scoreRow}</div>
+                        <div className="text-[10px] text-slate-400 truncate group-hover:text-slate-600">{meta?.label ?? key}</div>
+                      </Link>
+                    ) : (
+                      <div
+                        key={key}
+                        className="relative text-center group cursor-pointer"
+                        onPointerDown={(e) => {
+                          e.stopPropagation();
+                          setActiveTooltip(isTooltipActive ? null : key);
+                        }}
+                      >
+                        {tooltip}
+                        {scoreRow}
+                        <div className="text-[10px] text-slate-400 truncate">{meta?.label ?? key}</div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
