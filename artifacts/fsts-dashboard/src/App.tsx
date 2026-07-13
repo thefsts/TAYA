@@ -63,6 +63,9 @@ import SquareCommerce from "@/pages/app/sites/SquareCommerce";
 // Phase 9 — Client Permissions™
 import MyPermissions from "@/pages/app/sites/MyPermissions";
 
+// WOS Phase 1 — Payment Connector Framework™
+import PaymentProviders from "@/pages/app/sites/PaymentProviders";
+
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
@@ -337,6 +340,9 @@ function AppRouter() {
 
           {/* Phase 9 — Client Permissions™ */}
           <Route path="/app/sites/:siteId/permissions" component={MyPermissions} />
+
+          {/* WOS Phase 1 — Payment Connector Framework™ */}
+          <Route path="/app/sites/:siteId/payment-providers" component={PaymentProviders} />
 
           <Route component={NotFound} />
         </Switch>

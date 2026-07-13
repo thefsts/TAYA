@@ -516,4 +516,42 @@ export default defineSchema({
     readAt: v.optional(v.number()),
     dismissedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
+
+  // ── WOS Phase 1 — Payment Connector Framework™ ─────────────────────────────
+
+  paymentConnectors: defineTable({
+    siteId: v.id("sites"),
+    provider: v.string(),
+    isActive: v.boolean(),
+    status: v.string(),
+    environment: v.optional(v.string()),
+    credentialsCiphertext: v.optional(v.string()),
+    credentialsMeta: v.optional(v.any()),
+    hasWebhookKey: v.boolean(),
+    checkoutEnabled: v.boolean(),
+    healthStatus: v.optional(v.string()),
+    healthMessage: v.optional(v.string()),
+    lastHealthCheckAt: v.optional(v.number()),
+    lastSyncAt: v.optional(v.number()),
+    settings: v.optional(v.any()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_provider", ["siteId", "provider"])
+    .index("by_site_active", ["siteId", "isActive"]),
+
+  paymentEvents: defineTable({
+    siteId: v.id("sites"),
+    provider: v.string(),
+    eventType: v.string(),
+    entityType: v.optional(v.string()),
+    entityId: v.optional(v.string()),
+    status: v.string(),
+    amountCents: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+    errorMessage: v.optional(v.string()),
+    retryCount: v.optional(v.number()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_provider", ["siteId", "provider"]),
 });

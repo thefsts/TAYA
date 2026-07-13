@@ -460,6 +460,101 @@ http.route({
   }),
 });
 
+// ── WOS Phase 1: Provider-agnostic payment webhook ───────────────────────────
+
+/* ── POST /api/payment/webhook?provider=&slug= ───────────────────────────── */
+http.route({ path: "/api/payment/webhook", method: "OPTIONS", handler: preflight });
+
+http.route({
+  path: "/api/payment/webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const searchParams = new URL(request.url).searchParams;
+      const provider = searchParams.get("provider") ?? "";
+      const slug = searchParams.get("slug") ?? "";
+
+      if (!provider || !slug) {
+        return new Response(JSON.stringify({ error: "provider and slug params required" }), { status: 400, headers: CORS });
+      }
+
+      const site = await ctx.runQuery(internal.square.getSiteBySlugInternal, { slug });
+      if (!site) return new Response(JSON.stringify({ error: "Site not found" }), { status: 404, headers: CORS });
+
+      const rawBody = await request.text();
+      const connector = await ctx.runQuery(internal.paymentConnectors.getConnectorInternal, { siteId: site._id, provider });
+
+      if (!connector?.hasWebhookKey) {
+        // Dashboard warning — log the missing-key incident then reject
+        await ctx.runMutation(internal.paymentConnectors.logPaymentEventInternal, {
+          siteId: site._id,
+          provider,
+          eventType: "webhook.signature_key_missing",
+          status: "error",
+          metadata: { slug },
+          errorMessage: `Webhook received but no signature key is configured for provider "${provider}". Configure the key in Payment Providers → Providers.`,
+        });
+        return new Response(JSON.stringify({ error: "Webhook signature key not configured for this provider. Add it in Payment Providers settings." }), { status: 401, headers: CORS });
+      }
+
+      const incomingSig = request.headers.get("X-Webhook-Signature") ?? request.headers.get("Square-Signature") ?? request.headers.get("Stripe-Signature") ?? "";
+      if (!incomingSig) {
+        return new Response(JSON.stringify({ error: "Missing webhook signature header" }), { status: 401, headers: CORS });
+      }
+
+      // Route to provider-specific verifier.
+      // Credentials come exclusively from paymentConnectors (encrypted at rest).
+      let verified = false;
+      const decryptedCreds: any = await ctx.runAction(
+        internal.paymentConnectors.getDecryptedCredentials, { siteId: site._id, provider }
+      );
+
+      if (provider === "square") {
+        // Prefer webhookSignatureKey from paymentConnectors; fall back to legacy squareConfig.
+        let storedKey: string = decryptedCreds?.webhookSignatureKey ?? "";
+        if (!storedKey) {
+          const squareCfg = await ctx.runQuery(internal.square.getConfigInternal, { siteId: site._id });
+          storedKey = squareCfg?.webhookSignatureKey ?? "";
+        }
+        if (storedKey) {
+          const enc = new TextEncoder();
+          const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(storedKey), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+          const sigBuffer = await crypto.subtle.sign("HMAC", keyMaterial, enc.encode(request.url + rawBody));
+          const expected = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+          verified = expected === incomingSig;
+        }
+      } else {
+        // Other providers — signature verification not yet implemented (stub)
+        verified = false;
+      }
+
+      if (!verified) {
+        await ctx.runMutation(internal.paymentConnectors.logPaymentEventInternal, {
+          siteId: site._id,
+          provider,
+          eventType: "webhook.signature_invalid",
+          status: "error",
+          errorMessage: "Webhook signature verification failed",
+        });
+        return new Response(JSON.stringify({ error: "Invalid webhook signature" }), { status: 401, headers: CORS });
+      }
+
+      const event = JSON.parse(rawBody) as any;
+      await ctx.runMutation(internal.paymentConnectors.logPaymentEventInternal, {
+        siteId: site._id,
+        provider,
+        eventType: `webhook.${event.type ?? "unknown"}`,
+        status: "success",
+        metadata: { eventId: event.event_id ?? event.id },
+      });
+
+      return ok({ received: true });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+    }
+  }),
+});
+
 // ── Phase 5: Square webhook ───────────────────────────────────────────────────
 
 /* ── POST /api/square/webhook?slug= ─────────────────────────────────────── */

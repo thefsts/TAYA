@@ -38,6 +38,7 @@ minimumReleaseAgeExclude:
 
 packages:
   - artifacts/*
+  - lib/*
   - scripts
   - tests/*
 

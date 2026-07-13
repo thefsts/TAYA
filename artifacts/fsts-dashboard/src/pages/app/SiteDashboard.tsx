@@ -172,6 +172,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           )}
           {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} isSuperAdmin={isSuperAdmin} />}
+          <NavItem icon={CreditCard} label="Payment Providers" href={`/app/sites/${siteId}/payment-providers`} isSuperAdmin={isSuperAdmin} />
           {isEnabled("payments") && (
             <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           )}
