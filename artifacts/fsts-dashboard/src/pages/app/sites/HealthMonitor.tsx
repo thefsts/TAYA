@@ -435,12 +435,26 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
                   const cat = categories[key];
                   if (!cat) return null;
                   const meta = CATEGORY_META[key];
-                  return (
-                    <div key={key} className="text-center">
-                      <div className={`text-lg font-bold ${cat.score >= 75 ? "text-green-600" : cat.score >= 50 ? "text-amber-600" : "text-red-600"}`}>
-                        {cat.score}
-                      </div>
+                  const fixPath = meta?.fixRoute ? `/app/sites/${siteId}/${meta.fixRoute}` : null;
+                  const scoreColor = cat.score >= 75 ? "text-green-600" : cat.score >= 50 ? "text-amber-600" : "text-red-600";
+                  const inner = (
+                    <>
+                      <div className={`text-lg font-bold ${scoreColor}`}>{cat.score}</div>
                       <div className="text-[10px] text-slate-400 truncate">{meta?.label ?? key}</div>
+                    </>
+                  );
+                  return fixPath ? (
+                    <Link
+                      key={key}
+                      href={fixPath}
+                      className="text-center rounded hover:bg-slate-50 transition-colors cursor-pointer group"
+                    >
+                      <div className={`text-lg font-bold ${scoreColor} group-hover:underline`}>{cat.score}</div>
+                      <div className="text-[10px] text-slate-400 truncate group-hover:text-slate-600">{meta?.label ?? key}</div>
+                    </Link>
+                  ) : (
+                    <div key={key} className="text-center">
+                      {inner}
                     </div>
                   );
                 })}
