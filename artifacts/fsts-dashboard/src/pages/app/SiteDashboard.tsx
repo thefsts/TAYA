@@ -1,5 +1,5 @@
 import { useLocation, useParams, Link } from "wouter";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { ExternalLink, ShieldAlert, Mail as MailIcon, FileEdit } from "lucide-react";
@@ -11,7 +11,6 @@ import {
   FileText,
   Image as ImageIcon,
   Search,
-  Settings,
   CreditCard,
   Mail,
   History,
@@ -39,6 +38,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AIAssistant } from "@/components/AIAssistant";
 
 function NavItem({ icon: Icon, label, href }: { icon: any, label: string, href: string }) {
   const [location] = useLocation();
@@ -62,6 +62,8 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
   const [location] = useLocation();
   const modules = site?.enabledModules as Record<string, boolean> | undefined;
   const isEnabled = (key: string) => modules?.[key] ?? true;
+  const unreadNotifications = useQuery(api.healthScans.getUnreadNotificationCount, { siteId: siteId as Id<"sites"> });
+  const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -159,9 +161,27 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center px-6 sticky top-0 z-10 shadow-sm">
-          <h1 className="font-semibold text-slate-800">
+          <h1 className="font-semibold text-slate-800 flex-1">
             {location.split('/').pop()?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Dashboard'}
           </h1>
+          <div className="flex items-center gap-2">
+            <Link href={`/app/sites/${siteId}/health`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="relative text-slate-500"
+                title="Health Notifications"
+                onClick={() => markAllRead({ siteId: siteId as Id<"sites"> })}
+              >
+                <Bell className="h-4 w-4" />
+                {(unreadNotifications ?? 0) > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unreadNotifications}
+                  </span>
+                )}
+              </Button>
+            </Link>
+          </div>
         </header>
         <div className="flex-1 overflow-y-auto p-6 lg:p-8">
           <div className="max-w-6xl mx-auto">
@@ -169,6 +189,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           </div>
         </div>
       </main>
+      <AIAssistant siteId={siteId} />
     </div>
   );
 }
@@ -193,10 +214,23 @@ export default function SiteDashboard() {
 
   const summary = useQuery(api.sites.getDashboardSummary, { siteId });
   const site = useQuery(api.sites.get, { siteId });
+  const latestScan = useQuery(api.healthScans.getLatestScan, { siteId });
+  const notifications = useQuery(api.healthScans.getNotifications, { siteId });
+
+  const healthScore = latestScan?.overallScore;
+  const healthColor = healthScore == null ? "text-slate-400"
+    : healthScore >= 75 ? "text-green-600"
+      : healthScore >= 50 ? "text-amber-600"
+        : "text-red-600";
+  const healthBg = healthScore == null ? "bg-slate-50 border-slate-200"
+    : healthScore >= 75 ? "bg-green-50 border-green-200"
+      : healthScore >= 50 ? "bg-amber-50 border-amber-200"
+        : "bg-red-50 border-red-200";
+  const activeNotifications = notifications?.filter((n: any) => !n.readAt && !n.dismissedAt) ?? [];
 
   return (
     <AppLayout siteId={siteId}>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Welcome back, {site?.name ?? "there"}</h1>
           <p className="text-slate-500">At-a-glance metrics and recent activity for this site.</p>
@@ -212,6 +246,62 @@ export default function SiteDashboard() {
           )}
         </div>
       </div>
+
+      {/* Health Score Banner */}
+      <Link href={`/app/sites/${siteId}/health`}>
+        <div className={`rounded-2xl border p-5 mb-6 cursor-pointer hover:shadow-md transition-shadow ${healthBg}`}>
+          <div className="flex items-center gap-5">
+            <div className="flex-shrink-0">
+              {healthScore == null ? (
+                <div className="h-16 w-16 rounded-full bg-slate-200 flex items-center justify-center">
+                  <Activity className="h-7 w-7 text-slate-400" />
+                </div>
+              ) : (
+                <div className="relative h-16 w-16">
+                  <svg viewBox="0 0 48 48" className="h-16 w-16 -rotate-90">
+                    <circle cx="24" cy="24" r="20" fill="none" stroke={healthScore >= 75 ? "#bbf7d0" : healthScore >= 50 ? "#fde68a" : "#fecaca"} strokeWidth="4" />
+                    <circle cx="24" cy="24" r="20" fill="none"
+                      stroke={healthScore >= 75 ? "#16a34a" : healthScore >= 50 ? "#d97706" : "#dc2626"}
+                      strokeWidth="4"
+                      strokeDasharray={`${(healthScore / 100) * 125.7} 125.7`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-lg font-bold ${healthColor}`}>{healthScore}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-slate-900 text-lg">Website Health Command Center™</p>
+                {activeNotifications.length > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                    {activeNotifications.length} alert{activeNotifications.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+              <p className={`text-sm font-medium mt-0.5 ${healthColor}`}>
+                {healthScore == null
+                  ? "No scan yet — click to run your first health scan"
+                  : healthScore >= 75 ? "Excellent — your site is healthy"
+                    : healthScore >= 50 ? "Needs attention — some issues detected"
+                      : "Critical issues — immediate action recommended"
+                }
+              </p>
+              {activeNotifications.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1 truncate">
+                  Latest: {activeNotifications[0]?.message}
+                </p>
+              )}
+            </div>
+            <div className="text-xs text-slate-400 flex-shrink-0">
+              {latestScan ? `Last scan ${new Date(latestScan.scannedAt).toLocaleDateString()}` : "Click to scan →"}
+            </div>
+          </div>
+        </div>
+      </Link>
 
       {summary === undefined ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

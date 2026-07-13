@@ -477,4 +477,24 @@ export default defineSchema({
   })
     .index("by_site", ["siteId"])
     .index("by_site_role", ["siteId", "role"]),
+
+  websiteHealthScans: defineTable({
+    siteId: v.id("sites"),
+    overallScore: v.number(),
+    status: v.string(),
+    categoryScores: v.any(),
+    scannedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_scannedAt", ["siteId", "scannedAt"]),
+
+  healthNotifications: defineTable({
+    siteId: v.id("sites"),
+    type: v.string(),
+    severity: v.string(),
+    message: v.string(),
+    category: v.optional(v.string()),
+    readAt: v.optional(v.number()),
+    dismissedAt: v.optional(v.number()),
+  }).index("by_site", ["siteId"]),
 });

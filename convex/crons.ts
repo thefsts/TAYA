@@ -25,4 +25,11 @@ crons.hourly(
   internal.health.checkAllSites,
 );
 
+/* ── Daily comprehensive health scans ───────────────────────────────────── */
+crons.daily(
+  "daily-health-scans",
+  { hourUTC: 4, minuteUTC: 0 },
+  internal.healthScans.runScanForAllSites,
+);
+
 export default crons;

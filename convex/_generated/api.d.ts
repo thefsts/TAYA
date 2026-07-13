@@ -10,6 +10,7 @@
 
 import type * as accessControl from "../accessControl.js";
 import type * as activityLog from "../activityLog.js";
+import type * as ai from "../ai.js";
 import type * as announcement from "../announcement.js";
 import type * as articles from "../articles.js";
 import type * as backups from "../backups.js";
@@ -28,6 +29,7 @@ import type * as footer from "../footer.js";
 import type * as formSubmissions from "../formSubmissions.js";
 import type * as forms from "../forms.js";
 import type * as health from "../health.js";
+import type * as healthScans from "../healthScans.js";
 import type * as homepage from "../homepage.js";
 import type * as http from "../http.js";
 import type * as lib_encrypt from "../lib/encrypt.js";
@@ -35,6 +37,7 @@ import type * as lib_getCurrentUser from "../lib/getCurrentUser.js";
 import type * as lib_logActivity from "../lib/logActivity.js";
 import type * as lib_recordVersion from "../lib/recordVersion.js";
 import type * as lib_requireSiteAccess from "../lib/requireSiteAccess.js";
+import type * as lib_siteAccessInternal from "../lib/siteAccessInternal.js";
 import type * as media from "../media.js";
 import type * as navigation from "../navigation.js";
 import type * as policies from "../policies.js";
@@ -59,6 +62,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   accessControl: typeof accessControl;
   activityLog: typeof activityLog;
+  ai: typeof ai;
   announcement: typeof announcement;
   articles: typeof articles;
   backups: typeof backups;
@@ -77,6 +81,7 @@ declare const fullApi: ApiFromModules<{
   formSubmissions: typeof formSubmissions;
   forms: typeof forms;
   health: typeof health;
+  healthScans: typeof healthScans;
   homepage: typeof homepage;
   http: typeof http;
   "lib/encrypt": typeof lib_encrypt;
@@ -84,6 +89,7 @@ declare const fullApi: ApiFromModules<{
   "lib/logActivity": typeof lib_logActivity;
   "lib/recordVersion": typeof lib_recordVersion;
   "lib/requireSiteAccess": typeof lib_requireSiteAccess;
+  "lib/siteAccessInternal": typeof lib_siteAccessInternal;
   media: typeof media;
   navigation: typeof navigation;
   policies: typeof policies;
