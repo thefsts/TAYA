@@ -48,6 +48,7 @@ import {
   Code2,
   LayoutGrid,
   Zap,
+  Rocket,
 } from "lucide-react";
 
 /* ── Convex HTTP base URL (for embed snippets) ──────────────────────────── */
@@ -601,6 +602,113 @@ function EmbedWidgetSection({
   );
 }
 
+/* ── Quick-start checklist ──────────────────────────────────────────────── */
+
+const CHECKLIST_STEPS = [
+  {
+    key: "source",
+    label: "Connect a review source",
+    description: 'Add Google, Facebook, or Yelp using the "Connect" button in the Review Sources section below.',
+  },
+  {
+    key: "synced",
+    label: "Sync reviews",
+    description: 'Click "Sync Now" (top-right) to pull in reviews from your connected source.',
+  },
+  {
+    key: "approved",
+    label: "Approve at least one review",
+    description: "Reviews must be approved before they appear on your website. Use the ✓ button on any review below.",
+  },
+  {
+    key: "cdn",
+    label: "Paste the CDN snippet on your website",
+    description: "Copy the CDN script from the Embed Widget section below and drop it into your page HTML.",
+  },
+] as const;
+
+function QuickStartChecklist({
+  sourceConnected,
+  reviewsSynced,
+  reviewApproved,
+  cdnMigrated,
+}: {
+  sourceConnected: boolean;
+  reviewsSynced: boolean;
+  reviewApproved: boolean;
+  cdnMigrated: boolean;
+}) {
+  const done: Record<string, boolean> = {
+    source: sourceConnected,
+    synced: reviewsSynced,
+    approved: reviewApproved,
+    cdn: cdnMigrated,
+  };
+
+  const allDone = CHECKLIST_STEPS.every((s) => done[s.key]);
+  if (allDone) return null;
+
+  const completedCount = CHECKLIST_STEPS.filter((s) => done[s.key]).length;
+
+  return (
+    <Card className="border-violet-200 bg-violet-50/50 mb-8">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-sm font-semibold text-violet-900 flex items-center gap-2">
+              <Rocket className="h-4 w-4 text-violet-500" />
+              Get your review widget live
+            </CardTitle>
+            <CardDescription className="text-xs text-violet-600 mt-0.5">
+              {completedCount} of {CHECKLIST_STEPS.length} steps complete — the checklist disappears once you&apos;re all set.
+            </CardDescription>
+          </div>
+          {/* Progress pip row */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {CHECKLIST_STEPS.map((s) => (
+              <div
+                key={s.key}
+                className={`h-1.5 w-6 rounded-full transition-colors ${done[s.key] ? "bg-violet-500" : "bg-violet-200"}`}
+              />
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0 space-y-2">
+        {CHECKLIST_STEPS.map((step, index) => {
+          const isDone = done[step.key];
+          return (
+            <div
+              key={step.key}
+              className={`flex items-start gap-3 rounded-md px-3 py-2.5 transition-colors ${
+                isDone
+                  ? "opacity-50"
+                  : "bg-white border border-violet-100 shadow-sm"
+              }`}
+            >
+              {isDone ? (
+                <CheckCircle className="h-4 w-4 text-violet-500 flex-shrink-0 mt-0.5" />
+              ) : (
+                <div className="h-4 w-4 rounded-full border-2 border-violet-300 flex-shrink-0 mt-0.5 flex items-center justify-center">
+                  <span className="text-[9px] font-bold text-violet-400 leading-none">{index + 1}</span>
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className={`text-xs font-semibold ${isDone ? "line-through text-slate-400" : "text-slate-800"}`}>
+                  {step.label}
+                </p>
+                {!isDone && (
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{step.description}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ── Main page ──────────────────────────────────────────────────────────── */
 
 export default function ReviewsManager({ params: routeParams }: { params?: { siteId: string } }) {
@@ -632,6 +740,13 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
   const [providerFilter, setProviderFilter] = useState<string>("all");
 
   const connectedProviderIds = new Set((sources ?? []).map((s: any) => s.provider));
+
+  /* ── Checklist conditions ─────────────────────────────────────────────── */
+  const checklistSourceConnected = connectedProviderIds.size > 0;
+  const checklistReviewsSynced = (sources ?? []).some((s: any) => s.lastSyncedAt != null);
+  const checklistReviewApproved = (reviews ?? []).some((r: any) => r.status === "approved");
+  const checklistCdnMigrated = (site as any)?.reviewsWidgetCdnMigrated === true;
+  const checklistDataLoaded = sources !== undefined && reviews !== undefined && site !== undefined;
 
   async function handleConnect(config: Record<string, string>, autoRefresh: boolean, refreshIntervalHours: number) {
     if (!connectProvider) return;
@@ -736,6 +851,16 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
           Sync Now
         </Button>
       </div>
+
+      {/* Quick-start checklist — shown until all steps are complete */}
+      {checklistDataLoaded && (
+        <QuickStartChecklist
+          sourceConnected={checklistSourceConnected}
+          reviewsSynced={checklistReviewsSynced}
+          reviewApproved={checklistReviewApproved}
+          cdnMigrated={checklistCdnMigrated}
+        />
+      )}
 
       <div className="space-y-8">
         {/* Connected Sources */}
