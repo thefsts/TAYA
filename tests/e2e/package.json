@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "pretest": "pnpm --filter @workspace/embed-widget run build",
     "test": "playwright test",
     "test:report": "playwright show-report"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "@workspace/embed-widget": "workspace:*"
   }
 }
