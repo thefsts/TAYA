@@ -575,6 +575,50 @@ export default defineSchema({
     .index("by_site", ["siteId"])
     .index("by_site_provider", ["siteId", "provider"]),
 
+  // Website Reviews Module™
+  reviewSources: defineTable({
+    siteId: v.id("sites"),
+    provider: v.string(),
+    config: v.any(),
+    credentialsCiphertext: v.optional(v.string()),
+    autoRefresh: v.boolean(),
+    refreshIntervalHours: v.optional(v.number()),
+    lastSyncedAt: v.optional(v.number()),
+    status: v.string(),
+    errorMessage: v.optional(v.string()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_provider", ["siteId", "provider"]),
+
+  importedReviews: defineTable({
+    siteId: v.id("sites"),
+    sourceId: v.id("reviewSources"),
+    provider: v.string(),
+    externalId: v.string(),
+    reviewerName: v.string(),
+    reviewerPhotoUrl: v.optional(v.string()),
+    rating: v.number(),
+    text: v.optional(v.string()),
+    reviewDate: v.number(),
+    status: v.string(),
+    pinned: v.boolean(),
+    category: v.optional(v.string()),
+    cachedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_status", ["siteId", "status"])
+    .index("by_source", ["sourceId"])
+    .index("by_site_external", ["siteId", "externalId"]),
+
+  reviewDisplaySettings: defineTable({
+    siteId: v.id("sites"),
+    layout: v.string(),
+    minRating: v.number(),
+    maxPerPage: v.number(),
+    featuredOnly: v.boolean(),
+    showProviderBadge: v.boolean(),
+  }).index("by_site", ["siteId"]),
+
   // WOS Phase 8 — Automation Engine™
   automationRules: defineTable({
     siteId: v.id("sites"),

@@ -1,0 +1,473 @@
+# FSTS Website Operating System™ (FSTS-WOS™)
+
+# MASTER TASK 82 — COMPLETE PLATFORM BUILD & STATUS REPORT
+
+**Priority:** CRITICAL
+
+This task shifts focus from the Corsair website to completing the FSTS Website Operating System™ itself.
+
+The objective is to make FSTS-WOS™ a production-ready, multi-tenant Website Operating System that can power every future Full Stack Tech Solutions client website.
+
+---
+
+# PHASE 1 — PLATFORM AUDIT
+
+Perform a complete audit of the dashboard.
+
+For every module report:
+
+* Complete
+* Partial
+* Not Started
+* Technical Debt
+* Blockers
+* Dependencies
+
+Include:
+
+* Frontend
+* Backend
+* Convex schema
+* Authentication
+* Permissions
+* API endpoints
+* UI
+* Production readiness
+
+Provide completion percentages for every module.
+
+---
+
+# PHASE 2 — COMPLETE CMS PIPELINES
+
+Finish every remaining Dashboard → Convex → Website pipeline.
+
+Every editable item inside the dashboard must immediately become editable on the public website.
+
+Complete pipelines for:
+
+* Homepage
+* Hero Content
+* Homepage Sections
+* Courses
+* Course Pricing
+* Course Options
+* Events
+* Event Flyers
+* Articles
+* Knowledge Center
+* FAQ
+* Testimonials
+* Team Members
+* Contact Information
+* Footer
+* Downloads
+* Policies
+* SEO
+* Announcement Banner
+* Navigation
+* CTA Manager
+* Careers
+* Forms
+
+The dashboard must become the single source of truth for website content.
+
+---
+
+# PHASE 3 — RESPONSIVE LIVE PREVIEW STUDIO™
+
+Build a professional live preview system.
+
+Features:
+
+* Desktop preview
+* Laptop preview
+* Tablet preview
+* Mobile preview
+* Portrait / Landscape
+* Zoom controls
+* Draft Preview
+* Publish Preview
+* Side-by-side editing
+* Live preview without refresh
+
+The preview should update immediately while editing.
+
+---
+
+# PHASE 4 — SMART IMAGE MANAGER™
+
+Complete the image management system.
+
+Include:
+
+* Drag
+* Resize
+* Crop
+* Zoom
+* Rotate
+* Flip
+* Brightness
+* Contrast
+* Saturation
+
+AI features:
+
+* Smart crop suggestions
+* Face detection
+* Logo protection
+* Text protection
+
+Automatic optimization:
+
+* WebP
+* AVIF
+* Retina
+* Responsive sizing
+
+Enforce upload limits based on image type.
+
+Generate an Image Quality Report.
+
+---
+
+# PHASE 5 — FSTS AI DASHBOARD ASSISTANT™
+
+Build the embedded AI assistant.
+
+The assistant should understand the current dashboard page and guide the client.
+
+Capabilities:
+
+* Onboarding walkthroughs
+* Explain every field
+* SEO recommendations
+* Accessibility guidance
+* Image advice
+* Grammar improvements
+* Validation
+* Troubleshooting
+* Best practices
+
+The AI MUST NOT:
+
+* Modify layouts
+* Change templates
+* Access developer settings
+* Modify branding
+
+It should only help clients manage website content.
+
+---
+
+# PHASE 6 — WEBSITE HEALTH COMMAND CENTER™
+
+Make this the dashboard home page.
+
+Display an overall Website Health Score.
+
+Score categories:
+
+* Performance
+* SEO
+* Accessibility
+* Security
+* Mobile
+* Forms
+* Email
+* Payments
+* Media
+* Content
+* Uptime
+* SSL
+* Backups
+
+Include:
+
+* Health history
+* Trends
+* Alerts
+* Recommendations
+* One-click fixes where possible
+
+---
+
+# PHASE 7 — PAYMENT CONNECTOR FRAMEWORK™
+
+Keep Square as the default payment provider.
+
+Build a modular connector framework for future payment gateways.
+
+Future connectors:
+
+* Stripe
+* PayPal
+* Authorize.Net
+* Clover
+* Helcim
+* Worldpay
+* Global Payments
+* Fiserv
+* Elavon
+
+Clients choose a payment provider.
+
+The website consumes only the active connector.
+
+No site redesign should ever be required to change payment providers.
+
+---
+
+# PHASE 8 — WEBSITE REVIEWS MODULE™
+
+Support website display only.
+
+Connectors:
+
+* Google Reviews
+* Facebook Reviews
+* Yelp Reviews
+
+Clients can:
+
+* Connect accounts
+* Refresh reviews
+* Approve reviews
+* Hide reviews
+* Feature reviews
+* Choose layouts
+* Filter by rating
+
+Do NOT build:
+
+* Reputation Manager
+* Review requests
+* AI responses
+* Sentiment analysis
+
+Those remain exclusive to Operon CRM™.
+
+---
+
+# PHASE 9 — REMAINING DASHBOARD MODULES
+
+Complete:
+
+* Forms Builder™
+* Navigation Manager™
+* Policy Editors™
+* Announcement Banner™
+* CTA Manager™
+* Downloads Manager™
+* Team Member Manager™
+* Careers Manager™
+* Popup Manager™
+
+These become standard modules available to every FSTS website.
+
+---
+
+# PHASE 10 — MEMBERSHIP & LMS
+
+Complete:
+
+Membership & Client Portal™
+
+* Secure customer login
+* Documents
+* Invoices
+* Training records
+
+Learning Management System™
+
+* Courses
+* Lessons
+* Quizzes
+* Progress
+* Certificates
+
+Compliance Center™
+
+Support configurable compliance modules (ADA, PCI, HIPAA, etc.) depending on the client's industry.
+
+Business Intelligence Dashboard™
+
+Display KPIs, revenue summaries, website metrics, and executive reporting.
+
+Automation Marketplace™
+
+Provide one-click workflow automations clients can enable without coding.
+
+---
+
+# PHASE 11 — WHITE LABEL PLATFORM
+
+Prepare the platform for agency licensing.
+
+Support:
+
+* Agency branding
+* Client branding
+* Company logo on login
+* Website logo throughout dashboard
+* Branded emails
+* Branded help center
+
+Footer:
+
+Powered by Full Stack Tech Solutions™
+
+Support future reseller licensing without affecting existing clients.
+
+---
+
+# PHASE 12 — PRODUCTION HARDENING
+
+Review:
+
+* TypeScript
+* ESLint
+* Dead code
+* Unused imports
+* Duplicate components
+* Duplicate CSS
+* Bundle size
+* Image optimization
+* Lazy loading
+* Code splitting
+* Security
+* Accessibility
+
+Resolve all warnings before Version 1.0.
+
+---
+
+# PHASE 13 — DOCUMENTATION
+
+Create developer documentation.
+
+Create administrator documentation.
+
+Create client documentation.
+
+Create onboarding guides.
+
+Create API documentation.
+
+Create deployment documentation.
+
+---
+
+# PHASE 14 — VERSION 1.0 READINESS
+
+Determine whether the platform is ready for onboarding multiple client websites.
+
+If not, identify every remaining blocker.
+
+Include:
+
+* Estimated effort
+* Priority
+* Dependencies
+
+---
+
+# FINAL STATUS REPORT
+
+When all work in this phase is complete, provide a detailed engineering report containing:
+
+## Platform Completion
+
+Overall completion percentage.
+
+Completion percentage for every module.
+
+## Convex Status
+
+* Schema
+* Tables
+* Scheduled jobs
+* Security
+* Multi-tenant isolation
+
+## Dashboard Status
+
+Every module.
+
+Every editor.
+
+Every connector.
+
+## Website Pipeline Status
+
+Which modules now update live websites.
+
+Which still require work.
+
+## Payment Framework Status
+
+Supported providers.
+
+Remaining work.
+
+## AI Assistant Status
+
+Capabilities.
+
+Limitations.
+
+## Health Command Center Status
+
+Completed features.
+
+Future roadmap.
+
+## White Label Status
+
+Agency readiness.
+
+## Security Audit
+
+Authentication
+
+Authorization
+
+Encryption
+
+Permissions
+
+Secrets
+
+Cross-tenant isolation
+
+## Performance Audit
+
+Bundle size
+
+Optimization
+
+Image delivery
+
+Caching
+
+Lazy loading
+
+## Technical Debt
+
+List every remaining issue.
+
+## Version 1.0 Score
+
+Provide an honest readiness score (0–100%).
+
+Do not overestimate completion.
+
+Identify the critical path to Version 1.0.
+
+---
+
+# IMPORTANT
+
+Do not begin onboarding additional client websites until Version 1.0 is production-ready.
+
+The FSTS Website Operating System™ will become the foundation for every future Full Stack Tech Solutions website, so quality, scalability, security, maintainability, and long-term architecture take priority over adding new features.

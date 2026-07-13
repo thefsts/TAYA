@@ -354,3 +354,125 @@ export function getConnectorStub(provider: PaymentProvider): PaymentConnector {
 /* ── Re-export concrete adapters ───────────────────────────────────────── */
 
 export { SquareConnector } from "./square.js";
+
+// ── Website Reviews Module™ — Review Connector Framework™ ────────────────────
+
+/* ── Review provider registry ──────────────────────────────────────────── */
+
+export const REVIEW_PROVIDERS = [
+  "google",
+  "facebook",
+  "yelp",
+] as const;
+
+export type ReviewProvider = (typeof REVIEW_PROVIDERS)[number];
+
+export const REVIEW_PROVIDER_LABELS: Record<ReviewProvider, string> = {
+  google: "Google Business Profile",
+  facebook: "Facebook",
+  yelp: "Yelp",
+};
+
+export const REVIEW_PROVIDER_DESCRIPTIONS: Record<ReviewProvider, string> = {
+  google: "Import star ratings and review text from your Google Business Profile listing.",
+  facebook: "Import recommendations from your Facebook Page.",
+  yelp: "Import review excerpts from your Yelp business page (per Yelp ToS).",
+};
+
+/** Fields in the connect-dialog config that contain secrets (encrypted at rest). */
+export const REVIEW_PROVIDER_SECRET_FIELDS: Record<ReviewProvider, string[]> = {
+  google: ["apiKey"],
+  facebook: ["accessToken"],
+  yelp: ["apiKey"],
+};
+
+/* ── Shared result types ────────────────────────────────────────────────── */
+
+export interface ReviewItem {
+  externalId: string;
+  reviewerName: string;
+  reviewerPhotoUrl?: string;
+  rating: number;
+  text?: string;
+  reviewDate: number;
+}
+
+export interface ReviewFetchResult {
+  reviews: ReviewItem[];
+  totalFetched: number;
+  provider: ReviewProvider;
+}
+
+/* ── The universal connector interface ──────────────────────────────────── */
+
+export interface ReviewConnector {
+  readonly provider: ReviewProvider;
+
+  /**
+   * Fetch recent reviews from the provider.
+   * @param config   Non-secret provider config (e.g. placeId, pageId, businessId).
+   * @param credentials  Decrypted secret values (e.g. apiKey, accessToken).
+   * @param maxResults   Maximum number of reviews to return.
+   */
+  fetchReviews(params: {
+    config: Record<string, unknown>;
+    credentials: Record<string, string>;
+    maxResults?: number;
+  }): Promise<ReviewFetchResult>;
+
+  /**
+   * Verify the provider API is reachable and credentials are valid.
+   */
+  healthCheck(params: {
+    config: Record<string, unknown>;
+    credentials: Record<string, string>;
+  }): Promise<HealthCheckResult>;
+}
+
+/* ── Stub adapters (coming-soon — real calls wired in future task) ────── */
+
+class StubReviewConnector implements ReviewConnector {
+  readonly provider: ReviewProvider;
+
+  constructor(provider: ReviewProvider) {
+    this.provider = provider;
+  }
+
+  private notReady(): never {
+    throw new Error(
+      `Live ${REVIEW_PROVIDER_LABELS[this.provider]} connector is not yet implemented. ` +
+      "Reviews will be importable once the adapter is wired."
+    );
+  }
+
+  fetchReviews(_p: Parameters<ReviewConnector["fetchReviews"]>[0]): Promise<ReviewFetchResult> {
+    this.notReady();
+  }
+
+  healthCheck(_p: Parameters<ReviewConnector["healthCheck"]>[0]): Promise<HealthCheckResult> {
+    this.notReady();
+  }
+}
+
+export class GoogleReviewsConnector extends StubReviewConnector {
+  constructor() { super("google"); }
+}
+
+export class FacebookReviewsConnector extends StubReviewConnector {
+  constructor() { super("facebook"); }
+}
+
+export class YelpReviewsConnector extends StubReviewConnector {
+  constructor() { super("yelp"); }
+}
+
+/* ── Factory ────────────────────────────────────────────────────────────── */
+
+export function getReviewConnectorStub(provider: ReviewProvider): ReviewConnector {
+  switch (provider) {
+    case "google": return new GoogleReviewsConnector();
+    case "facebook": return new FacebookReviewsConnector();
+    case "yelp": return new YelpReviewsConnector();
+    default: return new StubReviewConnector(provider as ReviewProvider);
+  }
+}

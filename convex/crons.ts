@@ -39,4 +39,11 @@ crons.interval(
   internal.crm.pollAllSitesInbound,
 );
 
+/* ── Daily review sync at 02:00 UTC ─────────────────────────────────────── */
+crons.daily(
+  "daily-review-sync",
+  { hourUTC: 2, minuteUTC: 0 },
+  internal.reviews.syncAllSitesReviews,
+);
+
 export default crons;

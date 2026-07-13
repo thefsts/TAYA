@@ -46,6 +46,8 @@ const preflightPaths = [
   "/api/square/webhook",
   // Phase 10 — Agency Edition™
   "/api/agency/branding",
+  // Website Reviews Module™
+  "/api/public/reviews",
 ];
 for (const path of preflightPaths) {
   http.route({ path, method: "OPTIONS", handler: preflight });
@@ -624,6 +626,23 @@ http.route({
     } catch (err: any) {
       return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
     }
+  }),
+});
+
+// ── Website Reviews Module™ ───────────────────────────────────────────────────
+
+/* ── GET /api/public/reviews?slug= ──────────────────────────────────────── */
+http.route({
+  path: "/api/public/reviews",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const site = await ctx.runQuery(internal.public.getSiteBySlug, { slug });
+    if (!site) return notFound("Site not found");
+    const reviews = await ctx.runQuery(internal.reviews.listApprovedReviewsInternal, { siteId: site._id });
+    const settings = await ctx.runQuery(internal.reviews.getDisplaySettingsInternal, { siteId: site._id });
+    return ok({ reviews, displaySettings: settings });
   }),
 });
 

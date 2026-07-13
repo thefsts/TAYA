@@ -226,6 +226,17 @@ The Website Reviews Module™ is a **display-only** exception inside FSTS-WOS™
 
 New review providers are added through the **Payment & Connector Framework™** using the same provider-agnostic pattern as CRM connectors. Each provider implements a standard adapter interface; the module does not need to know the provider-specific API details at the widget layer.
 
+### 6.5 Implementation Reference
+
+| Layer | Location |
+|---|---|
+| Convex schema | `convex/schema.ts` — `reviewSources`, `importedReviews`, `reviewDisplaySettings` tables |
+| Convex backend | `convex/reviews.ts` — queries, mutations, internal sync action |
+| Public endpoint | `convex/http.ts` — `GET /api/public/reviews?slug=` |
+| Scheduled sync | `convex/crons.ts` — `daily-review-sync` at 02:00 UTC |
+| Dashboard UI | `artifacts/fsts-dashboard/src/pages/app/sites/ReviewsManager.tsx` |
+| Route | `/app/sites/:siteId/reviews` (gated on `enabledModules.reviews`) |
+
 ---
 
 ## 7. Future Architecture Notes

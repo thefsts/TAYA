@@ -320,7 +320,7 @@ function defaultModules(websiteType: string): Record<string, boolean> {
   const ALL_ON = {
     homepage: true, courses: true, events: true, articles: true,
     media: true, contact: true, footer: true, seo: true,
-    payments: true, email: true, crm: true,
+    payments: true, email: true, crm: true, reviews: true,
   };
   const OFF: Record<string, string[]> = {
     business_website: ["courses", "events"],

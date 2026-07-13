@@ -73,6 +73,9 @@ import PaymentProviders from "@/pages/app/sites/PaymentProviders";
 // WOS Phase 8 — Automation Engine™
 import AutomationRules from "@/pages/app/sites/AutomationRules";
 
+// Website Reviews Module™
+import ReviewsManager from "@/pages/app/sites/ReviewsManager";
+
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
@@ -358,6 +361,9 @@ function AppRouter() {
 
           {/* WOS Phase 8 — Automation Engine™ */}
           <Route path="/app/sites/:siteId/automation" component={AutomationRules} />
+
+          {/* Website Reviews Module™ */}
+          <Route path="/app/sites/:siteId/reviews" component={ReviewsManager} />
 
           <Route component={NotFound} />
         </Switch>
