@@ -119,6 +119,10 @@ const convex: ConvexReactClient | null = convexUrlValid
   ? new ConvexReactClient(convexUrl)
   : null;
 
+if (!import.meta.env.PROD && convex) {
+  (window as any).__convex = convex;
+}
+
 const clerkAppearance = {
   theme: shadcn,
   cssLayerName: "clerk",

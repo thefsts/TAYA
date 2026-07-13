@@ -117,6 +117,75 @@ export const dismissNotification = mutation({
   },
 });
 
+export const _seedTestScan = internalMutation({
+  args: {
+    siteId: v.id("sites"),
+    overallScore: v.number(),
+    status: v.string(),
+    categoryScores: v.any(),
+    scannedAt: v.optional(v.number()),
+  },
+  handler: async (ctx, { siteId, overallScore, status, categoryScores, scannedAt }) => {
+    return ctx.db.insert("websiteHealthScans", {
+      siteId,
+      overallScore,
+      status,
+      categoryScores,
+      scannedAt: scannedAt ?? Date.now(),
+    });
+  },
+});
+
+export const _deleteAllScans = internalMutation({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const scans = await ctx.db
+      .query("websiteHealthScans")
+      .withIndex("by_site_scannedAt", (q) => q.eq("siteId", siteId))
+      .collect();
+    for (const scan of scans) {
+      await ctx.db.delete(scan._id);
+    }
+    return scans.length;
+  },
+});
+
+export const testHarness = action({
+  args: {
+    op: v.union(v.literal("seedScan"), v.literal("deleteAllScans")),
+    siteId: v.id("sites"),
+    overallScore: v.optional(v.number()),
+    status: v.optional(v.string()),
+    categoryScores: v.optional(v.any()),
+    scannedAt: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    if (process.env.CONVEX_TEST_MODE !== "true") {
+      throw new Error("testHarness is only available in test environments (CONVEX_TEST_MODE=true)");
+    }
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const hasAccess = await ctx.runQuery(internal.lib.siteAccessInternal.check, {
+      clerkUserId: identity.subject,
+      siteId: args.siteId,
+    });
+    if (!hasAccess) throw new Error("Forbidden: site access required");
+
+    if (args.op === "seedScan") {
+      return ctx.runMutation(internal.healthScans._seedTestScan, {
+        siteId: args.siteId,
+        overallScore: args.overallScore ?? 70,
+        status: args.status ?? "warning",
+        categoryScores: args.categoryScores ?? {},
+        scannedAt: args.scannedAt,
+      });
+    }
+    if (args.op === "deleteAllScans") {
+      return ctx.runMutation(internal.healthScans._deleteAllScans, { siteId: args.siteId });
+    }
+  },
+});
+
 export const triggerScan = action({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
