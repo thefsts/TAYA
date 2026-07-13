@@ -1,0 +1,590 @@
+# TASK 79 — FSTS Website Operating System™ (FSTS-WOS) Platform Completion
+
+**Priority:** CRITICAL
+
+## OBJECTIVE
+
+Transition the FSTS Website Operating System™ (FSTS-WOS) from a Corsair-specific dashboard into the permanent platform that will power every Full Stack Tech Solutions website.
+
+This is now the core product.
+
+Every feature added from this point forward must be:
+
+* Multi-tenant
+* Site-aware
+* Agency-ready
+* White-label capable
+* Scalable
+* Modular
+* Secure
+
+The platform must become the equivalent of a modern WordPress, Webflow CMS, and Shopify Admin combined—but purpose-built for FSTS websites.
+
+---
+
+# PHASE 1 — PAYMENT CONNECTOR FRAMEWORK™
+
+## DO NOT hardcode Square.
+
+Instead create a universal payment abstraction layer.
+
+Every website will choose ONE active payment provider.
+
+Examples:
+
+* Square
+* Stripe
+* PayPal
+* Authorize.net
+* Clover
+* Shopify Payments
+* WooCommerce
+* QuickBooks Payments
+* Manual Invoice
+* Bank Transfer / ACH
+
+Future providers should be installable without changing website code.
+
+### Architecture
+
+Website
+
+↓
+
+Payment Connector
+
+↓
+
+Selected Provider
+
+↓
+
+Checkout
+
+The website should never know which payment gateway is being used.
+
+The connector handles everything.
+
+---
+
+## Dashboard
+
+Create a Payment Providers page.
+
+Example sections:
+
+Current Provider
+
+Connection Status
+
+API Credentials
+
+Webhook Status
+
+Catalog Mapping
+
+Test Connection
+
+Transaction Log
+
+Provider Settings
+
+Switch Provider
+
+Disconnect
+
+Health Status
+
+---
+
+## Payment Interface
+
+Create a connector interface.
+
+Required methods:
+
+* createOrder()
+* createPayment()
+* refund()
+* verifyWebhook()
+* createCustomer()
+* syncProducts()
+* syncEvents()
+* syncCourses()
+* getReceipt()
+* healthCheck()
+
+Each provider implements the same interface.
+
+---
+
+## Security
+
+Encrypt all credentials.
+
+Never expose secrets to the client.
+
+Server-side validation only.
+
+Audit every payment action.
+
+---
+
+# PHASE 2 — WEBSITE SETTINGS™
+
+Create one centralized Website Settings module.
+
+Allow editing:
+
+Business Name
+
+Logo
+
+Favicons
+
+Contact Information
+
+Business Hours
+
+Timezone
+
+Social Links
+
+Domain
+
+Brand Colors
+
+Typography
+
+SEO Defaults
+
+Analytics IDs
+
+Cookie Settings
+
+Email Defaults
+
+Legal Pages
+
+These settings populate every page automatically.
+
+---
+
+# PHASE 3 — GLOBAL DESIGN LOCK™
+
+Clients MUST NOT be able to change:
+
+Layouts
+
+Templates
+
+Spacing
+
+Animations
+
+Global CSS
+
+Components
+
+Developer Settings
+
+React Code
+
+Next.js Configuration
+
+Routes
+
+Navigation Structure (unless explicitly enabled)
+
+Clients CAN edit:
+
+Text
+
+Images
+
+Videos
+
+Events
+
+Courses
+
+Pricing
+
+FAQs
+
+Downloads
+
+Team Members
+
+Testimonials
+
+Policies
+
+Blog Articles
+
+SEO
+
+Forms
+
+Payment Settings
+
+Everything else remains locked.
+
+---
+
+# PHASE 4 — RESPONSIVE LIVE PREVIEW STUDIO™
+
+Every editor gets a live preview.
+
+Desktop
+
+Laptop
+
+Tablet Landscape
+
+Tablet Portrait
+
+iPhone
+
+Android
+
+Rotate Device
+
+Zoom
+
+Safe Area
+
+Real-time preview without refresh.
+
+Support:
+
+Draft
+
+Preview
+
+Validation
+
+Publish
+
+---
+
+# PHASE 5 — SMART IMAGE MANAGER™
+
+Every upload goes through image optimization.
+
+Features:
+
+AI crop suggestions
+
+Drag to reposition
+
+Zoom
+
+Rotate
+
+Brightness
+
+Contrast
+
+Saturation
+
+Background removal (future-ready)
+
+Face detection
+
+Logo protection
+
+Text detection
+
+Automatic WebP
+
+Automatic AVIF
+
+Desktop size
+
+Tablet size
+
+Mobile size
+
+Retina size
+
+Alt-text generation
+
+SEO score
+
+Compression report
+
+Warn users before uploading oversized images.
+
+Provide one-click optimization.
+
+---
+
+# PHASE 6 — FSTS AI DASHBOARD ASSISTANT™
+
+Embed an AI assistant across the dashboard.
+
+Capabilities:
+
+Client onboarding
+
+Context-aware help
+
+SEO guidance
+
+Accessibility guidance
+
+Image recommendations
+
+Writing improvements
+
+Grammar
+
+FAQ generation
+
+Course descriptions
+
+Event creation
+
+Blog drafting
+
+Troubleshooting
+
+Publish validation
+
+The assistant must NEVER:
+
+Modify layouts
+
+Change templates
+
+Access developer settings
+
+Edit code
+
+View secrets
+
+Bypass permissions
+
+---
+
+# PHASE 7 — WEBSITE HEALTH COMMAND CENTER™
+
+Make this the default landing page after login.
+
+Health score (0–100)
+
+Categories:
+
+Performance
+
+SEO
+
+Accessibility
+
+Security
+
+Forms
+
+Payments
+
+Email
+
+Media
+
+Content
+
+Mobile
+
+Backups
+
+SSL
+
+Uptime
+
+Each card displays:
+
+Current status
+
+Trend
+
+Last scan
+
+Recommendations
+
+One-click fixes where possible.
+
+---
+
+# PHASE 8 — AUTOMATION ENGINE™
+
+Add automation rules.
+
+Examples:
+
+New article
+
+↓
+
+Publish
+
+↓
+
+Notify Operon CRM
+
+↓
+
+Create social task
+
+↓
+
+Email subscribers
+
+↓
+
+Log activity
+
+↓
+
+Create backup
+
+Rules should be configurable per site.
+
+---
+
+# PHASE 9 — CLIENT PERMISSIONS™
+
+Support granular permissions.
+
+Examples:
+
+Owner
+
+Manager
+
+Marketing
+
+Content Editor
+
+Course Manager
+
+Events Manager
+
+Finance
+
+Support
+
+Read Only
+
+Allow enabling/disabling access to individual dashboard modules.
+
+---
+
+# PHASE 10 — AGENCY EDITION™
+
+Build the platform for future white-label partners.
+
+Agency branding:
+
+Logo
+
+Colors
+
+Login page
+
+Domain
+
+Support email
+
+Help Center
+
+Clients only see their agency.
+
+Platform Owner (Full Stack Tech Solutions) retains control of:
+
+Platform updates
+
+Licensing
+
+Core security
+
+Modules
+
+Feature flags
+
+Billing
+
+---
+
+# PHASE 11 — OPERON CRM CONNECTOR™
+
+The dashboard is NOT the CRM.
+
+The dashboard should connect to Operon CRM.
+
+Provide secure API integration for:
+
+Lead creation
+
+Contact sync
+
+Customer sync
+
+Event registrations
+
+Course registrations
+
+Payment notifications
+
+Marketing triggers
+
+Support tickets
+
+Review requests
+
+Automation events
+
+Dashboard users should never need to manually duplicate data.
+
+---
+
+# PHASE 12 — FINAL PLATFORM STANDARD
+
+FSTS-WOS™ must become the standard operating system for every Full Stack Tech Solutions website.
+
+Future websites should require configuration—not custom development.
+
+Every website should inherit:
+
+* Website management
+* Content management
+* Payments
+* AI assistance
+* Media management
+* SEO
+* Security
+* Health monitoring
+* CRM connectivity
+* Multi-tenant architecture
+* White-label support
+* Agency support
+* Role-based permissions
+
+This architecture will serve as the foundation for every current and future client website built by Full Stack Tech Solutions.
+
+## DELIVERABLES
+
+* Complete Payment Connector Framework™ with provider abstraction.
+* Website Settings™ module.
+* Global Design Lock™ permission system.
+* Responsive Live Preview Studio™.
+* Smart Image Manager™.
+* FSTS AI Dashboard Assistant™.
+* Website Health Command Center™.
+* Automation Engine™.
+* Granular Client Permissions™.
+* Agency Edition™ white-label framework.
+* Operon CRM Connector™ integration.
+* Update platform documentation so these become permanent capabilities of FSTS-WOS™.
+
+**Project Standard:** Build these as reusable platform modules, not Corsair-specific features. Every enhancement must automatically benefit all current and future websites managed through FSTS Website Operating System™.
