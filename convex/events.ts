@@ -26,6 +26,23 @@ export const get = query({
   },
 });
 
+async function syncEventMapping(ctx: any, siteId: any, entityId: string, squareItemId: string | undefined) {
+  if (!squareItemId) return;
+  const catalogItem = await ctx.db.query("squareCatalogItems")
+    .withIndex("by_site_squareItemId", (q: any) => q.eq("siteId", siteId).eq("squareItemId", squareItemId))
+    .first();
+  const existing = await ctx.db.query("squareCatalogMappings")
+    .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+    .filter((q: any) => q.and(q.eq(q.field("entityType"), "event"), q.eq(q.field("entityId"), entityId)))
+    .first();
+  const patch = { squareItemId, squareVariationId: catalogItem?.squareVariationId };
+  if (existing) {
+    await ctx.db.patch(existing._id, patch);
+  } else {
+    await ctx.db.insert("squareCatalogMappings", { siteId, entityType: "event", entityId, ...patch });
+  }
+}
+
 export const create = mutation({
   args: {
     siteId: v.id("sites"),
@@ -37,6 +54,7 @@ export const create = mutation({
     endAt: v.optional(v.string()),
     location: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    squareItemId: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, startAt, endAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
@@ -44,6 +62,7 @@ export const create = mutation({
     const doc = (await ctx.db.get(id))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "event", entityId: id, page: "Events", newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "event", entityId: id, snapshot: doc });
+    if (fields.squareItemId) await syncEventMapping(ctx, siteId, id, fields.squareItemId);
     return toResponse(doc);
   },
 });
@@ -60,6 +79,7 @@ export const update = mutation({
     endAt: v.optional(v.string()),
     location: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    squareItemId: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, eventId, startAt, endAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
@@ -72,6 +92,7 @@ export const update = mutation({
     const doc = (await ctx.db.get(eventId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "event", entityId: eventId, page: "Events", previousValue: existing, newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "event", entityId: eventId, snapshot: doc });
+    if ("squareItemId" in fields) await syncEventMapping(ctx, siteId, eventId, fields.squareItemId);
     return toResponse(doc);
   },
 });

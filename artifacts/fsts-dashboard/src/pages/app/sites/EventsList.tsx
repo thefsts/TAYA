@@ -47,6 +47,7 @@ type EventFormState = {
   endAt: string;
   location: string;
   imageUrl: string;
+  squareItemId: string;
 };
 
 function toLocalInput(iso?: string | null): string {
@@ -65,6 +66,7 @@ const emptyForm: EventFormState = {
   endAt: "",
   location: "",
   imageUrl: "",
+  squareItemId: "",
 };
 
 function statusVariant(status: string) {
@@ -77,6 +79,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
   const data = useQuery(api.events.list, { siteId });
+  const catalogItems = useQuery(api.square.listCatalogItems, { siteId });
   const createEvent = useMutation(api.events.create);
   const updateEvent = useMutation(api.events.update);
   const deleteEvent = useMutation(api.events.remove);
@@ -105,6 +108,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
       endAt: toLocalInput(ev.endAt),
       location: ev.location ?? "",
       imageUrl: ev.imageUrl ?? "",
+      squareItemId: ev.squareItemId ?? "",
     });
     setDialogOpen(true);
   }
@@ -125,6 +129,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
           location: form.location || undefined,
           imageUrl: form.imageUrl || undefined,
+          squareItemId: form.squareItemId || undefined,
         });
         toast({ title: "Event updated" });
       } else {
@@ -138,6 +143,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
           location: form.location || undefined,
           imageUrl: form.imageUrl || undefined,
+          squareItemId: form.squareItemId || undefined,
         });
         toast({ title: "Event created" });
       }
@@ -278,6 +284,25 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
             <div className="space-y-1.5">
               <Label>Image URL</Label>
               <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for paid registration)</span></Label>
+              <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Free / not linked" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Free / not linked</SelectItem>
+                  {(catalogItems ?? []).map((item: any) => (
+                    <SelectItem key={item.squareItemId} value={item.squareItemId}>
+                      {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {(catalogItems ?? []).length === 0 && (
+                <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>

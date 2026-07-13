@@ -46,6 +46,7 @@ type CourseFormState = {
   durationLabel: string;
   priceCents: string;
   imageUrl: string;
+  squareItemId: string;
 };
 
 const emptyForm: CourseFormState = {
@@ -56,6 +57,7 @@ const emptyForm: CourseFormState = {
   durationLabel: "",
   priceCents: "",
   imageUrl: "",
+  squareItemId: "",
 };
 
 function statusVariant(status: string) {
@@ -68,6 +70,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
   const data = useQuery(api.courses.list, { siteId });
+  const catalogItems = useQuery(api.square.listCatalogItems, { siteId });
   const createCourse = useMutation(api.courses.create);
   const updateCourse = useMutation(api.courses.update);
   const deleteCourse = useMutation(api.courses.remove);
@@ -95,6 +98,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
       durationLabel: course.durationLabel ?? "",
       priceCents: course.priceCents != null ? String(course.priceCents) : "",
       imageUrl: course.imageUrl ?? "",
+      squareItemId: course.squareItemId ?? "",
     });
     setDialogOpen(true);
   }
@@ -114,6 +118,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           durationLabel: form.durationLabel || undefined,
           priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
           imageUrl: form.imageUrl || undefined,
+          squareItemId: form.squareItemId || undefined,
         });
         toast({ title: "Course updated" });
       } else {
@@ -126,6 +131,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           durationLabel: form.durationLabel || undefined,
           priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
           imageUrl: form.imageUrl || undefined,
+          squareItemId: form.squareItemId || undefined,
         });
         toast({ title: "Course created" });
       }
@@ -266,6 +272,25 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
             <div className="space-y-1.5">
               <Label>Image URL</Label>
               <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for checkout pricing)</span></Label>
+              <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Not linked" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Not linked</SelectItem>
+                  {(catalogItems ?? []).map((item: any) => (
+                    <SelectItem key={item.squareItemId} value={item.squareItemId}>
+                      {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {(catalogItems ?? []).length === 0 && (
+                <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>

@@ -144,15 +144,20 @@ export default defineSchema({
     webhookSignatureKey: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
-  squareCatalogMappings: defineTable({
+  squareCatalogItems: defineTable({
     siteId: v.id("sites"),
-    entityType: v.string(),
-    entityId: v.string(),
     squareItemId: v.string(),
-    squareVariationId: v.string(),
-  }).index("by_site", ["siteId"]),
+    squareVariationId: v.optional(v.string()),
+    name: v.string(),
+    description: v.optional(v.string()),
+    priceCents: v.optional(v.number()),
+    category: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    lastSyncedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_squareItemId", ["siteId", "squareItemId"]),
 
-  // Phase 5 — Square Commerce
   squareOrders: defineTable({
     siteId: v.id("sites"),
     squareOrderId: v.string(),
@@ -161,39 +166,32 @@ export default defineSchema({
     customerEmail: v.optional(v.string()),
     itemName: v.optional(v.string()),
     amountCents: v.number(),
-    currency: v.optional(v.string()),
     status: v.string(),
     refundStatus: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_createdAt", ["siteId", "createdAt"]),
-
-  squareCatalogItems: defineTable({
-    siteId: v.id("sites"),
-    squareItemId: v.string(),
-    name: v.string(),
-    description: v.optional(v.string()),
-    type: v.optional(v.string()),
-    priceCents: v.optional(v.number()),
-    variationId: v.optional(v.string()),
-    imageUrl: v.optional(v.string()),
-    syncedAt: v.number(),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_squareItemId", ["siteId", "squareItemId"]),
+    .index("by_site_squareOrderId", ["siteId", "squareOrderId"]),
 
   squareDiscounts: defineTable({
     siteId: v.id("sites"),
-    squareDiscountId: v.optional(v.string()),
+    squareDiscountId: v.string(),
     name: v.string(),
     code: v.optional(v.string()),
     discountType: v.string(),
-    amountCents: v.optional(v.number()),
-    percentage: v.optional(v.number()),
+    amount: v.optional(v.number()),
+    percentage: v.optional(v.string()),
     expiresAt: v.optional(v.number()),
-    isActive: v.boolean(),
-    syncedAt: v.optional(v.number()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_squareDiscountId", ["siteId", "squareDiscountId"]),
+
+  squareCatalogMappings: defineTable({
+    siteId: v.id("sites"),
+    entityType: v.string(),
+    entityId: v.string(),
+    squareItemId: v.string(),
+    squareVariationId: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
   emailSettings: defineTable({

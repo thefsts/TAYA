@@ -471,27 +471,25 @@ http.route({
       const rawBody = await request.text();
       const squareSig = request.headers.get("Square-Signature") ?? "";
 
-      const site = await ctx.runQuery(internal.public.getSiteBySlug, { slug });
-      if (!site) return new Response(JSON.stringify({ error: "site not found" }), { status: 404, headers: CORS });
+      const site = await ctx.runQuery(internal.square.getSiteBySlugInternal, { slug });
+      if (!site) return new Response(JSON.stringify({ error: "Site not found" }), { status: 404, headers: CORS });
 
-      const config = await ctx.runQuery(internal.square.getConfigInternal, { siteId: site._id });
-      if (!config) return new Response(JSON.stringify({ error: "square not configured" }), { status: 400, headers: CORS });
+      const cfg = await ctx.runQuery(internal.square.getConfigInternal, { siteId: site._id });
+      const storedKey = cfg?.webhookSignatureKey ?? "";
 
-      // Signature validation (HMAC-SHA256 with webhook signature key — use accessToken as fallback for now)
-      if (squareSig && config.webhookSignatureKey) {
-        const encoder = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-          "raw",
-          encoder.encode(config.webhookSignatureKey),
-          { name: "HMAC", hash: "SHA-256" },
-          false,
-          ["sign"]
-        );
-        const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(request.url + rawBody));
-        const expected = btoa(String.fromCharCode(...new Uint8Array(sig)));
-        if (squareSig !== expected) {
-          return new Response(JSON.stringify({ error: "invalid signature" }), { status: 401, headers: CORS });
-        }
+      if (!storedKey) {
+        return new Response(JSON.stringify({ error: "Webhook signature key not configured" }), { status: 401, headers: CORS });
+      }
+      if (!squareSig) {
+        return new Response(JSON.stringify({ error: "Missing Square-Signature header" }), { status: 401, headers: CORS });
+      }
+
+      const encoder = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(storedKey), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      const sigBuffer = await crypto.subtle.sign("HMAC", keyMaterial, encoder.encode(request.url + rawBody));
+      const expected = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+      if (expected !== squareSig) {
+        return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 401, headers: CORS });
       }
 
       const event = JSON.parse(rawBody) as any;
@@ -500,12 +498,11 @@ http.route({
       if (eventType === "payment.created" || eventType === "payment.updated") {
         const payment = event.data?.object?.payment;
         if (payment) {
-          await ctx.runMutation(internal.squareOrders.upsertOrderFromWebhook, {
+          await ctx.runMutation(internal.square.webhookUpsertOrder, {
             siteId: site._id,
             squareOrderId: payment.order_id ?? payment.id,
             squarePaymentId: payment.id,
             amountCents: payment.amount_money?.amount ?? 0,
-            currency: payment.amount_money?.currency,
             status: payment.status ?? "COMPLETED",
             createdAt: new Date(payment.created_at ?? Date.now()).getTime(),
           });

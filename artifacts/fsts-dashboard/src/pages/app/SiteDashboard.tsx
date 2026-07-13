@@ -31,7 +31,7 @@ import {
   Users,
   Briefcase,
   Bell,
-  ShoppingCart,
+  ShoppingBag,
   ScrollText,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -127,7 +127,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} />}
           {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} />}
           {isEnabled("payments") && <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} />}
-          {isEnabled("commerce") && <NavItem icon={ShoppingCart} label="Square Commerce" href={`/app/sites/${siteId}/commerce`} />}
+          {isEnabled("commerce") && <NavItem icon={ShoppingBag} label="Commerce" href={`/app/sites/${siteId}/commerce`} />}
           {isEnabled("email") && <NavItem icon={Mail} label="Email Config" href={`/app/sites/${siteId}/email`} />}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Marketing &amp; CRM</div>

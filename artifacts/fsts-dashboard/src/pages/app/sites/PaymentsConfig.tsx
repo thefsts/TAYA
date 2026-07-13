@@ -47,6 +47,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
   const [applicationId, setApplicationId] = useState("");
   const [locationId, setLocationId] = useState("");
   const [accessToken, setAccessToken] = useState("");
+  const [webhookSignatureKey, setWebhookSignatureKey] = useState("");
   const [checkoutEnabled, setCheckoutEnabled] = useState(false);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
 
@@ -67,10 +68,12 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
         applicationId: applicationId || undefined,
         locationId: locationId || undefined,
         accessToken: accessToken || undefined,
+        webhookSignatureKey: webhookSignatureKey || undefined,
         checkoutEnabled,
       });
       toast({ title: "Square configuration saved" });
       setAccessToken("");
+      setWebhookSignatureKey("");
     } catch (err) {
       toast({
         title: "Something went wrong",
@@ -200,6 +203,20 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
           <div className="space-y-1.5">
             <Label>Access Token</Label>
             <Input type="password" placeholder="Leave blank to keep current" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Label>Webhook Signature Key</Label>
+              {config?.hasWebhookSignatureKey ? (
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Configured</span>
+              ) : (
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Not set</span>
+              )}
+            </div>
+            <Input type="password" placeholder="Enter to set or update" value={webhookSignatureKey} onChange={(e) => setWebhookSignatureKey(e.target.value)} />
+            <p className="text-xs text-slate-400">
+              Found in your Square Developer Dashboard → Webhooks → signature key. Required for Square to accept webhook events.
+            </p>
           </div>
           <div className="flex items-center justify-between py-1">
             <Label>Enable Checkout</Label>

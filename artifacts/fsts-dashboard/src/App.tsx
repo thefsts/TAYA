@@ -26,6 +26,7 @@ import MediaLibrary from "@/pages/app/sites/MediaLibrary";
 import FooterEditor from "@/pages/app/sites/FooterEditor";
 import ContactInfo from "@/pages/app/sites/ContactInfo";
 import PaymentsConfig from "@/pages/app/sites/PaymentsConfig";
+import Commerce from "@/pages/app/sites/Commerce";
 import EmailConfig from "@/pages/app/sites/EmailConfig";
 import CrmConnectionConfig from "@/pages/app/sites/CrmConnectionConfig";
 import VersionHistory from "@/pages/app/sites/VersionHistory";
@@ -280,6 +281,7 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/footer" component={FooterEditor} />
           <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
           <Route path="/app/sites/:siteId/payments" component={PaymentsConfig} />
+          <Route path="/app/sites/:siteId/commerce" component={Commerce} />
           <Route path="/app/sites/:siteId/email" component={EmailConfig} />
           <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfig} />
           <Route path="/app/sites/:siteId/faq" component={FaqManager} />
