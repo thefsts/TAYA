@@ -49,6 +49,7 @@ import type * as paymentConnectors from "../paymentConnectors.js";
 import type * as policies from "../policies.js";
 import type * as popup from "../popup.js";
 import type * as public_ from "../public.js";
+import type * as reviews from "../reviews.js";
 import type * as seo from "../seo.js";
 import type * as siteSettings from "../siteSettings.js";
 import type * as sites from "../sites.js";
@@ -107,6 +108,7 @@ declare const fullApi: ApiFromModules<{
   policies: typeof policies;
   popup: typeof popup;
   public: typeof public_;
+  reviews: typeof reviews;
   seo: typeof seo;
   siteSettings: typeof siteSettings;
   sites: typeof sites;

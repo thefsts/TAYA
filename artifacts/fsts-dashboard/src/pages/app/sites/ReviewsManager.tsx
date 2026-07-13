@@ -47,6 +47,7 @@ import {
   Check,
   Code2,
   LayoutGrid,
+  Zap,
 } from "lucide-react";
 
 /* ── Convex HTTP base URL (for embed snippets) ──────────────────────────── */
@@ -396,11 +397,15 @@ function EmbedWidgetSection({
   slug,
   settings,
   reviews,
+  cdnMigrated,
+  onMarkMigrated,
 }: {
   convexHttpUrl: string;
   slug: string;
   settings: any;
   reviews: any[];
+  cdnMigrated: boolean;
+  onMarkMigrated: () => void;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   const [activeTab, setActiveTab] = useState<EmbedTab>("cdn");
@@ -442,6 +447,29 @@ function EmbedWidgetSection({
             </div>
           )}
 
+          {/* CDN upgrade notice — shown until the site owner confirms migration */}
+          {!cdnMigrated && (
+            <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-md px-3 py-2.5">
+              <Zap className="h-4 w-4 flex-shrink-0 text-blue-500 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-blue-800">Upgrade to the CDN script for automatic updates</p>
+                <p className="text-xs text-blue-600 mt-0.5">
+                  Sites using the old inline snippet won't pick up display-setting changes automatically.
+                  Swap in the <strong>CDN script</strong> tab's one-liner and you'll never need to re-paste.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-shrink-0 h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-900"
+                onClick={onMarkMigrated}
+              >
+                <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                Mark as upgraded
+              </Button>
+            </div>
+          )}
+
           {!isPlaceholder && approvedCount === 0 && (
             <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2.5">
               <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
@@ -472,6 +500,11 @@ function EmbedWidgetSection({
               <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                 recommended
               </span>
+              {!cdnMigrated && (
+                <span className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                  new
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab("inline")}
@@ -579,6 +612,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
   const setCategory = useMutation(api.reviews.setCategory);
   const updateDisplaySettings = useMutation(api.reviews.updateDisplaySettings);
   const triggerSync = useMutation(api.reviews.triggerSync);
+  const markCdnMigrated = useMutation(api.sites.markReviewsWidgetCdnMigrated);
 
   const [connectProvider, setConnectProvider] = useState<(typeof PROVIDERS)[number] | null>(null);
   const [disconnectId, setDisconnectId] = useState<string | null>(null);
@@ -1005,6 +1039,15 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
             slug={(site as any)?.slug ?? ""}
             settings={displaySettings}
             reviews={reviews ?? []}
+            cdnMigrated={(site as any)?.reviewsWidgetCdnMigrated === true}
+            onMarkMigrated={async () => {
+              try {
+                await markCdnMigrated({ siteId });
+                toast({ title: "Marked as upgraded", description: "The upgrade notice won't appear again for this site." });
+              } catch (err: any) {
+                toast({ title: "Error", description: err.message, variant: "destructive" });
+              }
+            }}
           />
         ) : (
           <Skeleton className="h-48 rounded-lg" />

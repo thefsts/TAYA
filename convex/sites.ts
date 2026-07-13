@@ -191,6 +191,25 @@ export const remove = mutation({
   },
 });
 
+export const markReviewsWidgetCdnMigrated = mutation({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const user = await requireAuth(ctx);
+    if (!user || !user.isActive) throw new Error("Forbidden");
+    const site = await ctx.db.get(siteId);
+    if (!site) throw new Error("Site not found");
+    if (
+      !user.isSuperAdmin &&
+      !(user.isAgencyAdmin && user.agencyId && String(site.agencyId) === String(user.agencyId)) &&
+      !user.roles.some((r: any) => r.siteId === siteId)
+    ) {
+      throw new Error("Forbidden");
+    }
+    await ctx.db.patch(siteId, { reviewsWidgetCdnMigrated: true });
+    return { success: true };
+  },
+});
+
 export const getDashboardSummary = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
