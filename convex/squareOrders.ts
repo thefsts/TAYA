@@ -209,7 +209,7 @@ export const createDiscount = mutation({
     code: v.optional(v.string()),
     discountType: v.string(),
     amount: v.optional(v.number()),
-    percentage: v.optional(v.string()),
+    percentage: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, ...fields }) => {

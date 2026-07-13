@@ -315,7 +315,7 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/footer" component={FooterEditorGuarded} />
           <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
           <Route path="/app/sites/:siteId/payments" component={PaymentsConfigGuarded} />
-          <Route path="/app/sites/:siteId/commerce" component={CommerceGuarded} />
+          <Route path="/app/sites/:siteId/commerce" component={SquareCommerce} />
           <Route path="/app/sites/:siteId/email" component={EmailConfigGuarded} />
           <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfigGuarded} />
           <Route path="/app/sites/:siteId/faq" component={FaqManager} />
@@ -341,9 +341,6 @@ function AppRouter() {
           {/* Phase 3 — Form Builder */}
           <Route path="/app/sites/:siteId/forms" component={FormsList} />
           <Route path="/app/sites/:siteId/forms/:formId" component={FormBuilder} />
-
-          {/* Phase 5 — Square Commerce */}
-          <Route path="/app/sites/:siteId/commerce" component={SquareCommerce} />
 
           {/* Phase 9 — Client Permissions™ */}
           <Route path="/app/sites/:siteId/permissions" component={MyPermissions} />

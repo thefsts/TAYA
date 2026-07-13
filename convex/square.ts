@@ -281,7 +281,7 @@ export const upsertDiscount = internalMutation({
     code: v.optional(v.string()),
     discountType: v.string(),
     amount: v.optional(v.number()),
-    percentage: v.optional(v.string()),
+    percentage: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, squareDiscountId, ...fields }) => {
@@ -606,7 +606,7 @@ export const createDiscount = action({
     code: v.optional(v.string()),
     discountType: v.string(),
     amount: v.optional(v.number()),
-    percentage: v.optional(v.string()),
+    percentage: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, name, code, discountType, amount, percentage, expiresAt }) => {
