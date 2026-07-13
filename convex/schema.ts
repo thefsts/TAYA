@@ -613,11 +613,13 @@ export default defineSchema({
     pinned: v.boolean(),
     category: v.optional(v.string()),
     cachedAt: v.number(),
+    updatedAt: v.optional(v.number()),
   })
     .index("by_site", ["siteId"])
     .index("by_site_status", ["siteId", "status"])
     .index("by_source", ["sourceId"])
-    .index("by_site_external", ["siteId", "externalId"]),
+    .index("by_site_external", ["siteId", "externalId"])
+    .index("by_site_updatedAt", ["siteId", "updatedAt"]),
 
   reviewDisplaySettings: defineTable({
     siteId: v.id("sites"),
@@ -627,6 +629,7 @@ export default defineSchema({
     featuredOnly: v.boolean(),
     showProviderBadge: v.boolean(),
     categoryFilter: v.optional(v.string()),
+    updatedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
 
   // WOS Phase 8 — Automation Engine™

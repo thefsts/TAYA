@@ -671,7 +671,10 @@ http.route({
       );
     }
 
-    const etag = `"${site._creationTime}"`;
+    const contentTs = await ctx.runQuery(internal.reviews.getWidgetCacheTimestamp, {
+      siteId: site._id,
+    });
+    const etag = `"${Math.max(site._creationTime, contentTs)}"`;
     const ifNoneMatch = request.headers.get("If-None-Match");
     if (ifNoneMatch === etag) {
       return new Response(null, {

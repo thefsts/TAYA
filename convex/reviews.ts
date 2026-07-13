@@ -230,7 +230,7 @@ export const approveReview = mutation({
     await requireSiteAccessMutation(ctx, siteId);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
-    await ctx.db.patch(reviewId, { status: "approved" });
+    await ctx.db.patch(reviewId, { status: "approved", updatedAt: Date.now() });
   },
 });
 
@@ -240,7 +240,7 @@ export const hideReview = mutation({
     await requireSiteAccessMutation(ctx, siteId);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
-    await ctx.db.patch(reviewId, { status: "hidden" });
+    await ctx.db.patch(reviewId, { status: "hidden", updatedAt: Date.now() });
   },
 });
 
@@ -250,7 +250,7 @@ export const pinReview = mutation({
     await requireSiteAccessMutation(ctx, siteId);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
-    await ctx.db.patch(reviewId, { pinned });
+    await ctx.db.patch(reviewId, { pinned, updatedAt: Date.now() });
   },
 });
 
@@ -260,7 +260,7 @@ export const setCategory = mutation({
     await requireSiteAccessMutation(ctx, siteId);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
-    await ctx.db.patch(reviewId, { category });
+    await ctx.db.patch(reviewId, { category, updatedAt: Date.now() });
   },
 });
 
@@ -289,8 +289,9 @@ export const updateDisplaySettings = mutation({
     if (patch.featuredOnly !== undefined) updates.featuredOnly = patch.featuredOnly;
     if (patch.showProviderBadge !== undefined) updates.showProviderBadge = patch.showProviderBadge;
     if (patch.categoryFilter !== undefined) updates.categoryFilter = patch.categoryFilter;
+    const now = Date.now();
     if (existing) {
-      await ctx.db.patch(existing._id, updates);
+      await ctx.db.patch(existing._id, { ...updates, updatedAt: now });
     } else {
       await ctx.db.insert("reviewDisplaySettings", {
         siteId,
@@ -300,6 +301,7 @@ export const updateDisplaySettings = mutation({
         featuredOnly: patch.featuredOnly ?? DEFAULT_DISPLAY_SETTINGS.featuredOnly,
         showProviderBadge: patch.showProviderBadge ?? DEFAULT_DISPLAY_SETTINGS.showProviderBadge,
         categoryFilter: patch.categoryFilter ?? DEFAULT_DISPLAY_SETTINGS.categoryFilter,
+        updatedAt: now,
       });
     }
   },
@@ -353,6 +355,7 @@ export const upsertReviewInternal = internalMutation({
         existing.text !== args.text ||
         existing.reviewDate !== args.reviewDate;
       if (contentChanged) {
+        const now = Date.now();
         await ctx.db.patch(existing._id, {
           reviewerName: args.reviewerName,
           reviewerPhotoUrl: args.reviewerPhotoUrl,
@@ -360,11 +363,13 @@ export const upsertReviewInternal = internalMutation({
           text: args.text,
           reviewDate: args.reviewDate,
           cachedAt: args.cachedAt,
+          updatedAt: now,
         });
         return "updated";
       }
       return "unchanged";
     } else {
+      const now = Date.now();
       await ctx.db.insert("importedReviews", {
         siteId: args.siteId,
         sourceId: args.sourceId,
@@ -379,6 +384,7 @@ export const upsertReviewInternal = internalMutation({
         pinned: false,
         category: undefined,
         cachedAt: args.cachedAt,
+        updatedAt: now,
       });
       return "inserted";
     }
@@ -451,6 +457,30 @@ export const getDisplaySettingsInternal = internalQuery({
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
       .first();
     return doc ?? DEFAULT_DISPLAY_SETTINGS;
+  },
+});
+
+export const getWidgetCacheTimestamp = internalQuery({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const settings = await ctx.db
+      .query("reviewDisplaySettings")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .first();
+
+    // Use the by_site_updatedAt index descending to efficiently find the
+    // most-recently modified review for this site (covers approve/hide/pin/
+    // setCategory/upsert — all mutations stamp updatedAt).
+    const latestModifiedReview = await ctx.db
+      .query("importedReviews")
+      .withIndex("by_site_updatedAt", (q) => q.eq("siteId", siteId))
+      .order("desc")
+      .first();
+
+    const settingsTs = settings?.updatedAt ?? settings?._creationTime ?? 0;
+    const reviewTs = latestModifiedReview?.updatedAt ?? latestModifiedReview?._creationTime ?? 0;
+
+    return Math.max(settingsTs, reviewTs);
   },
 });
 
