@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -273,10 +272,9 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
                   {d.code && <Badge variant="outline" className="font-mono text-xs">{d.code}</Badge>}
-                  <Badge variant={d.isActive ? "default" : "secondary"} className="text-xs">{d.isActive ? "Active" : "Inactive"}</Badge>
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  {d.discountType === "FIXED_PERCENTAGE" ? `${d.percentage}% off` : d.amountCents != null ? `${fmt(d.amountCents)} off` : "—"}
+                  {d.discountType === "FIXED_PERCENTAGE" ? `${d.percentage}% off` : d.amount != null ? `${fmt(d.amount)} off` : "—"}
                   {d.expiresAt && ` • Expires ${new Date(d.expiresAt).toLocaleDateString()}`}
                 </div>
               </div>
