@@ -1,0 +1,14 @@
+{
+  "name": "@workspace/design-lock-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "convex": "catalog:",
+    "vitest": "^3.2.4"
+  }
+}

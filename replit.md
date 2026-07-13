@@ -10,6 +10,7 @@ A multi-tenant client dashboard for managing site settings, integrations, and no
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `bash scripts/deploy-convex.sh` — deploy Convex functions (uses `CONVEX_DEPLOY_KEY` secret, no manual key entry needed)
+- `pnpm run test:design-lock` — run Design Lock™ guard integration tests (69 tests: backend auth, source audit, UI component audit)
 - `pnpm run test:visual` — run visual regression tests against the mockup-sandbox
 - `pnpm run test:visual:update` — regenerate baseline snapshots (run after intentional UI changes)
 - `pnpm run test:visual:report` — generate `tests/visual-regression/visual-diff-report.html` from the last failed test run (before/after/diff thumbnails)
