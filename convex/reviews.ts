@@ -615,9 +615,28 @@ class GoogleReviewsAdapter implements ReviewConnectorAdapter {
     if (process.env.REVIEWS_MOCK_DATA !== "false") return MOCK_REVIEWS.google;
     if (!credentials.apiKey) throw new Error("Google reviews require an API key. Add it in the source settings.");
     if (!config.placeId) throw new Error("Google reviews require a Place ID. Add it in the source settings.");
-    // TODO live: GET /maps/api/place/details/json?place_id={config.placeId}&fields=reviews&key={credentials.apiKey}
-    // Map result.result.reviews[] → RawReview[]
-    return [];
+
+    const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
+    url.searchParams.set("place_id", String(config.placeId));
+    url.searchParams.set("fields", "reviews");
+    url.searchParams.set("key", credentials.apiKey);
+    const resp = await fetch(url.toString());
+    if (!resp.ok) {
+      throw new Error(`Google Places API error: ${resp.status} ${resp.statusText}`);
+    }
+    const data = await resp.json() as any;
+    if (data.status && data.status !== "OK") {
+      const msg = data.error_message ? ` — ${data.error_message}` : "";
+      throw new Error(`Google Places API: ${data.status}${msg}`);
+    }
+    return (data.result?.reviews ?? []).map((r: any): RawReview => ({
+      externalId: `${String(r.author_name)}_${String(r.time)}`,
+      reviewerName: r.author_name ?? "Google User",
+      reviewerPhotoUrl: r.profile_photo_url || undefined,
+      rating: r.rating,
+      text: r.text || undefined,
+      reviewDate: r.time * 1000,
+    }));
   }
 }
 
@@ -636,9 +655,26 @@ class FacebookReviewsAdapter implements ReviewConnectorAdapter {
     if (process.env.REVIEWS_MOCK_DATA !== "false") return MOCK_REVIEWS.facebook;
     if (!credentials.accessToken) throw new Error("Facebook reviews require a Page Access Token. Add it in the source settings.");
     if (!config.pageId) throw new Error("Facebook reviews require a Page ID. Add it in the source settings.");
-    // TODO live: GET /{config.pageId}/ratings?fields=reviewer,rating,review_text,created_time&access_token={credentials.accessToken}
-    // Map data[] → RawReview[]
-    return [];
+
+    const url = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(String(config.pageId))}/ratings`);
+    url.searchParams.set("fields", "reviewer,rating,review_text,created_time");
+    url.searchParams.set("limit", "50");
+    url.searchParams.set("access_token", credentials.accessToken);
+    const resp = await fetch(url.toString());
+    if (!resp.ok) {
+      throw new Error(`Facebook Graph API error: ${resp.status} ${resp.statusText}`);
+    }
+    const data = await resp.json() as any;
+    if (data.error) {
+      throw new Error(`Facebook Graph API: ${data.error.message ?? data.error.type ?? "Unknown error"}`);
+    }
+    return (data.data ?? []).map((r: any): RawReview => ({
+      externalId: `${String(r.reviewer?.id ?? "anon")}_${String(r.created_time)}`,
+      reviewerName: r.reviewer?.name ?? "Facebook User",
+      rating: r.rating,
+      text: r.review_text || undefined,
+      reviewDate: new Date(r.created_time).getTime(),
+    }));
   }
 }
 
@@ -657,9 +693,34 @@ class YelpReviewsAdapter implements ReviewConnectorAdapter {
     if (process.env.REVIEWS_MOCK_DATA !== "false") return MOCK_REVIEWS.yelp;
     if (!credentials.apiKey) throw new Error("Yelp reviews require an API key. Add it in the source settings.");
     if (!config.businessId) throw new Error("Yelp reviews require a Business ID. Add it in the source settings.");
-    // TODO live: GET /businesses/{config.businessId}/reviews  Authorization: Bearer {credentials.apiKey}
-    // Yelp returns text excerpts per Yelp ToS; map reviews[] → RawReview[]
-    return [];
+
+    // Yelp Fusion API returns up to 3 excerpt reviews per ToS — display-only, no full text
+    const businessId = encodeURIComponent(String(config.businessId));
+    const resp = await fetch(
+      `https://api.yelp.com/v3/businesses/${businessId}/reviews?limit=20`,
+      { headers: { Authorization: `Bearer ${credentials.apiKey}` } },
+    );
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => "");
+      let detail = `${resp.status} ${resp.statusText}`;
+      try {
+        const parsed = JSON.parse(body) as any;
+        if (parsed?.error?.description) detail = parsed.error.description;
+      } catch { /* ignore */ }
+      throw new Error(`Yelp Fusion API error: ${detail}`);
+    }
+    const data = await resp.json() as any;
+    if (data.error) {
+      throw new Error(`Yelp Fusion API: ${data.error.description ?? data.error.code ?? "Unknown error"}`);
+    }
+    return (data.reviews ?? []).map((r: any): RawReview => ({
+      externalId: r.id,
+      reviewerName: r.user?.name ?? "Yelp User",
+      reviewerPhotoUrl: r.user?.image_url || undefined,
+      rating: r.rating,
+      text: r.text || undefined,
+      reviewDate: new Date(r.time_created).getTime(),
+    }));
   }
 }
 
