@@ -37,6 +37,7 @@ import type * as lib_getCurrentUser from "../lib/getCurrentUser.js";
 import type * as lib_logActivity from "../lib/logActivity.js";
 import type * as lib_recordVersion from "../lib/recordVersion.js";
 import type * as lib_requireSiteAccess from "../lib/requireSiteAccess.js";
+import type * as lib_roleCapabilities from "../lib/roleCapabilities.js";
 import type * as lib_siteAccessInternal from "../lib/siteAccessInternal.js";
 import type * as media from "../media.js";
 import type * as navigation from "../navigation.js";
@@ -89,6 +90,7 @@ declare const fullApi: ApiFromModules<{
   "lib/logActivity": typeof lib_logActivity;
   "lib/recordVersion": typeof lib_recordVersion;
   "lib/requireSiteAccess": typeof lib_requireSiteAccess;
+  "lib/roleCapabilities": typeof lib_roleCapabilities;
   "lib/siteAccessInternal": typeof lib_siteAccessInternal;
   media: typeof media;
   navigation: typeof navigation;

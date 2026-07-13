@@ -91,7 +91,7 @@ function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin }: {
   );
 }
 
-export function AppLayout({ children, siteId }: { children: React.ReactNode, siteId: string }) {
+export function AppLayout({ children, siteId, pageContext }: { children: React.ReactNode, siteId: string, pageContext?: string }) {
   const site = useQuery(api.sites.get, { siteId: siteId as Id<"sites"> });
   const me = useQuery(api.users.me);
   const [location] = useLocation();
@@ -237,7 +237,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           </div>
         </div>
       </main>
-      <AIAssistant siteId={siteId} />
+      <AIAssistant siteId={siteId} pageContext={pageContext} />
     </div>
   );
 }

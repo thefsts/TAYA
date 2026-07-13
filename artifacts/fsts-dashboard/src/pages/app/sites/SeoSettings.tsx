@@ -132,8 +132,20 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
     }
   }
 
+  const pageContext = data
+    ? [
+        `Page: SEO Settings`,
+        `Total SEO entries: ${data.length}`,
+        ...(data.length > 0
+          ? data.slice(0, 10).map((s: any) =>
+              `- Path: ${s.pagePath} | Title: "${s.title}" (${s.title?.length ?? 0} chars) | Description: "${(s.description ?? "").slice(0, 80)}${(s.description?.length ?? 0) > 80 ? "…" : ""}" (${s.description?.length ?? 0} chars)${s.ogImageUrl ? " | OG image: set" : ""}${s.canonicalUrl ? " | Canonical: set" : ""}`
+            )
+          : [`No SEO entries configured yet.`]),
+      ].join("\n")
+    : undefined;
+
   return (
-    <AppLayout siteId={params.siteId}>
+    <AppLayout siteId={params.siteId} pageContext={pageContext}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">SEO Settings</h1>

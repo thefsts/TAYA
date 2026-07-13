@@ -38,8 +38,9 @@ export const chat = action({
       })
     ),
     section: v.optional(v.string()),
+    pageContext: v.optional(v.string()),
   },
-  handler: async (ctx, { siteId, messages, section }) => {
+  handler: async (ctx, { siteId, messages, section, pageContext }) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
     const hasAccess = await ctx.runQuery(internal.lib.siteAccessInternal.check, {
@@ -59,9 +60,13 @@ export const chat = action({
       ? `\n\nThe user is currently viewing the "${section}" section of their dashboard.`
       : "";
 
+    const pageContentContext = pageContext
+      ? `\n\nCurrent page content summary (use this to give specific, relevant advice):\n${pageContext}`
+      : "";
+
     const systemMessage = {
       role: "system",
-      content: SYSTEM_PROMPT + sectionContext,
+      content: SYSTEM_PROMPT + sectionContext + pageContentContext,
     };
 
     const response = await fetch(`${baseUrl}/chat/completions`, {

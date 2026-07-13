@@ -78,8 +78,21 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
     body: sections.map((s) => `${s.heading} ${s.body}`).join(" "),
   };
 
+  const pageContext = [
+    `Page: Homepage Editor`,
+    heroHeadline ? `Hero headline: "${heroHeadline}" (${heroHeadline.split(/\s+/).filter(Boolean).length} words)` : `Hero headline: (empty)`,
+    heroSubheadline ? `Hero subheadline: "${heroSubheadline}"` : `Hero subheadline: (empty)`,
+    heroImageUrl ? `Hero image: set` : `Hero image: not set`,
+    sections.length > 0
+      ? `Content sections (${sections.length}): ${sections.map((s, i) => `${i + 1}. "${s.heading || "(untitled)"}"`).join(", ")}`
+      : `Content sections: none`,
+    ...sections.map((s, i) =>
+      s.body ? `Section ${i + 1} body preview: "${s.body.slice(0, 120)}${s.body.length > 120 ? "…" : ""}"` : `Section ${i + 1} body: (empty)`
+    ),
+  ].join("\n");
+
   return (
-    <AppLayout siteId={params.siteId}>
+    <AppLayout siteId={params.siteId} pageContext={pageContext}>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Homepage Editor</h1>

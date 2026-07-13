@@ -89,9 +89,10 @@ function formatContent(content: string) {
 
 type Props = {
   siteId: string;
+  pageContext?: string;
 };
 
-export function AIAssistant({ siteId }: Props) {
+export function AIAssistant({ siteId, pageContext }: Props) {
   const [location] = useLocation();
   const chatAction = useAction(api.ai.chat);
 
@@ -124,6 +125,7 @@ export function AIAssistant({ siteId }: Props) {
         siteId: siteId as Id<"sites">,
         messages: newMessages,
         section: sectionName,
+        pageContext: pageContext || undefined,
       });
       setMessages((m) => [...m, { role: "assistant", content: reply }]);
     } catch (err) {
@@ -134,7 +136,7 @@ export function AIAssistant({ siteId }: Props) {
     } finally {
       setIsPending(false);
     }
-  }, [chatAction, isPending, messages, siteId, sectionName]);
+  }, [chatAction, isPending, messages, siteId, sectionName, pageContext]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
