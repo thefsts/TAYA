@@ -1,0 +1,321 @@
+# TASK 81 — Define Permanent Product Boundaries Between FSTS-WOS™ and Operon CRM™
+
+**Priority:** CRITICAL
+
+## OBJECTIVE
+
+Before continuing development, establish permanent architectural boundaries between the FSTS Website Operating System™ (FSTS-WOS™) and Operon CRM™.
+
+These boundaries will become the development standard for all future work.
+
+---
+
+# FSTS Website Operating System™ (Dashboard)
+
+## PURPOSE
+
+FSTS-WOS™ is a **Website Management Platform**.
+
+Its responsibility is to manage, secure, publish, and maintain client websites.
+
+It is **NOT** a CRM.
+
+It is **NOT** a marketing platform.
+
+It is **NOT** a sales platform.
+
+It is the operating system for websites.
+
+---
+
+## WEBSITE MANAGEMENT
+
+Maintain and continue development of:
+
+* Homepage Editor
+* Page Editors
+* Navigation Manager
+* Footer Manager
+* Website Settings
+* Contact Information
+* Team Manager
+* Testimonials Manager
+* FAQ Manager
+* Policy Editors
+* Downloads Manager
+* Resource Library
+* Media Library
+* Smart Image Manager™
+* Responsive Live Preview Studio™
+* Website Health Command Center™
+* AI Dashboard Assistant™
+* Forms Builder
+* Contact Form Inbox
+* Events Manager
+* Courses Manager
+* Membership & Client Portal™
+* Learning Management System (LMS™)
+* Compliance Center™
+* Business Intelligence Dashboard™
+* Automation Marketplace™
+* SEO Manager
+* Payment Connector Framework™
+* Website Analytics (website-specific KPIs)
+* Version History
+* Activity Logs
+* Backups
+* User Management
+* Role-Based Permissions
+* White-Label Agency Edition™
+
+These are permanent dashboard modules.
+
+---
+
+# WEBSITE PAYMENT RESPONSIBILITY
+
+The dashboard should manage website payment integrations only.
+
+Supported connectors should include:
+
+* Square
+* Stripe
+* PayPal
+* Authorize.net
+* Clover
+* Shopify Payments
+* WooCommerce
+* QuickBooks Payments
+* Manual Invoice
+* ACH / Bank Transfer
+
+The dashboard stores the configuration and routes website checkout requests through the active connector.
+
+The dashboard should **not** manage accounting, invoicing, or customer financial workflows beyond website transactions.
+
+---
+
+# OPERON CRM™
+
+## PURPOSE
+
+Operon CRM™ is the Business Operating System.
+
+Everything related to customers, sales, marketing, and business automation belongs here.
+
+---
+
+## MOVE THESE FEATURES TO OPERON CRM™
+
+These capabilities should NOT be added to FSTS-WOS™.
+
+Instead, they should be developed inside Operon CRM™ and connected through the Operon Connector™.
+
+### AI Content Studio™
+
+* AI blog generation
+* Landing page generation
+* Email generation
+* SEO article creation
+* Marketing copy
+* Social media content
+* Campaign content
+
+---
+
+### Review & Reputation Manager™
+
+* Google Reviews
+* Facebook Reviews
+* Yelp Reviews
+* Review monitoring
+* Review response tools
+* Reputation scoring
+
+---
+
+### Appointment & Booking Suite™
+
+* Calendars
+* Scheduling
+* Deposits
+* Online booking
+* Appointment reminders
+* Staff scheduling
+* Calendar integrations
+
+---
+
+### Lead Intelligence™
+
+* Lead scoring
+* Visitor tracking
+* Opportunity scoring
+* Sales recommendations
+* Customer behavior analysis
+* AI sales recommendations
+
+---
+
+### Ecommerce Pro™
+
+* Inventory
+* Orders
+* Shipping
+* Taxes
+* Returns
+* Subscriptions
+* Coupons
+* Gift cards
+* Abandoned cart recovery
+* Product management
+* Warehouse management
+
+---
+
+# OPERON CONNECTOR™
+
+The dashboard should communicate with Operon CRM™ using the Operon Connector™.
+
+Examples:
+
+Website Form
+
+↓
+
+Dashboard
+
+↓
+
+Operon CRM
+
+↓
+
+Lead Created
+
+---
+
+Course Registration
+
+↓
+
+Dashboard
+
+↓
+
+Operon CRM
+
+↓
+
+Customer Created
+
+↓
+
+Automation Triggered
+
+---
+
+Membership Signup
+
+↓
+
+Dashboard
+
+↓
+
+Operon CRM
+
+↓
+
+Customer Portal Updated
+
+---
+
+Payment Completed
+
+↓
+
+Dashboard
+
+↓
+
+Operon CRM
+
+↓
+
+Revenue Recorded
+
+---
+
+# BUSINESS INTELLIGENCE
+
+The Business Intelligence Dashboard™ inside FSTS-WOS™ should remain website-focused.
+
+Display website metrics such as:
+
+* Website visitors
+* Forms submitted
+* Course registrations
+* Event registrations
+* Membership activity
+* Website performance
+* SEO health
+* Accessibility score
+* Uptime
+* Payment success rate
+
+Financial forecasting, sales pipelines, customer lifetime value, and marketing analytics belong in Operon CRM™.
+
+---
+
+# AI BOUNDARIES
+
+The AI Dashboard Assistant™ should only assist with website management tasks.
+
+It may help with:
+
+* Editing website content
+* Accessibility guidance
+* SEO validation
+* Image optimization
+* Dashboard onboarding
+* Website troubleshooting
+* Publish validation
+
+It must NOT perform CRM, sales, marketing, customer support, or business management functions.
+
+Those capabilities belong exclusively to Operon CRM™.
+
+---
+
+# PRODUCT STRATEGY
+
+Going forward, Full Stack Tech Solutions will maintain two flagship products:
+
+## FSTS Website Operating System™ (FSTS-WOS™)
+
+Purpose:
+
+Build, manage, publish, and maintain professional websites.
+
+---
+
+## Operon CRM™
+
+Purpose:
+
+Manage customers, leads, marketing, sales, automation, business operations, and growth.
+
+---
+
+The two systems must work together through secure APIs while remaining independent products with clearly defined responsibilities.
+
+This separation will improve scalability, simplify maintenance, reduce feature overlap, and create a stronger long-term product ecosystem.
+
+## DELIVERABLES
+
+* Update the platform architecture documentation.
+* Enforce these boundaries in future development.
+* Move any planned CRM-specific features out of the dashboard roadmap and into the Operon CRM™ roadmap.
+* Ensure the Operon Connector™ is the only integration point between the dashboard and CRM.
+* Make these product boundaries the permanent development standard for all future Full Stack Tech Solutions projects.

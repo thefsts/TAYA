@@ -1,0 +1,110 @@
+# UPDATE — Website Reviews Module™
+
+Add the following module to the permanent FSTS Website Operating System™ roadmap.
+
+---
+
+# WEBSITE REVIEWS MODULE™
+
+## PURPOSE
+
+The FSTS-WOS™ Dashboard may connect to public review platforms for the sole purpose of displaying customer reviews on the client's website.
+
+This is a **website content feature**, not a reputation management system.
+
+---
+
+## SUPPORTED REVIEW SOURCES
+
+Support connectors for:
+
+* Google Business Reviews
+* Facebook Reviews
+* Yelp Reviews
+
+The architecture should allow additional review providers to be added later through the Payment & Connector Framework™.
+
+---
+
+## WEBSITE FEATURES
+
+Clients should be able to:
+
+* Connect their review accounts.
+* Import reviews from supported platforms.
+* Refresh reviews manually or automatically.
+* Approve reviews before publishing.
+* Hide reviews they do not want displayed.
+* Pin featured reviews.
+* Organize reviews by service or category.
+* Display star ratings.
+* Display reviewer name (when permitted by the source platform).
+* Display review date.
+* Display review source badge (Google, Facebook, Yelp).
+* Choose from multiple review layouts (carousel, grid, masonry, slider, list).
+* Select how many reviews appear on each page.
+* Filter reviews by minimum star rating.
+* Highlight featured reviews on the homepage or service pages.
+* Cache reviews to reduce API requests and improve performance.
+
+---
+
+## WEBSITE DISPLAY ONLY
+
+The dashboard should **ONLY** manage the presentation of reviews on the website.
+
+It must NOT include:
+
+* Reputation scoring
+* Review response tools
+* AI-generated review replies
+* Review request campaigns
+* Customer review solicitation
+* Sentiment analysis
+* Reputation monitoring
+* Competitor review tracking
+* Review marketing automation
+
+Those capabilities belong exclusively inside Operon CRM™.
+
+---
+
+# OPERON CRM™
+
+The following review-related features remain exclusive to Operon CRM™:
+
+* Reputation Manager™
+* Review Requests
+* Review Campaigns
+* AI Review Responses
+* Reputation Analytics
+* Customer Satisfaction Tracking
+* Sentiment Analysis
+* Competitor Monitoring
+* Review Marketing Automation
+* Multi-location Reputation Management
+
+---
+
+# WEBSITE BENEFITS
+
+The Website Reviews Module™ should help clients:
+
+* Build trust with prospective customers.
+* Showcase verified customer feedback.
+* Increase website conversion rates.
+* Keep testimonials fresh automatically.
+* Improve local SEO by displaying authentic reviews.
+* Reduce manual copy-and-paste of customer testimonials.
+
+---
+
+# FUTURE ARCHITECTURE
+
+The Reviews Module™ should become a standard website component for all FSTS-WOS™ websites while remaining fully separated from the business and marketing functionality of Operon CRM™.
+
+This maintains a clean product boundary:
+
+**FSTS-WOS™ = Display Reviews**
+
+**Operon CRM™ = Manage Reputation**
