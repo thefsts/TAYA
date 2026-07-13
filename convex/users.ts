@@ -172,3 +172,40 @@ export const remove = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Appends a single site-role assignment to an existing user without
+ * replacing any other roles they already hold. Idempotent — if the user
+ * already has a role on this site it is overwritten with the new value.
+ * Super-admin only.
+ */
+export const addSiteRole = mutation({
+  args: {
+    userId: v.id("users"),
+    siteId: v.id("sites"),
+    role: v.string(),
+  },
+  handler: async (ctx, { userId, siteId, role }) => {
+    const me = await provisionUser(ctx);
+    if (!me.isSuperAdmin) throw new Error("Forbidden");
+
+    const user = await ctx.db.get(userId);
+    if (!user) throw new Error("User not found");
+
+    const existingRoles: Array<{ siteId: any; role: string }> = (user.roles as any[]) ?? [];
+    const filtered = existingRoles.filter((r) => String(r.siteId) !== String(siteId));
+    await ctx.db.patch(userId, { roles: [...filtered, { siteId, role }] } as any);
+
+    await logActivity(ctx, {
+      siteId,
+      actorName: me.name,
+      action: "assigned role",
+      entityType: "user",
+      entityId: String(userId),
+      page: "onboarding",
+      newValue: role,
+      details: `Assigned role '${role}' to ${user.name} during site onboarding`,
+    });
+    return { success: true };
+  },
+});

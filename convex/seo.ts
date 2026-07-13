@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
@@ -12,6 +12,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "seo")) return [];
     return (await ctx.db.query("seoSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).map(toResponse);
   },
 });
@@ -27,6 +28,7 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "seo");
     const id = await ctx.db.insert("seoSettings", { siteId, ...fields });
     const doc = (await ctx.db.get(id))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "seo_setting", entityId: id, page: "SEO Settings", newValue: doc });
@@ -47,6 +49,7 @@ export const update = mutation({
   },
   handler: async (ctx, { siteId, seoSettingId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "seo");
     const existing = await ctx.db.get(seoSettingId);
     if (!existing || existing.siteId !== siteId) throw new Error("SEO setting not found");
     await ctx.db.patch(seoSettingId, fields as any);
@@ -61,6 +64,7 @@ export const remove = mutation({
   args: { siteId: v.id("sites"), seoSettingId: v.id("seoSettings") },
   handler: async (ctx, { siteId, seoSettingId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "seo");
     const existing = await ctx.db.get(seoSettingId);
     if (!existing || existing.siteId !== siteId) throw new Error("SEO setting not found");
     await ctx.db.delete(seoSettingId);

@@ -10,6 +10,7 @@ import { query, mutation, action, internalQuery, internalMutation, internalActio
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
 
 /* ── Encryption helpers (AES-256-GCM) ──────────────────────────────────── */
@@ -185,6 +186,45 @@ export const logPaymentEventInternal = internalMutation({
 });
 
 /* ── Mutations ──────────────────────────────────────────────────────────── */
+
+/**
+ * Creates a placeholder (unconfigured) payment connector record for a newly
+ * provisioned site. Call this from the onboarding wizard when the admin
+ * selects a provider but hasn't yet configured credentials.
+ * Super-admin only (checked via sites.get access pattern).
+ */
+export const provisionConnector = mutation({
+  args: { siteId: v.id("sites"), provider: v.string() },
+  handler: async (ctx, { siteId, provider }) => {
+    const user = await provisionUser(ctx);
+    if (!user.isSuperAdmin) throw new Error("Forbidden: super-admin only");
+    const existing = await ctx.db
+      .query("paymentConnectors")
+      .withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider))
+      .first();
+    if (existing) return { success: true, connectorId: existing._id };
+    const connectorId = await ctx.db.insert("paymentConnectors", {
+      siteId,
+      provider,
+      status: "pending",
+      isActive: false,
+      checkoutEnabled: false,
+      hasWebhookKey: false,
+      healthStatus: "unchecked",
+      environment: "sandbox",
+    } as any);
+    await logActivity(ctx, {
+      siteId,
+      actorName: user.name,
+      action: "provisioned",
+      entityType: "payment_connector",
+      page: "onboarding",
+      newValue: { provider },
+      details: `Provisioned ${provider} connector during site onboarding (credentials required)`,
+    });
+    return { success: true, connectorId };
+  },
+});
 
 export const setActiveConnector = mutation({
   args: { siteId: v.id("sites"), provider: v.string() },

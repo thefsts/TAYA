@@ -97,8 +97,8 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const site = useQuery(api.sites.get, { siteId: siteId as Id<"sites"> });
   const me = useQuery(api.users.me);
   const [location] = useLocation();
-  const modules = site?.enabledModules as Record<string, boolean> | undefined;
-  const isEnabled = (key: string) => modules?.[key] ?? true;
+  const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId: siteId as Id<"sites"> });
+  const isEnabled = (key: string) => (effectiveModules ?? (site?.enabledModules as Record<string, boolean> | undefined))?.[key] ?? true;
   const unreadNotifications = useQuery(api.healthScans.getUnreadNotificationCount, { siteId: siteId as Id<"sites"> });
   const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
   const isSuperAdmin = me?.isSuperAdmin ?? false;
@@ -177,8 +177,8 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} isSuperAdmin={isSuperAdmin} />}
           <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} isSuperAdmin={isSuperAdmin} />
           <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} isSuperAdmin={isSuperAdmin} />
-          <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />
-          <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} isSuperAdmin={isSuperAdmin} />
+          {isEnabled("forms") && <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("contact") && <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} isSuperAdmin={isSuperAdmin} />}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Site Modules</div>
           {isEnabled("navigation") && (
@@ -220,9 +220,9 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">System</div>
           <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-          <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          {isEnabled("history") && <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
           <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-          <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          {isEnabled("backups") && <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
           <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} isSuperAdmin={isSuperAdmin} />
           <NavItem icon={ShieldCheckIcon} label="My Permissions" href={`/app/sites/${siteId}/permissions`} isSuperAdmin={isSuperAdmin} />
         </nav>

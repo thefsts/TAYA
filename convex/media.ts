@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 
 function toResponse(doc: any) {
@@ -11,6 +11,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "media")) return [];
     return (await ctx.db.query("mediaAssets").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).map(toResponse);
   },
 });
@@ -30,6 +31,7 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "media");
     const id = await ctx.db.insert("mediaAssets", { siteId, ...fields });
     const doc = (await ctx.db.get(id))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "media_asset", entityId: id, page: "Media Library", newValue: { fileName: doc.fileName, mimeType: doc.mimeType } });
@@ -41,6 +43,7 @@ export const remove = mutation({
   args: { siteId: v.id("sites"), mediaAssetId: v.id("mediaAssets") },
   handler: async (ctx, { siteId, mediaAssetId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "media");
     const existing = await ctx.db.get(mediaAssetId);
     if (!existing || existing.siteId !== siteId) throw new Error("Asset not found");
     await ctx.db.delete(mediaAssetId);

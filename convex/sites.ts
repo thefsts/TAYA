@@ -238,6 +238,84 @@ export const getDashboardSummary = query({
   },
 });
 
+/**
+ * Returns the effective module map for a site, merging site-level enabledModules
+ * with agency-level feature flags. A module is enabled only if BOTH the site has
+ * it enabled AND the agency (if any) has the corresponding feature flag enabled.
+ *
+ * Agency flag → module key mapping:
+ *   crm             → crm
+ *   ecommerce       → payments, commerce
+ *   forms           → forms (sidebar-only)
+ *   media           → media
+ *   backups         → backups (sidebar-only)
+ *   version_history → history (sidebar-only)
+ */
+export const getEffectiveModules = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user || !user.isActive) return null;
+
+    const site = await ctx.db.get(siteId);
+    if (!site) return null;
+
+    // Enforce same access control as sites.get
+    if (!user.isSuperAdmin) {
+      if (user.isAgencyAdmin && user.agencyId) {
+        if (String(site.agencyId) !== String(user.agencyId)) return null;
+      } else if (!user.roles.some((r: any) => r.siteId === siteId)) {
+        return null;
+      }
+    }
+
+    const siteModules: Record<string, boolean> = (site.enabledModules as Record<string, boolean>) ?? {};
+
+    if (!site.agencyId) return siteModules;
+
+    const agency = await ctx.db.get(site.agencyId);
+    if (!agency) return siteModules;
+
+    const agencyFlags: Record<string, boolean> = (agency.featureFlags as Record<string, boolean>) ?? {};
+    const agencyModules: Record<string, boolean> = (agencyFlags._modules as unknown as Record<string, boolean>) ?? {};
+
+    // Agency-level feature flag enforcement
+    const FLAG_TO_MODULES: Record<string, string[]> = {
+      crm: ["crm"],
+      ecommerce: ["payments", "commerce"],
+      forms: ["forms"],
+      media: ["media"],
+      backups: ["backups"],
+      version_history: ["history"],
+    };
+
+    const effective = { ...siteModules };
+
+    // If agency disables a feature flag entirely, disable all corresponding modules
+    for (const [flag, modules] of Object.entries(FLAG_TO_MODULES)) {
+      if (agencyFlags[flag] === false) {
+        for (const mod of modules) {
+          effective[mod] = false;
+        }
+      }
+    }
+
+    // Also apply agency _modules overrides if present
+    for (const [key, value] of Object.entries(agencyModules)) {
+      if (value === false) {
+        effective[key] = false;
+      }
+    }
+
+    return effective;
+  },
+});
+
 function defaultModules(websiteType: string): Record<string, boolean> {
   const ALL_ON = {
     homepage: true, courses: true, events: true, articles: true,

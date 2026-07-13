@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -12,6 +12,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "events")) return [];
     return (await ctx.db.query("events").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).map(toResponse);
   },
 });
@@ -20,6 +21,7 @@ export const get = query({
   args: { siteId: v.id("sites"), eventId: v.id("events") },
   handler: async (ctx, { siteId, eventId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "events")) return null;
     const doc = await ctx.db.get(eventId);
     if (!doc || doc.siteId !== siteId) return null;
     return toResponse(doc);
@@ -58,6 +60,7 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, startAt, endAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "events");
     const id = await ctx.db.insert("events", { siteId, status: "draft", startAt: new Date(startAt).getTime(), endAt: endAt ? new Date(endAt).getTime() : undefined, ...fields });
     const doc = (await ctx.db.get(id))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "event", entityId: id, page: "Events", newValue: doc });
@@ -83,6 +86,7 @@ export const update = mutation({
   },
   handler: async (ctx, { siteId, eventId, startAt, endAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "events");
     const existing = await ctx.db.get(eventId);
     if (!existing || existing.siteId !== siteId) throw new Error("Event not found");
     const patch: Record<string, unknown> = { ...fields };
@@ -101,6 +105,7 @@ export const remove = mutation({
   args: { siteId: v.id("sites"), eventId: v.id("events") },
   handler: async (ctx, { siteId, eventId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "events");
     const existing = await ctx.db.get(eventId);
     if (!existing || existing.siteId !== siteId) throw new Error("Event not found");
     await ctx.db.delete(eventId);

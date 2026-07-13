@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -12,6 +12,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "courses")) return [];
     return (await ctx.db.query("courses").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).map(toResponse);
   },
 });
@@ -20,6 +21,7 @@ export const get = query({
   args: { siteId: v.id("sites"), courseId: v.id("courses") },
   handler: async (ctx, { siteId, courseId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "courses")) return null;
     const doc = await ctx.db.get(courseId);
     if (!doc || doc.siteId !== siteId) return null;
     return toResponse(doc);
@@ -57,6 +59,7 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "courses");
     const id = await ctx.db.insert("courses", { siteId, status: "draft", ...fields });
     const doc = (await ctx.db.get(id))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "course", entityId: id, page: "Courses", newValue: doc });
@@ -81,6 +84,7 @@ export const update = mutation({
   },
   handler: async (ctx, { siteId, courseId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "courses");
     const existing = await ctx.db.get(courseId);
     if (!existing || existing.siteId !== siteId) throw new Error("Course not found");
     await ctx.db.patch(courseId, fields as any);
@@ -96,6 +100,7 @@ export const remove = mutation({
   args: { siteId: v.id("sites"), courseId: v.id("courses") },
   handler: async (ctx, { siteId, courseId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "courses");
     const existing = await ctx.db.get(courseId);
     if (!existing || existing.siteId !== siteId) throw new Error("Course not found");
     await ctx.db.delete(courseId);

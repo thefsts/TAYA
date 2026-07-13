@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 
 function toResponse(doc: any) {
@@ -11,6 +11,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "history")) return [];
     const docs = await ctx.db.query("contentVersions").withIndex("by_site", (q) => q.eq("siteId", siteId)).order("desc").collect();
     return docs.map(toResponse);
   },
@@ -20,6 +21,7 @@ export const restore = mutation({
   args: { siteId: v.id("sites"), versionId: v.id("contentVersions") },
   handler: async (ctx, { siteId, versionId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "history");
     const version = await ctx.db.get(versionId);
     if (!version) throw new Error("Version not found");
     if (version.siteId !== siteId) throw new Error("Forbidden");

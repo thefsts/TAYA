@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireDesignCapability } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireDesignCapability, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
@@ -12,6 +12,7 @@ export const get = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "email")) return null;
     const doc = await ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     if (!doc) return { siteId, fromName: "", fromEmail: "", replyToEmail: "", notifyOnNewLead: true, notifyOnBooking: true, updatedAt: new Date().toISOString() };
     return toResponse(doc);
@@ -29,6 +30,7 @@ export const update = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireDesignCapability(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "email");
     const existing = await ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     let docId;
     if (existing) {

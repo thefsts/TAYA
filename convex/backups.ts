@@ -1,6 +1,6 @@
 import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString() };
@@ -10,6 +10,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "backups")) return [];
     const docs = await ctx.db.query("backups").withIndex("by_site", (q) => q.eq("siteId", siteId)).order("desc").collect();
     return docs.map(toResponse);
   },
@@ -19,6 +20,7 @@ export const create = mutation({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "backups");
 
     const [homepage, footer, contact, courses, events, articles, seo, media, square, email, crm] = await Promise.all([
       ctx.db.query("homepageContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
@@ -48,6 +50,7 @@ export const restore = mutation({
   args: { siteId: v.id("sites"), backupId: v.id("backups") },
   handler: async (ctx, { siteId, backupId }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "backups");
     const backup = await ctx.db.get(backupId);
     if (!backup) throw new Error("Backup not found");
     if (backup.siteId !== siteId) throw new Error("Forbidden");

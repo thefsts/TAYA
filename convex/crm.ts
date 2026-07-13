@@ -1,7 +1,7 @@
 import { query, mutation, internalMutation, internalAction, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation, requireDesignCapability } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireDesignCapability, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { encryptField } from "./lib/encrypt";
 import { getProvider } from "./lib/crmProviders";
 
@@ -50,6 +50,7 @@ export const getConnection = query({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "crm")) return null;
     const doc = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     if (!doc) return null;
     return toConnectionResponse(doc);
@@ -72,6 +73,7 @@ export const updateConnection = mutation({
   },
   handler: async (ctx, { siteId, provider = "operon", apiKey, ...rest }) => {
     await requireDesignCapability(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
 
     const patch: Record<string, unknown> = { ...rest };
@@ -103,6 +105,7 @@ export const disconnectConnection = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
     await requireDesignCapability(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     if (existing) {
       await ctx.db.patch(existing._id, { status: "not_connected", apiKeyEncrypted: undefined, apiKeyLast4: undefined, accountName: undefined, orgId: undefined });
@@ -115,6 +118,7 @@ export const testConnection = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
     await requireDesignCapability(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     const isConnected = existing?.status === "connected";
     const apiHealth = isConnected ? "healthy" : "unreachable";
@@ -130,6 +134,7 @@ export const launchSso = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
     await requireDesignCapability(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     const ssoEnabled = existing?.ssoEnabled ?? false;
     if (!ssoEnabled) {
@@ -146,6 +151,7 @@ export const listEntitySettings = query({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "crm")) return [];
     const existing = await ctx.db.query("crmEntitySyncSettings").withIndex("by_site_provider_entity", (q) => q.eq("siteId", siteId).eq("provider", provider)).collect();
 
     const existingKeys = new Set(existing.map((e) => `${e.entityType}:${e.direction}`));
@@ -177,6 +183,7 @@ export const updateEntitySetting = mutation({
   },
   handler: async (ctx, { siteId, provider = "operon", entityType, direction, enabled }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmEntitySyncSettings").withIndex("by_site_provider_entity", (q) => q.eq("siteId", siteId).eq("provider", provider).eq("entityType", entityType).eq("direction", direction)).first();
     let docId;
     if (existing) {
@@ -201,6 +208,7 @@ export const listSyncLogs = query({
   },
   handler: async (ctx, { siteId, entityType, status, limit = 100 }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "crm")) return [];
 
     let docs: any[];
     if (entityType) {
@@ -223,6 +231,7 @@ export const retrySyncLog = mutation({
   args: { siteId: v.id("sites"), syncLogId: v.id("crmSyncLogs") },
   handler: async (ctx, { siteId, syncLogId }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.get(syncLogId);
     if (!existing) throw new Error("Sync log not found");
     if (existing.siteId !== siteId) throw new Error("Forbidden");
@@ -251,6 +260,7 @@ export const getSyncStats = query({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "crm")) return null;
     const conn = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", "operon")).first();
     if (!conn) return null;
 

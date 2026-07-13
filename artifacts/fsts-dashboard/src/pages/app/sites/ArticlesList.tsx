@@ -98,7 +98,7 @@ const emptyForm: ArticleFormState = {
   body: "",
   coverImageUrl: "",
   category: "",
-  author: "Corsair Tactical Solutions",
+  author: "",
   readingTime: "",
   tagsRaw: "",
   featured: false,
@@ -183,7 +183,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
       body: a.body,
       coverImageUrl: a.coverImageUrl ?? "",
       category: a.category ?? "",
-      author: a.author ?? "Corsair Tactical Solutions",
+      author: a.author ?? "",
       readingTime: a.readingTime ?? "",
       tagsRaw: (a.tags ?? []).join(", "),
       featured: a.featured ?? false,
@@ -555,7 +555,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                     <Input
                       value={form.author}
                       onChange={(e) => setField("author", e.target.value)}
-                      placeholder="Corsair Tactical Solutions"
+                      placeholder="e.g. John Smith"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -653,7 +653,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   <Input
                     value={form.canonicalUrl}
                     onChange={(e) => setField("canonicalUrl", e.target.value)}
-                    placeholder={`https://www.corsairtacticalsolutions.com/blog/${form.slug || "slug"}`}
+                    placeholder={`https://yourdomain.com/blog/${form.slug || "slug"}`}
                   />
                 </div>
               </TabsContent>
@@ -698,7 +698,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                     When this article is <span className="font-semibold text-green-600">published</span>, Operon CRM can read it at:
                   </p>
                   <code className="block mt-2 text-xs bg-white border border-slate-200 rounded px-3 py-2 text-slate-700 break-all">
-                    GET /api/public/articles/operon?slug=corsair-tactical
+                    GET /api/public/articles/operon?slug=&lt;site-slug&gt;
                   </code>
                 </div>
               </TabsContent>

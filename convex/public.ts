@@ -126,13 +126,15 @@ export const getArticlesForOperon = internalQuery({
         id: d._id,
         title: d.title,
         slug: d.slug,
-        url: `https://www.corsairtacticalsolutions.com/blog/${d.slug}`,
+        url: site.domain
+          ? `https://${site.domain}/blog/${d.slug}`
+          : `/blog/${d.slug}`,
         category: d.category ?? null,
         excerpt: d.excerpt ?? null,
         body: d.body,
         featuredImage: d.coverImageUrl ?? null,
         publishedAt: d.publishedAt ? new Date(d.publishedAt).toISOString() : null,
-        author: d.author ?? "Corsair Tactical Solutions",
+        author: d.author ?? site.name,
         readingTime: d.readingTime ?? null,
         tags: d.tags ?? [],
         featured: d.featured ?? false,
@@ -140,7 +142,9 @@ export const getArticlesForOperon = internalQuery({
           title: d.seoTitle ?? d.title,
           description: d.metaDescription ?? d.excerpt ?? null,
           ogImage: d.ogImageUrl ?? d.coverImageUrl ?? null,
-          canonicalUrl: d.canonicalUrl ?? `https://www.corsairtacticalsolutions.com/blog/${d.slug}`,
+          canonicalUrl: d.canonicalUrl ?? (site.domain
+            ? `https://${site.domain}/blog/${d.slug}`
+            : `/blog/${d.slug}`),
         },
         social: {
           title: d.socialTitle ?? d.seoTitle ?? d.title,

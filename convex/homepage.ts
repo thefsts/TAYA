@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -12,6 +12,7 @@ export const get = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "homepage")) return null;
     const doc = await ctx.db.query("homepageContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     if (!doc) return { siteId, heroHeadline: "", heroSubheadline: "", heroImageUrl: null, sections: [], updatedAt: new Date().toISOString() };
     return toResponse(doc);
@@ -28,6 +29,7 @@ export const update = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "homepage");
     const existing = await ctx.db.query("homepageContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     let docId;
     if (existing) {

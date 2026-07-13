@@ -1,7 +1,7 @@
 import { query, mutation, internalQuery, internalMutation, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id };
@@ -11,6 +11,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "forms")) return [];
     const docs = await ctx.db
       .query("forms")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -23,6 +24,7 @@ export const get = query({
   args: { siteId: v.id("sites"), formId: v.id("forms") },
   handler: async (ctx, { siteId, formId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "forms")) return null;
     const doc = await ctx.db.get(formId);
     if (!doc || doc.siteId !== siteId) return null;
     return toResponse(doc);
@@ -44,6 +46,9 @@ export const getSubmissionCount = query({
   args: { siteId: v.id("sites"), formId: v.id("forms") },
   handler: async (ctx, { siteId, formId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return 0;
+    if (!await checkModuleEnabled(ctx, siteId, "forms")) return 0;
+    const form = await ctx.db.get(formId);
+    if (!form || form.siteId !== siteId) return 0;
     const docs = await ctx.db
       .query("formSubmissions")
       .withIndex("by_form", (q) => q.eq("formId", formId))
@@ -79,6 +84,7 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, name, templateType, fields, settings }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "forms");
     const slug = generateSlug(name);
     const id = await ctx.db.insert("forms", {
       siteId,
@@ -104,6 +110,7 @@ export const update = mutation({
   },
   handler: async (ctx, { siteId, formId, ...patch }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "forms");
     const doc = await ctx.db.get(formId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");
     const update: any = {};
@@ -120,6 +127,7 @@ export const remove = mutation({
   args: { siteId: v.id("sites"), formId: v.id("forms") },
   handler: async (ctx, { siteId, formId }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "forms");
     const doc = await ctx.db.get(formId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");
     await ctx.db.delete(formId);
@@ -130,6 +138,7 @@ export const duplicate = mutation({
   args: { siteId: v.id("sites"), formId: v.id("forms") },
   handler: async (ctx, { siteId, formId }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "forms");
     const doc = await ctx.db.get(formId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");
     const newId = await ctx.db.insert("forms", {

@@ -1,10 +1,9 @@
 /**
  * Public HTTP API — no auth required.
- * Used by the Corsair Tactical Solutions Next.js website to fetch
- * CMS content from Convex.
+ * Used by client websites to fetch CMS content from Convex.
  *
- * Base: https://clean-marlin-94.convex.cloud
- * Endpoints: /api/public/{resource}?slug=corsair-tactical
+ * Base: https://<your-convex-deployment>.convex.cloud
+ * Endpoints: /api/public/{resource}?slug=<site-slug>
  */
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";

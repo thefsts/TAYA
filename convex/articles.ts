@@ -1,7 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -21,6 +21,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "articles")) return [];
     return (await ctx.db.query("articles").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).map(toResponse);
   },
 });
@@ -29,6 +30,7 @@ export const get = query({
   args: { siteId: v.id("sites"), articleId: v.id("articles") },
   handler: async (ctx, { siteId, articleId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "articles")) return null;
     const doc = await ctx.db.get(articleId);
     if (!doc || doc.siteId !== siteId) return null;
     return toResponse(doc);
@@ -61,6 +63,7 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, publishedAt, scheduledAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "articles");
     const id = await ctx.db.insert("articles", {
       siteId,
       status: "draft",
@@ -102,6 +105,7 @@ export const update = mutation({
   },
   handler: async (ctx, { siteId, articleId, publishedAt, scheduledAt, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "articles");
     const existing = await ctx.db.get(articleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Article not found");
     const patch: Record<string, unknown> = { ...fields };
@@ -126,6 +130,7 @@ export const remove = mutation({
   args: { siteId: v.id("sites"), articleId: v.id("articles") },
   handler: async (ctx, { siteId, articleId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "articles");
     const existing = await ctx.db.get(articleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Article not found");
     await ctx.db.delete(articleId);

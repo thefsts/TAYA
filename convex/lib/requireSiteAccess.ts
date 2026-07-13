@@ -135,6 +135,82 @@ export async function requireModuleAccess(
   throw new Error(`Forbidden: ${requiredLevel} access required for ${module}`);
 }
 
+/** Agency feature-flag → module key mapping (mirrors getEffectiveModules in sites.ts) */
+const AGENCY_FLAG_TO_MODULES: Record<string, string[]> = {
+  crm: ["crm"],
+  ecommerce: ["payments", "commerce"],
+  forms: ["forms"],
+  media: ["media"],
+  backups: ["backups"],
+  version_history: ["history"],
+};
+
+/**
+ * Returns false if the given module is disabled on this site (site flag or
+ * agency flag/override). Use this in queries that should return empty/null
+ * instead of throwing when a module is off.
+ */
+export async function checkModuleEnabled(
+  ctx: QueryCtx | MutationCtx,
+  siteId: Id<"sites">,
+  moduleKey: string,
+): Promise<boolean> {
+  const site = await ctx.db.get(siteId);
+  if (!site) return false;
+  const siteModules = (site.enabledModules as Record<string, boolean>) ?? {};
+  if (siteModules[moduleKey] === false) return false;
+  if (!site.agencyId) return true;
+  const agency = await ctx.db.get(site.agencyId as Id<"agencies">);
+  if (!agency) return true;
+  const agencyFlags = (agency.featureFlags as Record<string, boolean>) ?? {};
+  for (const [flag, modules] of Object.entries(AGENCY_FLAG_TO_MODULES)) {
+    if (agencyFlags[flag] === false && modules.includes(moduleKey)) return false;
+  }
+  const agencyModuleOverrides = (agencyFlags as any)._modules as Record<string, boolean> | undefined;
+  if (agencyModuleOverrides?.[moduleKey] === false) return false;
+  return true;
+}
+
+/**
+ * Throws if the given module is disabled on this site — either because
+ * `site.enabledModules[moduleKey] === false`, or because the site's agency
+ * has the corresponding feature flag set to false.
+ *
+ * Call this inside mutations that should be blocked when a module
+ * is disabled, AFTER the caller's site-access check has already passed.
+ * Superadmins are not exempt — a disabled module is disabled for everyone.
+ */
+export async function requireModuleEnabled(
+  ctx: QueryCtx | MutationCtx,
+  siteId: Id<"sites">,
+  moduleKey: string,
+): Promise<void> {
+  const site = await ctx.db.get(siteId);
+  if (!site) throw new Error("Site not found");
+
+  const siteModules = (site.enabledModules as Record<string, boolean>) ?? {};
+  if (siteModules[moduleKey] === false) {
+    throw new Error(`Module '${moduleKey}' is not enabled for this site`);
+  }
+
+  if (!site.agencyId) return;
+  const agency = await ctx.db.get(site.agencyId as Id<"agencies">);
+  if (!agency) return;
+
+  const agencyFlags = (agency.featureFlags as Record<string, boolean>) ?? {};
+  for (const [flag, modules] of Object.entries(AGENCY_FLAG_TO_MODULES)) {
+    if (agencyFlags[flag] === false && modules.includes(moduleKey)) {
+      throw new Error(`Module '${moduleKey}' is disabled by agency feature flag`);
+    }
+  }
+
+  // Honor per-module agency overrides stored under featureFlags._modules
+  const agencyModuleOverrides = (agencyFlags as any)._modules as Record<string, boolean> | undefined;
+  if (agencyModuleOverrides?.[moduleKey] === false) {
+    throw new Error(`Module '${moduleKey}' is disabled by agency module override`);
+  }
+}
+
 /**
  * Enforces the Global Design Lock™ — only FSTS super-admins may mutate
  * design-tier capabilities (navigation, footer, email config, integrations,

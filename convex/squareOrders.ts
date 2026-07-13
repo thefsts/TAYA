@@ -1,7 +1,7 @@
 import { query, mutation, action, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 
 // ── Square Orders ─────────────────────────────────────────────────────────────
@@ -10,6 +10,7 @@ export const listOrders = query({
   args: { siteId: v.id("sites"), limit: v.optional(v.number()) },
   handler: async (ctx, { siteId, limit = 50 }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "commerce")) return [];
     const orders = await ctx.db
       .query("squareOrders")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -23,6 +24,7 @@ export const getOrdersAnalytics = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "commerce")) return null;
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -107,6 +109,7 @@ export const listCatalogItems = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "commerce")) return [];
     const items = await ctx.db.query("squareCatalogItems").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect();
     return items.map((i) => ({ ...i, id: i._id }));
   },
@@ -196,6 +199,7 @@ export const listDiscounts = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "commerce")) return [];
     const items = await ctx.db.query("squareDiscounts").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect();
     return items.map((d) => ({ ...d, id: d._id }));
   },
@@ -214,6 +218,7 @@ export const createDiscount = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "commerce");
     const id = await ctx.db.insert("squareDiscounts", { siteId, ...fields });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "square_discount", entityId: id, page: "Commerce", details: fields.name });
     return id;
@@ -224,6 +229,7 @@ export const updateDiscount = mutation({
   args: { siteId: v.id("sites"), discountId: v.id("squareDiscounts"), name: v.optional(v.string()), code: v.optional(v.string()), expiresAt: v.optional(v.number()) },
   handler: async (ctx, { siteId, discountId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "commerce");
     const existing = await ctx.db.get(discountId);
     if (!existing || existing.siteId !== siteId) throw new Error("Discount not found");
     await ctx.db.patch(discountId, fields as any);
@@ -236,6 +242,7 @@ export const removeDiscount = mutation({
   args: { siteId: v.id("sites"), discountId: v.id("squareDiscounts") },
   handler: async (ctx, { siteId, discountId }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "commerce");
     const existing = await ctx.db.get(discountId);
     if (!existing || existing.siteId !== siteId) throw new Error("Discount not found");
     await ctx.db.delete(discountId);

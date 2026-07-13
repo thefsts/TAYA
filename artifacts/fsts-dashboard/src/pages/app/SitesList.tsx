@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   Landmark,
   SlidersHorizontal,
+  Rocket,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -120,6 +122,14 @@ export default function SitesList() {
               <Button variant="outline" onClick={() => setLocation("/app/admin/platform-controls")}>
                 <SlidersHorizontal className="h-4 w-4 mr-2 text-slate-500" />
                 Platform Controls
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/app/admin/runbook")}>
+                <BookOpen className="h-4 w-4 mr-2 text-slate-500" />
+                Runbook
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/app/admin/onboarding")}>
+                <Rocket className="h-4 w-4 mr-2 text-slate-500" />
+                Onboard New Site
               </Button>
               <Button onClick={() => setLocation("/app/admin/sites")} className="bg-primary hover:bg-primary/90 text-white">
                 <Settings className="h-4 w-4 mr-2" />

@@ -1,7 +1,7 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
 
 function toResponse(doc: any) {
   return {
@@ -20,6 +20,7 @@ export const list = query({
   },
   handler: async (ctx, { siteId, status }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "contact")) return [];
     const docs = status
       ? await ctx.db.query("formSubmissions").withIndex("by_site_status", (q) => q.eq("siteId", siteId).eq("status", status)).collect()
       : await ctx.db.query("formSubmissions").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect();
@@ -35,6 +36,7 @@ export const updateStatus = mutation({
   },
   handler: async (ctx, { siteId, submissionId, status }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "contact");
     const doc = await ctx.db.get(submissionId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");
     const patch: any = { status };
@@ -48,6 +50,7 @@ export const remove = mutation({
   args: { siteId: v.id("sites"), submissionId: v.id("formSubmissions") },
   handler: async (ctx, { siteId, submissionId }) => {
     await requireSiteAccessMutation(ctx, siteId);
+    await requireModuleEnabled(ctx, siteId, "contact");
     const doc = await ctx.db.get(submissionId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");
     await ctx.db.delete(submissionId);
