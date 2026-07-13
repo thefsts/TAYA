@@ -29,48 +29,26 @@ import { LockedField, DesignLockBanner } from "@/components/LockedField";
 
 type AuthMethod = "api_key" | "oauth" | "sso";
 
-type EntityType =
-  | "contact_form" | "quote_request" | "consultation" | "event_registration"
-  | "course_registration" | "order" | "customer" | "payment" | "newsletter_signup"
-  | "application" | "custom_form" | "lead" | "payment_notification"
-  | "marketing_trigger" | "support_ticket" | "review_request" | "automation_event"
-  | "appointment_status" | "notes" | "campaign_status" | "lead_status" | "tags" | "profile_update";
+type OutboundEntity = "form_submission" | "course_enrollment" | "membership_signup" | "payment_completed";
+type InboundEntity = "appointment_status" | "lead_status" | "contact_tags";
+type EntityType = OutboundEntity | InboundEntity;
 
 const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
-  contact_form: "Contact Form Submissions",
-  quote_request: "Quote Requests",
-  consultation: "Consultation Requests",
-  event_registration: "Event Registrations",
-  course_registration: "Course Registrations",
-  order: "Orders",
-  customer: "Customers",
-  payment: "Payments",
-  newsletter_signup: "Newsletter Signups",
-  application: "Applications",
-  custom_form: "Custom Form Submissions",
-  lead: "Leads",
-  payment_notification: "Payment Notifications",
-  marketing_trigger: "Marketing Triggers",
-  support_ticket: "Support Tickets",
-  review_request: "Review Requests",
-  automation_event: "Automation Events",
+  form_submission: "Form Submissions",
+  course_enrollment: "Course Enrollments",
+  membership_signup: "Membership Signups",
+  payment_completed: "Payments Completed",
   appointment_status: "Appointment Status",
-  notes: "Notes",
-  campaign_status: "Campaign Status",
   lead_status: "Lead Status",
-  tags: "Tags",
-  profile_update: "Profile Updates",
+  contact_tags: "Contact Tags",
 };
 
-const OUTBOUND_ENTITY_TYPES: EntityType[] = [
-  "contact_form", "quote_request", "consultation", "event_registration",
-  "course_registration", "order", "customer", "payment", "newsletter_signup",
-  "application", "custom_form", "lead", "payment_notification",
-  "marketing_trigger", "support_ticket", "review_request", "automation_event",
+const OUTBOUND_ENTITY_TYPES: OutboundEntity[] = [
+  "form_submission", "course_enrollment", "membership_signup", "payment_completed",
 ];
 
-const INBOUND_ENTITY_TYPES: EntityType[] = [
-  "appointment_status", "notes", "campaign_status", "lead_status", "tags", "profile_update",
+const INBOUND_ENTITY_TYPES: InboundEntity[] = [
+  "appointment_status", "lead_status", "contact_tags",
 ];
 
 const STATUS_BADGE: Record<string, string> = {

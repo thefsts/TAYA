@@ -37,32 +37,11 @@ function toSyncLogResponse(doc: any) {
 // ── Entity type registries ────────────────────────────────────────────────────
 
 const OUTBOUND_ENTITY_TYPES = [
-  "contact_form",
-  "quote_request",
-  "consultation",
-  "event_registration",
-  "course_registration",
-  "order",
-  "customer",
-  "payment",
-  "newsletter_signup",
-  "application",
-  "custom_form",
-  "lead",
-  "payment_notification",
-  "marketing_trigger",
-  "support_ticket",
-  "review_request",
-  "automation_event",
+  "form_submission", "course_enrollment", "membership_signup", "payment_completed",
 ] as const;
 
 const INBOUND_ENTITY_TYPES = [
-  "appointment_status",
-  "notes",
-  "campaign_status",
-  "lead_status",
-  "tags",
-  "profile_update",
+  "appointment_status", "lead_status", "contact_tags",
 ] as const;
 
 // ── Connection management ─────────────────────────────────────────────────────
