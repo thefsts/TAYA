@@ -14,6 +14,8 @@ A multi-tenant client dashboard for managing site settings, integrations, and no
 - `pnpm run test:visual` — run visual regression tests against the mockup-sandbox
 - `pnpm run test:visual:update` — regenerate baseline snapshots (run after intentional UI changes)
 - `pnpm run test:visual:report` — generate `tests/visual-regression/visual-diff-report.html` from the last failed test run (before/after/diff thumbnails)
+- `pnpm run test:e2e` — run Playwright E2E tests (requires the fsts-dashboard workflow to be running + `CLERK_SECRET_KEY` and `CONVEX_DEPLOY_KEY` env vars)
+- `pnpm run test:e2e:report` — open the last E2E test HTML report
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack

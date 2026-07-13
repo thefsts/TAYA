@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { provisionUser } from "./lib/getCurrentUser";
@@ -207,5 +207,69 @@ export const addSiteRole = mutation({
       details: `Assigned role '${role}' to ${user.name} during site onboarding`,
     });
     return { success: true };
+  },
+});
+
+export const findSuperAdmin = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("isSuperAdmin"), true))
+      .first();
+  },
+});
+
+export const listAllInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    return users.map((u) => ({
+      id: u._id,
+      email: u.email,
+      name: u.name,
+      isSuperAdmin: u.isSuperAdmin,
+      isActive: u.isActive,
+      clerkUserId: u.clerkUserId,
+    }));
+  },
+});
+
+export const promoteToSuperAdminByClerkId = mutation({
+  args: { targetClerkUserId: v.string() },
+  handler: async (ctx, { targetClerkUserId }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) =>
+        q.eq("clerkUserId", targetClerkUserId)
+      )
+      .first();
+    if (!user) throw new Error(`User with clerkUserId ${targetClerkUserId} not found`);
+    await ctx.db.patch(user._id, { isSuperAdmin: true, isActive: true });
+    return user._id;
+  },
+});
+
+export const upsertTestSuperAdmin = mutation({
+  args: { email: v.string(), name: v.string() },
+  handler: async (ctx, { email, name }) => {
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    if (existing.length > 0) {
+      for (const user of existing) {
+        await ctx.db.patch(user._id, { isSuperAdmin: true, isActive: true });
+      }
+      return existing[0]._id;
+    }
+    return await ctx.db.insert("users", {
+      clerkUserId: `pending:${email}`,
+      name,
+      email,
+      isSuperAdmin: true,
+      isActive: true,
+      roles: [],
+    });
   },
 });

@@ -610,6 +610,15 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@25.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.21.0)
 
+  tests/e2e:
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.52.0
+        version: 1.60.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.6.2
+
   tests/health-monitor:
     devDependencies:
       '@playwright/test':
