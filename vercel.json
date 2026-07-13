@@ -4,6 +4,7 @@
   "buildCommand": "pnpm --filter @workspace/fsts-dashboard run build",
   "outputDirectory": "artifacts/fsts-dashboard/dist/public",
   "routes": [
+    { "src": "/api/clerk-proxy/(.*)", "dest": "https://frontend-api.clerk.dev/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
