@@ -223,6 +223,112 @@ http.route({
   }),
 });
 
+/* ── OPTIONS for new endpoints ──────────────────────────────────────────── */
+http.route({ path: "/api/public/policies", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/navigation", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/announcement", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/cta", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/downloads", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/team", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/careers", method: "OPTIONS", handler: preflight });
+http.route({ path: "/api/public/popup", method: "OPTIONS", handler: preflight });
+
+/* ── GET /api/public/policies?slug= ─────────────────────────────────────── */
+http.route({
+  path: "/api/public/policies",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getPoliciesBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/navigation?slug= ───────────────────────────────────── */
+http.route({
+  path: "/api/public/navigation",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getNavigationBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/announcement?slug= ─────────────────────────────────── */
+http.route({
+  path: "/api/public/announcement",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getAnnouncementBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/cta?slug= ──────────────────────────────────────────── */
+http.route({
+  path: "/api/public/cta",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getCtaBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/downloads?slug= ────────────────────────────────────── */
+http.route({
+  path: "/api/public/downloads",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getDownloadsBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/team?slug= ─────────────────────────────────────────── */
+http.route({
+  path: "/api/public/team",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getTeamBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/careers?slug= ──────────────────────────────────────── */
+http.route({
+  path: "/api/public/careers",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getCareersBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/popup?slug= ─────────────────────────────────────────── */
+http.route({
+  path: "/api/public/popup",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getPopupBySlug, { slug });
+    return ok(data);
+  }),
+});
+
 /* ── POST /api/public/submit ─────────────────────────────────────────────── */
 http.route({
   path: "/api/public/submit",

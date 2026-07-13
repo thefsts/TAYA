@@ -5,111 +5,122 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Save, FileText } from "lucide-react";
+import { Shield, Save } from "lucide-react";
 
 const POLICY_TYPES = [
-  { type: "privacy",       label: "Privacy Policy",        defaultTitle: "Privacy Policy" },
-  { type: "terms",         label: "Terms of Service",      defaultTitle: "Terms of Service" },
-  { type: "cookie",        label: "Cookie Policy",         defaultTitle: "Cookie Policy" },
-  { type: "accessibility", label: "Accessibility Statement", defaultTitle: "Accessibility Statement" },
-];
+  { key: "privacy", label: "Privacy Policy" },
+  { key: "terms", label: "Terms of Service" },
+  { key: "cookie", label: "Cookie Policy" },
+  { key: "accessibility", label: "Accessibility Statement" },
+] as const;
 
-function PolicyTab({ siteId, type, defaultTitle }: { siteId: Id<"sites">; type: string; defaultTitle: string }) {
+function PolicyTab({
+  siteId,
+  policyType,
+  label,
+}: {
+  siteId: Id<"sites">;
+  policyType: string;
+  label: string;
+}) {
   const { toast } = useToast();
-  const policy = useQuery(api.contentModules.getPolicy, { siteId, type });
-  const upsert = useMutation(api.contentModules.upsertPolicy);
-
-  const [title, setTitle] = useState(defaultTitle);
-  const [body, setBody] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
+  const existing = useQuery(api.policies.get, { siteId, policyType });
+  const upsert = useMutation(api.policies.upsert);
+  const [content, setContent] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (policy !== undefined) {
-      setTitle(policy?.title ?? defaultTitle);
-      setBody(policy?.body ?? "");
-      setDirty(false);
+    if (existing !== undefined && !loaded) {
+      setContent(existing?.content ?? "");
+      setLoaded(true);
     }
-  }, [policy, defaultTitle]);
+  }, [existing, loaded]);
 
   async function handleSave() {
-    if (!title.trim() || !body.trim()) {
-      toast({ title: "Title and body are required", variant: "destructive" });
-      return;
-    }
-    setSaving(true);
+    setIsPending(true);
     try {
-      await upsert({ siteId, type, title, body });
-      toast({ title: "Policy saved" });
-      setDirty(false);
+      await upsert({ siteId, policyType, content });
+      toast({ title: `${label} saved` });
     } catch (err) {
-      toast({ title: "Error saving policy", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
+      toast({ title: "Error", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
     } finally {
-      setSaving(false);
+      setIsPending(false);
     }
   }
 
-  if (policy === undefined) return <Skeleton className="h-64 mt-4" />;
+  if (existing === undefined) {
+    return <Skeleton className="h-64" />;
+  }
 
   return (
-    <div className="space-y-4 mt-4">
-      <div>
-        <Label>Page Title</Label>
-        <Input className="mt-1" value={title} onChange={(e) => { setTitle(e.target.value); setDirty(true); }} />
-      </div>
-      <div>
-        <Label>Content <span className="text-slate-400 font-normal text-xs ml-1">(Markdown supported)</span></Label>
-        <Textarea
-          className="mt-1 font-mono text-sm"
-          rows={20}
-          value={body}
-          onChange={(e) => { setBody(e.target.value); setDirty(true); }}
-          placeholder={`# ${defaultTitle}\n\nEnter your policy content here…`}
-        />
-      </div>
-      {policy?.lastUpdated && (
-        <p className="text-xs text-slate-400">Last updated: {new Date(policy.lastUpdated).toLocaleString()}</p>
-      )}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving || !dirty}>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">{label}</h2>
+          {existing?.updatedAt && (
+            <p className="text-xs text-slate-400 mt-0.5">
+              Last saved: {new Date(existing.updatedAt).toLocaleString()}
+            </p>
+          )}
+        </div>
+        <Button onClick={handleSave} disabled={isPending}>
           <Save className="w-4 h-4 mr-2" />
-          {saving ? "Saving…" : "Save Policy"}
+          {isPending ? "Saving…" : "Save"}
         </Button>
       </div>
+      <Textarea
+        className="min-h-[480px] font-mono text-sm"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder={`Enter your ${label} content here. Markdown is supported.`}
+      />
+      <p className="text-xs text-slate-400">
+        Tip: Markdown formatting (headings, bold, lists) is supported and will be rendered on your website.
+      </p>
     </div>
   );
 }
 
 export default function PolicyEditor({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  const [activeTab, setActiveTab] = useState<string>("privacy");
 
   return (
     <AppLayout siteId={params.siteId}>
-      <div className="flex items-center gap-3 mb-6">
-        <FileText className="w-6 h-6 text-slate-400" />
+      <div className="flex items-start gap-2 mb-6">
+        <Shield className="w-6 h-6 text-slate-500 mt-0.5" />
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Policy Pages</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Edit your site's legal and accessibility policy documents.</p>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Edit your site&apos;s legal and compliance pages. Content is saved per document.
+          </p>
         </div>
       </div>
 
-      <Tabs defaultValue="privacy">
-        <TabsList className="mb-2">
-          {POLICY_TYPES.map((p) => (
-            <TabsTrigger key={p.type} value={p.type}>{p.label}</TabsTrigger>
-          ))}
-        </TabsList>
-        {POLICY_TYPES.map((p) => (
-          <TabsContent key={p.type} value={p.type}>
-            <PolicyTab siteId={siteId} type={p.type} defaultTitle={p.defaultTitle} />
-          </TabsContent>
+      <div className="flex gap-2 mb-6 border-b border-slate-200 pb-0">
+        {POLICY_TYPES.map((pt) => (
+          <button
+            key={pt.key}
+            onClick={() => setActiveTab(pt.key)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === pt.key
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300"
+            }`}
+          >
+            {pt.label}
+          </button>
         ))}
-      </Tabs>
+      </div>
+
+      {POLICY_TYPES.map((pt) =>
+        activeTab === pt.key ? (
+          <PolicyTab key={pt.key} siteId={siteId} policyType={pt.key} label={pt.label} />
+        ) : null,
+      )}
     </AppLayout>
   );
 }

@@ -1,0 +1,55 @@
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
+import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { logActivity } from "./lib/logActivity";
+
+export const POLICY_TYPES = ["privacy", "terms", "cookie", "accessibility"] as const;
+
+export const list = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    if (!await checkSiteAccess(ctx, siteId)) return [];
+    const docs = await ctx.db
+      .query("policyPages")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .collect();
+    return docs.map((d) => ({ ...d, id: d._id }));
+  },
+});
+
+export const get = query({
+  args: { siteId: v.id("sites"), policyType: v.string() },
+  handler: async (ctx, { siteId, policyType }) => {
+    if (!await checkSiteAccess(ctx, siteId)) return null;
+    const doc = await ctx.db
+      .query("policyPages")
+      .withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", policyType))
+      .first();
+    return doc ? { ...doc, id: doc._id } : null;
+  },
+});
+
+export const upsert = mutation({
+  args: {
+    siteId: v.id("sites"),
+    policyType: v.string(),
+    content: v.string(),
+  },
+  handler: async (ctx, { siteId, policyType, content }) => {
+    const user = await requireSiteAccessMutation(ctx, siteId);
+    const existing = await ctx.db
+      .query("policyPages")
+      .withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", policyType))
+      .first();
+    const updatedAt = Date.now();
+    if (existing) {
+      await ctx.db.patch(existing._id, { content, updatedAt });
+      await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "policy", page: "Policy Editor", details: policyType });
+      return existing._id;
+    } else {
+      const id = await ctx.db.insert("policyPages", { siteId, policyType, content, updatedAt });
+      await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "policy", page: "Policy Editor", details: policyType });
+      return id;
+    }
+  },
+});

@@ -223,101 +223,143 @@ export const getPricingBySlug = internalQuery({
 
 // ── Phase 2 — New public endpoints ───────────────────────────────────────────
 
+export const getPoliciesBySlug = internalQuery({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!site) return [];
+    const docs = await ctx.db
+      .query("policyPages")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    return docs.map((d) => ({ ...d, id: d._id }));
+  },
+});
+
 export const getNavigationBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
     if (!site) return [];
-    const docs = await ctx.db.query("navigationItems").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
+    const docs = await ctx.db
+      .query("navigationItems")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
     return docs
-      .filter((d) => d.visible)
+      .filter((d) => d.isVisible)
       .sort((a, b) => a.order - b.order)
-      .map((d) => ({ id: d._id, label: d.label, href: d.href, target: d.target }));
+      .map((d) => ({ ...d, id: d._id }));
   },
 });
 
 export const getAnnouncementBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
     if (!site) return null;
-    const doc = await ctx.db.query("announcementBanner").withIndex("by_site", (q) => q.eq("siteId", site._id)).first();
-    if (!doc || !doc.enabled) return null;
-    return { id: doc._id, text: doc.text, linkUrl: doc.linkUrl, linkLabel: doc.linkLabel, bgColor: doc.bgColor };
+    const doc = await ctx.db
+      .query("announcementBanner")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .first();
+    if (!doc || !doc.isEnabled) return null;
+    return { ...doc, id: doc._id };
   },
 });
 
 export const getCtaBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
     if (!site) return null;
-    const doc = await ctx.db.query("siteCtaConfig").withIndex("by_site", (q) => q.eq("siteId", site._id)).first();
-    if (!doc) return null;
-    return { id: doc._id, primaryLabel: doc.primaryLabel, primaryUrl: doc.primaryUrl, secondaryLabel: doc.secondaryLabel, secondaryUrl: doc.secondaryUrl };
-  },
-});
-
-export const getTeamBySlug = internalQuery({
-  args: { slug: v.string() },
-  handler: async (ctx, { slug }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
-    if (!site) return [];
-    const docs = await ctx.db.query("teamMembers").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
-    return docs
-      .filter((d) => d.isActive)
-      .sort((a, b) => a.order - b.order)
-      .map((d) => ({ id: d._id, name: d.name, role: d.role, bio: d.bio, photoUrl: d.photoUrl, credentials: d.credentials }));
+    const doc = await ctx.db
+      .query("siteCtaConfig")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .first();
+    return doc ? { ...doc, id: doc._id } : null;
   },
 });
 
 export const getDownloadsBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
     if (!site) return [];
-    const docs = await ctx.db.query("downloadableResources").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
+    const docs = await ctx.db
+      .query("downloadableResources")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
     return docs
       .filter((d) => d.isActive)
       .sort((a, b) => a.order - b.order)
-      .map((d) => ({ id: d._id, title: d.title, description: d.description, url: d.url, format: d.format, sizeLabel: d.sizeLabel, category: d.category }));
+      .map((d) => ({ ...d, id: d._id }));
   },
 });
 
-export const getJobsBySlug = internalQuery({
+export const getTeamBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
     if (!site) return [];
-    const docs = await ctx.db.query("jobPostings").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
+    const docs = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
     return docs
       .filter((d) => d.isActive)
-      .map((d) => ({ id: d._id, title: d.title, type: d.type, location: d.location, description: d.description, applyUrl: d.applyUrl }));
+      .sort((a, b) => a.order - b.order)
+      .map((d) => ({ ...d, id: d._id }));
+  },
+});
+
+export const getCareersBySlug = internalQuery({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!site) return [];
+    const docs = await ctx.db
+      .query("jobPostings")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    return docs
+      .filter((d) => d.isActive)
+      .map((d) => ({ ...d, id: d._id }));
   },
 });
 
 export const getPopupBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
     if (!site) return null;
-    const doc = await ctx.db.query("popupConfig").withIndex("by_site", (q) => q.eq("siteId", site._id)).first();
-    if (!doc || !doc.enabled) return null;
-    return { id: doc._id, title: doc.title, body: doc.body, ctaLabel: doc.ctaLabel, ctaUrl: doc.ctaUrl, triggerType: doc.triggerType, delaySeconds: doc.delaySeconds };
-  },
-});
-
-export const getPolicyBySlug = internalQuery({
-  args: { slug: v.string(), type: v.optional(v.string()) },
-  handler: async (ctx, { slug, type }) => {
-    const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
-    if (!site) return type ? null : [];
-    if (type) {
-      const doc = await ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", site._id).eq("type", type)).first();
-      if (!doc) return null;
-      return { id: doc._id, type: doc.type, title: doc.title, body: doc.body, lastUpdated: doc.lastUpdated };
-    }
-    const docs = await ctx.db.query("policyPages").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
-    return docs.map((d) => ({ id: d._id, type: d.type, title: d.title, body: d.body, lastUpdated: d.lastUpdated }));
+    const doc = await ctx.db
+      .query("popupConfig")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .first();
+    if (!doc || !doc.isEnabled) return null;
+    return { ...doc, id: doc._id };
   },
 });

@@ -36,6 +36,14 @@ import FaqManager from "@/pages/app/sites/FaqManager";
 import TestimonialsManager from "@/pages/app/sites/TestimonialsManager";
 import FormSubmissions from "@/pages/app/sites/FormSubmissions";
 import HealthMonitor from "@/pages/app/sites/HealthMonitor";
+import PolicyEditor from "@/pages/app/sites/PolicyEditor";
+import NavigationManager from "@/pages/app/sites/NavigationManager";
+import AnnouncementBanner from "@/pages/app/sites/AnnouncementBanner";
+import CtaManager from "@/pages/app/sites/CtaManager";
+import DownloadsManager from "@/pages/app/sites/DownloadsManager";
+import TeamManager from "@/pages/app/sites/TeamManager";
+import CareersManager from "@/pages/app/sites/CareersManager";
+import PopupManager from "@/pages/app/sites/PopupManager";
 
 // Phase 2 — new modules
 import PolicyEditor from "@/pages/app/sites/PolicyEditor";
@@ -278,6 +286,14 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/testimonials" component={TestimonialsManager} />
           <Route path="/app/sites/:siteId/inbox" component={FormSubmissions} />
           <Route path="/app/sites/:siteId/health" component={HealthMonitor} />
+          <Route path="/app/sites/:siteId/policies" component={PolicyEditor} />
+          <Route path="/app/sites/:siteId/nav" component={NavigationManager} />
+          <Route path="/app/sites/:siteId/announcement" component={AnnouncementBanner} />
+          <Route path="/app/sites/:siteId/cta" component={CtaManager} />
+          <Route path="/app/sites/:siteId/downloads" component={DownloadsManager} />
+          <Route path="/app/sites/:siteId/team" component={TeamManager} />
+          <Route path="/app/sites/:siteId/careers" component={CareersManager} />
+          <Route path="/app/sites/:siteId/popup" component={PopupManager} />
           <Route path="/app/sites/:siteId/history" component={VersionHistory} />
           <Route path="/app/sites/:siteId/activity" component={ActivityLog} />
           <Route path="/app/sites/:siteId/backups" component={BackupsList} />

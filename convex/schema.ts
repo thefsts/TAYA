@@ -334,30 +334,28 @@ export default defineSchema({
   // Phase 2 — Content Modules
   policyPages: defineTable({
     siteId: v.id("sites"),
-    type: v.string(),
-    title: v.string(),
-    body: v.string(),
-    lastUpdated: v.optional(v.number()),
+    policyType: v.string(),
+    content: v.string(),
+    updatedAt: v.number(),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_type", ["siteId", "type"]),
+    .index("by_site_type", ["siteId", "policyType"]),
 
   navigationItems: defineTable({
     siteId: v.id("sites"),
     label: v.string(),
     href: v.string(),
-    target: v.optional(v.string()),
-    visible: v.boolean(),
+    isVisible: v.boolean(),
     order: v.number(),
+    openInNewTab: v.optional(v.boolean()),
   }).index("by_site", ["siteId"]),
 
   announcementBanner: defineTable({
     siteId: v.id("sites"),
     text: v.string(),
-    linkUrl: v.optional(v.string()),
-    linkLabel: v.optional(v.string()),
-    bgColor: v.optional(v.string()),
-    enabled: v.boolean(),
+    bgColor: v.string(),
+    link: v.optional(v.string()),
+    isEnabled: v.boolean(),
   }).index("by_site", ["siteId"]),
 
   siteCtaConfig: defineTable({
@@ -383,18 +381,18 @@ export default defineSchema({
   teamMembers: defineTable({
     siteId: v.id("sites"),
     name: v.string(),
-    role: v.string(),
+    role: v.optional(v.string()),
     bio: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
-    credentials: v.optional(v.array(v.string())),
-    order: v.number(),
+    credentials: v.optional(v.string()),
     isActive: v.boolean(),
+    order: v.number(),
   }).index("by_site", ["siteId"]),
 
   jobPostings: defineTable({
     siteId: v.id("sites"),
     title: v.string(),
-    type: v.string(),
+    jobType: v.string(),
     location: v.optional(v.string()),
     description: v.string(),
     applyUrl: v.optional(v.string()),
@@ -408,7 +406,7 @@ export default defineSchema({
     ctaLabel: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
     triggerType: v.string(),
-    delaySeconds: v.optional(v.number()),
-    enabled: v.boolean(),
+    delaySecs: v.optional(v.number()),
+    isEnabled: v.boolean(),
   }).index("by_site", ["siteId"]),
 });
