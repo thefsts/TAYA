@@ -24,6 +24,15 @@ import {
   MessageSquareQuote,
   Inbox,
   HeartPulse,
+  Navigation,
+  Megaphone,
+  MousePointerClick,
+  Download,
+  Users,
+  Briefcase,
+  Bell,
+  ShoppingCart,
+  ScrollText,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,11 +112,22 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} />
           <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} />
 
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Site Modules</div>
+          {isEnabled("navigation") && <NavItem icon={Navigation} label="Navigation" href={`/app/sites/${siteId}/navigation`} />}
+          {isEnabled("announcement") && <NavItem icon={Megaphone} label="Announcement Banner" href={`/app/sites/${siteId}/announcement`} />}
+          {isEnabled("cta") && <NavItem icon={MousePointerClick} label="CTA Buttons" href={`/app/sites/${siteId}/cta`} />}
+          {isEnabled("team") && <NavItem icon={Users} label="Team" href={`/app/sites/${siteId}/team`} />}
+          {isEnabled("careers") && <NavItem icon={Briefcase} label="Careers" href={`/app/sites/${siteId}/careers`} />}
+          {isEnabled("downloads") && <NavItem icon={Download} label="Downloads" href={`/app/sites/${siteId}/downloads`} />}
+          {isEnabled("popup") && <NavItem icon={Bell} label="Popup" href={`/app/sites/${siteId}/popup`} />}
+          {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policy`} />}
+
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Configuration</div>
           {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} />}
           {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} />}
           {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} />}
           {isEnabled("payments") && <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} />}
+          {isEnabled("commerce") && <NavItem icon={ShoppingCart} label="Square Commerce" href={`/app/sites/${siteId}/commerce`} />}
           {isEnabled("email") && <NavItem icon={Mail} label="Email Config" href={`/app/sites/${siteId}/email`} />}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Marketing &amp; CRM</div>

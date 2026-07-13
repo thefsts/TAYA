@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
@@ -107,5 +107,26 @@ export const removeMapping = mutation({
     await ctx.db.delete(mappingId);
     await logActivity(ctx, { siteId, actorName: user.name, action: "deleted", entityType: "square_mapping", entityId: mappingId, page: "Payments", previousValue: existing });
     return { success: true };
+  },
+});
+
+// ── Internal helpers used by squareOrders action + webhook ───────────────────
+
+export const getConfigInternal = internalQuery({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    return ctx.db.query("squareConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
+  },
+});
+
+export const updateRefundStatus = internalMutation({
+  args: { siteId: v.id("sites"), squarePaymentId: v.string(), refundStatus: v.string() },
+  handler: async (ctx, { siteId, squarePaymentId, refundStatus }) => {
+    const order = await ctx.db
+      .query("squareOrders")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .filter((q) => q.eq(q.field("squarePaymentId"), squarePaymentId))
+      .first();
+    if (order) await ctx.db.patch(order._id, { refundStatus });
   },
 });

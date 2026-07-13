@@ -1,0 +1,150 @@
+Excellent assessment. I agree with the current status and I want to change our development strategy.
+
+Do **not** attempt to build all of Task 77 simultaneously.
+
+Instead, we are officially moving into the completion of the FSTS Website Operating System™ Version 1.0 using milestone-based development.
+
+## Phase 1 (Highest Priority) — Complete the CMS Pipeline
+
+This is now the single most important task.
+
+The dashboard is already feature-rich. The remaining gap is that most public websites are still rendering static content instead of live CMS data.
+
+Complete the data pipeline so the website always reads from Convex first, with static data only as a fallback.
+
+Priority order:
+
+1. Homepage
+
+   * Hero
+   * Homepage sections
+   * CTA blocks
+   * Featured Services
+   * Featured Courses
+   * Featured Events
+   * Testimonials
+
+2. Courses
+
+3. Events
+
+4. Contact Information
+
+5. Footer
+
+6. FAQ
+
+7. Testimonials
+
+8. SEO
+
+After this phase, dashboard edits should automatically appear on the live website without manual code changes.
+
+---
+
+## Phase 2 — Finish Remaining Dashboard Modules
+
+Build the remaining missing modules:
+
+* Forms Builder
+* Policy Page Editors
+* Navigation Manager
+* Announcement Banner Manager
+* CTA Manager
+* Downloads Manager
+* Resource Manager
+* Team Member Manager
+* Careers Manager
+* Job Posting Manager
+* Popup / Modal Manager
+
+These modules must follow the same architecture as existing modules:
+
+* Multi-tenant
+* Convex-backed
+* Version History
+* Activity Log
+* RBAC
+* Reusable for every client
+
+---
+
+## Phase 3 — Complete the Form Builder
+
+This should become one of the strongest features of the platform.
+
+Support:
+
+* Drag-and-drop builder
+* Conditional logic
+* Required fields
+* File uploads
+* Email routing
+* CRM routing
+* Success pages
+* Redirects
+* Hidden fields
+* Spam protection
+* Webhooks
+
+Every form should automatically integrate with Operon CRM.
+
+---
+
+## Phase 4 — Finish Production Integrations
+
+Complete production readiness for:
+
+* Square Commerce
+* Email delivery
+* Media uploads
+* Scheduled backups
+* Health monitoring
+* Website settings
+* Permissions
+* Automation
+
+No placeholders.
+
+Everything should work in production.
+
+---
+
+## Development Standards
+
+Continue using the existing architecture:
+
+* Convex
+* Clerk
+* Multi-tenant design
+* RBAC
+* Activity Logs
+* Version History
+
+Avoid duplicate code.
+
+Abstract common functionality into reusable services.
+
+Everything should be configurable.
+
+Nothing should be Corsair-specific.
+
+---
+
+## Deliverables
+
+At the completion of each phase provide:
+
+* Completed modules
+* Files changed
+* Convex functions added or modified
+* Components added
+* Database/schema updates
+* Remaining blockers
+* Technical debt
+* QA results
+* Suggested next milestone
+
+Do not begin the next phase until the current one is complete, stable, tested, and production-ready.
+
+The goal is not just to finish a dashboard—it is to complete the FSTS Website Operating System™ as a reusable platform that will power every future Full Stack Tech Solutions client website.

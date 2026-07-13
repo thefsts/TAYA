@@ -79,6 +79,7 @@ export default defineSchema({
     endAt: v.optional(v.number()),
     location: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    squareItemId: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
   articles: defineTable({
@@ -139,6 +140,8 @@ export default defineSchema({
     locationId: v.optional(v.string()),
     accessToken: v.optional(v.string()),
     checkoutEnabled: v.boolean(),
+    lastCatalogSyncAt: v.optional(v.number()),
+    webhookSignatureKey: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
   squareCatalogMappings: defineTable({
@@ -147,6 +150,50 @@ export default defineSchema({
     entityId: v.string(),
     squareItemId: v.string(),
     squareVariationId: v.string(),
+  }).index("by_site", ["siteId"]),
+
+  // Phase 5 — Square Commerce
+  squareOrders: defineTable({
+    siteId: v.id("sites"),
+    squareOrderId: v.string(),
+    squarePaymentId: v.optional(v.string()),
+    customerName: v.optional(v.string()),
+    customerEmail: v.optional(v.string()),
+    itemName: v.optional(v.string()),
+    amountCents: v.number(),
+    currency: v.optional(v.string()),
+    status: v.string(),
+    refundStatus: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_createdAt", ["siteId", "createdAt"]),
+
+  squareCatalogItems: defineTable({
+    siteId: v.id("sites"),
+    squareItemId: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    type: v.optional(v.string()),
+    priceCents: v.optional(v.number()),
+    variationId: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    syncedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_squareItemId", ["siteId", "squareItemId"]),
+
+  squareDiscounts: defineTable({
+    siteId: v.id("sites"),
+    squareDiscountId: v.optional(v.string()),
+    name: v.string(),
+    code: v.optional(v.string()),
+    discountType: v.string(),
+    amountCents: v.optional(v.number()),
+    percentage: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    isActive: v.boolean(),
+    syncedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
 
   emailSettings: defineTable({
@@ -283,4 +330,85 @@ export default defineSchema({
   })
     .index("by_site", ["siteId"])
     .index("by_site_checkedAt", ["siteId", "checkedAt"]),
+
+  // Phase 2 — Content Modules
+  policyPages: defineTable({
+    siteId: v.id("sites"),
+    type: v.string(),
+    title: v.string(),
+    body: v.string(),
+    lastUpdated: v.optional(v.number()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_type", ["siteId", "type"]),
+
+  navigationItems: defineTable({
+    siteId: v.id("sites"),
+    label: v.string(),
+    href: v.string(),
+    target: v.optional(v.string()),
+    visible: v.boolean(),
+    order: v.number(),
+  }).index("by_site", ["siteId"]),
+
+  announcementBanner: defineTable({
+    siteId: v.id("sites"),
+    text: v.string(),
+    linkUrl: v.optional(v.string()),
+    linkLabel: v.optional(v.string()),
+    bgColor: v.optional(v.string()),
+    enabled: v.boolean(),
+  }).index("by_site", ["siteId"]),
+
+  siteCtaConfig: defineTable({
+    siteId: v.id("sites"),
+    primaryLabel: v.string(),
+    primaryUrl: v.string(),
+    secondaryLabel: v.optional(v.string()),
+    secondaryUrl: v.optional(v.string()),
+  }).index("by_site", ["siteId"]),
+
+  downloadableResources: defineTable({
+    siteId: v.id("sites"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    url: v.string(),
+    format: v.optional(v.string()),
+    sizeLabel: v.optional(v.string()),
+    category: v.optional(v.string()),
+    isActive: v.boolean(),
+    order: v.number(),
+  }).index("by_site", ["siteId"]),
+
+  teamMembers: defineTable({
+    siteId: v.id("sites"),
+    name: v.string(),
+    role: v.string(),
+    bio: v.optional(v.string()),
+    photoUrl: v.optional(v.string()),
+    credentials: v.optional(v.array(v.string())),
+    order: v.number(),
+    isActive: v.boolean(),
+  }).index("by_site", ["siteId"]),
+
+  jobPostings: defineTable({
+    siteId: v.id("sites"),
+    title: v.string(),
+    type: v.string(),
+    location: v.optional(v.string()),
+    description: v.string(),
+    applyUrl: v.optional(v.string()),
+    isActive: v.boolean(),
+  }).index("by_site", ["siteId"]),
+
+  popupConfig: defineTable({
+    siteId: v.id("sites"),
+    title: v.string(),
+    body: v.string(),
+    ctaLabel: v.optional(v.string()),
+    ctaUrl: v.optional(v.string()),
+    triggerType: v.string(),
+    delaySeconds: v.optional(v.number()),
+    enabled: v.boolean(),
+  }).index("by_site", ["siteId"]),
 });
