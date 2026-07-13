@@ -114,6 +114,15 @@ function CategoryCard({ catKey, data, siteId }: { catKey: string; data: any; sit
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <ScoreRing score={data.score} size={48} />
+          {fixPath && data.status !== "good" && (
+            <Link
+              href={fixPath}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline whitespace-nowrap"
+            >
+              Fix it <ArrowRight className="h-3 w-3" />
+            </Link>
+          )}
           {hasIssues
             ? (expanded ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />)
             : <div className="w-4" />
@@ -140,7 +149,17 @@ function CategoryCard({ catKey, data, siteId }: { catKey: string; data: any; sit
               {data.actions.map((action: string, i: number) => (
                 <div key={i} className="flex items-start gap-2 text-sm">
                   <Zap className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
-                  <span className="text-slate-700">{action}</span>
+                  {fixPath ? (
+                    <Link
+                      href={fixPath}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-slate-700 hover:text-primary hover:underline"
+                    >
+                      {action}
+                    </Link>
+                  ) : (
+                    <span className="text-slate-700">{action}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -163,7 +182,10 @@ function CategoryCard({ catKey, data, siteId }: { catKey: string; data: any; sit
   );
 }
 
-function NotificationItem({ notification, onDismiss }: { notification: any; onDismiss: () => void }) {
+function NotificationItem({ notification, siteId, onDismiss }: { notification: any; siteId: string; onDismiss: () => void }) {
+  const fixRoute = notification.category ? CATEGORY_META[notification.category]?.fixRoute : undefined;
+  const fixPath = fixRoute ? `/app/sites/${siteId}/${fixRoute}` : null;
+
   return (
     <div className={`flex items-start gap-3 p-3 rounded-lg border text-sm ${notification.severity === "critical" ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
       {notification.severity === "critical"
@@ -172,6 +194,11 @@ function NotificationItem({ notification, onDismiss }: { notification: any; onDi
       }
       <div className="flex-1 min-w-0">
         <p className={notification.severity === "critical" ? "text-red-800" : "text-amber-800"}>{notification.message}</p>
+        {fixPath && (
+          <Link href={fixPath} className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-primary hover:underline">
+            Fix it <ArrowRight className="h-3 w-3" />
+          </Link>
+        )}
       </div>
       <button onClick={onDismiss} className="text-slate-400 hover:text-slate-600 flex-shrink-0 ml-1">
         <XCircle className="h-3.5 w-3.5" />
@@ -279,7 +306,7 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
               <div className="absolute right-0 mt-2 w-96 bg-white border border-slate-200 rounded-xl shadow-xl z-10 p-3 space-y-2">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Notifications</p>
                 {notifications?.slice(0, 5).map((n: any) => (
-                  <NotificationItem key={n._id} notification={n} onDismiss={() => handleDismiss(n._id)} />
+                  <NotificationItem key={n._id} notification={n} siteId={params.siteId} onDismiss={() => handleDismiss(n._id)} />
                 ))}
               </div>
             )}
