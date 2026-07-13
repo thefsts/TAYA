@@ -646,7 +646,7 @@ http.route({
 http.route({
   path: "/widget/reviews.js",
   method: "GET",
-  handler: httpAction(async (_ctx, request) => {
+  handler: httpAction(async (ctx, request) => {
     const JS_HEADERS = {
       "Content-Type": "text/javascript; charset=utf-8",
       "Access-Control-Allow-Origin": "*",
@@ -661,6 +661,26 @@ http.route({
         `console.error("[FSTS Reviews] Widget script is missing the required \`slug\` parameter in its src URL.");`,
         { status: 200, headers: JS_HEADERS },
       );
+    }
+
+    const site = await ctx.runQuery(internal.public.getSiteBySlug, { slug });
+    if (!site) {
+      return new Response(
+        `console.error("[FSTS Reviews] No site found for slug: ${slug}");`,
+        { status: 200, headers: JS_HEADERS },
+      );
+    }
+
+    const etag = `"${site._creationTime}"`;
+    const ifNoneMatch = request.headers.get("If-None-Match");
+    if (ifNoneMatch === etag) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          "Cache-Control": "public, max-age=300, stale-while-revalidate=60",
+          ETag: etag,
+        },
+      });
     }
 
     const apiBase = `${url.protocol}//${url.host}`;
@@ -717,7 +737,10 @@ http.route({
     .catch(function(){});
 }();`;
 
-    return new Response(widgetJs, { status: 200, headers: JS_HEADERS });
+    return new Response(widgetJs, {
+      status: 200,
+      headers: { ...JS_HEADERS, ETag: etag },
+    });
   }),
 });
 
