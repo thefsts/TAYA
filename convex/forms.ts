@@ -249,37 +249,38 @@ export const submitPublic = internalMutation({
       submittedAt: Date.now(),
     });
 
-    // CRM routing: create a pending sync log and immediately schedule a
-    // processor action to push the lead to Operon CRM
+    // CRM routing: map form template type → CRM entity type, route through syncToCrm
+    // (syncToCrm checks connection status and entity-level toggle before dispatching)
     if (settings.crmRouting === true) {
-      const crmConn = await ctx.db
-        .query("crmConnections")
-        .withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", "operon"))
-        .first();
-      if (crmConn && crmConn.status === "connected") {
-        const syncLogId = await ctx.db.insert("crmSyncLogs", {
-          siteId,
-          provider: "operon",
-          entityType: "custom_form",
-          direction: "outbound",
-          status: "pending",
-          entityRef: id.toString(),
-          message: `Form submission from ${submitterName ?? submitterEmail ?? "anonymous"} via "${form.name}"`,
-          attempt: 1,
-        });
-        await ctx.db.patch(crmConn._id, { lastSyncAt: Date.now() });
-        // Schedule the dispatch action — runs outside mutation to allow HTTP calls
-        await ctx.scheduler.runAfter(0, internal.forms.dispatchCrmLead, {
-          syncLogId: syncLogId.toString(),
-          apiKeyEncrypted: crmConn.apiKeyEncrypted ?? null,
-          orgId: crmConn.orgId ?? null,
-          formName: form.name,
-          submitterName: submitterName ?? null,
-          submitterEmail: submitterEmail ?? null,
-          submitterPhone: submitterPhone ?? null,
-          fieldCount: Object.keys(fieldValues).length,
-        });
-      }
+      const entityTypeMap: Record<string, string> = {
+        contact: "contact_form",
+        quote_request: "quote_request",
+        consultation: "consultation",
+        course_registration: "course_registration",
+        event_registration: "event_registration",
+        employment: "application",
+        newsletter: "newsletter_signup",
+      };
+      const entityType = entityTypeMap[form.templateType ?? ""] ?? "custom_form";
+
+      const crmPayload = {
+        form: form.name,
+        name: submitterName,
+        email: submitterEmail,
+        phone: submitterPhone,
+        fieldCount: Object.keys(fieldValues).length,
+        data: fieldValues,
+      };
+
+      // Schedule via syncToCrm which enforces connection check + entity toggle
+      await ctx.scheduler.runAfter(0, internal.crm.syncToCrm, {
+        siteId,
+        provider: "operon",
+        entityType,
+        direction: "outbound",
+        entityRef: id.toString(),
+        payload: crmPayload,
+      });
     }
 
     // Email notifications: schedule an action to deliver notification emails
@@ -368,95 +369,6 @@ export const sendSubmissionNotification = internalAction({
   },
 });
 
-// Dispatches a form submission as a lead to the Operon CRM API.
-// Decrypts the stored API key and POSTs to the Operon leads endpoint.
-// Updates the crmSyncLog with success or failure regardless of outcome.
-export const dispatchCrmLead = internalAction({
-  args: {
-    syncLogId: v.string(),
-    apiKeyEncrypted: v.union(v.string(), v.null()),
-    orgId: v.union(v.string(), v.null()),
-    formName: v.string(),
-    submitterName: v.union(v.string(), v.null()),
-    submitterEmail: v.union(v.string(), v.null()),
-    submitterPhone: v.union(v.string(), v.null()),
-    fieldCount: v.number(),
-  },
-  handler: async (ctx, args) => {
-    const {
-      syncLogId, apiKeyEncrypted, orgId,
-      formName, submitterName, submitterEmail, submitterPhone, fieldCount,
-    } = args;
-
-    async function markLog(status: string, message: string) {
-      await ctx.runMutation(internal.forms.updateSyncLog, { syncLogId, status, message });
-    }
-
-    if (!apiKeyEncrypted) {
-      await markLog("failed", "No API key stored — connect Operon CRM in site settings first.");
-      return;
-    }
-
-    let apiKey: string;
-    try {
-      const { decryptField } = await import("./lib/encrypt");
-      apiKey = await decryptField(apiKeyEncrypted);
-    } catch (err) {
-      await markLog("failed", `Decryption error: ${err}`);
-      return;
-    }
-
-    const payload = {
-      source: "fsts_form",
-      form: formName,
-      name: submitterName,
-      email: submitterEmail,
-      phone: submitterPhone,
-      fieldCount,
-      orgId,
-    };
-
-    try {
-      const res = await fetch("https://api.operoncrm.com/v1/leads", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const body = await res.json().catch(() => ({}));
-        await markLog("success", `Lead created (id: ${(body as any).id ?? "unknown"})`);
-      } else {
-        const detail = await res.text();
-        await markLog("failed", `Operon API ${res.status}: ${detail.slice(0, 200)}`);
-      }
-    } catch (err) {
-      await markLog("failed", `Network error: ${err}`);
-    }
-  },
-});
-
-// Updates a crmSyncLog entry — called from dispatchCrmLead action
-export const updateSyncLog = internalMutation({
-  args: {
-    syncLogId: v.string(),
-    status: v.string(),
-    message: v.string(),
-  },
-  handler: async (ctx, { syncLogId, status, message }) => {
-    try {
-      const doc = await ctx.db.get(syncLogId as any);
-      if (doc) {
-        await ctx.db.patch(syncLogId as any, { status, message });
-      }
-    } catch {
-      // ignore — sync log may not exist if schema rolled back
-    }
-  },
-});
 
 function getTemplateFields(templateType: string): any[] {
   const baseContact = [

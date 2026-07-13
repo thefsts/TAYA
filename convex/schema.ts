@@ -253,6 +253,8 @@ export default defineSchema({
     entityType: v.string(),
     direction: v.string(),
     enabled: v.boolean(),
+    lastSyncAt: v.optional(v.number()),
+    lastSyncStatus: v.optional(v.string()),
   })
     .index("by_site", ["siteId"])
     .index("by_site_provider_entity", ["siteId", "provider", "entityType", "direction"]),
@@ -266,7 +268,24 @@ export default defineSchema({
     entityRef: v.optional(v.string()),
     message: v.optional(v.string()),
     attempt: v.number(),
-  }).index("by_site", ["siteId"]),
+    syncPayload: v.optional(v.any()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_status", ["siteId", "status"])
+    .index("by_site_entity", ["siteId", "entityType"]),
+
+  // Inbound records written back from CRM → dashboard during polling
+  crmInboundRecords: defineTable({
+    siteId: v.id("sites"),
+    provider: v.string(),
+    entityType: v.string(),
+    crmRecordId: v.optional(v.string()),
+    entityRef: v.optional(v.string()),
+    payload: v.any(),
+    appliedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_entity", ["siteId", "entityType"]),
 
   faqs: defineTable({
     siteId: v.id("sites"),

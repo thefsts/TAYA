@@ -32,4 +32,11 @@ crons.daily(
   internal.healthScans.runScanForAllSites,
 );
 
+/* ── CRM inbound sync polling every 30 minutes ───────────────────────────── */
+crons.interval(
+  "crm-inbound-sync",
+  { minutes: 30 },
+  internal.crm.pollAllSitesInbound,
+);
+
 export default crons;

@@ -13,7 +13,7 @@ import {
   TrendingUp, TrendingDown, Minus, Zap, Search, Eye, Shield,
   FileText, Mail, CreditCard, Image as ImageIcon, Monitor,
   Smartphone, Wifi, DatabaseBackup, ChevronDown, ChevronUp, Bell, BellOff,
-  Gauge, BarChart3, ArrowRight,
+  Gauge, BarChart3, ArrowRight, Building2, ArrowUpCircle, ArrowDownCircle,
 } from "lucide-react";
 
 const CATEGORY_META: Record<string, { label: string; icon: any; description: string; fixRoute?: string }> = {
@@ -30,6 +30,26 @@ const CATEGORY_META: Record<string, { label: string; icon: any; description: str
   uptime: { label: "Uptime", icon: Wifi, description: "Site availability, 24h uptime percentage" },
   backups: { label: "Backup Status", icon: DatabaseBackup, description: "Automated backup frequency and last run", fixRoute: "backups" },
 };
+
+function CrmStatusBadge({ status }: { status: string | null | undefined }) {
+  if (status === "up" || status === "connected" || status === "healthy") {
+    return <Badge className="bg-green-100 text-green-700 border-green-200"><CheckCircle2 className="w-3 h-3 mr-1" />Connected</Badge>;
+  }
+  if (status === "down" || status === "not_connected") {
+    return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Not Connected</Badge>;
+  }
+  return <Badge variant="secondary"><AlertTriangle className="w-3 h-3 mr-1" />Unknown</Badge>;
+}
+
+function CrmHealthBadge({ apiHealth }: { apiHealth: string | null | undefined }) {
+  if (apiHealth === "healthy") {
+    return <Badge className="bg-green-100 text-green-700 border-green-200"><CheckCircle2 className="w-3 h-3 mr-1" />Healthy</Badge>;
+  }
+  if (apiHealth === "unreachable" || apiHealth === "error") {
+    return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Unreachable</Badge>;
+  }
+  return <Badge variant="secondary"><AlertTriangle className="w-3 h-3 mr-1" />Unknown</Badge>;
+}
 
 function ScoreRing({ score, size = 80 }: { score: number; size?: number }) {
   const color = score >= 75 ? "#16a34a" : score >= 50 ? "#d97706" : "#dc2626";
@@ -163,6 +183,7 @@ function NotificationItem({ notification, onDismiss }: { notification: any; onDi
 export default function HealthMonitor({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
+  const crmStats = useQuery(api.crm.getSyncStats, { siteId });
 
   const latestScan = useQuery(api.healthScans.getLatestScan, { siteId });
   const scanHistory = useQuery(api.healthScans.getScanHistory, { siteId, limit: 7 });
@@ -268,6 +289,57 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
             {isScanning ? "Scanning…" : "Run Scan"}
           </Button>
         </div>
+      </div>
+
+      {/* ── CRM Health Card ── */}
+      <div className="mb-6">
+        <h2 className="text-base font-semibold text-slate-700 mb-3 flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-slate-500" /> Operon CRM Connector™
+        </h2>
+        {crmStats === undefined ? (
+          <Skeleton className="h-28" />
+        ) : crmStats === null ? (
+          <div className="bg-white border border-slate-200 rounded-xl p-5 text-center">
+            <p className="text-sm text-slate-400">No Operon CRM connection configured for this site.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <p className="text-xs text-slate-500 font-medium mb-2 flex items-center gap-1">
+                <Activity className="w-3.5 h-3.5" /> Connection
+              </p>
+              <CrmStatusBadge status={crmStats.connectionStatus} />
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <p className="text-xs text-slate-500 font-medium mb-2 flex items-center gap-1">
+                <RefreshCw className="w-3.5 h-3.5" /> API Health
+              </p>
+              <CrmHealthBadge apiHealth={crmStats.apiHealth} />
+              {crmStats.lastHealthCheckAt && (
+                <p className="text-[10px] text-slate-400 mt-1">{new Date(crmStats.lastHealthCheckAt).toLocaleString()}</p>
+              )}
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <p className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
+                <ArrowUpCircle className="w-3.5 h-3.5 text-blue-500" /> Syncs (last 50)
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-lg font-bold text-green-600">{crmStats.recentSuccessCount}</span>
+                <span className="text-slate-400 text-xs">ok</span>
+                <span className="text-lg font-bold text-red-500">{crmStats.recentFailedCount}</span>
+                <span className="text-slate-400 text-xs">failed</span>
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <p className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
+                <ArrowDownCircle className="w-3.5 h-3.5 text-green-500" /> Last Sync
+              </p>
+              <p className="text-sm font-medium text-slate-700 mt-1">
+                {crmStats.lastSyncAt ? new Date(crmStats.lastSyncAt).toLocaleString() : "Never"}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {isLoading ? (

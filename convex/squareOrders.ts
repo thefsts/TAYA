@@ -70,11 +70,36 @@ export const upsertOrderFromWebhook = internalMutation({
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
       .filter((q) => q.eq(q.field("squareOrderId"), squareOrderId))
       .first();
+
+    let orderId;
     if (existing) {
       await ctx.db.patch(existing._id, fields as any);
-      return existing._id;
+      orderId = existing._id;
+    } else {
+      orderId = await ctx.db.insert("squareOrders", { siteId, squareOrderId, ...fields });
     }
-    return ctx.db.insert("squareOrders", { siteId, squareOrderId, ...fields });
+
+    // Auto-trigger CRM payment_notification sync when order is completed.
+    // Routes through syncToCrm which enforces connection check + entity toggle.
+    if (fields.status === "COMPLETED") {
+      await ctx.scheduler.runAfter(0, internal.crm.syncToCrm, {
+        siteId,
+        provider: "operon",
+        entityType: "payment_notification",
+        direction: "outbound",
+        entityRef: orderId.toString(),
+        payload: {
+          square_order_id: squareOrderId,
+          customer_name: fields.customerName,
+          customer_email: fields.customerEmail,
+          item_name: fields.itemName,
+          amount_cents: fields.amountCents,
+          status: fields.status,
+        },
+      });
+    }
+
+    return orderId;
   },
 });
 
