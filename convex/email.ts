@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, requireDesignCapability } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
@@ -28,7 +28,7 @@ export const update = mutation({
     notifyOnBooking: v.optional(v.boolean()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     let docId;
     if (existing) {

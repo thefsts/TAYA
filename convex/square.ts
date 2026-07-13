@@ -1,7 +1,7 @@
 import { query, mutation, action, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, requireSiteAccessMutation, requireDesignCapability } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
@@ -87,7 +87,7 @@ export const updateConfig = mutation({
     webhookSignatureKey: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.query("squareConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     const connected = Boolean((fields.applicationId ?? existing?.applicationId) && (fields.locationId ?? existing?.locationId) && (fields.accessToken ?? existing?.accessToken));
     let docId;

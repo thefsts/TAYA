@@ -1,7 +1,7 @@
 import { query, mutation, internalMutation, internalAction, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, requireSiteAccessMutation, requireDesignCapability } from "./lib/requireSiteAccess";
 import { encryptField } from "./lib/encrypt";
 import { getProvider } from "./lib/crmProviders";
 
@@ -92,7 +92,7 @@ export const updateConnection = mutation({
     lastSyncAt: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, provider = "operon", apiKey, ...rest }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
 
     const patch: Record<string, unknown> = { ...rest };
@@ -123,7 +123,7 @@ export const updateConnection = mutation({
 export const disconnectConnection = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     if (existing) {
       await ctx.db.patch(existing._id, { status: "not_connected", apiKeyEncrypted: undefined, apiKeyLast4: undefined, accountName: undefined, orgId: undefined });
@@ -135,7 +135,7 @@ export const disconnectConnection = mutation({
 export const testConnection = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     const isConnected = existing?.status === "connected";
     const apiHealth = isConnected ? "healthy" : "unreachable";
@@ -150,7 +150,7 @@ export const testConnection = mutation({
 export const launchSso = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     const ssoEnabled = existing?.ssoEnabled ?? false;
     if (!ssoEnabled) {

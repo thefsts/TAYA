@@ -134,3 +134,22 @@ export async function requireModuleAccess(
   }
   throw new Error(`Forbidden: ${requiredLevel} access required for ${module}`);
 }
+
+/**
+ * Enforces the Global Design Lock™ — only FSTS super-admins may mutate
+ * design-tier capabilities (navigation, footer, email config, integrations,
+ * system settings, and branding). Client-role users are blocked even if they
+ * have write access to the site.
+ */
+export async function requireDesignCapability(
+  ctx: MutationCtx,
+  siteId: Id<"sites">
+): Promise<CurrentUser> {
+  const user = await requireSiteAccessMutation(ctx, siteId);
+  if (!user.isSuperAdmin) {
+    throw new Error(
+      "Design Lock: this section is managed by FSTS administrators and cannot be modified by client users."
+    );
+  }
+  return user;
+}

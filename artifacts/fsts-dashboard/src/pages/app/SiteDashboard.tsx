@@ -2,7 +2,7 @@ import { useLocation, useParams, Link } from "wouter";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { ExternalLink, ShieldAlert, Mail as MailIcon, FileEdit } from "lucide-react";
+import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit, Lock } from "lucide-react";
 import {
   ArrowLeft,
   LayoutTemplate,
@@ -33,16 +33,47 @@ import {
   ShoppingBag,
   ScrollText,
   FormInput,
-  ShieldCheck,
+  ShieldCheck as ShieldCheckIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AIAssistant } from "@/components/AIAssistant";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-function NavItem({ icon: Icon, label, href }: { icon: any, label: string, href: string }) {
+function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin }: {
+  icon: any;
+  label: string;
+  href: string;
+  isDesignLocked?: boolean;
+  isSuperAdmin?: boolean;
+}) {
   const [location] = useLocation();
   const isActive = location === href;
+  const locked = isDesignLocked && !isSuperAdmin;
+
+  if (locked) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center w-full h-10 px-3 rounded-md text-slate-400 cursor-not-allowed opacity-60 select-none">
+            <Icon className="mr-3 h-4 w-4 text-slate-400" />
+            <span className="flex-1 text-sm text-left font-normal">{label}</span>
+            <Lock className="h-3 w-3 text-slate-400 ml-1" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="text-xs max-w-xs">
+          <div className="flex items-start gap-2">
+            <Lock className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+            <span>
+              <strong>{label}</strong> is managed by FSTS administrators.
+              Contact your FSTS representative to make changes.
+            </span>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
 
   return (
     <Link href={href}>
@@ -51,7 +82,10 @@ function NavItem({ icon: Icon, label, href }: { icon: any, label: string, href: 
         className={`w-full justify-start h-10 px-3 ${isActive ? 'bg-primary/10 text-primary font-medium hover:bg-primary/15' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-normal'}`}
       >
         <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-primary' : 'text-slate-500'}`} />
-        {label}
+        <span className="flex-1">{label}</span>
+        {isDesignLocked && isSuperAdmin && (
+          <Lock className="h-3 w-3 text-slate-300 ml-1 flex-shrink-0" />
+        )}
       </Button>
     </Link>
   );
@@ -59,11 +93,13 @@ function NavItem({ icon: Icon, label, href }: { icon: any, label: string, href: 
 
 export function AppLayout({ children, siteId }: { children: React.ReactNode, siteId: string }) {
   const site = useQuery(api.sites.get, { siteId: siteId as Id<"sites"> });
+  const me = useQuery(api.users.me);
   const [location] = useLocation();
   const modules = site?.enabledModules as Record<string, boolean> | undefined;
   const isEnabled = (key: string) => modules?.[key] ?? true;
   const unreadNotifications = useQuery(api.healthScans.getUnreadNotificationCount, { siteId: siteId as Id<"sites"> });
   const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
+  const isSuperAdmin = me?.isSuperAdmin ?? false;
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -106,46 +142,58 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
 
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3">Content</div>
-          <NavItem icon={Activity} label="Dashboard" href={`/app/sites/${siteId}`} />
-          {isEnabled("homepage") && <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} />}
-          {isEnabled("courses") && <NavItem icon={BookOpen} label="Courses" href={`/app/sites/${siteId}/courses`} />}
-          {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} />}
-          {isEnabled("articles") && <NavItem icon={FileText} label="Articles" href={`/app/sites/${siteId}/articles`} />}
-          {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} />}
-          <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} />
-          <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} />
-          <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} />
-          <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} />
+          <NavItem icon={Activity} label="Dashboard" href={`/app/sites/${siteId}`} isSuperAdmin={isSuperAdmin} />
+          {isEnabled("homepage") && <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("courses") && <NavItem icon={BookOpen} label="Courses" href={`/app/sites/${siteId}/courses`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("articles") && <NavItem icon={FileText} label="Articles" href={`/app/sites/${siteId}/articles`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} isSuperAdmin={isSuperAdmin} />}
+          <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} isSuperAdmin={isSuperAdmin} />
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Site Modules</div>
-          {isEnabled("navigation") && <NavItem icon={Navigation} label="Navigation" href={`/app/sites/${siteId}/navigation`} />}
-          {isEnabled("announcement") && <NavItem icon={Megaphone} label="Announcement Banner" href={`/app/sites/${siteId}/announcement`} />}
-          {isEnabled("cta") && <NavItem icon={MousePointerClick} label="CTA Buttons" href={`/app/sites/${siteId}/cta`} />}
-          {isEnabled("team") && <NavItem icon={Users} label="Team" href={`/app/sites/${siteId}/team`} />}
-          {isEnabled("careers") && <NavItem icon={Briefcase} label="Careers" href={`/app/sites/${siteId}/careers`} />}
-          {isEnabled("downloads") && <NavItem icon={Download} label="Downloads" href={`/app/sites/${siteId}/downloads`} />}
-          {isEnabled("popup") && <NavItem icon={Bell} label="Popup" href={`/app/sites/${siteId}/popup`} />}
-          {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policy`} />}
+          {isEnabled("navigation") && (
+            <NavItem icon={Navigation} label="Navigation" href={`/app/sites/${siteId}/nav`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          )}
+          {isEnabled("announcement") && <NavItem icon={Megaphone} label="Announcement Banner" href={`/app/sites/${siteId}/announcement`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("cta") && <NavItem icon={MousePointerClick} label="CTA Buttons" href={`/app/sites/${siteId}/cta`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("team") && <NavItem icon={Users} label="Team" href={`/app/sites/${siteId}/team`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("careers") && <NavItem icon={Briefcase} label="Careers" href={`/app/sites/${siteId}/careers`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("downloads") && <NavItem icon={Download} label="Downloads" href={`/app/sites/${siteId}/downloads`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("popup") && <NavItem icon={Bell} label="Popup" href={`/app/sites/${siteId}/popup`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policies`} isSuperAdmin={isSuperAdmin} />}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Configuration</div>
-          <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} />
-          {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} />}
-          {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} />}
-          {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} />}
-          {isEnabled("payments") && <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} />}
-          {isEnabled("commerce") && <NavItem icon={ShoppingBag} label="Commerce" href={`/app/sites/${siteId}/commerce`} />}
-          {isEnabled("email") && <NavItem icon={Mail} label="Email Config" href={`/app/sites/${siteId}/email`} />}
+          <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isSuperAdmin={isSuperAdmin} />
+          {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("footer") && (
+            <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          )}
+          {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("payments") && (
+            <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          )}
+          {isEnabled("commerce") && (
+            <NavItem icon={ShoppingBag} label="Commerce" href={`/app/sites/${siteId}/commerce`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          )}
+          {isEnabled("email") && (
+            <NavItem icon={Mail} label="Email Config" href={`/app/sites/${siteId}/email`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          )}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Marketing &amp; CRM</div>
-          {isEnabled("crm") && <NavItem icon={Building2} label="Marketing & CRM" href={`/app/sites/${siteId}/crm`} />}
+          {isEnabled("crm") && (
+            <NavItem icon={Building2} label="Marketing & CRM" href={`/app/sites/${siteId}/crm`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          )}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">System</div>
-          <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} />
-          <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} />
-          <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} />
-          <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} />
-          <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} />
-          <NavItem icon={ShieldCheck} label="My Permissions" href={`/app/sites/${siteId}/permissions`} />
+          <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={ShieldCheckIcon} label="My Permissions" href={`/app/sites/${siteId}/permissions`} isSuperAdmin={isSuperAdmin} />
         </nav>
 
         {(site?.poweredByFsts ?? true) && (

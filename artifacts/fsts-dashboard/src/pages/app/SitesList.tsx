@@ -107,6 +107,10 @@ export default function SitesList() {
                 <ShieldCheck className="h-4 w-4 mr-2 text-slate-500" />
                 Access Control
               </Button>
+              <Button variant="outline" onClick={() => setLocation("/app/admin/design-lock")}>
+                <ShieldCheck className="h-4 w-4 mr-2 text-slate-500" />
+                Design Lock™
+              </Button>
               <Button onClick={() => setLocation("/app/admin/sites")} className="bg-primary hover:bg-primary/90 text-white">
                 <Settings className="h-4 w-4 mr-2" />
                 Global Settings

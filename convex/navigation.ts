@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess, requireDesignCapability } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 
 function toResponse(doc: any) {
@@ -28,7 +28,7 @@ export const create = mutation({
     openInNewTab: v.optional(v.boolean()),
   },
   handler: async (ctx, { siteId, isVisible, openInNewTab, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requireDesignCapability(ctx, siteId);
     const count = (await ctx.db.query("navigationItems").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
     const id = await ctx.db.insert("navigationItems", {
       siteId,
@@ -54,7 +54,7 @@ export const update = mutation({
     order: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, navItemId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.get(navItemId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.patch(navItemId, fields);
@@ -65,7 +65,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), navItemId: v.id("navigationItems") },
   handler: async (ctx, { siteId, navItemId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requireDesignCapability(ctx, siteId);
     const existing = await ctx.db.get(navItemId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.delete(navItemId);
@@ -79,7 +79,7 @@ export const reorder = mutation({
     orderedIds: v.array(v.id("navigationItems")),
   },
   handler: async (ctx, { siteId, orderedIds }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requireDesignCapability(ctx, siteId);
     for (let i = 0; i < orderedIds.length; i++) {
       const doc = await ctx.db.get(orderedIds[i]);
       if (doc && doc.siteId === siteId) {

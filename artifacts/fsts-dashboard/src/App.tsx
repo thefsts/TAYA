@@ -18,6 +18,8 @@ import SiteDashboard from "@/pages/app/SiteDashboard";
 import AdminUsers from "@/pages/app/admin/AdminUsers";
 import AdminSites from "@/pages/app/admin/AdminSites";
 import AdminAccessControl from "@/pages/app/admin/AdminAccessControl";
+import AdminDesignLock from "@/pages/app/admin/AdminDesignLock";
+import DesignLockGuard from "@/components/DesignLockGuard";
 import HomepageEditor from "@/pages/app/sites/HomepageEditor";
 import CoursesList from "@/pages/app/sites/CoursesList";
 import EventsList from "@/pages/app/sites/EventsList";
@@ -246,6 +248,23 @@ function HomeRedirect() {
   );
 }
 
+function withDesignLock<P extends object>(Component: React.ComponentType<P>) {
+  return function GuardedComponent(props: P) {
+    return <DesignLockGuard><Component {...props} /></DesignLockGuard>;
+  };
+}
+
+const FooterEditorGuarded = withDesignLock(FooterEditor);
+const PaymentsConfigGuarded = withDesignLock(PaymentsConfig);
+const CommerceGuarded = withDesignLock(Commerce);
+const EmailConfigGuarded = withDesignLock(EmailConfig);
+const CrmConnectionConfigGuarded = withDesignLock(CrmConnectionConfig);
+const HealthMonitorGuarded = withDesignLock(HealthMonitor);
+const NavigationManagerGuarded = withDesignLock(NavigationManager);
+const VersionHistoryGuarded = withDesignLock(VersionHistory);
+const ActivityLogGuarded = withDesignLock(ActivityLog);
+const BackupsListGuarded = withDesignLock(BackupsList);
+
 function AppRouter() {
   const [, setLocation] = useLocation();
 
@@ -274,6 +293,7 @@ function AppRouter() {
           <Route path="/app/admin/users" component={AdminUsers} />
           <Route path="/app/admin/sites" component={AdminSites} />
           <Route path="/app/admin/access-control" component={AdminAccessControl} />
+          <Route path="/app/admin/design-lock" component={AdminDesignLock} />
 
           <Route path="/app/sites/:siteId" component={SiteDashboard} />
           <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />
@@ -282,27 +302,27 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/articles" component={ArticlesList} />
           <Route path="/app/sites/:siteId/seo" component={SeoSettings} />
           <Route path="/app/sites/:siteId/media" component={MediaLibrary} />
-          <Route path="/app/sites/:siteId/footer" component={FooterEditor} />
+          <Route path="/app/sites/:siteId/footer" component={FooterEditorGuarded} />
           <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
-          <Route path="/app/sites/:siteId/payments" component={PaymentsConfig} />
-          <Route path="/app/sites/:siteId/commerce" component={Commerce} />
-          <Route path="/app/sites/:siteId/email" component={EmailConfig} />
-          <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfig} />
+          <Route path="/app/sites/:siteId/payments" component={PaymentsConfigGuarded} />
+          <Route path="/app/sites/:siteId/commerce" component={CommerceGuarded} />
+          <Route path="/app/sites/:siteId/email" component={EmailConfigGuarded} />
+          <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfigGuarded} />
           <Route path="/app/sites/:siteId/faq" component={FaqManager} />
           <Route path="/app/sites/:siteId/testimonials" component={TestimonialsManager} />
           <Route path="/app/sites/:siteId/inbox" component={FormSubmissions} />
-          <Route path="/app/sites/:siteId/health" component={HealthMonitor} />
+          <Route path="/app/sites/:siteId/health" component={HealthMonitorGuarded} />
           <Route path="/app/sites/:siteId/policies" component={PolicyEditor} />
-          <Route path="/app/sites/:siteId/nav" component={NavigationManager} />
+          <Route path="/app/sites/:siteId/nav" component={NavigationManagerGuarded} />
           <Route path="/app/sites/:siteId/announcement" component={AnnouncementBanner} />
           <Route path="/app/sites/:siteId/cta" component={CtaManager} />
           <Route path="/app/sites/:siteId/downloads" component={DownloadsManager} />
           <Route path="/app/sites/:siteId/team" component={TeamManager} />
           <Route path="/app/sites/:siteId/careers" component={CareersManager} />
           <Route path="/app/sites/:siteId/popup" component={PopupManager} />
-          <Route path="/app/sites/:siteId/history" component={VersionHistory} />
-          <Route path="/app/sites/:siteId/activity" component={ActivityLog} />
-          <Route path="/app/sites/:siteId/backups" component={BackupsList} />
+          <Route path="/app/sites/:siteId/history" component={VersionHistoryGuarded} />
+          <Route path="/app/sites/:siteId/activity" component={ActivityLogGuarded} />
+          <Route path="/app/sites/:siteId/backups" component={BackupsListGuarded} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
 
           {/* WOS Phase 2 — Website Settings */}
