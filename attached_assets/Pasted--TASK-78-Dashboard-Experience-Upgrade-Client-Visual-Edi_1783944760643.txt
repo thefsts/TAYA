@@ -1,0 +1,607 @@
+# TASK 78 — Dashboard Experience Upgrade (Client Visual Editor + AI Assistant + Website Health Center)
+
+**Priority:** CRITICAL
+
+## Project Goal
+
+Further evolve the **FSTS Website Operating System™ (FSTS-WOS)** into a premium website management platform.
+
+The dashboard should allow clients to confidently manage their websites without needing web design experience while protecting the professional appearance of every site.
+
+These features become part of the **FSTS-WOS™ Core Platform** and will automatically be available for every future client website.
+
+---
+
+# FEATURE 1 — Responsive Live Preview Studio™
+
+## Objective
+
+Allow clients to preview exactly how their website will appear before publishing.
+
+Every content editor should include a real-time preview panel.
+
+Supported devices:
+
+* Desktop (1920px)
+* Laptop (1440px)
+* Tablet Landscape
+* Tablet Portrait
+* iPhone
+* Android Phone
+
+Supported editors:
+
+* Homepage
+* Hero Sections
+* Courses
+* Events
+* Blog / Knowledge Center
+* Team Members
+* Testimonials
+* Footer
+* Contact
+* Careers
+* Forms
+* Popups
+
+Preview updates instantly while editing.
+
+No refresh.
+
+No republish required.
+
+---
+
+### Preview Controls
+
+Include:
+
+* Desktop / Laptop / Tablet / Mobile selector
+* Rotate device
+* Zoom controls
+* Safe-area overlays
+* Pixel dimensions
+* Responsive breakpoints
+* Scroll preview
+* Animation preview
+* Mobile navigation preview
+* Dark / Light preview
+* Print preview (optional)
+
+Publishing workflow:
+
+Draft
+
+↓
+
+Preview
+
+↓
+
+Validation
+
+↓
+
+Publish
+
+Never publish without preview.
+
+---
+
+# FEATURE 2 — Smart Image Manager™
+
+## Objective
+
+Help clients upload perfectly sized images every time.
+
+Prevent stretched, blurry, oversized, or poorly cropped images.
+
+---
+
+## AI Crop Assistant
+
+Automatically detect:
+
+* Faces
+* People
+* Logos
+* Text
+* Products
+* Important objects
+
+Never crop these automatically.
+
+Instead recommend the best crop.
+
+---
+
+## Smart Crop Presets
+
+* Hero
+* Banner
+* Card
+* Portrait
+* Landscape
+* Square
+* Team Member
+* Logo
+* Background
+* Blog Image
+* Event Flyer
+
+---
+
+## Built-in Image Editor
+
+Allow:
+
+* Drag
+* Zoom
+* Scale
+* Rotate
+* Flip
+* Brightness
+* Contrast
+* Saturation
+* Sharpen
+* Reset
+* Center Subject
+* Rule of Thirds Grid
+* Safe Crop Overlay
+* Aspect Ratio Lock
+
+---
+
+## Automatic Optimization
+
+Generate:
+
+* Desktop version
+* Tablet version
+* Mobile version
+* Retina version
+* WebP
+* AVIF (when supported)
+
+Automatically enable:
+
+* Lazy loading
+* Compression
+* Responsive image sizes
+
+---
+
+## Upload Limits
+
+For websites without external object storage:
+
+Hero Images
+
+* Maximum: 3 MB
+* Recommended: 1920×1080
+
+Cards
+
+* Maximum: 1 MB
+* Recommended: 1200×800
+
+Team Photos
+
+* Maximum: 500 KB
+* Recommended: 600×600
+
+Logos
+
+* Maximum: 300 KB
+* SVG preferred
+* PNG supported
+
+Blog Images
+
+* Maximum: 1 MB
+
+Background Images
+
+* Maximum: 2 MB
+
+If limits are exceeded:
+
+Show:
+
+"This image is larger than recommended. Optimize now?"
+
+Provide one-click optimization.
+
+---
+
+## Image Quality Report
+
+Display:
+
+* Resolution
+* Dimensions
+* File Size
+* Compression Savings
+* Alt Text Status
+* SEO Score
+* Performance Score
+
+---
+
+# FEATURE 3 — FSTS AI Dashboard Assistant™
+
+## Objective
+
+Embed an AI assistant directly inside every dashboard.
+
+The AI acts as:
+
+* Website Coach
+* CMS Expert
+* SEO Advisor
+* Accessibility Advisor
+* Content Assistant
+* Image Advisor
+* Troubleshooter
+* Onboarding Guide
+
+---
+
+## AI Capabilities
+
+Help clients:
+
+* Edit homepage content
+* Create events
+* Build courses
+* Publish articles
+* Improve SEO
+* Optimize images
+* Create FAQs
+* Update contact information
+* Manage media
+* Build forms
+* Manage careers
+* Publish content
+* Connect Square
+* Understand dashboard features
+
+---
+
+## Context-Aware Assistance
+
+The AI automatically knows the current dashboard section.
+
+Examples:
+
+Events
+
+"I can help you create, duplicate, schedule, and publish an event."
+
+Media
+
+"I can help resize, crop, compress, and optimize images."
+
+SEO
+
+"I can review this page and suggest improvements."
+
+---
+
+## Intelligent Validation
+
+Before Publish
+
+Automatically check:
+
+* Missing Images
+* Broken Links
+* SEO Issues
+* Missing Alt Text
+* Accessibility
+* Large Images
+* Grammar
+* Spelling
+* Metadata
+* Empty Fields
+* Duplicate Content
+* Performance
+
+Generate:
+
+* Website Health Score
+* SEO Score
+* Accessibility Score
+* Performance Score
+* Content Quality Score
+
+---
+
+## Interactive Client Onboarding
+
+Replace static documentation with guided walkthroughs.
+
+Guide clients through:
+
+* Homepage editing
+* Creating events
+* Managing courses
+* Uploading images
+* Updating pricing
+* Publishing articles
+* Connecting Square
+* Managing users
+
+---
+
+## Safe Editing Rules
+
+The AI must NEVER allow clients to:
+
+* Change layouts
+* Modify templates
+* Delete protected components
+* Edit developer settings
+* Access another client's data
+* Modify platform code
+* Break responsive layouts
+
+The AI should only recommend content-level changes.
+
+---
+
+# FEATURE 4 — Website Health Command Center™
+
+## Objective
+
+Provide every client with a single dashboard showing the overall health of their website.
+
+This should become the first screen clients see after logging in.
+
+The Command Center should give clients confidence that their website is healthy while helping them quickly identify issues before they affect visitors.
+
+---
+
+## Overall Website Health Score
+
+Display a single overall score from **0–100** based on weighted categories.
+
+Example:
+
+**Website Health: 96 / 100**
+
+Status:
+
+* 🟢 Excellent
+* 🟡 Needs Attention
+* 🔴 Critical Issues
+
+---
+
+## Individual Health Scores
+
+Display separate score cards for:
+
+* Performance
+* SEO
+* Accessibility
+* Security
+* Forms & Lead Capture
+* Email Delivery
+* Square Payments
+* Media Optimization
+* Content Quality
+* Mobile Experience
+* Uptime
+* Backup Status
+
+Each score should include:
+
+* Current Status
+* Last Scan
+* Trend (Improving / Stable / Declining)
+* Recommended Actions
+
+---
+
+## Automated Website Scans
+
+Run scheduled health checks to verify:
+
+### Performance
+
+* Page speed
+* Largest Contentful Paint (LCP)
+* Cumulative Layout Shift (CLS)
+* Time to Interactive (TTI)
+* Image optimization
+* JavaScript size
+* CSS optimization
+
+### SEO
+
+* Missing meta titles
+* Missing descriptions
+* Duplicate titles
+* Broken internal links
+* Missing Open Graph tags
+* Missing Schema
+* Missing alt text
+* Sitemap status
+* Robots.txt status
+
+### Accessibility
+
+* Color contrast
+* Keyboard navigation
+* Form labels
+* ARIA attributes
+* Heading hierarchy
+* Reduced motion support
+
+### Security
+
+* HTTPS enabled
+* SSL certificate validity
+* Mixed content detection
+* Secure headers
+* Environment variable validation
+
+### Forms
+
+* Contact forms
+* Event registration
+* Course registration
+* Newsletter forms
+* Form validation
+* Spam protection
+* Submission delivery
+
+### Payments
+
+Verify:
+
+* Square connection
+* Payment buttons
+* Catalog mapping
+* Payment links
+* Webhooks
+* Checkout status
+
+### Email
+
+Verify:
+
+* SMTP / Resend connection
+* Sender identity
+* Delivery status
+* Failed sends
+* Bounce rate
+
+### Content
+
+Detect:
+
+* Outdated pages
+* Missing images
+* Empty sections
+* Duplicate copy
+* Placeholder content
+
+---
+
+## One-Click Fixes
+
+Where possible, provide a **Fix Now** button.
+
+Examples:
+
+* Optimize images
+* Generate missing alt text
+* Compress media
+* Repair broken links
+* Improve SEO metadata
+* Clear cache
+* Republish content
+
+If manual action is required, the AI Assistant should explain the issue and guide the client through resolving it.
+
+---
+
+## Health History
+
+Keep a historical record of website health.
+
+Display:
+
+* Daily
+* Weekly
+* Monthly
+* Quarterly
+
+Charts for:
+
+* Performance trends
+* SEO trends
+* Traffic trends (future integration)
+* Content growth
+* Uptime history
+
+---
+
+## Notifications
+
+Alert clients when:
+
+* SSL is about to expire
+* Forms stop working
+* Square disconnects
+* Email delivery fails
+* Images exceed size limits
+* Website performance drops
+* Broken links are detected
+* Scheduled backups fail
+
+Allow:
+
+* Email notifications
+* Dashboard notifications
+* Future Operon CRM notifications
+
+---
+
+# Platform Standards
+
+These features become permanent components of the **FSTS Website Operating System™**.
+
+Every future client website automatically includes:
+
+* Responsive Live Preview Studio™
+* Smart Image Manager™
+* FSTS AI Dashboard Assistant™
+* Website Health Command Center™
+
+---
+
+# QA Requirements
+
+Verify:
+
+* Responsive preview matches the live website.
+* Image crops remain consistent across devices.
+* Upload limits are enforced.
+* Images are optimized automatically.
+* AI Assistant provides context-aware guidance.
+* AI onboarding works for first-time users.
+* Publish validation catches common issues.
+* Website Health scores update correctly.
+* Automated scans run successfully.
+* One-click fixes work where supported.
+* Lighthouse performance remains high.
+* Accessibility remains compliant.
+* No protected layout controls are exposed to clients.
+
+---
+
+# Completion Report
+
+Provide:
+
+* New dashboard modules created
+* Components added
+* Convex schema updates
+* AI assistant architecture
+* Responsive preview implementation
+* Smart Image Manager workflow
+* Website Health Command Center implementation
+* Automated scan architecture
+* Notification system
+* QA results
+* Performance impact
+* Remaining recommendations
+
+---
+
+## PROJECT STANDARD
+
+The **FSTS Website Operating System™** should become a premium, enterprise-grade website management platform that combines the ease of use of WordPress with the reliability of a protected design system. Clients should be empowered to manage content confidently while developers retain full control over layouts, templates, and platform integrity. Every feature should be reusable across all future client websites, reinforcing scalability, consistency, and long-term maintainability.
