@@ -12,6 +12,7 @@
     "test:visual": "pnpm --filter @workspace/visual-regression run test",
     "test:visual:update": "pnpm --filter @workspace/visual-regression run test:update",
     "test:visual:report": "pnpm --filter @workspace/scripts run visual-diff-report",
+    "test:convex-unit": "pnpm --filter @workspace/convex-unit run test",
     "test:e2e": "pnpm --filter @workspace/e2e run test",
     "test:e2e:report": "pnpm --filter @workspace/e2e run test:report"
   },
