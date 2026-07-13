@@ -55,6 +55,17 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
       "@convex": path.resolve(import.meta.dirname, "..", "..", "convex"),
+      // Point directly at TS source so Vite transpiles it natively.
+      // Avoids CJS dist static-analysis failures in Rollup.
+      "@workspace/embed-widget": path.resolve(
+        import.meta.dirname,
+        "..",
+        "..",
+        "lib",
+        "embed-widget",
+        "src",
+        "index.ts",
+      ),
     },
     dedupe: ["react", "react-dom"],
   },
@@ -74,6 +85,7 @@ export default defineConfig({
         path.resolve(import.meta.dirname),
         path.resolve(import.meta.dirname, "..", "..", "convex"),
         path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
+        path.resolve(import.meta.dirname, "..", "..", "lib", "embed-widget", "src"),
       ],
     },
   },
