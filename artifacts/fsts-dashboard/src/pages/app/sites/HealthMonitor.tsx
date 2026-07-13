@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useAction, useMutation } from "convex/react";
 import { Link } from "wouter";
 import { api } from "@convex/_generated/api";
@@ -222,6 +222,14 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
   const [isScanning, setIsScanning] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [filter, setFilter] = useState<"all" | "critical" | "warning">("all");
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeTooltip) return;
+    const dismiss = () => setActiveTooltip(null);
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [activeTooltip]);
 
   const handleScan = async () => {
     setIsScanning(true);
@@ -437,8 +445,9 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
                   const meta = CATEGORY_META[key];
                   const fixPath = meta?.fixRoute ? `/app/sites/${siteId}/${meta.fixRoute}` : null;
                   const scoreColor = cat.score >= 75 ? "text-green-600" : cat.score >= 50 ? "text-amber-600" : "text-red-600";
+                  const isTooltipActive = activeTooltip === key;
                   const tooltip = meta ? (
-                    <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 rounded-md bg-slate-800 px-2.5 py-2 text-left opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                    <div className={`pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 rounded-md bg-slate-800 px-2.5 py-2 text-left shadow-lg transition-opacity ${isTooltipActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
                       <p className="text-[11px] font-semibold text-white leading-tight">{meta.label}</p>
                       <p className="mt-0.5 text-[10px] text-slate-300 leading-snug">{meta.description}</p>
                       <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
@@ -449,13 +458,31 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
                       key={key}
                       href={fixPath}
                       className="relative text-center rounded hover:bg-slate-50 transition-colors cursor-pointer group"
+                      onPointerDown={(e) => {
+                        if (e.pointerType === "touch") {
+                          e.stopPropagation();
+                          if (!isTooltipActive) {
+                            e.preventDefault();
+                            setActiveTooltip(key);
+                          } else {
+                            setActiveTooltip(null);
+                          }
+                        }
+                      }}
                     >
                       {tooltip}
                       <div className={`text-lg font-bold ${scoreColor} group-hover:underline`}>{cat.score}</div>
                       <div className="text-[10px] text-slate-400 truncate group-hover:text-slate-600">{meta?.label ?? key}</div>
                     </Link>
                   ) : (
-                    <div key={key} className="relative text-center group">
+                    <div
+                      key={key}
+                      className="relative text-center group cursor-pointer"
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        setActiveTooltip(isTooltipActive ? null : key);
+                      }}
+                    >
                       {tooltip}
                       <div className={`text-lg font-bold ${scoreColor}`}>{cat.score}</div>
                       <div className="text-[10px] text-slate-400 truncate">{meta?.label ?? key}</div>
