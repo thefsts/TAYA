@@ -809,6 +809,30 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
                             ? `Last synced ${new Date(source.lastSyncedAt).toLocaleDateString()}`
                             : "Not yet synced"}
                         </div>
+                        {source.status !== "error" && source.lastSyncStats && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {source.lastSyncStats.inserted > 0 && (
+                              <span className="inline-flex items-center text-[11px] font-medium px-1.5 py-0.5 rounded bg-green-50 text-green-700 border border-green-200">
+                                +{source.lastSyncStats.inserted} new
+                              </span>
+                            )}
+                            {source.lastSyncStats.updated > 0 && (
+                              <span className="inline-flex items-center text-[11px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">
+                                {source.lastSyncStats.updated} updated
+                              </span>
+                            )}
+                            {source.lastSyncStats.removed > 0 && (
+                              <span className="inline-flex items-center text-[11px] font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-200">
+                                −{source.lastSyncStats.removed} removed
+                              </span>
+                            )}
+                            {source.lastSyncStats.inserted === 0 && source.lastSyncStats.updated === 0 && source.lastSyncStats.removed === 0 && (
+                              <span className="inline-flex items-center text-[11px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
+                                No changes
+                              </span>
+                            )}
+                          </div>
+                        )}
                         {source.status === "error" && (
                           <div className="flex items-center gap-1 text-xs text-red-600">
                             <AlertTriangle className="h-3 w-3" />

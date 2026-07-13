@@ -588,8 +588,8 @@ export default defineSchema({
     errorMessage: v.optional(v.string()),
     lastSyncStats: v.optional(
       v.object({
-        upserted: v.number(),
-        unchanged: v.number(),
+        inserted: v.number(),
+        updated: v.number(),
         removed: v.number(),
       })
     ),

@@ -392,8 +392,8 @@ export const markSourceSynced = internalMutation({
     errorMessage: v.optional(v.string()),
     syncStats: v.optional(
       v.object({
-        upserted: v.number(),
-        unchanged: v.number(),
+        inserted: v.number(),
+        updated: v.number(),
         removed: v.number(),
       })
     ),
@@ -546,8 +546,8 @@ export const syncSiteReviews = internalAction({
         });
 
         // Track counts and build the set of live external IDs for orphan detection.
-        let upserted = 0;
-        let unchanged = 0;
+        let inserted = 0;
+        let updated = 0;
         const knownExternalIds: string[] = [];
 
         for (const rev of reviews) {
@@ -565,8 +565,8 @@ export const syncSiteReviews = internalAction({
             reviewDate: rev.reviewDate,
             cachedAt: now,
           });
-          if (result === "unchanged") unchanged++;
-          else upserted++; // "inserted" or "updated" (content-changed patch)
+          if (result === "inserted") inserted++;
+          else if (result === "updated") updated++;
         }
 
         // Remove records that no longer appear in the provider response.
@@ -585,7 +585,7 @@ export const syncSiteReviews = internalAction({
           sourceId: source._id,
           status: "active",
           errorMessage: undefined,
-          syncStats: { upserted, unchanged, removed },
+          syncStats: { inserted, updated, removed },
         });
       } catch (err: any) {
         await ctx.runMutation(internal.reviews.markSourceSynced, {
