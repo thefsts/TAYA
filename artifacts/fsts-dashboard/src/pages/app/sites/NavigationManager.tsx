@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation, Pencil, Plus, Trash2, ChevronUp, ChevronDown, ExternalLink } from "lucide-react";
+import { LockedField, DesignLockBanner } from "@/components/LockedField";
 
 type NavFormState = {
   label: string;
@@ -115,6 +116,7 @@ export default function NavigationManager({ params }: { params: { siteId: string
 
   return (
     <AppLayout siteId={params.siteId}>
+      <DesignLockBanner label="Navigation Structure" />
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Navigation Manager</h1>
@@ -122,9 +124,11 @@ export default function NavigationManager({ params }: { params: { siteId: string
             Manage your site header navigation links. Drag to reorder.
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" /> Add Nav Item
-        </Button>
+        <LockedField capabilityLabel="Navigation Structure">
+          <Button onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" /> Add Nav Item
+          </Button>
+        </LockedField>
       </div>
 
       {items.length === 0 ? (
@@ -140,14 +144,14 @@ export default function NavigationManager({ params }: { params: { siteId: string
               key={item.id}
               className="bg-white border border-slate-200 rounded-xl p-4 flex gap-3 items-center"
             >
-              <div className="flex flex-col gap-1">
+              <LockedField capabilityLabel="Navigation Structure" className="flex flex-col gap-1">
                 <button onClick={() => move(i, -1)} disabled={i === 0} className="text-slate-400 hover:text-slate-600 disabled:opacity-30">
                   <ChevronUp className="w-4 h-4" />
                 </button>
                 <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="text-slate-400 hover:text-slate-600 disabled:opacity-30">
                   <ChevronDown className="w-4 h-4" />
                 </button>
-              </div>
+              </LockedField>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-slate-900 text-sm">{item.label}</p>
@@ -158,14 +162,14 @@ export default function NavigationManager({ params }: { params: { siteId: string
                 </div>
                 <p className="text-xs text-slate-400 font-mono truncate">{item.href}</p>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
+              <LockedField capabilityLabel="Navigation Structure" className="flex gap-2 flex-shrink-0">
                 <Button size="sm" variant="outline" onClick={() => openEdit(item)}>
                   <Pencil className="w-3.5 h-3.5" />
                 </Button>
                 <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(item.id)}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
-              </div>
+              </LockedField>
             </div>
           ))}
         </div>

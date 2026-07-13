@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, CreditCard } from "lucide-react";
+import { LockedField, DesignLockBanner } from "@/components/LockedField";
 
 type SquareEnv = "sandbox" | "production";
 
@@ -170,10 +171,12 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
     <AppLayout siteId={params.siteId}>
       <h1 className="text-2xl font-bold text-slate-900 mb-1">Payments</h1>
       <p className="text-sm text-slate-500 mb-6">Square connection and catalog mappings for courses and events.</p>
+      <DesignLockBanner label="Square Payment Credentials" />
 
       {config === undefined ? (
         <Skeleton className="h-56 max-w-xl" />
       ) : (
+        <LockedField capabilityLabel="Square Payment Credentials">
         <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm max-w-xl mb-8 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <CreditCard className="h-5 w-5 text-slate-400" />
@@ -226,8 +229,10 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
             {isSavingConfig ? "Saving…" : "Save Configuration"}
           </Button>
         </div>
+        </LockedField>
       )}
 
+      <LockedField capabilityLabel="Square Payment Credentials">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-medium text-slate-900">Catalog Mappings</h2>
         <Button onClick={openCreate} size="sm">
@@ -270,6 +275,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
           </table>
         </div>
       )}
+      </LockedField>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">

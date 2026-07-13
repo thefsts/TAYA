@@ -25,6 +25,7 @@ import {
   Building2, RefreshCw, Unplug, ExternalLink,
   ArrowUpCircle, ArrowDownCircle, Clock, ChevronDown, ChevronRight,
 } from "lucide-react";
+import { LockedField, DesignLockBanner } from "@/components/LockedField";
 
 type AuthMethod = "api_key" | "oauth" | "sso";
 
@@ -238,11 +239,13 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
       <p className="text-sm text-slate-500 mb-6">
         Connect this site to Operon CRM to sync leads, contacts, registrations, payments, and more via the Operon Connector™.
       </p>
+      <DesignLockBanner label="CRM Connector Credentials" />
 
       {/* ── Connection card ── */}
       {connection === undefined ? (
         <Skeleton className="h-72 max-w-xl mb-8" />
       ) : (
+        <LockedField capabilityLabel="CRM Connector Credentials">
         <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm max-w-xl mb-8 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Building2 className="h-5 w-5 text-slate-400" />
@@ -316,9 +319,11 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
             )}
           </div>
         </div>
+        </LockedField>
       )}
 
       {/* ── Entity sync settings ── */}
+      <LockedField capabilityLabel="CRM Connector Credentials">
       <div className="mb-8">
         <h2 className="font-medium text-slate-900 mb-1">Entity Sync Settings</h2>
         <p className="text-sm text-slate-500 mb-4">
@@ -423,6 +428,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
           </div>
         )}
       </div>
+      </LockedField>
 
       {/* ── Sync logs ── */}
       <div>
