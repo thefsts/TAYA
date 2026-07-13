@@ -40,6 +40,7 @@ import type * as policies from "../policies.js";
 import type * as popup from "../popup.js";
 import type * as public_ from "../public.js";
 import type * as seo from "../seo.js";
+import type * as siteSettings from "../siteSettings.js";
 import type * as sites from "../sites.js";
 import type * as square from "../square.js";
 import type * as squareOrders from "../squareOrders.js";
@@ -87,6 +88,7 @@ declare const fullApi: ApiFromModules<{
   popup: typeof popup;
   public: typeof public_;
   seo: typeof seo;
+  siteSettings: typeof siteSettings;
   sites: typeof sites;
   square: typeof square;
   squareOrders: typeof squareOrders;

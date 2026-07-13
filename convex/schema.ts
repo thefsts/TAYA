@@ -422,4 +422,49 @@ export default defineSchema({
     delaySecs: v.optional(v.number()),
     isEnabled: v.boolean(),
   }).index("by_site", ["siteId"]),
+
+  // WOS Phase 2 — Website Settings™
+  siteSettings: defineTable({
+    siteId: v.id("sites"),
+    // Identity
+    businessName: v.optional(v.string()),
+    tagline: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
+    faviconUrl: v.optional(v.string()),
+    websiteType: v.optional(v.string()),
+    timezone: v.optional(v.string()),
+    // Branding
+    brandColorPrimary: v.optional(v.string()),
+    brandColorSecondary: v.optional(v.string()),
+    brandColorAccent: v.optional(v.string()),
+    fontHeading: v.optional(v.string()),
+    fontBody: v.optional(v.string()),
+    // Contact
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    address: v.optional(v.string()),
+    businessHours: v.optional(v.any()),
+    // Social links
+    socialLinks: v.optional(v.any()),
+    // SEO defaults
+    seoGlobalTitle: v.optional(v.string()),
+    seoGlobalDescription: v.optional(v.string()),
+    seoOgImageUrl: v.optional(v.string()),
+    // Integrations / Analytics
+    analyticsGa4: v.optional(v.string()),
+    analyticsGtm: v.optional(v.string()),
+    analyticsPixel: v.optional(v.string()),
+    cookieConsentEnabled: v.optional(v.boolean()),
+    cookiePolicyUrl: v.optional(v.string()),
+    // Legal
+    privacyPolicyUrl: v.optional(v.string()),
+    termsOfServiceUrl: v.optional(v.string()),
+    // Per-section save timestamps
+    identityUpdatedAt: v.optional(v.number()),
+    brandingUpdatedAt: v.optional(v.number()),
+    contactUpdatedAt: v.optional(v.number()),
+    seoUpdatedAt: v.optional(v.number()),
+    integrationsUpdatedAt: v.optional(v.number()),
+    legalUpdatedAt: v.optional(v.number()),
+  }).index("by_site", ["siteId"]),
 });

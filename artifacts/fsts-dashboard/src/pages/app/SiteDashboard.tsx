@@ -125,6 +125,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policy`} />}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Configuration</div>
+          <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} />
           {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} />}
           {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} />}
           {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} />}

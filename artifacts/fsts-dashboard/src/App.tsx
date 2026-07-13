@@ -46,6 +46,9 @@ import TeamManager from "@/pages/app/sites/TeamManager";
 import CareersManager from "@/pages/app/sites/CareersManager";
 import PopupManager from "@/pages/app/sites/PopupManager";
 
+// WOS Phase 2 — Website Settings
+import WebsiteSettings from "@/pages/app/sites/WebsiteSettings";
+
 // Phase 3 — Form Builder
 import FormsList from "@/pages/app/sites/FormsList";
 import FormBuilder from "@/pages/app/sites/FormBuilder";
@@ -297,6 +300,8 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/backups" component={BackupsList} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
 
+          {/* WOS Phase 2 — Website Settings */}
+          <Route path="/app/sites/:siteId/settings" component={WebsiteSettings} />
 
           {/* Phase 3 — Form Builder */}
           <Route path="/app/sites/:siteId/forms" component={FormsList} />
