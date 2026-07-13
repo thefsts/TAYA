@@ -307,6 +307,35 @@ export const updateDisplaySettings = mutation({
   },
 });
 
+/* ── One-time backfill: stamp updatedAt on legacy display settings rows ──
+ *
+ * Sites created before the `updatedAt` field was added have
+ * `updatedAt: undefined`, so `getWidgetCacheTimestamp` falls back to
+ * `_creationTime` (which never changes). Running this migration once stamps
+ * `updatedAt = _creationTime` on every affected row, making the cache
+ * timestamp consistent for all sites going forward.
+ *
+ * Safe to call repeatedly — documents that already have `updatedAt` are
+ * skipped and the function returns early when nothing is left to patch.
+ */
+export const backfillDisplaySettingsUpdatedAt = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const allSettings = await ctx.db
+      .query("reviewDisplaySettings")
+      .collect();
+
+    let patched = 0;
+    for (const doc of allSettings) {
+      if (doc.updatedAt === undefined) {
+        await ctx.db.patch(doc._id, { updatedAt: doc._creationTime });
+        patched++;
+      }
+    }
+    return { patched, total: allSettings.length };
+  },
+});
+
 /* ── Manual sync trigger ─────────────────────────────────────────────────
  * skipTtl: true — user explicitly requested a sync; bypass cache TTL.
  */
