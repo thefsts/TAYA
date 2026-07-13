@@ -48,6 +48,8 @@ import {
   Search,
   Filter,
 } from "lucide-react";
+import { LivePreviewPanel } from "@/components/LivePreviewPanel";
+import { PublishValidationModal } from "@/components/PublishValidationModal";
 
 type ArticleStatus = "draft" | "published" | "archived";
 
@@ -159,6 +161,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [validationOpen, setValidationOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("content");
@@ -210,8 +213,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
     });
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function doSave() {
     setIsPending(true);
     const tags = form.tagsRaw
       .split(",")
@@ -259,6 +261,15 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
     }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (form.status === "published") {
+      setValidationOpen(true);
+      return;
+    }
+    await doSave();
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return;
     setIsDeleting(true);
@@ -289,8 +300,19 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
   const publishedCount = (data ?? []).filter((a: any) => a.status === "published").length;
   const draftCount = (data ?? []).filter((a: any) => a.status === "draft").length;
 
+  const articleValidationData = {
+    title: form.title,
+    imageUrl: form.coverImageUrl || undefined,
+    description: form.excerpt || undefined,
+    body: form.body || undefined,
+    metaTitle: form.seoTitle || undefined,
+    metaDescription: form.metaDescription || undefined,
+    slug: form.slug,
+  };
+
   return (
     <AppLayout siteId={params.siteId}>
+      <LivePreviewPanel siteId={siteId} section="articles">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Articles</h1>
@@ -408,6 +430,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
           </table>
         </div>
       )}
+      </LivePreviewPanel>
 
       {/* ── Article Editor Dialog ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -714,6 +737,14 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PublishValidationModal
+        open={validationOpen}
+        onClose={() => setValidationOpen(false)}
+        onPublish={doSave}
+        data={articleValidationData}
+        title={editing ? `Article: ${form.title}` : "New Article"}
+      />
     </AppLayout>
   );
 }

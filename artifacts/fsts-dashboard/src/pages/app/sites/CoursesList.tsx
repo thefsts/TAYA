@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
+import { LivePreviewPanel } from "@/components/LivePreviewPanel";
+import { PublishValidationModal } from "@/components/PublishValidationModal";
 
 type CourseStatus = "draft" | "published" | "archived";
 
@@ -81,6 +83,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [validationOpen, setValidationOpen] = useState(false);
 
   function openCreate() {
     setEditing(null);
@@ -103,8 +106,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
     setDialogOpen(true);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function doSave() {
     setIsPending(true);
     try {
       if (editing) {
@@ -147,6 +149,15 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
     }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (form.status === "published") {
+      setValidationOpen(true);
+      return;
+    }
+    await doSave();
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return;
     setIsDeleting(true);
@@ -165,8 +176,16 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
     }
   }
 
+  const courseValidationData = {
+    title: form.title,
+    imageUrl: form.imageUrl || undefined,
+    description: form.description,
+    slug: form.slug,
+  };
+
   return (
     <AppLayout siteId={params.siteId}>
+      <LivePreviewPanel siteId={siteId} section="courses">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Courses</h1>
@@ -227,6 +246,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           </table>
         </div>
       )}
+      </LivePreviewPanel>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
@@ -312,6 +332,14 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PublishValidationModal
+        open={validationOpen}
+        onClose={() => setValidationOpen(false)}
+        onPublish={doSave}
+        data={courseValidationData}
+        title={editing ? `Course: ${form.title}` : "New Course"}
+      />
     </AppLayout>
   );
 }
