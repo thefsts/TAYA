@@ -276,12 +276,13 @@ function generateCdnSnippet(convexHttpUrl: string, slug: string): string {
 
 /* ── Copy button ────────────────────────────────────────────────────────── */
 
-function CopyButton({ text, className }: { text: string; className?: string }) {
+function CopyButton({ text, className, onCopy }: { text: string; className?: string; onCopy?: () => void }) {
   const [copied, setCopied] = useState(false);
   function handleCopy() {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      onCopy?.();
     });
   }
   return (
@@ -398,14 +399,18 @@ function EmbedWidgetSection({
   settings,
   reviews,
   cdnMigrated,
+  inlineEverUsed,
   onMarkMigrated,
+  onInlineCopied,
 }: {
   convexHttpUrl: string;
   slug: string;
   settings: any;
   reviews: any[];
   cdnMigrated: boolean;
+  inlineEverUsed: boolean;
   onMarkMigrated: () => void;
+  onInlineCopied: () => void;
 }) {
   const [showPreview, setShowPreview] = useState(false);
   const [activeTab, setActiveTab] = useState<EmbedTab>("cdn");
@@ -447,8 +452,8 @@ function EmbedWidgetSection({
             </div>
           )}
 
-          {/* CDN upgrade notice — shown until the site owner confirms migration */}
-          {!cdnMigrated && (
+          {/* CDN upgrade notice — only shown for sites that have copied the inline snippet and haven't migrated yet */}
+          {inlineEverUsed && !cdnMigrated && (
             <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-md px-3 py-2.5">
               <Zap className="h-4 w-4 flex-shrink-0 text-blue-500 mt-0.5" />
               <div className="flex-1 min-w-0">
@@ -537,7 +542,11 @@ function EmbedWidgetSection({
               <code>{activeSnippet}</code>
             </pre>
             <div className="absolute top-2 right-2">
-              <CopyButton text={activeSnippet} className="h-7 text-xs bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700" />
+              <CopyButton
+                text={activeSnippet}
+                className="h-7 text-xs bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700"
+                onCopy={activeTab === "inline" ? onInlineCopied : undefined}
+              />
             </div>
           </div>
 
@@ -613,6 +622,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
   const updateDisplaySettings = useMutation(api.reviews.updateDisplaySettings);
   const triggerSync = useMutation(api.reviews.triggerSync);
   const markCdnMigrated = useMutation(api.sites.markReviewsWidgetCdnMigrated);
+  const markInlineUsed = useMutation(api.sites.markReviewsWidgetInlineUsed);
 
   const [connectProvider, setConnectProvider] = useState<(typeof PROVIDERS)[number] | null>(null);
   const [disconnectId, setDisconnectId] = useState<string | null>(null);
@@ -1040,12 +1050,19 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
             settings={displaySettings}
             reviews={reviews ?? []}
             cdnMigrated={(site as any)?.reviewsWidgetCdnMigrated === true}
+            inlineEverUsed={(site as any)?.reviewsWidgetInlineEverUsed === true}
             onMarkMigrated={async () => {
               try {
                 await markCdnMigrated({ siteId });
                 toast({ title: "Marked as upgraded", description: "The upgrade notice won't appear again for this site." });
               } catch (err: any) {
                 toast({ title: "Error", description: err.message, variant: "destructive" });
+              }
+            }}
+            onInlineCopied={async () => {
+              try {
+                await markInlineUsed({ siteId });
+              } catch {
               }
             }}
           />

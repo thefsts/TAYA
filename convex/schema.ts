@@ -33,6 +33,7 @@ export default defineSchema({
     // Phase 10 — Agency Edition™
     agencyId: v.optional(v.id("agencies")),
     reviewsWidgetCdnMigrated: v.optional(v.boolean()),
+    reviewsWidgetInlineEverUsed: v.optional(v.boolean()),
   }).index("by_slug", ["slug"]).index("by_agency", ["agencyId"]),
 
   users: defineTable({
