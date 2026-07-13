@@ -58,6 +58,7 @@ import {
   deleteOrphanedReviews,
   upsertReviewInternal,
   syncSiteReviews,
+  getWidgetCacheTimestamp,
 } from "../../convex/reviews.js";
 
 // ── Accessor: unwrap the handler from the registration object ─────────────
@@ -340,3 +341,151 @@ describe("syncSiteReviews — orphan cleanup via mocked ctx", () => {
     expect(deleteCalls).toHaveLength(1);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 3. getWidgetCacheTimestamp — ETag source tracks review and settings changes
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Builds a minimal ctx.db mock for getWidgetCacheTimestamp.
+ *
+ * The handler issues two queries:
+ *   1. query("reviewDisplaySettings").withIndex("by_site", ...).first()
+ *   2. query("importedReviews").withIndex("by_site_updatedAt", ...).order("desc").first()
+ *
+ * We route by table name so each query gets its own stub result.
+ */
+function makeTimestampDb(opts: {
+  settingsUpdatedAt?: number | null;
+  settingsCreationTime?: number;
+  reviewUpdatedAt?: number | null;
+  reviewCreationTime?: number;
+}) {
+  const {
+    settingsUpdatedAt = null,
+    settingsCreationTime = 0,
+    reviewUpdatedAt = null,
+    reviewCreationTime = 0,
+  } = opts;
+
+  const settingsDoc =
+    settingsUpdatedAt !== null || settingsCreationTime
+      ? {
+          _id: "settings_1",
+          siteId: "site_1",
+          updatedAt: settingsUpdatedAt ?? undefined,
+          _creationTime: settingsCreationTime,
+          layout: "grid",
+          minRating: 4,
+          maxPerPage: 12,
+          featuredOnly: false,
+          showProviderBadge: true,
+          categoryFilter: "",
+        }
+      : null;
+
+  const reviewDoc =
+    reviewUpdatedAt !== null || reviewCreationTime
+      ? {
+          _id: "review_1",
+          siteId: "site_1",
+          updatedAt: reviewUpdatedAt ?? undefined,
+          _creationTime: reviewCreationTime,
+        }
+      : null;
+
+  return {
+    query: (table: string) => ({
+      withIndex: (_name: string, _fn: unknown) => ({
+        first: async () => (table === "reviewDisplaySettings" ? settingsDoc : null),
+        order: (_dir: string) => ({
+          first: async () => (table === "importedReviews" ? reviewDoc : null),
+        }),
+      }),
+    }),
+  };
+}
+
+describe("getWidgetCacheTimestamp — ETag source", () => {
+  const SITE_ID = "site_1" as unknown as never;
+
+  it("returns 0 when there are no settings and no reviews", async () => {
+    const db = makeTimestampDb({});
+    const ctx = { db } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+
+    const ts = await handler(getWidgetCacheTimestamp)(ctx, { siteId: SITE_ID });
+
+    expect(ts).toBe(0);
+  });
+
+  it("returns settings.updatedAt when it is the latest signal", async () => {
+    const db = makeTimestampDb({ settingsUpdatedAt: 2000, reviewUpdatedAt: 1000 });
+    const ctx = { db } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+
+    const ts = await handler(getWidgetCacheTimestamp)(ctx, { siteId: SITE_ID });
+
+    expect(ts).toBe(2000);
+  });
+
+  it("returns review.updatedAt when it is the latest signal", async () => {
+    const db = makeTimestampDb({ settingsUpdatedAt: 1000, reviewUpdatedAt: 3000 });
+    const ctx = { db } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+
+    const ts = await handler(getWidgetCacheTimestamp)(ctx, { siteId: SITE_ID });
+
+    expect(ts).toBe(3000);
+  });
+
+  it("falls back to settings._creationTime when updatedAt is absent", async () => {
+    const db = makeTimestampDb({ settingsCreationTime: 500, reviewUpdatedAt: null });
+    const ctx = { db } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+
+    const ts = await handler(getWidgetCacheTimestamp)(ctx, { siteId: SITE_ID });
+
+    expect(ts).toBe(500);
+  });
+
+  it("falls back to review._creationTime when review.updatedAt is absent", async () => {
+    const db = makeTimestampDb({ settingsUpdatedAt: 100, reviewCreationTime: 900 });
+    const ctx = { db } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+
+    const ts = await handler(getWidgetCacheTimestamp)(ctx, { siteId: SITE_ID });
+
+    expect(ts).toBe(900);
+  });
+
+  it("bumps the timestamp when a review is subsequently modified (updatedAt increases)", async () => {
+    const dbBefore = makeTimestampDb({ settingsUpdatedAt: 1000, reviewUpdatedAt: 1500 });
+    const ctxBefore = {
+      db: dbBefore,
+    } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+    const tsBefore = await handler(getWidgetCacheTimestamp)(ctxBefore, { siteId: SITE_ID });
+
+    // Simulate a review being approved/hidden/pinned: its updatedAt advances.
+    const dbAfter = makeTimestampDb({ settingsUpdatedAt: 1000, reviewUpdatedAt: 9999 });
+    const ctxAfter = {
+      db: dbAfter,
+    } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+    const tsAfter = await handler(getWidgetCacheTimestamp)(ctxAfter, { siteId: SITE_ID });
+
+    expect(tsAfter).toBeGreaterThan(tsBefore);
+  });
+
+  it("bumps the timestamp when display settings are updated (updatedAt increases)", async () => {
+    const dbBefore = makeTimestampDb({ settingsUpdatedAt: 2000, reviewUpdatedAt: 1500 });
+    const ctxBefore = {
+      db: dbBefore,
+    } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+    const tsBefore = await handler(getWidgetCacheTimestamp)(ctxBefore, { siteId: SITE_ID });
+
+    // Simulate updateDisplaySettings patching updatedAt.
+    const dbAfter = makeTimestampDb({ settingsUpdatedAt: 8888, reviewUpdatedAt: 1500 });
+    const ctxAfter = {
+      db: dbAfter,
+    } as unknown as Parameters<typeof handler<typeof getWidgetCacheTimestamp>>[0];
+    const tsAfter = await handler(getWidgetCacheTimestamp)(ctxAfter, { siteId: SITE_ID });
+
+    expect(tsAfter).toBeGreaterThan(tsBefore);
+  });
+});
+
