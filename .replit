@@ -24,6 +24,10 @@ args = "Component Preview Server"
 task = "workflow.run"
 args = "visual-regression"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "boundary-check"
+
 [[workflows.workflow]]
 name = "Component Preview Server"
 author = "agent"
@@ -47,6 +51,17 @@ isValidation = true
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash scripts/run-visual-tests.sh"
+
+[[workflows.workflow]]
+name = "boundary-check"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/check-boundary.sh"
+
+[workflows.workflow.metadata]
+isValidation = true
 
 [agent]
 stack = "PNPM_WORKSPACE"
