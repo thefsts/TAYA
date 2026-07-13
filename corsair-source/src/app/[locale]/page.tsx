@@ -9,6 +9,7 @@ import { getHomepageCourses } from '@/lib/courses';
 import { getLocalizedCourse } from '@/lib/courseTranslations';
 import HeroCarousel from '@/components/HeroCarousel';
 import DiscountsBanner from '@/components/DiscountsBanner';
+import { getCmsTestimonials } from '@/lib/cms';
 
 export async function generateMetadata({
   params,
@@ -94,44 +95,14 @@ export default async function HomePage({
     t('offerings.permitlessCarry'),
   ];
 
-  const testimonials = [
-    {
-      name: 'Shamira Simmons',
-      course: t('testimonials.shamira.course'),
-      quote: t('testimonials.shamira.quote'),
-      stars: 5,
-    },
-    {
-      name: 'Ronique Simmons',
-      course: t('testimonials.ronique.course'),
-      quote: t('testimonials.ronique.quote'),
-      stars: 5,
-    },
-    {
-      name: 'Juanita Briggs',
-      course: t('testimonials.juanita.course'),
-      quote: t('testimonials.juanita.quote'),
-      stars: 5,
-    },
-    {
-      name: 'Janet C.',
-      course: t('testimonials.janet.course'),
-      quote: t('testimonials.janet.quote'),
-      stars: 5,
-    },
-    {
-      name: 'Sherri P.',
-      course: t('testimonials.sherri.course'),
-      quote: t('testimonials.sherri.quote'),
-      stars: 5,
-    },
-    {
-      name: 'Allan',
-      course: t('testimonials.allan.course'),
-      quote: t('testimonials.allan.quote'),
-      stars: 5,
-    },
-  ];
+  const cmsTestimonials = await getCmsTestimonials();
+
+  const testimonials = cmsTestimonials.map((item) => ({
+    name: item.name,
+    course: item.role ?? item.company ?? '',
+    quote: item.text,
+    stars: item.rating ?? 5,
+  }));
 
   const whyCorsairItems = [
     { icon: '🏆', text: t('whyCorsair.experienced') },

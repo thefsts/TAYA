@@ -6,6 +6,8 @@ import { notFound } from 'next/navigation';
 import { locales, isRTL } from '@/i18n/config';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
+import StickyCTA from "@/components/StickyCTA";
 import CookieConsent from "@/components/CookieConsent";
 import AccessibilityWidget from "@/components/AccessibilityWidget";
 import Analytics from "@/components/Analytics";
@@ -25,6 +27,7 @@ import {
   localBusinessSchema,
   websiteSchema,
 } from '@/lib/schema';
+import { getCmsContact, getCmsFooter } from '@/lib/cms';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -111,6 +114,10 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
   const dir = isRTL(locale as (typeof locales)[number]) ? 'rtl' : 'ltr';
+  const [cmsContact, cmsFooter] = await Promise.all([
+    getCmsContact().catch(() => null),
+    getCmsFooter().catch(() => null),
+  ]);
 
   return (
     <html lang={locale} dir={dir} className="h-full">
@@ -121,9 +128,11 @@ export default async function LocaleLayout({
           id="corsair-global-schema"
         />
         <NextIntlClientProvider messages={messages}>
+          <AnnouncementBanner />
           <Header />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer cmsContact={cmsContact} cmsFooter={cmsFooter} />
+          <StickyCTA />
           {/* Global compliance & accessibility components */}
           <CookieConsent />
           <AccessibilityWidget />

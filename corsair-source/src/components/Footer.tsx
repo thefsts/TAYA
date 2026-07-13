@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { type CmsContact, type CmsFooter } from '@/lib/cms';
 
 
 const socialLinks = [
@@ -35,7 +36,13 @@ const socialLinks = [
   },
 ];
 
-export default function Footer() {
+export default function Footer({
+  cmsContact = null,
+  cmsFooter = null,
+}: {
+  cmsContact?: CmsContact | null;
+  cmsFooter?: CmsFooter | null;
+}) {
   const currentYear = new Date().getFullYear();
   const t = useTranslations();
   const tc = useTranslations('common');
@@ -96,21 +103,27 @@ export default function Footer() {
 
             {/* Contact info */}
             <div className="space-y-2.5 mb-6">
-              <a href="tel:+12143356652" className="flex items-center gap-2.5 text-sm text-corsair-gray-400 hover:text-white transition-colors group">
+              <a
+                href={cmsContact?.phone ? `tel:${cmsContact.phone.replace(/\s/g, '')}` : 'tel:+12143356652'}
+                className="flex items-center gap-2.5 text-sm text-corsair-gray-400 hover:text-white transition-colors group"
+              >
                 <div className="w-7 h-7 rounded bg-corsair-blue-900 flex items-center justify-center flex-shrink-0 group-hover:bg-corsair-red-500 transition-colors">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                 </div>
-                {tc('phone')}
+                {cmsContact?.phone ?? tc('phone')}
               </a>
-              <a href="mailto:corsairtacticalsolutions@gmail.com" className="flex items-center gap-2.5 text-sm text-corsair-gray-400 hover:text-white transition-colors group">
+              <a
+                href={cmsContact?.email ? `mailto:${cmsContact.email}` : 'mailto:corsairtacticalsolutions@gmail.com'}
+                className="flex items-center gap-2.5 text-sm text-corsair-gray-400 hover:text-white transition-colors group"
+              >
                 <div className="w-7 h-7 rounded bg-corsair-blue-900 flex items-center justify-center flex-shrink-0 group-hover:bg-corsair-red-500 transition-colors">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <span className="truncate">{tc('email')}</span>
+                <span className="truncate">{cmsContact?.email ?? tc('email')}</span>
               </a>
               <div className="flex items-center gap-2.5 text-sm text-corsair-gray-400">
                 <div className="w-7 h-7 rounded bg-corsair-blue-900 flex items-center justify-center flex-shrink-0">
@@ -119,28 +132,65 @@ export default function Footer() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                {tc('location')}
+                {cmsContact?.address ?? tc('location')}
               </div>
             </div>
 
             {/* Social icons with glow */}
             <div className="flex items-center gap-2">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.href}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={social.label}
-                  className="w-9 h-9 rounded-lg bg-corsair-blue-900 hover:bg-corsair-red-500 flex items-center justify-center text-corsair-gray-300 hover:text-white transition-all duration-200 glow-border"
-                >
-                  {social.icon}
-                </a>
-              ))}
+              {cmsFooter && Array.isArray(cmsFooter.socialLinks) && cmsFooter.socialLinks.length > 0
+                ? cmsFooter.socialLinks.map((s) => (
+                    <a
+                      key={s.url}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={s.platform}
+                      className="w-9 h-9 rounded-lg bg-corsair-blue-900 hover:bg-corsair-red-500 flex items-center justify-center text-corsair-gray-300 hover:text-white transition-all duration-200 glow-border text-xs font-bold"
+                    >
+                      {s.platform.charAt(0).toUpperCase()}
+                    </a>
+                  ))
+                : socialLinks.map((social) => (
+                    <a
+                      key={social.href}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                      className="w-9 h-9 rounded-lg bg-corsair-blue-900 hover:bg-corsair-red-500 flex items-center justify-center text-corsair-gray-300 hover:text-white transition-all duration-200 glow-border"
+                    >
+                      {social.icon}
+                    </a>
+                  ))
+              }
             </div>
           </div>
 
-          {/* ── Col 2: Quick Links + Services ── */}
+          {/* ── Cols 2–5: CMS columns when available, static JSX as fallback ── */}
+          {cmsFooter && Array.isArray(cmsFooter.columns) && cmsFooter.columns.length > 0
+            ? cmsFooter.columns.map((col, i) => (
+                <div key={i}>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-5 flex items-center gap-2">
+                    <span className="w-4 h-0.5 bg-corsair-red-500 inline-block" />
+                    {col.heading}
+                  </h3>
+                  <ul className="space-y-2.5">
+                    {Array.isArray(col.links) && col.links.map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} className="text-sm text-corsair-gray-400 hover:text-corsair-red-400 transition-colors flex items-center gap-2 group">
+                          <svg className="w-3 h-3 text-corsair-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            : (<>
+          {/* ── Col 2: Quick Links + Services (static fallback) ── */}
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-5 flex items-center gap-2">
               <span className="w-4 h-0.5 bg-corsair-red-500 inline-block" />
@@ -259,6 +309,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+          </>)}
 
           </div>
 
@@ -344,7 +395,7 @@ export default function Footer() {
           <div className="flex flex-col items-center gap-3">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
               <p className="text-xs text-corsair-gray-500 text-center sm:text-left">
-                &copy; {currentYear} Corsair Tactical Solutions, LLC. {tc('allRightsReserved')} {tc('location')}
+                {cmsFooter?.copyrightText ?? `\u00A9 ${currentYear} Corsair Tactical Solutions, LLC. ${tc('allRightsReserved')} ${tc('location')}`}
               </p>
               <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-end">
                 <Link href="/privacy-policy" className="text-xs text-corsair-gray-500 hover:text-corsair-gray-300 transition-colors">{tf('privacy')}</Link>

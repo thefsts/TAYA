@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getCmsContact, type CmsContact } from '@/lib/cms';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
@@ -20,6 +21,13 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [cmsContact, setCmsContact] = useState<CmsContact | null>(null);
+
+  useEffect(() => {
+    getCmsContact().then((data) => {
+      if (data) setCmsContact(data);
+    }).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +60,9 @@ export default function ContactPage() {
         </svg>
       ),
       label: t('info.phone.label'),
-      value: t('info.phone.value'),
+      value: cmsContact?.phone ?? t('info.phone.value'),
       sub: t('info.phone.sub'),
-      href: 'tel:+12143356652',
+      href: cmsContact?.phone ? `tel:${cmsContact.phone.replace(/\s/g, '')}` : 'tel:+12143356652',
     },
     {
       key: 'email',
@@ -64,9 +72,9 @@ export default function ContactPage() {
         </svg>
       ),
       label: t('info.email.label'),
-      value: t('info.email.value'),
+      value: cmsContact?.email ?? t('info.email.value'),
       sub: t('info.email.sub'),
-      href: 'mailto:corsairtacticalsolutions@gmail.com',
+      href: cmsContact?.email ? `mailto:${cmsContact.email}` : 'mailto:corsairtacticalsolutions@gmail.com',
     },
     {
       key: 'location',
@@ -77,17 +85,19 @@ export default function ContactPage() {
         </svg>
       ),
       label: t('info.location.label'),
-      value: t('info.location.value'),
+      value: cmsContact?.address ?? t('info.location.value'),
       sub: t('info.location.sub'),
       href: null,
     },
   ];
 
-  const hours = [
-    { key: 'weekdays', day: t('hours.weekdays.day'), hours: t('hours.weekdays.hours') },
-    { key: 'saturday', day: t('hours.saturday.day'), hours: t('hours.saturday.hours') },
-    { key: 'sunday', day: t('hours.sunday.day'), hours: t('hours.sunday.hours') },
-  ];
+  const hours = cmsContact?.hours && Object.keys(cmsContact.hours).length > 0
+    ? Object.entries(cmsContact.hours).map(([day, hoursVal]) => ({ key: day, day, hours: hoursVal }))
+    : [
+        { key: 'weekdays', day: t('hours.weekdays.day'), hours: t('hours.weekdays.hours') },
+        { key: 'saturday', day: t('hours.saturday.day'), hours: t('hours.saturday.hours') },
+        { key: 'sunday', day: t('hours.sunday.day'), hours: t('hours.sunday.hours') },
+      ];
 
   const securityOptions = [
     { key: 'securityGeneral',        value: 'security-general' },
@@ -169,7 +179,7 @@ export default function ContactPage() {
                   {hours.map((h) => (
                     <div key={h.key} className="flex justify-between">
                       <span className="font-medium text-corsair-gray-700">{h.day}</span>
-                      <span>{h.hours}</span>
+                      <span>{String(h.hours)}</span>
                     </div>
                   ))}
                 </div>

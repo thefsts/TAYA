@@ -42,9 +42,24 @@ export interface CmsHomepage {
   sections: unknown[];
 }
 
+export interface CmsFooterLink {
+  label: string;
+  href: string;
+}
+
+export interface CmsFooterColumn {
+  heading: string;
+  links: CmsFooterLink[];
+}
+
+export interface CmsFooterSocialLink {
+  platform: string;
+  url: string;
+}
+
 export interface CmsFooter {
-  columns: unknown[];
-  socialLinks: unknown[];
+  columns: CmsFooterColumn[];
+  socialLinks: CmsFooterSocialLink[];
   copyrightText: string;
 }
 
@@ -183,6 +198,94 @@ export async function submitFormToCms(payload: {
   } catch {
     return false;
   }
+}
+
+/* ─── Group B types (need new functions) ───────────────────────────────── */
+
+export interface CmsTeamMember {
+  id: string;
+  name: string;
+  role?: string;
+  bio?: string;
+  photoUrl?: string;
+  credentials?: string[];
+  order?: number;
+  externalUrl?: string;
+}
+
+export interface CmsDownload {
+  id: string;
+  title: string;
+  description?: string;
+  fileUrl: string;
+  fileFormat?: string;
+  fileSize?: string;
+  category?: string;
+  order?: number;
+}
+
+export interface CmsAnnouncement {
+  text: string;
+  bgColor?: string;
+  isEnabled: boolean;
+  link?: string;
+}
+
+export interface CmsCta {
+  primaryLabel: string;
+  primaryUrl: string;
+  secondaryLabel?: string;
+  secondaryUrl?: string;
+  headline?: string;
+  subheadline?: string;
+}
+
+export interface CmsPolicy {
+  type: string;
+  title: string;
+  content: string;
+  lastUpdated?: string;
+}
+
+/* Helper that allows extra query params alongside slug */
+async function cmsGetWithParams<T>(
+  resource: string,
+  params: Record<string, string>,
+): Promise<T | null> {
+  try {
+    const searchParams = new URLSearchParams({ slug: SITE_SLUG, ...params });
+    const url = `${CONVEX_URL}/api/public/${resource}?${searchParams.toString()}`;
+    const res = await fetch(url, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      next: { revalidate: 60 } as any,
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+export function getCmsTeam() {
+  return cmsList<CmsTeamMember>("team");
+}
+
+export function getCmsDownloads() {
+  return cmsList<CmsDownload>("downloads");
+}
+
+export function getCmsAnnouncement() {
+  return cmsGet<CmsAnnouncement>("announcement");
+}
+
+export function getCmsCta() {
+  return cmsGet<CmsCta>("cta");
+}
+
+export async function getCmsPolicy(type: string): Promise<CmsPolicy | null> {
+  const all = await cmsList<CmsPolicy & { type?: string; policyType?: string }>("policies");
+  return all.find((p) => p.type === type || p.policyType === type) ?? null;
 }
 
 /* ─── Mappers: Convex → Corsair website shapes ──────────────────────────── */

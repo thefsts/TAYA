@@ -5,6 +5,7 @@ import PageHero from '@/components/PageHero';
 import { buildPageMetadata } from '@/lib/seo';
 import BreadcrumbJsonLd from '@/components/BreadcrumbJsonLd';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
+import { getCmsTestimonials } from '@/lib/cms';
 
 export async function generateMetadata({
   params,
@@ -60,23 +61,13 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     { title: t('philosophy.conflict.title'), desc: t('philosophy.conflict.desc') },
   ];
 
-  const testimonials = [
-    {
-      name: 'Shamira Simmons',
-      course: t('testimonials.shamira.course'),
-      quote: t('testimonials.shamira.quote'),
-    },
-    {
-      name: 'Genetia T.',
-      course: t('testimonials.genetia.course'),
-      quote: t('testimonials.genetia.quote'),
-    },
-    {
-      name: 'Sharon E.',
-      course: t('testimonials.sharon.course'),
-      quote: t('testimonials.sharon.quote'),
-    },
-  ];
+  const cmsTestimonials = await getCmsTestimonials();
+
+  const testimonials = cmsTestimonials.slice(0, 3).map((item) => ({
+    name: item.name,
+    course: item.role ?? item.company ?? '',
+    quote: item.text,
+  }));
 
   const stats = [
     { value: '500+', label: t('stats.students') },

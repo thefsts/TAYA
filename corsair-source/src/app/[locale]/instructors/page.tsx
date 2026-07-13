@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import FloatingElements from '@/components/FloatingElements';
 import PageHero from '@/components/PageHero';
+import { getCmsTeam, type CmsTeamMember } from '@/lib/cms';
 
 const instructorKeys = ['steve', 'hilton', 'casilda', 'shannon'] as const;
 
@@ -54,6 +56,13 @@ const serviceVariants = {
 export default function InstructorsPage() {
   const t = useTranslations('instructors');
   const tn = useTranslations('nav');
+  const [cmsTeam, setCmsTeam] = useState<CmsTeamMember[]>([]);
+
+  useEffect(() => {
+    getCmsTeam().then((members) => {
+      if (members.length > 0) setCmsTeam(members);
+    }).catch(() => {});
+  }, []);
 
   const allianceServices: string[] = (t.raw('allianceServices') as string[]).filter(Boolean);
 
@@ -98,7 +107,63 @@ export default function InstructorsPage() {
           </motion.div>
 
           <div className="space-y-12">
-            {instructorKeys.map((key, i) => {
+            {cmsTeam.length > 0 ? cmsTeam
+              .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+              .map((member, i) => (
+                <motion.div
+                  key={member.id}
+                  custom={i}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: '-60px' }}
+                  variants={cardVariants}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden border border-corsair-gray-200 card-glow group"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0">
+                    {member.photoUrl ? (
+                      <div className="relative h-80 lg:h-auto lg:min-h-[360px] bg-corsair-blue-900 overflow-hidden">
+                        <Image
+                          src={member.photoUrl}
+                          alt={member.name}
+                          fill
+                          className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                          sizes="(max-width: 1024px) 100vw, 280px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-80 lg:h-auto lg:min-h-[360px] bg-corsair-blue-900 flex items-center justify-center">
+                        <span className="text-6xl font-black text-white/20">{member.name.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div className="p-8 lg:p-10 flex flex-col justify-center">
+                      <h3 className="text-2xl md:text-3xl font-black text-corsair-blue-900 mb-1">{member.name}</h3>
+                      {member.role && (
+                        <p className="text-corsair-red-500 font-bold text-sm uppercase tracking-widest mb-4">{member.role}</p>
+                      )}
+                      {member.bio && (
+                        <p className="text-corsair-gray-600 leading-relaxed mb-6">{member.bio}</p>
+                      )}
+                      {member.credentials && member.credentials.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-bold text-corsair-blue-900 uppercase tracking-widest mb-3">
+                            Certifications & Credentials
+                          </h4>
+                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                            {member.credentials.map((cred) => (
+                              <li key={cred} className="flex items-center gap-2 text-sm text-corsair-gray-600">
+                                <svg className="w-4 h-4 text-corsair-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                {cred}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )) : instructorKeys.map((key, i) => {
               const credentials: string[] = (t.raw(`instructors.${key}.credentials`) as string[]).filter(Boolean);
               return (
                 <motion.div

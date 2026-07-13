@@ -13,6 +13,7 @@ import {
   getRelatedCoursesForArticle,
   getRelatedServicesForArticle,
 } from '@/lib/blog';
+import { getCmsArticles } from '@/lib/cms';
 import ScrollReveal from '@/components/ScrollReveal';
 import ArticleClient from '@/components/ArticleClient';
 import ReadingProgress from '@/components/ReadingProgress';
@@ -28,17 +29,32 @@ export async function generateMetadata({
 }) {
   const { slug, locale } = await params;
   const article = getBlogArticle(slug);
-  if (!article) {
-    return buildPageMetadata({ path: `/blog/${slug}`, title: 'Article Not Found', description: '', locale, noIndex: true });
+
+  if (article) {
+    return buildPageMetadata({
+      path:        `/blog/${slug}`,
+      title:       `${article.title} | Corsair Training & Knowledge Center`,
+      description: article.description,
+      locale,
+      image:       article.image,
+      keywords:    [article.category, article.topic, 'Texas security', 'Corsair Tactical Solutions', 'security training', 'firearms safety'],
+    });
   }
-  return buildPageMetadata({
-    path:        `/blog/${slug}`,
-    title:       `${article.title} | Corsair Training & Knowledge Center`,
-    description: article.description,
-    locale,
-    image:       article.image,
-    keywords:    [article.category, article.topic, 'Texas security', 'Corsair Tactical Solutions', 'security training', 'firearms safety'],
-  });
+
+  const cmsArticles = await getCmsArticles();
+  const cmsArticle = cmsArticles.find((a) => a.slug === slug && a.status === 'published');
+  if (cmsArticle) {
+    return buildPageMetadata({
+      path:        `/blog/${slug}`,
+      title:       `${cmsArticle.title} | Corsair Training & Knowledge Center`,
+      description: cmsArticle.excerpt ?? cmsArticle.title,
+      locale,
+      image:       cmsArticle.imageUrl,
+      keywords:    ['Texas security', 'Corsair Tactical Solutions', 'security training', 'firearms safety'],
+    });
+  }
+
+  return buildPageMetadata({ path: `/blog/${slug}`, title: 'Article Not Found', description: '', locale, noIndex: true });
 }
 
 const CATEGORY_STYLES: Record<string, { badge: string; dot: string }> = {
@@ -61,6 +77,70 @@ export default async function BlogDetailPage({
   params: Promise<{ slug: string; locale: string }>;
 }) {
   const { slug } = await params;
+
+  // CMS-first: check Convex backend for a published article with this slug
+  const cmsArticles = await getCmsArticles();
+  const cmsArticle = cmsArticles.find((a) => a.slug === slug && a.status === 'published');
+
+  // If a published CMS article matches, render it (CMS-first)
+  if (cmsArticle) {
+    return (
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="mb-8">
+          <Link href="/blog" className="text-sm text-corsair-red-500 hover:text-corsair-red-600 font-semibold inline-flex items-center gap-1.5 mb-6">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            Back to Knowledge Center
+          </Link>
+          <h1 className="text-3xl md:text-4xl font-black text-corsair-blue-900 mb-4 leading-tight">
+            {cmsArticle.title}
+          </h1>
+          {cmsArticle.publishedAt && (
+            <time className="text-sm text-corsair-gray-500" dateTime={cmsArticle.publishedAt}>
+              {new Date(cmsArticle.publishedAt).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric',
+              })}
+            </time>
+          )}
+        </div>
+        {cmsArticle.imageUrl && (
+          <div className="relative aspect-video rounded-2xl overflow-hidden mb-10 shadow-lg">
+            <Image
+              src={cmsArticle.imageUrl}
+              alt={cmsArticle.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 896px"
+              priority
+            />
+          </div>
+        )}
+        {cmsArticle.content ? (
+          <div
+            className="prose prose-lg max-w-none prose-headings:text-corsair-blue-900 prose-a:text-corsair-red-500 prose-strong:text-corsair-blue-900"
+            dangerouslySetInnerHTML={{ __html: cmsArticle.content }}
+          />
+        ) : cmsArticle.excerpt ? (
+          <p className="text-lg text-corsair-gray-600 leading-relaxed">{cmsArticle.excerpt}</p>
+        ) : null}
+        <div className="mt-12 pt-8 border-t border-corsair-gray-200 flex items-center gap-4">
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 bg-corsair-blue-900 hover:bg-corsair-blue-800 text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm"
+          >
+            ← All Articles
+          </Link>
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-2 border-2 border-corsair-blue-900 text-corsair-blue-900 hover:bg-corsair-blue-900 hover:text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm"
+          >
+            View Courses →
+          </Link>
+        </div>
+      </article>
+    );
+  }
+
+  // Static fallback: slug not yet published in CMS — use hardcoded article library
   const article = getBlogArticle(slug);
   if (!article) notFound();
 

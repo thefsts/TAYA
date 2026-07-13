@@ -19,6 +19,7 @@ import {
   type TrainingVideo,
   type ScenarioDiscussion,
 } from '@/lib/blog';
+import type { CmsArticle, CmsDownload } from '@/lib/cms';
 
 /* ═══════════════════════════════════════════════════════════════
    ICONS
@@ -118,7 +119,12 @@ function MotionSection({ children, className = '' }: { children: React.ReactNode
    MAIN CLIENT COMPONENT
    ═══════════════════════════════════════════════════════════════ */
 
-export default function BlogClient() {
+interface BlogClientProps {
+  cmsArticles?: CmsArticle[];
+  cmsDownloads?: CmsDownload[];
+}
+
+export default function BlogClient({ cmsArticles = [], cmsDownloads = [] }: BlogClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
@@ -126,6 +132,7 @@ export default function BlogClient() {
   const [activeVideoCategory, setActiveVideoCategory] = useState('Firearms Safety');
 
   const featured = getFeaturedArticle();
+  const publishedCmsArticles = cmsArticles.filter((a) => a.status === 'published');
 
   const filteredArticles = useMemo(
     () => filterArticles(searchQuery, activeCategory ?? undefined, activeTopic ?? undefined),
@@ -248,6 +255,65 @@ export default function BlogClient() {
         </div>
       </motion.section>
 
+      {/* ━━ CMS ARTICLES (primary when CMS has published content) ━━ */}
+      {publishedCmsArticles.length > 0 && (
+        <section className="bg-white py-10 md:py-14">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="w-8 h-0.5 bg-corsair-red-500" />
+              <span className="text-corsair-red-500 text-xs font-bold uppercase tracking-widest">Articles</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {publishedCmsArticles
+                .map((article, i) => (
+                  <motion.article
+                    key={article.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.05, duration: 0.4 }}
+                    className="group bg-corsair-gray-50 rounded-2xl overflow-hidden border border-corsair-gray-100 hover:shadow-md hover:border-corsair-red-200 transition-all"
+                  >
+                    {article.imageUrl && (
+                      <div className="relative aspect-video overflow-hidden">
+                        <Image
+                          src={article.imageUrl}
+                          alt={article.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      </div>
+                    )}
+                    <div className="p-5">
+                      {article.publishedAt && (
+                        <time className="text-xs text-corsair-gray-400 mb-2 block" dateTime={article.publishedAt}>
+                          {new Date(article.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </time>
+                      )}
+                      <h3 className="text-base font-black text-corsair-blue-900 group-hover:text-corsair-red-500 transition-colors leading-snug mb-2">
+                        <Link href={`/blog/${article.slug}`}>{article.title}</Link>
+                      </h3>
+                      {article.excerpt && (
+                        <p className="text-xs text-corsair-gray-500 leading-relaxed line-clamp-3">{article.excerpt}</p>
+                      )}
+                      <Link
+                        href={`/blog/${article.slug}`}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-corsair-red-500 hover:text-corsair-red-600 mt-3 transition-colors"
+                      >
+                        Read more
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
+                  </motion.article>
+                ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ━━ CATEGORY NAVIGATION ━━ */}
       <section className="bg-corsair-gray-50 py-10 md:py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -317,8 +383,8 @@ export default function BlogClient() {
         </div>
       </section>
 
-      {/* ━━ SEARCH + ARTICLES GRID + SIDEBAR ━━ */}
-      <section className="bg-white py-10 md:py-14">
+      {/* ━━ SEARCH + ARTICLES GRID + SIDEBAR (static fallback — shown only when CMS has no articles) ━━ */}
+      {publishedCmsArticles.length === 0 && <section className="bg-white py-10 md:py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Search */}
           <div className="mb-8">
@@ -437,7 +503,7 @@ export default function BlogClient() {
             </aside>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ━━ FEATURED TRAINING VIDEOS ━━ */}
       <section className="bg-corsair-gray-50 py-10 md:py-14">
@@ -635,7 +701,19 @@ export default function BlogClient() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {downloadableResources.map((res, i) => (
+            {(cmsDownloads.length > 0
+              ? cmsDownloads
+                  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                  .map((r) => ({
+                    id: r.id,
+                    title: r.title,
+                    description: r.description ?? '',
+                    href: r.fileUrl,
+                    format: r.fileFormat ?? 'PDF',
+                    size: r.fileSize,
+                  }))
+              : downloadableResources
+            ).map((res, i) => (
               <motion.a
                 key={res.id}
                 href={res.href}

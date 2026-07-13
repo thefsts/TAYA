@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { getCmsCta, type CmsCta } from '@/lib/cms';
 
 export default function StickyCTA() {
   const t = useTranslations('stickyCta');
   const tc = useTranslations('common');
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [cmsCta, setCmsCta] = useState<CmsCta | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +18,12 @@ export default function StickyCTA() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    getCmsCta().then((data) => {
+      if (data) setCmsCta(data);
+    }).catch(() => {});
   }, []);
 
   if (!isVisible || isDismissed) return null;
@@ -78,22 +86,22 @@ export default function StickyCTA() {
             {/* Right: CTA Buttons */}
             <div className="flex items-center gap-2.5 flex-shrink-0">
               <Link
-                href="/courses"
+                href={cmsCta?.primaryUrl ?? '/courses'}
                 className="bg-corsair-red-500 hover:bg-corsair-red-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap flex items-center gap-1.5"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                {t('viewCourses')}
+                {cmsCta?.primaryLabel ?? t('viewCourses')}
               </Link>
               <Link
-                href="/contact"
+                href={cmsCta?.secondaryUrl ?? '/contact'}
                 className="hidden sm:flex border-2 border-corsair-blue-900 text-corsair-blue-900 hover:bg-corsair-blue-900 hover:text-white px-5 py-2 rounded-lg text-xs font-bold transition-all duration-200 items-center gap-1.5 whitespace-nowrap"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                {t('contactUs')}
+                {cmsCta?.secondaryLabel ?? t('contactUs')}
               </Link>
 
               {/* Dismiss button */}

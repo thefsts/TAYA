@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { getCmsFaqs } from '@/lib/cms';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -88,16 +89,33 @@ export default function FAQPage() {
 
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>('all');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [cmsFaqs, setCmsFaqs] = useState<Array<{ id: string; question: string; answer: string; order: number }>>([]);
 
-  // Build FAQ data from translations
+  useEffect(() => {
+    getCmsFaqs().then((items) => {
+      if (items.length > 0) setCmsFaqs(items);
+    }).catch(() => {});
+  }, []);
+
+  // Build FAQ data from CMS when available, else from translations
   const faqs = useMemo(() => {
+    if (cmsFaqs.length > 0) {
+      return cmsFaqs
+        .sort((a, b) => a.order - b.order)
+        .map((item) => ({
+          key: item.id,
+          category: t('categories.general'),
+          q: item.question,
+          a: item.answer,
+        }));
+    }
     return faqKeys.map((key) => ({
       key,
       category: t(`faqs.${key}.category`),
       q: t(`faqs.${key}.q`),
       a: t(`faqs.${key}.a`),
     }));
-  }, [t]);
+  }, [t, cmsFaqs]);
 
   const categoryMap: Record<string, string> = {
     all: 'All',

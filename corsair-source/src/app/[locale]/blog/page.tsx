@@ -1,5 +1,5 @@
-import { getTranslations } from 'next-intl/server';
 import { buildPageMetadata } from '@/lib/seo';
+import { getCmsArticles, getCmsDownloads } from '@/lib/cms';
 import BlogClient from '@/components/BlogClient';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -15,6 +15,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function BlogIndexPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-  return <BlogClient />;
+  const [cmsArticles, cmsDownloads] = await Promise.all([
+    getCmsArticles(),
+    getCmsDownloads(),
+  ]);
+
+  return <BlogClient cmsArticles={cmsArticles} cmsDownloads={cmsDownloads} />;
 }
