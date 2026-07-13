@@ -624,6 +624,7 @@ export default defineSchema({
     maxPerPage: v.number(),
     featuredOnly: v.boolean(),
     showProviderBadge: v.boolean(),
+    categoryFilter: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
   // WOS Phase 8 — Automation Engine™

@@ -51,6 +51,7 @@ const DEFAULT_DISPLAY_SETTINGS = {
   maxPerPage: 12,
   featuredOnly: false,
   showProviderBadge: true,
+  categoryFilter: "",
 };
 
 /* ── Safe projections (never return credentialsCiphertext to clients) ────── */
@@ -273,6 +274,7 @@ export const updateDisplaySettings = mutation({
     maxPerPage: v.optional(v.number()),
     featuredOnly: v.optional(v.boolean()),
     showProviderBadge: v.optional(v.boolean()),
+    categoryFilter: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...patch }) => {
     await requireSiteAccessMutation(ctx, siteId);
@@ -286,6 +288,7 @@ export const updateDisplaySettings = mutation({
     if (patch.maxPerPage !== undefined) updates.maxPerPage = patch.maxPerPage;
     if (patch.featuredOnly !== undefined) updates.featuredOnly = patch.featuredOnly;
     if (patch.showProviderBadge !== undefined) updates.showProviderBadge = patch.showProviderBadge;
+    if (patch.categoryFilter !== undefined) updates.categoryFilter = patch.categoryFilter;
     if (existing) {
       await ctx.db.patch(existing._id, updates);
     } else {
@@ -296,6 +299,7 @@ export const updateDisplaySettings = mutation({
         maxPerPage: patch.maxPerPage ?? DEFAULT_DISPLAY_SETTINGS.maxPerPage,
         featuredOnly: patch.featuredOnly ?? DEFAULT_DISPLAY_SETTINGS.featuredOnly,
         showProviderBadge: patch.showProviderBadge ?? DEFAULT_DISPLAY_SETTINGS.showProviderBadge,
+        categoryFilter: patch.categoryFilter ?? DEFAULT_DISPLAY_SETTINGS.categoryFilter,
       });
     }
   },
@@ -451,8 +455,8 @@ export const getDisplaySettingsInternal = internalQuery({
 });
 
 export const listApprovedReviewsInternal = internalQuery({
-  args: { siteId: v.id("sites") },
-  handler: async (ctx, { siteId }) => {
+  args: { siteId: v.id("sites"), category: v.optional(v.string()) },
+  handler: async (ctx, { siteId, category }) => {
     const settings = await ctx.db
       .query("reviewDisplaySettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -468,6 +472,7 @@ export const listApprovedReviewsInternal = internalQuery({
 
     reviews = reviews.filter((r) => r.rating >= minRating);
     if (featuredOnly) reviews = reviews.filter((r) => r.pinned);
+    if (category) reviews = reviews.filter((r) => r.category === category);
     reviews.sort((a, b) => {
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;

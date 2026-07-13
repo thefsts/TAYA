@@ -274,6 +274,7 @@ function generateEmbedSnippet(
     maxPerPage?: number;
     showProviderBadge?: boolean;
     featuredOnly?: boolean;
+    categoryFilter?: string;
   },
 ): string {
   const layout = settings.layout ?? "grid";
@@ -281,8 +282,12 @@ function generateEmbedSnippet(
   const maxCount = settings.maxPerPage ?? 12;
   const showBadge = settings.showProviderBadge ?? true;
   const featuredOnly = settings.featuredOnly ?? false;
+  const categoryFilter = settings.categoryFilter ?? "";
 
-  const endpoint = `${convexHttpUrl}/api/public/reviews?slug=${slug}`;
+  const endpointBase = `${convexHttpUrl}/api/public/reviews?slug=${slug}`;
+  const endpoint = categoryFilter
+    ? `${endpointBase}&category=${encodeURIComponent(categoryFilter)}`
+    : endpointBase;
 
   return `<!-- FSTS Website Reviews Widget -->
 <div id="fsts-reviews-widget"></div>
@@ -294,6 +299,7 @@ function generateEmbedSnippet(
   var MAX_COUNT = ${maxCount};
   var SHOW_BADGE = ${showBadge};
   var FEATURED_ONLY = ${featuredOnly};
+  var CATEGORY = '${categoryFilter.replace(/'/g, "\\'")}';
 
   var CSS = [
     '#fsts-reviews-widget{font-family:inherit;box-sizing:border-box}',
@@ -356,6 +362,7 @@ function generateEmbedSnippet(
       var reviews = (data.reviews || [])
         .filter(function(r){ return r.rating >= MIN_RATING; })
         .filter(function(r){ return !FEATURED_ONLY || r.pinned; })
+        .filter(function(r){ return !CATEGORY || r.category === CATEGORY; })
         .slice(0, MAX_COUNT);
       var el = document.getElementById('fsts-reviews-widget');
       if (!el || !reviews.length) return;
@@ -454,11 +461,13 @@ function ReviewsWidgetPreview({
   const maxCount = settings?.maxPerPage ?? 12;
   const showBadge = settings?.showProviderBadge ?? true;
   const featuredOnly = settings?.featuredOnly ?? false;
+  const categoryFilter = (settings?.categoryFilter ?? "").trim();
 
   const visible = reviews
     .filter((r) => r.status === "approved")
     .filter((r) => r.rating >= minRating)
     .filter((r) => !featuredOnly || r.pinned)
+    .filter((r) => !categoryFilter || r.category === categoryFilter)
     .slice(0, maxCount);
 
   if (visible.length === 0) {
@@ -546,6 +555,11 @@ function EmbedWidgetSection({
             )}
             {settings?.featuredOnly && (
               <span className="bg-amber-100 text-amber-700 rounded px-2 py-0.5">Featured only</span>
+            )}
+            {settings?.categoryFilter && (
+              <span className="bg-violet-100 text-violet-700 rounded px-2 py-0.5">
+                Category: <strong>{settings.categoryFilter}</strong>
+              </span>
             )}
           </div>
 
@@ -849,6 +863,18 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
                         onCheckedChange={(v) => handleDisplaySetting("showProviderBadge", v)}
                       />
                     </div>
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2 lg:col-span-4">
+                    <Label className="text-xs text-slate-500">Category filter <span className="text-slate-400 font-normal">(optional)</span></Label>
+                    <Input
+                      className="h-9 text-sm max-w-sm"
+                      placeholder="e.g. Service, Quality, Value"
+                      value={(displaySettings as any).categoryFilter ?? ""}
+                      onChange={(e) => handleDisplaySetting("categoryFilter", e.target.value)}
+                    />
+                    <p className="text-[11px] text-slate-400 leading-tight">
+                      Leave blank to show all categories. When set, the embed widget will only show reviews tagged with this exact category.
+                    </p>
                   </div>
                 </div>
               </CardContent>

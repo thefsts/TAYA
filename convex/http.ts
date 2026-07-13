@@ -631,16 +631,21 @@ http.route({
 
 // ── Website Reviews Module™ ───────────────────────────────────────────────────
 
-/* ── GET /api/public/reviews?slug= ──────────────────────────────────────── */
+/* ── GET /api/public/reviews?slug=&category= ─────────────────────────────── */
 http.route({
   path: "/api/public/reviews",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    const params = new URL(request.url).searchParams;
+    const slug = params.get("slug") ?? "";
     if (!slug) return notFound("slug required");
+    const category = params.get("category") ?? undefined;
     const site = await ctx.runQuery(internal.public.getSiteBySlug, { slug });
     if (!site) return notFound("Site not found");
-    const reviews = await ctx.runQuery(internal.reviews.listApprovedReviewsInternal, { siteId: site._id });
+    const reviews = await ctx.runQuery(internal.reviews.listApprovedReviewsInternal, {
+      siteId: site._id,
+      ...(category ? { category } : {}),
+    });
     const settings = await ctx.runQuery(internal.reviews.getDisplaySettingsInternal, { siteId: site._id });
     return ok({ reviews, displaySettings: settings });
   }),
