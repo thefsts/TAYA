@@ -6,10 +6,10 @@ import { logActivity } from "./lib/logActivity";
 // ── Policy Pages ─────────────────────────────────────────────────────────────
 
 export const getPolicy = query({
-  args: { siteId: v.id("sites"), type: v.string() },
-  handler: async (ctx, { siteId, type }) => {
+  args: { siteId: v.id("sites"), policyType: v.string() },
+  handler: async (ctx, { siteId, policyType }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
-    return ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", type)).first();
+    return ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", policyType)).first();
   },
 });
 

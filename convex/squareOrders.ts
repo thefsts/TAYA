@@ -23,7 +23,6 @@ export const getOrdersAnalytics = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
-    const now = Date.now();
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -59,7 +58,6 @@ export const upsertOrderFromWebhook = internalMutation({
     customerEmail: v.optional(v.string()),
     itemName: v.optional(v.string()),
     amountCents: v.number(),
-    currency: v.optional(v.string()),
     status: v.string(),
     refundStatus: v.optional(v.string()),
     createdAt: v.number(),
@@ -140,10 +138,10 @@ export const upsertCatalogItem = internalMutation({
 });
 
 export const updateLastCatalogSync = internalMutation({
-  args: { siteId: v.id("sites"), syncedAt: v.number() },
-  handler: async (ctx, { siteId, syncedAt }) => {
+  args: { siteId: v.id("sites"), lastSyncedAt: v.number() },
+  handler: async (ctx, { siteId, lastSyncedAt }) => {
     const config = await ctx.db.query("squareConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
-    if (config) await ctx.db.patch(config._id, { lastCatalogSyncAt: syncedAt });
+    if (config) await ctx.db.patch(config._id, { lastCatalogSyncAt: lastSyncedAt });
   },
 });
 
@@ -166,7 +164,7 @@ export const syncCatalog = action({
       if (!res.ok) return { synced: 0, error: `Square API error: ${res.status}` };
       const data = await res.json() as any;
       const objects = (data.objects ?? []) as any[];
-      const syncedAt = Date.now();
+      const lastSyncedAt = Date.now();
 
       for (const obj of objects) {
         const variation = obj.item_data?.variations?.[0];
@@ -180,11 +178,11 @@ export const syncCatalog = action({
           priceCents: priceMoney?.amount ?? undefined,
           squareVariationId: variation?.id,
           imageUrl: undefined,
-          lastSyncedAt: syncedAt,
+          lastSyncedAt,
         });
       }
 
-      await ctx.runMutation(internal.squareOrders.updateLastCatalogSync, { siteId, syncedAt });
+      await ctx.runMutation(internal.squareOrders.updateLastCatalogSync, { siteId, lastSyncedAt });
       return { synced: objects.length };
     } catch (err: any) {
       return { synced: 0, error: err.message ?? "Unknown error" };
@@ -206,6 +204,7 @@ export const listDiscounts = query({
 export const createDiscount = mutation({
   args: {
     siteId: v.id("sites"),
+    squareDiscountId: v.string(),
     name: v.string(),
     code: v.optional(v.string()),
     discountType: v.string(),
@@ -215,15 +214,14 @@ export const createDiscount = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
-    const squareDiscountId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const id = await ctx.db.insert("squareDiscounts", { siteId, squareDiscountId, ...fields });
+    const id = await ctx.db.insert("squareDiscounts", { siteId, ...fields });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "square_discount", entityId: id, page: "Commerce", details: fields.name });
     return id;
   },
 });
 
 export const updateDiscount = mutation({
-  args: { siteId: v.id("sites"), discountId: v.id("squareDiscounts"), isActive: v.optional(v.boolean()), name: v.optional(v.string()), code: v.optional(v.string()), expiresAt: v.optional(v.number()) },
+  args: { siteId: v.id("sites"), discountId: v.id("squareDiscounts"), name: v.optional(v.string()), code: v.optional(v.string()), expiresAt: v.optional(v.number()) },
   handler: async (ctx, { siteId, discountId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
     const existing = await ctx.db.get(discountId);

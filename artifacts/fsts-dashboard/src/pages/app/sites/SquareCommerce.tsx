@@ -229,6 +229,7 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
     try {
       await create({
         siteId,
+        squareDiscountId: `local_${Date.now()}`,
         name: form.name,
         code: form.code || undefined,
         discountType: form.discountType,
@@ -280,7 +281,6 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Switch checked={d.isActive} onCheckedChange={(v) => update({ siteId, discountId: d._id, isActive: v })} />
                 <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(d._id)}><Trash2 className="w-3.5 h-3.5" /></Button>
               </div>
             </div>
