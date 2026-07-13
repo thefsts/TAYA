@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as accessControl from "../accessControl.js";
 import type * as activityLog from "../activityLog.js";
 import type * as announcement from "../announcement.js";
 import type * as articles from "../articles.js";
@@ -56,6 +57,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accessControl: typeof accessControl;
   activityLog: typeof activityLog;
   announcement: typeof announcement;
   articles: typeof articles;

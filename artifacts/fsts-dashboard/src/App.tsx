@@ -17,6 +17,7 @@ import SiteDashboard from "@/pages/app/SiteDashboard";
 
 import AdminUsers from "@/pages/app/admin/AdminUsers";
 import AdminSites from "@/pages/app/admin/AdminSites";
+import AdminAccessControl from "@/pages/app/admin/AdminAccessControl";
 import HomepageEditor from "@/pages/app/sites/HomepageEditor";
 import CoursesList from "@/pages/app/sites/CoursesList";
 import EventsList from "@/pages/app/sites/EventsList";
@@ -56,6 +57,9 @@ import PublicForm from "@/pages/PublicForm";
 
 // Phase 5 — Square Commerce
 import SquareCommerce from "@/pages/app/sites/SquareCommerce";
+
+// Phase 9 — Client Permissions™
+import MyPermissions from "@/pages/app/sites/MyPermissions";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -269,6 +273,7 @@ function AppRouter() {
           <Route path="/app" component={SitesList} />
           <Route path="/app/admin/users" component={AdminUsers} />
           <Route path="/app/admin/sites" component={AdminSites} />
+          <Route path="/app/admin/access-control" component={AdminAccessControl} />
 
           <Route path="/app/sites/:siteId" component={SiteDashboard} />
           <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />
@@ -309,6 +314,9 @@ function AppRouter() {
 
           {/* Phase 5 — Square Commerce */}
           <Route path="/app/sites/:siteId/commerce" component={SquareCommerce} />
+
+          {/* Phase 9 — Client Permissions™ */}
+          <Route path="/app/sites/:siteId/permissions" component={MyPermissions} />
 
           <Route component={NotFound} />
         </Switch>

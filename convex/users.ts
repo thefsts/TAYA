@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 import { provisionUser } from "./lib/getCurrentUser";
+import { logActivity } from "./lib/logActivity";
 
 function toUserResponse(user: any, sitesMap: Map<string, string>) {
   return {
@@ -80,6 +82,20 @@ export const create = mutation({
       roles: args.roleAssignments ?? [],
     });
     const user = (await ctx.db.get(userId))!;
+
+    for (const ra of args.roleAssignments ?? []) {
+      await logActivity(ctx, {
+        siteId: ra.siteId,
+        actorName: me.name,
+        action: "assigned role",
+        entityType: "user",
+        entityId: String(userId),
+        page: "users",
+        newValue: ra.role,
+        details: `Assigned role '${ra.role}' to new user ${args.name}`,
+      });
+    }
+
     const sites = await ctx.db.query("sites").collect();
     const sitesMap = new Map(sites.map((s) => [s._id as string, s.name]));
     return toUserResponse(user, sitesMap);
@@ -100,11 +116,46 @@ export const update = mutation({
   handler: async (ctx, { userId, roleAssignments, ...fields }) => {
     const me = await provisionUser(ctx);
     if (!me.isSuperAdmin) throw new Error("Forbidden");
+
+    const existing = await ctx.db.get(userId);
+    if (!existing) throw new Error("User not found");
+
     const patch: Record<string, unknown> = { ...fields };
     if (roleAssignments !== undefined) {
       patch.roles = roleAssignments;
     }
     await ctx.db.patch(userId, patch as any);
+
+    if (roleAssignments !== undefined) {
+      const oldRoles: Array<{ siteId: string; role: string }> = existing.roles ?? [];
+      const newRoles = roleAssignments;
+
+      const oldMap = new Map(oldRoles.map((r) => [String(r.siteId), r.role]));
+      const newMap = new Map(newRoles.map((r) => [String(r.siteId), r.role]));
+
+      const allSiteIds = new Set([...oldMap.keys(), ...newMap.keys()]);
+      for (const siteId of allSiteIds) {
+        const oldRole = oldMap.get(siteId);
+        const newRole = newMap.get(siteId);
+        if (oldRole === newRole) continue;
+
+        const siteDoc = await ctx.db.get(siteId as Id<"sites">);
+        if (!siteDoc) continue;
+
+        await logActivity(ctx, {
+          siteId: siteId as Id<"sites">,
+          actorName: me.name,
+          action: newRole ? (oldRole ? "changed role" : "assigned role") : "removed role",
+          entityType: "user",
+          entityId: String(userId),
+          page: "users",
+          previousValue: oldRole ?? "(none)",
+          newValue: newRole ?? "(removed)",
+          details: `Role for ${existing.name} on ${siteDoc.name}: ${oldRole ?? "none"} → ${newRole ?? "removed"}`,
+        });
+      }
+    }
+
     const user = (await ctx.db.get(userId))!;
     const sites = await ctx.db.query("sites").collect();
     const sitesMap = new Map(sites.map((s) => [s._id as string, s.name]));

@@ -29,19 +29,51 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: "Administrator (FSTS)",
-  client_admin: "Website Manager (Client)",
-  editor: "Editor",
-  marketing: "Marketing",
-  training_manager: "Training Manager",
-  read_only: "Read Only",
-};
-
-const ROLES = ["client_admin", "editor", "marketing", "training_manager", "read_only"];
+import {
+  ROLES,
+  ROLE_LABELS,
+  ROLE_DESCRIPTIONS,
+  type Role,
+} from "@/lib/roleCapabilities";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type RoleAssignmentForm = { siteId: string; role: string };
+
+const ROLE_BADGE_COLORS: Partial<Record<string, string>> = {
+  owner: "bg-green-100 text-green-800",
+  manager: "bg-blue-100 text-blue-800",
+  marketing: "bg-purple-100 text-purple-800",
+  content_editor: "bg-amber-100 text-amber-800",
+  course_manager: "bg-indigo-100 text-indigo-800",
+  events_manager: "bg-pink-100 text-pink-800",
+  finance: "bg-teal-100 text-teal-800",
+  support: "bg-orange-100 text-orange-800",
+  read_only: "bg-slate-100 text-slate-600",
+};
+
+function RolePill({ role }: { role: string }) {
+  const label = ROLE_LABELS[role as Role] ?? role;
+  const color = ROLE_BADGE_COLORS[role] ?? "bg-slate-100 text-slate-600";
+  const description = ROLE_DESCRIPTIONS[role as Role];
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium cursor-default ${color}`}>
+          {label}
+        </span>
+      </TooltipTrigger>
+      {description && (
+        <TooltipContent side="top" className="max-w-xs text-xs">
+          {description}
+        </TooltipContent>
+      )}
+    </Tooltip>
+  );
+}
 
 export default function AdminUsers() {
   const me = useQuery(api.users.me);
@@ -174,15 +206,22 @@ export default function AdminUsers() {
                           <span className="text-slate-400 text-xs">No sites</span>
                         ) : (
                           (user.roleAssignments ?? []).map((r: any) => (
-                            <Badge key={r.siteId} variant="outline">
-                              {r.siteName}: {ROLE_LABELS[r.role] ?? r.role}
-                            </Badge>
+                            <span key={r.siteId} className="inline-flex items-center gap-1 text-xs">
+                              <span className="text-slate-500">{r.siteName}:</span>
+                              <RolePill role={r.role} />
+                            </span>
                           ))
                         )}
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{user.isActive ? "Active" : "Inactive"}</td>
+                  <td className="px-4 py-3">
+                    {user.isActive ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Active</span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">Deactivated</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(user)}><Pencil className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(user)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
@@ -232,7 +271,7 @@ export default function AdminUsers() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setAssignments([...assignments, { siteId: "", role: "editor" }])}
+                    onClick={() => setAssignments([...assignments, { siteId: "", role: "content_editor" }])}
                   >
                     <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
@@ -244,7 +283,7 @@ export default function AdminUsers() {
                       next[i] = { ...a, siteId: v };
                       setAssignments(next);
                     }}>
-                      <SelectTrigger><SelectValue placeholder="Site" /></SelectTrigger>
+                      <SelectTrigger className="flex-1"><SelectValue placeholder="Site" /></SelectTrigger>
                       <SelectContent>
                         {sites?.map((s: any) => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
                       </SelectContent>
@@ -254,10 +293,14 @@ export default function AdminUsers() {
                       next[i] = { ...a, role: v };
                       setAssignments(next);
                     }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {ROLES.map((r) => (
-                          <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                          <SelectItem key={r} value={r}>
+                            <div>
+                              <div className="font-medium text-sm">{ROLE_LABELS[r]}</div>
+                            </div>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -266,6 +309,9 @@ export default function AdminUsers() {
                     </Button>
                   </div>
                 ))}
+                {assignments.length === 0 && (
+                  <p className="text-xs text-slate-400">No site assignments yet. Add one above.</p>
+                )}
               </div>
             )}
 

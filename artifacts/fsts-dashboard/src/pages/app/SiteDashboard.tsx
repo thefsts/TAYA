@@ -2,7 +2,7 @@ import { useLocation, useParams, Link } from "wouter";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit } from "lucide-react";
+import { ExternalLink, ShieldAlert, Mail as MailIcon, FileEdit } from "lucide-react";
 import {
   ArrowLeft,
   LayoutTemplate,
@@ -34,6 +34,7 @@ import {
   ShoppingBag,
   ScrollText,
   FormInput,
+  ShieldCheck,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -142,6 +143,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} />
           <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} />
           <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} />
+          <NavItem icon={ShieldCheck} label="My Permissions" href={`/app/sites/${siteId}/permissions`} />
         </nav>
 
         {(site?.poweredByFsts ?? true) && (

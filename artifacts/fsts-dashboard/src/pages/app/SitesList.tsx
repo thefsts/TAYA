@@ -10,7 +10,8 @@ import {
   LogOut,
   ChevronRight,
   Globe,
-  ShieldX
+  ShieldX,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,6 +102,10 @@ export default function SitesList() {
               <Button variant="outline" onClick={() => setLocation("/app/admin/users")}>
                 <Users className="h-4 w-4 mr-2 text-slate-500" />
                 Manage Users
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/app/admin/access-control")}>
+                <ShieldCheck className="h-4 w-4 mr-2 text-slate-500" />
+                Access Control
               </Button>
               <Button onClick={() => setLocation("/app/admin/sites")} className="bg-primary hover:bg-primary/90 text-white">
                 <Settings className="h-4 w-4 mr-2" />

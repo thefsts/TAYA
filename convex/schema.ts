@@ -467,4 +467,14 @@ export default defineSchema({
     integrationsUpdatedAt: v.optional(v.number()),
     legalUpdatedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
+
+  // Phase 9 — Client Permissions™
+  siteRoleOverrides: defineTable({
+    siteId: v.id("sites"),
+    role: v.string(),
+    module: v.string(),
+    level: v.string(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_role", ["siteId", "role"]),
 });
