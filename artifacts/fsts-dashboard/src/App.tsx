@@ -1,11 +1,11 @@
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk, useUser } from "@clerk/react";
 import { shadcn } from "@clerk/themes";
 import { ConvexReactClient, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
 import fstsLogo from "@assets/fsts_header_logo_1783377175328.PNG";
 
@@ -249,16 +249,15 @@ function RedirectToApp({ setLocation }: { setLocation: (to: string) => void }) {
 
 function HomeRedirect() {
   const [, setLocation] = useLocation();
-  return (
-    <>
-      <Show when="signed-in">
-        <RedirectToApp setLocation={setLocation} />
-      </Show>
-      <Show when="signed-out">
-        <Landing />
-      </Show>
-    </>
-  );
+  const { isLoaded, isSignedIn } = useUser();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      setLocation("/app");
+    }
+  }, [isLoaded, isSignedIn, setLocation]);
+
+  return <Landing />;
 }
 
 function withDesignLock<P extends object>(Component: React.ComponentType<P>) {
