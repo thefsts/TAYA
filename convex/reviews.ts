@@ -332,7 +332,7 @@ export const upsertReviewInternal = internalMutation({
     reviewDate: v.number(),
     cachedAt: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<"inserted" | "updated" | "unchanged"> => {
     // Include provider in the dedupe key so two providers with the same
     // externalId (e.g. numeric IDs) never overwrite each other's records.
     const key = `${args.provider}:${args.externalId}`;
@@ -341,14 +341,25 @@ export const upsertReviewInternal = internalMutation({
       .withIndex("by_site_external", (q) => q.eq("siteId", args.siteId).eq("externalId", key))
       .first();
     if (existing) {
-      await ctx.db.patch(existing._id, {
-        reviewerName: args.reviewerName,
-        reviewerPhotoUrl: args.reviewerPhotoUrl,
-        rating: args.rating,
-        text: args.text,
-        reviewDate: args.reviewDate,
-        cachedAt: args.cachedAt,
-      });
+      // Only patch and count as "updated" when content actually changed.
+      const contentChanged =
+        existing.reviewerName !== args.reviewerName ||
+        existing.reviewerPhotoUrl !== args.reviewerPhotoUrl ||
+        existing.rating !== args.rating ||
+        existing.text !== args.text ||
+        existing.reviewDate !== args.reviewDate;
+      if (contentChanged) {
+        await ctx.db.patch(existing._id, {
+          reviewerName: args.reviewerName,
+          reviewerPhotoUrl: args.reviewerPhotoUrl,
+          rating: args.rating,
+          text: args.text,
+          reviewDate: args.reviewDate,
+          cachedAt: args.cachedAt,
+        });
+        return "updated";
+      }
+      return "unchanged";
     } else {
       await ctx.db.insert("importedReviews", {
         siteId: args.siteId,
@@ -365,6 +376,7 @@ export const upsertReviewInternal = internalMutation({
         category: undefined,
         cachedAt: args.cachedAt,
       });
+      return "inserted";
     }
   },
 });
@@ -374,13 +386,43 @@ export const markSourceSynced = internalMutation({
     sourceId: v.id("reviewSources"),
     status: v.string(),
     errorMessage: v.optional(v.string()),
+    syncStats: v.optional(
+      v.object({
+        upserted: v.number(),
+        unchanged: v.number(),
+        removed: v.number(),
+      })
+    ),
   },
-  handler: async (ctx, { sourceId, status, errorMessage }) => {
+  handler: async (ctx, { sourceId, status, errorMessage, syncStats }) => {
     await ctx.db.patch(sourceId, {
       lastSyncedAt: Date.now(),
       status,
       errorMessage,
+      ...(syncStats !== undefined ? { lastSyncStats: syncStats } : {}),
     });
+  },
+});
+
+export const deleteOrphanedReviews = internalMutation({
+  args: {
+    sourceId: v.id("reviewSources"),
+    knownExternalIds: v.array(v.string()),
+  },
+  handler: async (ctx, { sourceId, knownExternalIds }) => {
+    const knownSet = new Set(knownExternalIds);
+    const existing = await ctx.db
+      .query("importedReviews")
+      .withIndex("by_source", (q) => q.eq("sourceId", sourceId))
+      .collect();
+    let removed = 0;
+    for (const review of existing) {
+      if (!knownSet.has(review.externalId)) {
+        await ctx.db.delete(review._id);
+        removed++;
+      }
+    }
+    return removed;
   },
 });
 
@@ -498,8 +540,15 @@ export const syncSiteReviews = internalAction({
           credentials,
         });
 
+        // Track counts and build the set of live external IDs for orphan detection.
+        let upserted = 0;
+        let unchanged = 0;
+        const knownExternalIds: string[] = [];
+
         for (const rev of reviews) {
-          await ctx.runMutation(internal.reviews.upsertReviewInternal, {
+          // The stored key mirrors the one built inside upsertReviewInternal.
+          knownExternalIds.push(`${source.provider}:${rev.externalId}`);
+          const result = await ctx.runMutation(internal.reviews.upsertReviewInternal, {
             siteId,
             sourceId: source._id,
             provider: source.provider,
@@ -511,11 +560,27 @@ export const syncSiteReviews = internalAction({
             reviewDate: rev.reviewDate,
             cachedAt: now,
           });
+          if (result === "unchanged") unchanged++;
+          else upserted++; // "inserted" or "updated" (content-changed patch)
         }
+
+        // Remove records that no longer appear in the provider response.
+        // Guard: skip deletion when the provider returned zero results — an empty
+        // response cannot be distinguished from a stub/misconfigured adapter and
+        // would otherwise wipe all existing moderated reviews for the source.
+        let removed = 0;
+        if (reviews.length > 0) {
+          removed = await ctx.runMutation(internal.reviews.deleteOrphanedReviews, {
+            sourceId: source._id,
+            knownExternalIds,
+          });
+        }
+
         await ctx.runMutation(internal.reviews.markSourceSynced, {
           sourceId: source._id,
           status: "active",
           errorMessage: undefined,
+          syncStats: { upserted, unchanged, removed },
         });
       } catch (err: any) {
         await ctx.runMutation(internal.reviews.markSourceSynced, {

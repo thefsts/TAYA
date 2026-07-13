@@ -586,6 +586,13 @@ export default defineSchema({
     lastSyncedAt: v.optional(v.number()),
     status: v.string(),
     errorMessage: v.optional(v.string()),
+    lastSyncStats: v.optional(
+      v.object({
+        upserted: v.number(),
+        unchanged: v.number(),
+        removed: v.number(),
+      })
+    ),
   })
     .index("by_site", ["siteId"])
     .index("by_site_provider", ["siteId", "provider"]),
