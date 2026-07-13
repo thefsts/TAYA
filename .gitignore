@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# GitHub sync state (written by post-merge hook, not source-controlled)
+.github-sync-state.json
