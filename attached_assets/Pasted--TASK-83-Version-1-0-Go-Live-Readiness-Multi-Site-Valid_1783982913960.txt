@@ -1,0 +1,264 @@
+# TASK 83 — Version 1.0 Go-Live Readiness & Multi-Site Validation
+
+**Priority:** CRITICAL
+
+## Project Goal
+
+Prepare the FSTS Website Operating System™ (FSTS-WOS™) for **Version 1.0 Production Release**.
+
+The immediate objective is:
+
+1. Make **Corsair Tactical Solutions** the first fully managed production website.
+2. Validate that the platform can manage **multiple websites simultaneously** without additional development.
+3. Establish the dashboard as the permanent website management platform for all future FSTS client websites.
+
+---
+
+# PRIMARY GOALS
+
+## Goal 1 — Complete Corsair Production Integration
+
+Corsair Tactical Solutions will become the first production client managed entirely through the dashboard.
+
+Complete every remaining dashboard-to-website connection so the live website reads from Convex instead of static source files.
+
+The following must publish live from the dashboard:
+
+* Homepage
+* Hero content (where applicable)
+* Homepage sections
+* Courses
+* Events
+* Blog Articles
+* Testimonials
+* FAQ
+* Footer
+* Contact Information
+* Navigation
+* SEO
+* Team Members
+* Downloads & Resources
+* Policies
+* Announcement Banner
+* CTA Manager
+
+No hardcoded content should remain unless intentionally used as a fallback.
+
+---
+
+# Goal 2 — Validate Multi-Tenant Operation
+
+Verify the dashboard is fully capable of managing multiple client websites at the same time.
+
+Confirm:
+
+* Complete site isolation using `siteId`
+* Independent media libraries
+* Independent forms
+* Independent SEO
+* Independent payment settings
+* Independent email settings
+* Independent client portal settings
+* Independent memberships
+* Independent automation settings
+* Independent backups
+* Independent activity logs
+* Independent version history
+
+No client data may ever be visible across websites.
+
+---
+
+# Goal 3 — Production Website Template
+
+Corsair becomes the reference implementation for every future client website.
+
+Every future site should require configuration—not redevelopment.
+
+Implement a reusable onboarding workflow:
+
+* Create Site
+* Assign Domain
+* Assign Client Administrator
+* Seed Default Content
+* Configure Modules
+* Configure Payments
+* Configure Email
+* Configure Branding
+* Publish
+
+No manual database work should be required.
+
+---
+
+# WEBSITE READINESS CHECKLIST
+
+Before Corsair is declared Version 1.0 ready, verify:
+
+### CMS
+
+* Homepage updates publish
+* Course updates publish
+* Event updates publish
+* Blog updates publish
+* FAQ updates publish
+* Testimonials publish
+* Footer updates publish
+* Contact updates publish
+* SEO updates publish
+* Navigation updates publish
+
+---
+
+### Media
+
+* Upload
+* Crop
+* Resize
+* Compression
+* Responsive images
+* Alt text
+* File validation
+
+---
+
+### Dashboard
+
+* Responsive Live Preview Studio™
+* Smart Image Manager™
+* Forms Builder™
+* Client Portal™
+* Membership Portal™
+* Website Health Command Center™
+* AI Dashboard Assistant™
+* Activity Log
+* Version History
+* Backups
+
+---
+
+### Payments
+
+Complete the Payment Connector Framework™.
+
+Version 1.0 must fully support:
+
+* Square
+
+The architecture must also be ready for:
+
+* Stripe
+* PayPal
+* Authorize.Net
+* Clover
+* Helcim
+* Global Payments
+* Fiserv
+* Elavon
+* ACH
+
+Adding a provider should require only a connector, not a redesign.
+
+---
+
+### Reviews
+
+Support display-only integrations for:
+
+* Google Reviews
+* Facebook Reviews
+* Yelp Reviews
+
+The dashboard should synchronize approved reviews onto the client's website.
+
+No reputation management functionality belongs in the dashboard.
+
+---
+
+### Client Portal
+
+Support:
+
+* Business owner login
+* Customer/member login (if enabled)
+* Secure document sharing
+* Invoices
+* Training records
+* Certificates
+* Membership access
+
+---
+
+### Security
+
+Verify:
+
+* RBAC
+* Site isolation
+* API authorization
+* Encrypted credentials
+* Secure uploads
+* HTTPS
+* Environment variables
+* No exposed secrets
+
+---
+
+### Performance
+
+Verify:
+
+* Lighthouse scores remain high
+* No unnecessary JavaScript
+* Lazy loading
+* Optimized images
+* No CLS
+* Fast page loads
+* Responsive on Desktop, Laptop, Tablet, and Mobile
+
+---
+
+# GO-LIVE DECISION
+
+At the end of this task, provide a release assessment using the following format:
+
+## Version 1.0 Completion
+
+* Dashboard Core: ___%
+* CMS Pipeline: ___%
+* Multi-Tenant Readiness: ___%
+* Security: ___%
+* Performance: ___%
+* Payments: ___%
+* Email: ___%
+* Media: ___%
+* Client Portal: ___%
+* Documentation: ___%
+
+---
+
+## Is Corsair Ready?
+
+Choose one:
+
+* ✅ Ready for Production
+* ⚠ Ready with Minor Issues
+* ❌ Not Ready
+
+---
+
+## Can We Onboard a Second Website Today?
+
+Choose one:
+
+* ✅ Yes
+* ⚠ Yes, with minor configuration only
+* ❌ No
+
+If "No" or "Minor Configuration," list every remaining blocker.
+
+---
+
+## Final Recommendation
+
+State whether FSTS Website Operating System™ Version 1.0 is ready to become the production platform for all future client websites, or identify the exact remaining work required before launch.
