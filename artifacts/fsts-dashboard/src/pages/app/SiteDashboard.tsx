@@ -35,6 +35,7 @@ import {
   FormInput,
   ShieldCheck as ShieldCheckIcon,
   Settings,
+  Zap,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -213,6 +214,9 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           {isEnabled("crm") && (
             <NavItem icon={Building2} label="Marketing & CRM" href={`/app/sites/${siteId}/crm`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           )}
+
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Automation</div>
+          <NavItem icon={Zap} label="Automation Engine™" href={`/app/sites/${siteId}/automation`} isSuperAdmin={isSuperAdmin} />
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">System</div>
           <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} isDesignLocked isSuperAdmin={isSuperAdmin} />

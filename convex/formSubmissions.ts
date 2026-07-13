@@ -1,5 +1,6 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
 
 function toResponse(doc: any) {
@@ -78,6 +79,15 @@ const submitHandler = async (ctx: any, args: {
     data: fields.data ?? {},
     status: "new",
     submittedAt: Date.now(),
+  });
+  await ctx.scheduler.runAfter(0, internal.automation.runAutomationRules, {
+    siteId: site._id,
+    triggerType: "form_submitted",
+    triggerPayload: {
+      formType: fields.formType,
+      submitterName: fields.submitterName,
+      submitterEmail: fields.submitterEmail,
+    },
   });
   return id;
 };

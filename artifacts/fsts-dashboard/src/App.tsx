@@ -68,6 +68,9 @@ import MyPermissions from "@/pages/app/sites/MyPermissions";
 // WOS Phase 1 — Payment Connector Framework™
 import PaymentProviders from "@/pages/app/sites/PaymentProviders";
 
+// WOS Phase 8 — Automation Engine™
+import AutomationRules from "@/pages/app/sites/AutomationRules";
+
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
@@ -347,6 +350,9 @@ function AppRouter() {
 
           {/* WOS Phase 1 — Payment Connector Framework™ */}
           <Route path="/app/sites/:siteId/payment-providers" component={PaymentProviders} />
+
+          {/* WOS Phase 8 — Automation Engine™ */}
+          <Route path="/app/sites/:siteId/automation" component={AutomationRules} />
 
           <Route component={NotFound} />
         </Switch>

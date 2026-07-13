@@ -12,6 +12,7 @@ import type * as accessControl from "../accessControl.js";
 import type * as activityLog from "../activityLog.js";
 import type * as agencies from "../agencies.js";
 import type * as ai from "../ai.js";
+import type * as automation from "../automation.js";
 import type * as announcement from "../announcement.js";
 import type * as articles from "../articles.js";
 import type * as backups from "../backups.js";
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   activityLog: typeof activityLog;
   agencies: typeof agencies;
   ai: typeof ai;
+  automation: typeof automation;
   announcement: typeof announcement;
   articles: typeof articles;
   backups: typeof backups;

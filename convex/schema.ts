@@ -574,4 +574,52 @@ export default defineSchema({
   })
     .index("by_site", ["siteId"])
     .index("by_site_provider", ["siteId", "provider"]),
+
+  // WOS Phase 8 — Automation Engine™
+  automationRules: defineTable({
+    siteId: v.id("sites"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    triggerType: v.string(),
+    conditions: v.array(
+      v.object({
+        field: v.string(),
+        operator: v.string(),
+        value: v.string(),
+      })
+    ),
+    actions: v.array(
+      v.object({
+        type: v.string(),
+        order: v.number(),
+        config: v.any(),
+      })
+    ),
+    enabled: v.boolean(),
+    lastRunAt: v.optional(v.number()),
+    lastRunStatus: v.optional(v.string()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_trigger", ["siteId", "triggerType"]),
+
+  automationRunLog: defineTable({
+    siteId: v.id("sites"),
+    ruleId: v.id("automationRules"),
+    ruleName: v.string(),
+    triggerType: v.string(),
+    triggerPayload: v.any(),
+    status: v.string(),
+    actionResults: v.array(
+      v.object({
+        actionType: v.string(),
+        order: v.number(),
+        status: v.string(),
+        message: v.optional(v.string()),
+      })
+    ),
+    completedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_rule", ["ruleId"])
+    .index("by_site_status", ["siteId", "status"]),
 });

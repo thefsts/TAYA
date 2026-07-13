@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
@@ -110,6 +111,13 @@ export const update = mutation({
     const doc = (await ctx.db.get(articleId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "article", entityId: articleId, page: "Articles", previousValue: existing, newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "article", entityId: articleId, snapshot: doc });
+    if (fields.status === "published" && existing.status !== "published") {
+      await ctx.scheduler.runAfter(0, internal.automation.runAutomationRules, {
+        siteId,
+        triggerType: "article_published",
+        triggerPayload: { articleId, title: doc.title, author: doc.author, category: doc.category },
+      });
+    }
     return toResponse(doc);
   },
 });
