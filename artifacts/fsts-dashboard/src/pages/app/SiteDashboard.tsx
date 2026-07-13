@@ -37,6 +37,7 @@ import {
   Settings,
   Zap,
   Star,
+  UserCog,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -184,6 +185,9 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Site Modules</div>
           {isEnabled("reviews") && (
             <NavItem icon={Star} label="Reviews" href={`/app/sites/${siteId}/reviews`} isSuperAdmin={isSuperAdmin} />
+          )}
+          {isEnabled("portal") && (
+            <NavItem icon={UserCog} label="Portal Manager™" href={`/app/sites/${siteId}/portal`} isSuperAdmin={isSuperAdmin} />
           )}
           {isEnabled("navigation") && (
             <NavItem icon={Navigation} label="Navigation" href={`/app/sites/${siteId}/nav`} isDesignLocked isSuperAdmin={isSuperAdmin} />

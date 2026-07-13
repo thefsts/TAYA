@@ -1,9 +1,9 @@
-import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation, useParams } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk, useUser } from "@clerk/react";
 import { shadcn } from "@clerk/themes";
-import { ConvexReactClient, useConvexAuth, useMutation, useQuery } from "convex/react";
+import { ConvexProvider, ConvexReactClient, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
@@ -74,6 +74,39 @@ import AutomationRules from "@/pages/app/sites/AutomationRules";
 
 // Website Reviews Module™
 import ReviewsManager from "@/pages/app/sites/ReviewsManager";
+
+// Phase 80 — Client Portal™ / Multi-Portal Authentication System™
+import PortalLogin from "@/pages/portal/PortalLogin";
+import PortalRegister from "@/pages/portal/PortalRegister";
+import PortalDashboard from "@/pages/portal/PortalDashboard";
+import PortalManager from "@/pages/app/sites/PortalManager";
+
+function withPortalConvex<P extends object>(Component: React.ComponentType<P>) {
+  return function PortalPage(props: P) {
+    if (!convex) return null;
+    return (
+      <ConvexProvider client={convex}>
+        <Component {...props} />
+      </ConvexProvider>
+    );
+  };
+}
+
+function PortalRootRedirect() {
+  const params = useParams<{ siteSlug: string }>();
+  const [, setLocation] = useLocation();
+  const siteSlug = params.siteSlug ?? "";
+  useEffect(() => {
+    const raw = localStorage.getItem(`portal_session_${siteSlug}`);
+    setLocation(raw ? `/portal/${siteSlug}/dashboard` : `/portal/${siteSlug}/login`);
+  }, [siteSlug, setLocation]);
+  return null;
+}
+
+const PortalLoginPage = withPortalConvex(PortalLogin);
+const PortalRegisterPage = withPortalConvex(PortalRegister);
+const PortalDashboardPage = withPortalConvex(PortalDashboard);
+const PortalRootPage = withPortalConvex(PortalRootRedirect);
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
@@ -360,6 +393,9 @@ function AppRouter() {
           {/* Website Reviews Module™ */}
           <Route path="/app/sites/:siteId/reviews" component={ReviewsManager} />
 
+          {/* Phase 80 — Client Portal™ */}
+          <Route path="/app/sites/:siteId/portal" component={PortalManager} />
+
           <Route component={NotFound} />
         </Switch>
       </ConvexProviderWithClerk>
@@ -429,7 +465,15 @@ function App() {
   return (
     <TooltipProvider>
       <WouterRouter base={basePath}>
-        <AppRouter />
+        <Switch>
+          {/* Phase 80 — Client Portal™ public routes (no Clerk auth) */}
+          <Route path="/portal/:siteSlug/login" component={PortalLoginPage} />
+          <Route path="/portal/:siteSlug/register" component={PortalRegisterPage} />
+          <Route path="/portal/:siteSlug/dashboard" component={PortalDashboardPage} />
+          <Route path="/portal/:siteSlug" component={PortalRootPage} />
+          {/* Dashboard routes (Clerk auth) */}
+          <Route component={AppRouter} />
+        </Switch>
       </WouterRouter>
       <Toaster />
     </TooltipProvider>

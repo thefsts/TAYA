@@ -1,0 +1,420 @@
+# TASK 80 — Multi-Portal Authentication System™ (Dashboard + Client Portal Integration)
+
+**Priority:** CRITICAL
+
+## Project Goal
+
+Expand the **FSTS Website Operating System™ (FSTS-WOS)** so it supports **multiple secure login portals** while keeping the Dashboard and CRM independent products.
+
+A website owner may choose to use:
+
+* Dashboard only
+* Dashboard + Client Portal
+* Dashboard + CRM
+* Dashboard + Client Portal + CRM
+
+The system must support all combinations without requiring the client to purchase the CRM.
+
+---
+
+# 1. USER TYPES
+
+Support multiple user roles throughout the platform.
+
+### FSTS Super Admin
+
+Full platform access.
+
+Can manage:
+
+* All websites
+* Dashboard settings
+* Modules
+* Billing
+* Templates
+* Client accounts
+
+---
+
+### Website Owner (Client Admin)
+
+Logs into the **Admin Dashboard**.
+
+Can manage only their own website(s).
+
+Can edit:
+
+* Content
+* Images
+* Events
+* Courses
+* Pricing
+* Forms
+* SEO
+* Media
+* Team
+* Downloads
+* FAQ
+* Testimonials
+* Navigation
+* Payment settings
+
+Cannot:
+
+* Edit layouts
+* Edit templates
+* Edit code
+* Edit developer settings
+* Access other client websites
+
+---
+
+### Website Staff
+
+Optional roles.
+
+Examples:
+
+* Marketing
+* Office Manager
+* HR
+* Instructor
+* Event Manager
+* Content Editor
+
+Permissions controlled by the Website Owner.
+
+---
+
+### Website Customer / Member
+
+This is **NOT** the website owner.
+
+This is the customer's customer.
+
+Examples:
+
+* Student
+* Member
+* Homeowner
+* Tenant
+* Church Member
+* Employee
+* Client
+* Patient
+* Subscriber
+
+These users log into the **Client Portal**, not the Admin Dashboard.
+
+---
+
+# 2. SEPARATE PORTALS
+
+The platform must clearly separate portals.
+
+## Admin Dashboard
+
+For business owners and staff.
+
+URL Example:
+
+/admin
+
+or
+
+dashboard.clientdomain.com
+
+Functions:
+
+* Website Management
+* Content Management
+* Payments
+* Reports
+* Settings
+* Website Health
+* AI Assistant
+
+---
+
+## Client Portal
+
+For the business's customers.
+
+Examples:
+
+Students
+
+Members
+
+Customers
+
+Tenants
+
+Employees
+
+Clients
+
+This portal is completely separate from the Admin Dashboard.
+
+Example URL:
+
+/portal
+
+or
+
+portal.clientdomain.com
+
+---
+
+# 3. CLIENT PORTAL FEATURES
+
+Each website can enable or disable the Client Portal module.
+
+When enabled, customers can:
+
+* Create an account
+* Secure login
+* Forgot password
+* Two-factor authentication (optional)
+* Update profile
+* View account information
+
+Depending on the business type, they may also access:
+
+* Course registrations
+* Event registrations
+* Certificates
+* Training history
+* Invoices
+* Receipts
+* Documents
+* Membership status
+* Uploaded files
+* Messages
+* Support tickets
+* Secure downloads
+
+The portal should be modular so businesses only enable the features they need.
+
+---
+
+# 4. LOGIN EXPERIENCE
+
+Provide a unified authentication experience.
+
+Website footer may include:
+
+**Admin Portal** (for the business owner)
+
+**Client Portal** (for customers, if enabled)
+
+Each route should display the client's branding.
+
+Display:
+
+* Company logo
+* Company name
+* Brand colors
+* Welcome message
+
+Never show Full Stack Tech Solutions branding on public login screens.
+
+---
+
+# 5. DASHBOARD CONFIGURATION
+
+Within the Admin Dashboard, add a **Portal Manager™** module where the Website Owner can:
+
+* Enable/disable Client Portal
+* Customize login branding
+* Upload portal logo
+* Set welcome message
+* Configure registration options
+* Require approval for new users
+* Enable invitation-only access
+* Enable two-factor authentication
+* Customize password policies
+* Configure portal navigation
+* Manage customer accounts
+* Assign customer roles
+
+---
+
+# 6. ROLE-BASED PERMISSIONS
+
+Portal permissions should be granular.
+
+Examples:
+
+Student
+
+Instructor
+
+Member
+
+Employee
+
+Customer
+
+Premium Member
+
+Volunteer
+
+Each role can have different access to:
+
+* Pages
+* Downloads
+* Courses
+* Files
+* Certificates
+* Forms
+* Messages
+* Payments
+
+---
+
+# 7. DASHBOARD + CRM INTEGRATION
+
+The Client Portal must work independently of the CRM.
+
+If the client does NOT subscribe to the CRM:
+
+* Portal authentication
+* User management
+* Documents
+* Course history
+* Membership access
+
+must still function through the Dashboard.
+
+If the client DOES subscribe to the CRM:
+
+The CRM can extend the portal with:
+
+* Lead management
+* Sales pipeline
+* Appointment scheduling
+* Marketing automation
+* Customer communication
+* Billing workflows
+* AI follow-up
+* Advanced customer history
+
+The Dashboard should simply connect to these CRM features when available.
+
+---
+
+# 8. DATABASE DESIGN
+
+Support three independent user groups:
+
+* FSTS Platform Users
+* Website Owners & Staff
+* Website Customers / Members
+
+All users remain isolated by **siteId**.
+
+No cross-site visibility.
+
+No shared customer data.
+
+---
+
+# 9. SECURITY
+
+Implement:
+
+* Clerk authentication
+* RBAC
+* Session management
+* Audit logging
+* Password reset
+* Email verification
+* Optional MFA
+* Rate limiting
+* Device/session management
+* Secure API authorization
+* Tenant isolation
+
+---
+
+# 10. WEBSITE INTEGRATION
+
+Allow websites to easily display:
+
+* Admin Portal button
+* Client Portal button (optional)
+
+These links should be configurable from the Dashboard and support:
+
+* Footer
+* Header
+* Navigation
+* Hero CTA
+* Custom buttons
+
+---
+
+# 11. MODULE SETTINGS
+
+Under Site Modules, add:
+
+* Client Portal™
+* Membership Manager™
+* Secure Documents™
+* Training Records™
+* Certificates™
+* Customer Accounts™
+
+Each module can be enabled or disabled per website.
+
+---
+
+# 12. FUTURE SCALABILITY
+
+Design the architecture so it supports:
+
+* Security companies
+* Training academies
+* Cleaning companies
+* Medical offices
+* Law firms
+* Contractors
+* Churches
+* Property managers
+* E-commerce businesses
+* Membership organizations
+
+without requiring architectural changes.
+
+---
+
+# 13. QA
+
+Verify:
+
+✓ Admin Dashboard login works.
+
+✓ Client Portal login works.
+
+✓ Admins cannot access customer-only pages.
+
+✓ Customers cannot access dashboard pages.
+
+✓ Staff permissions work correctly.
+
+✓ Multi-tenant isolation is enforced.
+
+✓ Branding changes per website.
+
+✓ Optional CRM integration functions correctly.
+
+✓ Audit logs capture portal activity.
+
+✓ Mobile login experience is fully responsive.
+
+---
+
+# PROJECT STANDARD
+
+The **Admin Dashboard** and **Client Portal** should operate as separate but connected systems within the FSTS Website Operating System™. Every client website can choose to enable the Client Portal independently, while the CRM remains an optional enhancement rather than a requirement. This architecture ensures flexibility, security, and scalability across all industries while maintaining a consistent user experience and protecting website owners from unauthorized layout or system changes.

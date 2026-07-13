@@ -679,4 +679,43 @@ export default defineSchema({
     .index("by_site", ["siteId"])
     .index("by_rule", ["ruleId"])
     .index("by_site_status", ["siteId", "status"]),
+
+  // Phase 80 — Client Portal™ / Multi-Portal Authentication System™
+  portalConfigs: defineTable({
+    siteId: v.id("sites"),
+    enabled: v.boolean(),
+    logoUrl: v.optional(v.string()),
+    welcomeMessage: v.optional(v.string()),
+    primaryColor: v.optional(v.string()),
+    registrationOpen: v.boolean(),
+    requireApproval: v.boolean(),
+    enabledFeatures: v.any(),
+  }).index("by_site", ["siteId"]),
+
+  portalUsers: defineTable({
+    siteId: v.id("sites"),
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    passwordHash: v.string(),
+    passwordSalt: v.string(),
+    role: v.string(),
+    status: v.string(),
+    emailVerified: v.boolean(),
+    notes: v.optional(v.string()),
+    profileData: v.optional(v.any()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_email", ["siteId", "email"])
+    .index("by_email", ["email"]),
+
+  portalSessions: defineTable({
+    portalUserId: v.id("portalUsers"),
+    siteId: v.id("sites"),
+    token: v.string(),
+    expiresAt: v.number(),
+    lastActiveAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_user", ["portalUserId"]),
 });
