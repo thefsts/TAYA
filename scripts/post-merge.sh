@@ -40,7 +40,7 @@ else
 fi
 
 echo "→ Pushing to github.com/${OWNER}/${REPO} (branch: ${BRANCH})…"
-git push github "$BRANCH" 2>&1
+git push github "$BRANCH" --force 2>&1
 echo "✓ GitHub mirror updated"
 
 # Strip credentials from remote URL so they are not stored in .git/config.
