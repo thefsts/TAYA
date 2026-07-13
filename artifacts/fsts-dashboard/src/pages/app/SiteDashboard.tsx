@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -5,6 +6,8 @@ import type { Id } from "@convex/_generated/dataModel";
 import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit, Lock } from "lucide-react";
 import {
   ArrowLeft,
+  ChevronsUpDown,
+  Globe,
   LayoutTemplate,
   BookOpen,
   Calendar,
@@ -110,6 +113,8 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
     api.agencies.get,
     agencyId ? { agencyId } : "skip",
   );
+  const sites = useQuery(api.sites.list);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -151,20 +156,51 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              {site?.logoUrl ? (
-                <img src={site.logoUrl} alt={site.name} className="h-10 w-10 rounded object-contain border border-slate-100" />
-              ) : (
-                <div className="h-10 w-10 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 font-bold">
-                  {site?.name?.charAt(0)}
+            <div>
+              {/* Site info — click to switch sites when multiple are accessible */}
+              <button
+                type="button"
+                onClick={() => sites && sites.length > 1 ? setSwitcherOpen((v) => !v) : undefined}
+                className={`w-full flex items-center gap-3 rounded-lg p-1.5 -m-1.5 text-left transition-colors ${sites && sites.length > 1 ? "hover:bg-slate-50 cursor-pointer" : "cursor-default"}`}
+              >
+                {site?.logoUrl ? (
+                  <img src={site.logoUrl} alt={site.name} className="h-10 w-10 rounded object-contain border border-slate-100 flex-shrink-0" />
+                ) : (
+                  <div className="h-10 w-10 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 font-bold flex-shrink-0">
+                    {site?.name?.charAt(0)}
+                  </div>
+                )}
+                <div className="overflow-hidden flex-1 min-w-0">
+                  <h2 className="font-bold text-slate-900 truncate" title={site?.name}>{site?.name}</h2>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wide truncate">
+                    {agency ? `${agency.name} Dashboard` : "FSTS Website Operating System™"}
+                  </div>
+                </div>
+                {sites && sites.length > 1 && (
+                  <ChevronsUpDown className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                )}
+              </button>
+
+              {/* Site switcher dropdown */}
+              {switcherOpen && sites && sites.length > 1 && (
+                <div className="mt-2 rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden">
+                  <div className="px-3 py-1.5 border-b border-slate-100 bg-slate-50">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Switch Site</span>
+                  </div>
+                  {sites.map((s) => (
+                    <Link
+                      key={s._id}
+                      href={`/app/sites/${s._id}`}
+                      onClick={() => setSwitcherOpen(false)}
+                      className={`flex items-center gap-2 px-3 py-2.5 text-sm transition-colors border-b border-slate-50 last:border-0 ${s._id === siteId ? "bg-primary/5 text-primary font-semibold" : "text-slate-700 hover:bg-slate-50"}`}
+                    >
+                      <Globe className="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
+                      <span className="flex-1 truncate">{s.name}</span>
+                      {s._id === siteId && <span className="text-[10px] text-primary font-bold">●</span>}
+                    </Link>
+                  ))}
                 </div>
               )}
-              <div className="overflow-hidden">
-                <h2 className="font-bold text-slate-900 truncate" title={site?.name}>{site?.name}</h2>
-                <div className="text-[10px] text-slate-400 uppercase tracking-wide truncate">
-                  {agency ? `${agency.name} Dashboard` : "FSTS Website Operating System™"}
-                </div>
-              </div>
             </div>
           )}
         </div>
