@@ -409,6 +409,16 @@ function EmbedWidgetSection({
   const inlineSnippet = generateEmbedSnippet(convexHttpUrl, slug, settings ?? {});
   const isPlaceholder = !slug || !convexHttpUrl;
 
+  const minRating = settings?.minRating ?? 4;
+  const featuredOnly = settings?.featuredOnly ?? false;
+  const categoryFilter = (settings?.categoryFilter ?? "").trim();
+  const approvedCount = reviews
+    .filter((r) => r.status === "approved")
+    .filter((r) => r.rating >= minRating)
+    .filter((r) => !featuredOnly || r.pinned)
+    .filter((r) => !categoryFilter || r.category === categoryFilter)
+    .length;
+
   const activeSnippet = activeTab === "cdn" ? cdnSnippet : inlineSnippet;
 
   return (
@@ -429,6 +439,22 @@ function EmbedWidgetSection({
             <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
               <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
               Site slug or Convex URL not available — save your site settings first.
+            </div>
+          )}
+
+          {!isPlaceholder && approvedCount === 0 && (
+            <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2.5">
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                <strong>0 approved reviews</strong> match the current display settings — the widget will be invisible on your website.{" "}
+                <a
+                  href="#review-moderation"
+                  className="underline underline-offset-2 hover:text-amber-900 font-medium"
+                >
+                  Approve reviews below
+                </a>{" "}
+                to make the widget visible.
+              </span>
             </div>
           )}
 
@@ -850,7 +876,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
         </section>
 
         {/* Review List */}
-        <section>
+        <section id="review-moderation">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold text-slate-800">Imported Reviews</h2>
             <div className="flex items-center gap-2">
