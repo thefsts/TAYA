@@ -46,15 +46,10 @@ import TeamManager from "@/pages/app/sites/TeamManager";
 import CareersManager from "@/pages/app/sites/CareersManager";
 import PopupManager from "@/pages/app/sites/PopupManager";
 
-// Phase 2 — new modules
-import PolicyEditor from "@/pages/app/sites/PolicyEditor";
-import NavigationManager from "@/pages/app/sites/NavigationManager";
-import AnnouncementBannerPage from "@/pages/app/sites/AnnouncementBanner";
-import CtaManager from "@/pages/app/sites/CtaManager";
-import DownloadsManager from "@/pages/app/sites/DownloadsManager";
-import TeamManager from "@/pages/app/sites/TeamManager";
-import CareersManager from "@/pages/app/sites/CareersManager";
-import PopupManager from "@/pages/app/sites/PopupManager";
+// Phase 3 — Form Builder
+import FormsList from "@/pages/app/sites/FormsList";
+import FormBuilder from "@/pages/app/sites/FormBuilder";
+import PublicForm from "@/pages/PublicForm";
 
 // Phase 5 — Square Commerce
 import SquareCommerce from "@/pages/app/sites/SquareCommerce";
@@ -264,6 +259,7 @@ function AppRouter() {
         <DeactivationGuard />
         <Switch>
           <Route path="/" component={HomeRedirect} />
+          <Route path="/forms/:siteSlug/:formSlug" component={PublicForm} />
           <Route path="/sign-in/*?" component={SignInPage} />
           <Route path="/sign-up/*?" component={SignUpPage} />
 
@@ -301,15 +297,10 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/backups" component={BackupsList} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
 
-          {/* Phase 2 — new modules */}
-          <Route path="/app/sites/:siteId/policy" component={PolicyEditor} />
-          <Route path="/app/sites/:siteId/navigation" component={NavigationManager} />
-          <Route path="/app/sites/:siteId/announcement" component={AnnouncementBannerPage} />
-          <Route path="/app/sites/:siteId/cta" component={CtaManager} />
-          <Route path="/app/sites/:siteId/downloads" component={DownloadsManager} />
-          <Route path="/app/sites/:siteId/team" component={TeamManager} />
-          <Route path="/app/sites/:siteId/careers" component={CareersManager} />
-          <Route path="/app/sites/:siteId/popup" component={PopupManager} />
+
+          {/* Phase 3 — Form Builder */}
+          <Route path="/app/sites/:siteId/forms" component={FormsList} />
+          <Route path="/app/sites/:siteId/forms/:formId" component={FormBuilder} />
 
           {/* Phase 5 — Square Commerce */}
           <Route path="/app/sites/:siteId/commerce" component={SquareCommerce} />

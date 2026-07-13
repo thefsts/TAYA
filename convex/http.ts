@@ -41,6 +41,8 @@ const preflightPaths = [
   "/api/public/navigation", "/api/public/announcement", "/api/public/cta",
   "/api/public/team", "/api/public/downloads", "/api/public/jobs",
   "/api/public/popup", "/api/public/policy",
+  // Phase 3 — Form Builder
+  "/api/public/form", "/api/public/form/submit",
   // Square webhook
   "/api/square/webhook",
 ];
@@ -223,15 +225,9 @@ http.route({
   }),
 });
 
-/* ── OPTIONS for new endpoints ──────────────────────────────────────────── */
+/* ── OPTIONS for paths not in preflightPaths ────────────────────────────── */
 http.route({ path: "/api/public/policies", method: "OPTIONS", handler: preflight });
-http.route({ path: "/api/public/navigation", method: "OPTIONS", handler: preflight });
-http.route({ path: "/api/public/announcement", method: "OPTIONS", handler: preflight });
-http.route({ path: "/api/public/cta", method: "OPTIONS", handler: preflight });
-http.route({ path: "/api/public/downloads", method: "OPTIONS", handler: preflight });
-http.route({ path: "/api/public/team", method: "OPTIONS", handler: preflight });
 http.route({ path: "/api/public/careers", method: "OPTIONS", handler: preflight });
-http.route({ path: "/api/public/popup", method: "OPTIONS", handler: preflight });
 
 /* ── GET /api/public/policies?slug= ─────────────────────────────────────── */
 http.route({
@@ -356,104 +352,111 @@ http.route({
   }),
 });
 
-// ── Phase 2 public endpoints ──────────────────────────────────────────────────
+// ── Phase 3 — Form Builder public endpoints ───────────────────────────────────
 
-/* ── GET /api/public/navigation?slug= ───────────────────────────────────── */
+/* ── GET /api/public/form?slug=&form= ───────────────────────────────────────── */
 http.route({
-  path: "/api/public/navigation",
-  method: "GET",
-  handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getNavigationBySlug, { slug });
-    return ok(data);
-  }),
-});
-
-/* ── GET /api/public/announcement?slug= ─────────────────────────────────── */
-http.route({
-  path: "/api/public/announcement",
-  method: "GET",
-  handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getAnnouncementBySlug, { slug });
-    return ok(data);
-  }),
-});
-
-/* ── GET /api/public/cta?slug= ──────────────────────────────────────────── */
-http.route({
-  path: "/api/public/cta",
-  method: "GET",
-  handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getCtaBySlug, { slug });
-    return ok(data);
-  }),
-});
-
-/* ── GET /api/public/team?slug= ─────────────────────────────────────────── */
-http.route({
-  path: "/api/public/team",
-  method: "GET",
-  handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getTeamBySlug, { slug });
-    return ok(data);
-  }),
-});
-
-/* ── GET /api/public/downloads?slug= ────────────────────────────────────── */
-http.route({
-  path: "/api/public/downloads",
-  method: "GET",
-  handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getDownloadsBySlug, { slug });
-    return ok(data);
-  }),
-});
-
-/* ── GET /api/public/jobs?slug= ─────────────────────────────────────────── */
-http.route({
-  path: "/api/public/jobs",
-  method: "GET",
-  handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getJobsBySlug, { slug });
-    return ok(data);
-  }),
-});
-
-/* ── GET /api/public/popup?slug= ────────────────────────────────────────── */
-http.route({
-  path: "/api/public/popup",
-  method: "GET",
-  handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getPopupBySlug, { slug });
-    return ok(data);
-  }),
-});
-
-/* ── GET /api/public/policy?slug=&type= ─────────────────────────────────── */
-http.route({
-  path: "/api/public/policy",
+  path: "/api/public/form",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
     const params = new URL(request.url).searchParams;
     const slug = params.get("slug") ?? "";
-    const type = params.get("type") ?? undefined;
-    if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getPolicyBySlug, { slug, type });
-    if (type && !data) return notFound(`Policy type '${type}' not found`);
-    return ok(data);
+    const formSlug = params.get("form") ?? "";
+    if (!slug || !formSlug) return notFound("slug and form params required");
+    const site = await ctx.runQuery(internal.public.getSiteBySlug, { slug });
+    if (!site) return notFound("site not found");
+    const form = await ctx.runQuery(internal.forms.getBySlug, { siteId: site._id, slug: formSlug });
+    if (!form || form.status !== "published") return notFound("form not found or not published");
+
+    // Return only the public-safe subset — never expose notificationEmails,
+    // crmRouting, or other internal operational settings to public callers
+    const publicSettings = {
+      submitLabel: form.settings?.submitLabel ?? "Submit",
+      successMessage: form.settings?.successMessage ?? "",
+      redirectUrl: form.settings?.redirectUrl ?? "",
+      honeypot: form.settings?.honeypot ?? true,
+    };
+    const publicForm = {
+      _id: form._id,
+      name: form.name,
+      slug: form.slug,
+      fields: form.fields,
+      settings: publicSettings,
+    };
+    return ok(publicForm);
+  }),
+});
+
+/* ── POST /api/public/form/upload-url ───────────────────────────────────────── */
+// Returns a Convex storage upload URL so public form file_upload fields can
+// upload files directly. The returned storageId is then included in submit data.
+http.route({
+  path: "/api/public/form/upload-url",
+  method: "POST",
+  handler: httpAction(async (ctx, _request) => {
+    try {
+      const uploadUrl = await ctx.storage.generateUploadUrl();
+      return ok({ uploadUrl });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+    }
+  }),
+});
+
+/* ── OPTIONS /api/public/form/upload-url ────────────────────────────────────── */
+http.route({
+  path: "/api/public/form/upload-url",
+  method: "OPTIONS",
+  handler: httpAction(async (_ctx, _req) =>
+    new Response(null, { status: 204, headers: CORS }),
+  ),
+});
+
+/* ── POST /api/public/form/submit ────────────────────────────────────────────── */
+http.route({
+  path: "/api/public/form/submit",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json() as any;
+      const { slug, formId, data, submitterName, submitterEmail, submitterPhone } = body;
+      if (!slug || !formId) {
+        return new Response(JSON.stringify({ error: "slug and formId required" }), { status: 400, headers: CORS });
+      }
+
+      // Honeypot: if the hidden trap field is non-empty, silently acknowledge
+      if (data && data["_fsts_hp"] && String(data["_fsts_hp"]).trim() !== "") {
+        return ok({ id: "hp" });
+      }
+
+      // Validate formId is a non-empty string before hitting the DB
+      if (typeof formId !== "string" || formId.length < 10) {
+        return new Response(JSON.stringify({ error: "invalid formId" }), { status: 400, headers: CORS });
+      }
+
+      const site = await ctx.runQuery(internal.public.getSiteBySlug, { slug });
+      if (!site) return new Response(JSON.stringify({ error: "site not found" }), { status: 404, headers: CORS });
+
+      const result = await ctx.runMutation(internal.forms.submitPublic, {
+        siteId: site._id,
+        formId,
+        data: data ?? {},
+        submitterName,
+        submitterEmail,
+        submitterPhone,
+      });
+
+      if (result.validationErrors) {
+        return new Response(
+          JSON.stringify({ error: "Validation failed", fields: result.validationErrors }),
+          { status: 422, headers: CORS },
+        );
+      }
+
+      return ok({ id: result.id });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+    }
   }),
 });
 

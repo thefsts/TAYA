@@ -302,8 +302,22 @@ export default defineSchema({
     order: v.number(),
   }).index("by_site", ["siteId"]),
 
+  // Phase 3 — Form Builder
+  forms: defineTable({
+    siteId: v.id("sites"),
+    name: v.string(),
+    slug: v.string(),
+    status: v.string(),
+    fields: v.any(),
+    settings: v.any(),
+    templateType: v.optional(v.string()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_slug", ["siteId", "slug"]),
+
   formSubmissions: defineTable({
     siteId: v.id("sites"),
+    formId: v.optional(v.id("forms")),
     formType: v.string(),
     submitterName: v.optional(v.string()),
     submitterEmail: v.optional(v.string()),
@@ -315,7 +329,8 @@ export default defineSchema({
     readAt: v.optional(v.number()),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_status", ["siteId", "status"]),
+    .index("by_site_status", ["siteId", "status"])
+    .index("by_form", ["formId"]),
 
   siteHealthLogs: defineTable({
     siteId: v.id("sites"),

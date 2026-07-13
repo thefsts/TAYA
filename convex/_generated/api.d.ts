@@ -25,6 +25,7 @@ import type * as events from "../events.js";
 import type * as faq from "../faq.js";
 import type * as footer from "../footer.js";
 import type * as formSubmissions from "../formSubmissions.js";
+import type * as forms from "../forms.js";
 import type * as health from "../health.js";
 import type * as homepage from "../homepage.js";
 import type * as http from "../http.js";
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   faq: typeof faq;
   footer: typeof footer;
   formSubmissions: typeof formSubmissions;
+  forms: typeof forms;
   health: typeof health;
   homepage: typeof homepage;
   http: typeof http;

@@ -33,6 +33,7 @@ import {
   Bell,
   ShoppingBag,
   ScrollText,
+  FormInput,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -110,6 +111,7 @@ export function AppLayout({ children, siteId }: { children: React.ReactNode, sit
           {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} />}
           <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} />
           <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} />
+          <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} />
           <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} />
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Site Modules</div>
