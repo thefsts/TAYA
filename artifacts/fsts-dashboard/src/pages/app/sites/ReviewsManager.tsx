@@ -263,7 +263,16 @@ function CategoryDialog({
   );
 }
 
-/* ── Embed snippet generator ────────────────────────────────────────────── */
+/* ── CDN snippet generator ──────────────────────────────────────────────── */
+
+function generateCdnSnippet(convexHttpUrl: string, slug: string): string {
+  const src = `${convexHttpUrl}/widget/reviews.js?slug=${encodeURIComponent(slug)}`;
+  return `<!-- FSTS Website Reviews Widget™ -->
+<div id="fsts-reviews-widget"></div>
+<script src="${src}" defer><\/script>`;
+}
+
+/* ── Inline embed snippet generator ─────────────────────────────────────── */
 
 function generateEmbedSnippet(
   convexHttpUrl: string,
@@ -491,6 +500,8 @@ function ReviewsWidgetPreview({
 
 /* ── Embed widget section ────────────────────────────────────────────────── */
 
+type EmbedTab = "cdn" | "inline";
+
 function EmbedWidgetSection({
   convexHttpUrl,
   slug,
@@ -503,9 +514,13 @@ function EmbedWidgetSection({
   reviews: any[];
 }) {
   const [showPreview, setShowPreview] = useState(false);
+  const [activeTab, setActiveTab] = useState<EmbedTab>("cdn");
 
-  const snippet = generateEmbedSnippet(convexHttpUrl, slug, settings ?? {});
+  const cdnSnippet = generateCdnSnippet(convexHttpUrl, slug);
+  const inlineSnippet = generateEmbedSnippet(convexHttpUrl, slug, settings ?? {});
   const isPlaceholder = !slug || !convexHttpUrl;
+
+  const activeSnippet = activeTab === "cdn" ? cdnSnippet : inlineSnippet;
 
   return (
     <section>
@@ -517,8 +532,7 @@ function EmbedWidgetSection({
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold text-slate-800">Copy &amp; paste into your website</CardTitle>
           <CardDescription className="text-xs text-slate-500">
-            Drop this snippet anywhere in your page HTML. The widget automatically fetches and renders your approved reviews
-            using the layout, rating filter, and count from your Display Settings above — no build step or framework required.
+            Drop the snippet anywhere in your page HTML. No build step or framework required.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -529,17 +543,57 @@ function EmbedWidgetSection({
             </div>
           )}
 
+          {/* Tab switcher */}
+          <div className="flex gap-1 p-1 bg-slate-100 rounded-md w-fit">
+            <button
+              onClick={() => setActiveTab("cdn")}
+              className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
+                activeTab === "cdn"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              CDN script
+              <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                recommended
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab("inline")}
+              className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
+                activeTab === "inline"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Inline snippet
+            </button>
+          </div>
+
+          {/* Tab description */}
+          {activeTab === "cdn" ? (
+            <p className="text-xs text-slate-500 -mt-1">
+              A single stable{" "}
+              <code className="bg-slate-100 px-1 rounded text-[11px]">&lt;script src&gt;</code>{" "}
+              tag. Layout, rating filter, and count changes update automatically — no re-paste needed.
+            </p>
+          ) : (
+            <p className="text-xs text-slate-500 -mt-1">
+              The full widget code baked into one block. Re-copy whenever you change display settings.
+            </p>
+          )}
+
           {/* Snippet code block */}
           <div className="relative">
             <pre className="text-xs bg-slate-900 text-slate-100 rounded-lg p-4 overflow-x-auto leading-relaxed whitespace-pre-wrap break-all max-h-72 overflow-y-auto">
-              <code>{snippet}</code>
+              <code>{activeSnippet}</code>
             </pre>
             <div className="absolute top-2 right-2">
-              <CopyButton text={snippet} className="h-7 text-xs bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700" />
+              <CopyButton text={activeSnippet} className="h-7 text-xs bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700" />
             </div>
           </div>
 
-          {/* Config summary */}
+          {/* Config summary (shown for both tabs) */}
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="bg-slate-100 text-slate-600 rounded px-2 py-0.5">
               Layout: <strong>{settings?.layout ?? "grid"}</strong>

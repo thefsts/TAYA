@@ -631,6 +631,96 @@ http.route({
 
 // ── Website Reviews Module™ ───────────────────────────────────────────────────
 
+/* ── GET /widget/reviews.js?slug= ───────────────────────────────────────── */
+/**
+ * Serves the self-updating reviews widget as a JavaScript file.
+ *
+ * Client sites embed a single stable tag:
+ *   <div id="fsts-reviews-widget"></div>
+ *   <script src="https://<convex>.convex.site/widget/reviews.js?slug=<site-slug>" defer></script>
+ *
+ * The script fetches approved reviews AND display settings from
+ * /api/public/reviews?slug= at runtime, so any setting change in the
+ * dashboard is reflected on the client site automatically — no re-paste needed.
+ */
+http.route({
+  path: "/widget/reviews.js",
+  method: "GET",
+  handler: httpAction(async (_ctx, request) => {
+    const JS_HEADERS = {
+      "Content-Type": "text/javascript; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
+      "Cache-Control": "public, max-age=300, stale-while-revalidate=60",
+    };
+
+    const url = new URL(request.url);
+    const slug = url.searchParams.get("slug") ?? "";
+
+    if (!slug) {
+      return new Response(
+        `console.error("[FSTS Reviews] Widget script is missing the required \`slug\` parameter in its src URL.");`,
+        { status: 200, headers: JS_HEADERS },
+      );
+    }
+
+    const apiBase = `${url.protocol}//${url.host}`;
+    const apiUrl = `${apiBase}/api/public/reviews?slug=${encodeURIComponent(slug)}`;
+
+    const widgetJs = `/* FSTS Website Reviews Widget™ — auto-updating */
+!function(){
+  var API=${JSON.stringify(apiUrl)};
+  var CSS=[
+    '#fsts-reviews-widget{font-family:inherit;box-sizing:border-box}',
+    '#fsts-reviews-widget *{box-sizing:border-box}',
+    '.fsts-rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}',
+    '.fsts-rv-list{display:flex;flex-direction:column;gap:12px}',
+    '.fsts-rv-masonry{columns:2 280px;gap:16px}',
+    '.fsts-rv-masonry .fsts-rv-card{break-inside:avoid;margin-bottom:16px}',
+    '.fsts-rv-carousel,.fsts-rv-slider{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px}',
+    '.fsts-rv-carousel::-webkit-scrollbar,.fsts-rv-slider::-webkit-scrollbar{height:4px}',
+    '.fsts-rv-carousel::-webkit-scrollbar-thumb,.fsts-rv-slider::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}',
+    '.fsts-rv-carousel .fsts-rv-card,.fsts-rv-slider .fsts-rv-card{flex:0 0 300px;scroll-snap-align:start}',
+    '.fsts-rv-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}',
+    '.fsts-rv-stars{display:flex;gap:2px;line-height:1}',
+    '.fsts-rv-star{color:#fbbf24;font-size:14px}',
+    '.fsts-rv-star.empty{color:#e2e8f0}',
+    '.fsts-rv-name{font-weight:600;font-size:14px;color:#0f172a}',
+    '.fsts-rv-text{font-size:13px;color:#475569;line-height:1.5;margin:0}',
+    '.fsts-rv-date{font-size:11px;color:#94a3b8}',
+    '.fsts-rv-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;text-transform:capitalize}',
+    '.fsts-rv-badge.google{background:#fef2f2;color:#dc2626}',
+    '.fsts-rv-badge.facebook{background:#eff6ff;color:#2563eb}',
+    '.fsts-rv-badge.yelp{background:#fff7ed;color:#c2410c}',
+    '.fsts-rv-header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}',
+  ].join('');
+  function stars(n){var s='';for(var i=1;i<=5;i++)s+='<span class="fsts-rv-star'+(i>n?' empty':'')+'">&#9733;</span>';return '<div class="fsts-rv-stars">'+s+'</div>';}
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function card(r,showBadge){var badge=showBadge?'<span class="fsts-rv-badge '+r.provider+'">'+r.provider+'</span>':'';return '<div class="fsts-rv-card"><div class="fsts-rv-header"><span class="fsts-rv-name">'+esc(r.reviewerName)+'</span>'+badge+'</div>'+stars(r.rating)+(r.text?'<p class="fsts-rv-text">'+esc(r.text)+'</p>':'')+'<span class="fsts-rv-date">'+new Date(r.reviewDate).toLocaleDateString()+'</span></div>';}
+  var style=document.createElement('style');style.textContent=CSS;document.head.appendChild(style);
+  fetch(API)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var s=data.displaySettings||{};
+      var layout=s.layout||'grid';
+      var minRating=s.minRating!=null?s.minRating:4;
+      var maxCount=s.maxPerPage!=null?s.maxPerPage:12;
+      var showBadge=s.showProviderBadge!==false;
+      var featuredOnly=!!s.featuredOnly;
+      var reviews=(data.reviews||[])
+        .filter(function(r){return r.rating>=minRating;})
+        .filter(function(r){return !featuredOnly||r.pinned;})
+        .slice(0,maxCount);
+      var el=document.getElementById('fsts-reviews-widget');
+      if(!el||!reviews.length)return;
+      el.innerHTML='<div class="fsts-rv-'+layout+'">'+reviews.map(function(r){return card(r,showBadge);}).join('')+'</div>';
+    })
+    .catch(function(){});
+}();`;
+
+    return new Response(widgetJs, { status: 200, headers: JS_HEADERS });
+  }),
+});
+
 /* ── GET /api/public/reviews?slug=&category= ─────────────────────────────── */
 http.route({
   path: "/api/public/reviews",
