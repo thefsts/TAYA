@@ -1,3 +1,6 @@
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -6,7 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { LifeBuoy, Mail, Phone, BookOpen, ShieldCheck, History, Users } from "lucide-react";
+import { LifeBuoy, Mail, Phone, BookOpen, ShieldCheck, History, Users, ExternalLink } from "lucide-react";
 
 const FAQS: { question: string; answer: string; icon: any }[] = [
   {
@@ -42,6 +45,19 @@ const FAQS: { question: string; answer: string; icon: any }[] = [
 ];
 
 export default function HelpCenter({ params }: { params: { siteId: string } }) {
+  const siteId = params.siteId as Id<"sites">;
+  const site = useQuery(api.sites.get, { siteId });
+
+  const agencyId = (site as any)?.agencyId as Id<"agencies"> | undefined;
+  const agency = useQuery(
+    api.agencies.get,
+    agencyId ? { agencyId } : "skip",
+  );
+
+  const supportEmail = agency?.supportEmail ?? "support@fullstacktechsolutions.com";
+  const helpCenterUrl = agency?.helpCenterUrl ?? null;
+  const agencyName = agency?.name ?? "Full Stack Tech Solutions";
+
   return (
     <AppLayout siteId={params.siteId}>
       <div className="mb-8">
@@ -87,17 +103,30 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <a
-                href="mailto:support@fullstacktechsolutions.com"
+                href={`mailto:${supportEmail}`}
                 className="flex items-center gap-2 text-primary hover:underline"
               >
-                <Mail className="h-4 w-4" /> support@fullstacktechsolutions.com
+                <Mail className="h-4 w-4" /> {supportEmail}
               </a>
-              <a href="tel:+18005551234" className="flex items-center gap-2 text-primary hover:underline">
-                <Phone className="h-4 w-4" /> (800) 555-1234
-              </a>
+              {!agency && (
+                <a href="tel:+18005551234" className="flex items-center gap-2 text-primary hover:underline">
+                  <Phone className="h-4 w-4" /> (800) 555-1234
+                </a>
+              )}
+              {helpCenterUrl && (
+                <a
+                  href={helpCenterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" /> Visit Help Center
+                </a>
+              )}
               <p className="text-slate-500 pt-2 border-t border-slate-100">
-                Support hours: Monday–Friday, 8am–6pm ET. For urgent website outages, call the number above for
-                priority response.
+                {agency
+                  ? `For support, contact your ${agencyName} account team at the email above.`
+                  : "Support hours: Monday–Friday, 8am–6pm ET. For urgent website outages, call the number above for priority response."}
               </p>
             </CardContent>
           </Card>
@@ -107,8 +136,15 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
               <CardTitle className="text-sm">Powered By</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-slate-500">
-              This dashboard is the FSTS Website Operating System™, built and maintained by Full Stack Tech
-              Solutions. Every account activity is recorded in your Activity Log for full transparency.
+              {agency ? (
+                <>
+                  This dashboard is managed by <span className="font-medium text-slate-700">{agencyName}</span>, powered by the FSTS Website Operating System™. Every account activity is recorded in your Activity Log for full transparency.
+                </>
+              ) : (
+                <>
+                  This dashboard is the FSTS Website Operating System™, built and maintained by Full Stack Tech Solutions. Every account activity is recorded in your Activity Log for full transparency.
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

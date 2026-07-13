@@ -10,6 +10,7 @@
 
 import type * as accessControl from "../accessControl.js";
 import type * as activityLog from "../activityLog.js";
+import type * as agencies from "../agencies.js";
 import type * as ai from "../ai.js";
 import type * as announcement from "../announcement.js";
 import type * as articles from "../articles.js";
@@ -64,6 +65,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   accessControl: typeof accessControl;
   activityLog: typeof activityLog;
+  agencies: typeof agencies;
   ai: typeof ai;
   announcement: typeof announcement;
   articles: typeof articles;

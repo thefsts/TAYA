@@ -24,6 +24,12 @@ export const list = query({
     if (!user || !user.isActive) return [];
     const all = await ctx.db.query("sites").collect();
     if (user.isSuperAdmin) return all.map(toSiteResponse);
+    // Phase 10: agency admins see only their agency's sites
+    if (user.isAgencyAdmin && user.agencyId) {
+      return all
+        .filter((s) => String(s.agencyId) === String(user.agencyId))
+        .map(toSiteResponse);
+    }
     const mySiteIds = new Set(user.roles.map((r) => r.siteId));
     return all.filter((s) => mySiteIds.has(s._id)).map(toSiteResponse);
   },
@@ -38,7 +44,12 @@ export const get = query({
     if (!user || !user.isActive) return null;
     const site = await ctx.db.get(siteId);
     if (!site) return null;
-    if (!user.isSuperAdmin && !user.roles.some((r: any) => r.siteId === siteId)) return null;
+    if (user.isSuperAdmin) return toSiteResponse(site);
+    // Phase 10: agency admins can access sites belonging to their agency
+    if (user.isAgencyAdmin && user.agencyId && String(site.agencyId) === String(user.agencyId)) {
+      return toSiteResponse(site);
+    }
+    if (!user.roles.some((r: any) => r.siteId === siteId)) return null;
     return toSiteResponse(site);
   },
 });
@@ -57,6 +68,7 @@ export const create = mutation({
     poweredByFsts: v.optional(v.boolean()),
     websiteType: v.optional(v.string()),
     enabledModules: v.optional(v.any()),
+    agencyId: v.optional(v.id("agencies")),
   },
   handler: async (ctx, args) => {
     const user = await provisionUser(ctx);
@@ -78,6 +90,7 @@ export const create = mutation({
       poweredByFsts: args.poweredByFsts ?? true,
       websiteType,
       enabledModules,
+      agencyId: args.agencyId,
     });
 
     await ctx.db.insert("crmConnections", {
@@ -152,6 +165,7 @@ export const update = mutation({
     poweredByFsts: v.optional(v.boolean()),
     websiteType: v.optional(v.string()),
     enabledModules: v.optional(v.any()),
+    agencyId: v.optional(v.id("agencies")),
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await provisionUser(ctx);

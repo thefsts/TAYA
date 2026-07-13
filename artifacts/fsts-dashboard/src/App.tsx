@@ -20,6 +20,8 @@ import AdminSites from "@/pages/app/admin/AdminSites";
 import AdminAccessControl from "@/pages/app/admin/AdminAccessControl";
 import AdminDesignLock from "@/pages/app/admin/AdminDesignLock";
 import DesignLockGuard from "@/components/DesignLockGuard";
+import AdminAgencies from "@/pages/app/admin/AdminAgencies";
+import AdminPlatformControls from "@/pages/app/admin/AdminPlatformControls";
 import HomepageEditor from "@/pages/app/sites/HomepageEditor";
 import CoursesList from "@/pages/app/sites/CoursesList";
 import EventsList from "@/pages/app/sites/EventsList";
@@ -297,6 +299,8 @@ function AppRouter() {
           <Route path="/app/admin/sites" component={AdminSites} />
           <Route path="/app/admin/access-control" component={AdminAccessControl} />
           <Route path="/app/admin/design-lock" component={AdminDesignLock} />
+          <Route path="/app/admin/agencies" component={AdminAgencies} />
+          <Route path="/app/admin/platform-controls" component={AdminPlatformControls} />
 
           <Route path="/app/sites/:siteId" component={SiteDashboard} />
           <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />

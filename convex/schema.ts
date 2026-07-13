@@ -2,6 +2,21 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  // Phase 10 — Agency Edition™
+  agencies: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    logoUrl: v.optional(v.string()),
+    primaryColor: v.string(),
+    accentColor: v.string(),
+    supportEmail: v.string(),
+    helpCenterUrl: v.optional(v.string()),
+    featureFlags: v.any(),
+    licensingStatus: v.string(),
+    billingNotes: v.optional(v.string()),
+    isActive: v.boolean(),
+  }).index("by_slug", ["slug"]),
+
   sites: defineTable({
     name: v.string(),
     slug: v.string(),
@@ -15,7 +30,9 @@ export default defineSchema({
     poweredByFsts: v.boolean(),
     websiteType: v.string(),
     enabledModules: v.any(),
-  }).index("by_slug", ["slug"]),
+    // Phase 10 — Agency Edition™
+    agencyId: v.optional(v.id("agencies")),
+  }).index("by_slug", ["slug"]).index("by_agency", ["agencyId"]),
 
   users: defineTable({
     clerkUserId: v.string(),
@@ -29,6 +46,9 @@ export default defineSchema({
         role: v.string(),
       }),
     ),
+    // Phase 10 — Agency Edition™
+    agencyId: v.optional(v.id("agencies")),
+    isAgencyAdmin: v.optional(v.boolean()),
   })
     .index("by_clerk_user_id", ["clerkUserId"])
     .index("by_email", ["email"]),

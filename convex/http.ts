@@ -45,6 +45,8 @@ const preflightPaths = [
   "/api/public/form", "/api/public/form/submit",
   // Square webhook
   "/api/square/webhook",
+  // Phase 10 — Agency Edition™
+  "/api/agency/branding",
 ];
 for (const path of preflightPaths) {
   http.route({ path, method: "OPTIONS", handler: preflight });
@@ -623,6 +625,47 @@ http.route({
     } catch (err: any) {
       return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
     }
+  }),
+});
+
+// ── Phase 10 — Agency Edition™ ────────────────────────────────────────────────
+
+/**
+ * GET /api/agency/branding?slug=<agency-slug>
+ *
+ * Returns the Clerk appearance overrides and branding metadata for a given
+ * agency subdomain slug. Called by the dashboard on load to dynamically theme
+ * the login page for white-label agency deployments.
+ *
+ * Response (200):
+ * {
+ *   name: string,
+ *   logoUrl: string | null,
+ *   primaryColor: string,
+ *   accentColor: string,
+ *   supportEmail: string,
+ *   helpCenterUrl: string | null,
+ * }
+ *
+ * Response (404): { error: "not found" } when no agency matches the slug,
+ * or the agency is inactive. Callers should fall back to FSTS defaults.
+ */
+http.route({
+  path: "/api/agency/branding",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const agency = await ctx.runQuery(internal.agencies.getBySlug, { slug });
+    if (!agency || !agency.isActive) return notFound("Agency not found or inactive");
+    return ok({
+      name: agency.name,
+      logoUrl: agency.logoUrl ?? null,
+      primaryColor: agency.primaryColor,
+      accentColor: agency.accentColor,
+      supportEmail: agency.supportEmail,
+      helpCenterUrl: agency.helpCenterUrl ?? null,
+    });
   }),
 });
 

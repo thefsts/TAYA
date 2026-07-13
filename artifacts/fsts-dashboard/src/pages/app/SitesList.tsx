@@ -12,6 +12,8 @@ import {
   Globe,
   ShieldX,
   ShieldCheck,
+  Landmark,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -98,7 +100,7 @@ export default function SitesList() {
           </div>
 
           {me?.isSuperAdmin && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => setLocation("/app/admin/users")}>
                 <Users className="h-4 w-4 mr-2 text-slate-500" />
                 Manage Users
@@ -110,6 +112,14 @@ export default function SitesList() {
               <Button variant="outline" onClick={() => setLocation("/app/admin/design-lock")}>
                 <ShieldCheck className="h-4 w-4 mr-2 text-slate-500" />
                 Design Lock™
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/app/admin/agencies")}>
+                <Landmark className="h-4 w-4 mr-2 text-slate-500" />
+                Agencies
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/app/admin/platform-controls")}>
+                <SlidersHorizontal className="h-4 w-4 mr-2 text-slate-500" />
+                Platform Controls
               </Button>
               <Button onClick={() => setLocation("/app/admin/sites")} className="bg-primary hover:bg-primary/90 text-white">
                 <Settings className="h-4 w-4 mr-2" />

@@ -101,6 +101,12 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
   const isSuperAdmin = me?.isSuperAdmin ?? false;
 
+  const agencyId = (site as any)?.agencyId as Id<"agencies"> | undefined;
+  const agency = useQuery(
+    api.agencies.get,
+    agencyId ? { agencyId } : "skip",
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
@@ -113,6 +119,23 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             </Button>
           </Link>
         </div>
+
+        {/* Agency branding bar — shown when site belongs to an agency */}
+        {agency && (
+          <div className="px-4 py-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+            {agency.logoUrl ? (
+              <img src={agency.logoUrl} alt={agency.name} className="h-6 w-auto max-w-[120px] object-contain" />
+            ) : (
+              <div
+                className="h-5 w-5 rounded text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: agency.primaryColor }}
+              >
+                {agency.name.charAt(0)}
+              </div>
+            )}
+            <span className="text-[11px] font-medium text-slate-600 truncate">{agency.name}</span>
+          </div>
+        )}
 
         <div className="p-4 border-b border-slate-200">
           {site === undefined ? (
@@ -134,7 +157,9 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
               )}
               <div className="overflow-hidden">
                 <h2 className="font-bold text-slate-900 truncate" title={site?.name}>{site?.name}</h2>
-                <div className="text-[10px] text-slate-400 uppercase tracking-wide truncate">FSTS Website Operating System™</div>
+                <div className="text-[10px] text-slate-400 uppercase tracking-wide truncate">
+                  {agency ? `${agency.name} Dashboard` : "FSTS Website Operating System™"}
+                </div>
               </div>
             </div>
           )}
@@ -197,12 +222,19 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           <NavItem icon={ShieldCheckIcon} label="My Permissions" href={`/app/sites/${siteId}/permissions`} isSuperAdmin={isSuperAdmin} />
         </nav>
 
-        {(site?.poweredByFsts ?? true) && (
+        {(site?.poweredByFsts ?? true) && !agency && (
           <div className="px-4 py-3 border-t border-slate-200 text-center">
             <p className="text-[11px] text-slate-400 leading-tight">
               Powered by <span className="font-semibold text-slate-500">Full Stack Tech Solutions</span>
             </p>
             <p className="text-[10px] text-slate-400 leading-tight">FSTS Website Operating System™ v1.0</p>
+          </div>
+        )}
+        {agency && (
+          <div className="px-4 py-3 border-t border-slate-200 text-center">
+            <p className="text-[11px] text-slate-400 leading-tight">
+              Managed by <span className="font-semibold text-slate-500">{agency.name}</span>
+            </p>
           </div>
         )}
       </aside>

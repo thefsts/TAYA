@@ -246,3 +246,51 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
 export function permissionAtLeast(a: PermissionLevel, b: PermissionLevel): boolean {
   return PERMISSION_LEVELS.indexOf(a) >= PERMISSION_LEVELS.indexOf(b);
 }
+
+// Phase 10 — Agency Edition™: platform-level feature flags available per agency
+export const AGENCY_FEATURE_FLAGS = [
+  "crm",
+  "ecommerce",
+  "forms",
+  "media",
+  "analytics",
+  "backups",
+  "version_history",
+  "multi_user",
+  "custom_domain",
+  "white_label",
+  "api_access",
+  "priority_support",
+] as const;
+
+export type AgencyFeatureFlag = (typeof AGENCY_FEATURE_FLAGS)[number];
+
+export const AGENCY_FEATURE_FLAG_LABELS: Record<AgencyFeatureFlag, string> = {
+  crm: "Operon CRM Connector™",
+  ecommerce: "Commerce & Payments",
+  forms: "Form Builder",
+  media: "Media Library",
+  analytics: "Analytics Integration",
+  backups: "Backups & Restore",
+  version_history: "Version History",
+  multi_user: "Multi-User Access",
+  custom_domain: "Custom Domain",
+  white_label: "White-Label Branding",
+  api_access: "API Access",
+  priority_support: "Priority Support",
+};
+
+export const AGENCY_FEATURE_FLAG_DESCRIPTIONS: Record<AgencyFeatureFlag, string> = {
+  crm: "Operon Connector™ for bi-directional CRM sync",
+  ecommerce: "Square Payments, Commerce, and checkout features",
+  forms: "Drag-and-drop form builder with submission tracking",
+  media: "Managed media library and asset optimization",
+  analytics: "Google Analytics 4, Tag Manager, and pixel integrations",
+  backups: "Automated site snapshots and one-click restore",
+  version_history: "Full version history with per-field rollback",
+  multi_user: "Multiple user roles and site-level permissions",
+  custom_domain: "Custom domain configuration and management",
+  white_label: "Agency-branded login, header, and help center",
+  api_access: "Public REST API for external integrations",
+  priority_support: "Dedicated support queue with SLA guarantee",
+};
