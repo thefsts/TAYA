@@ -87,13 +87,23 @@ function TrendBadge({ trend }: { trend: "improving" | "stable" | "declining" | s
   return <span className="inline-flex items-center gap-1 text-xs text-slate-400"><Minus className="h-3 w-3" />Stable</span>;
 }
 
-function CategoryCard({ catKey, data, siteId }: { catKey: string; data: any; siteId: string }) {
+function CategoryCard({ catKey, data, siteId, scanHistory }: { catKey: string; data: any; siteId: string; scanHistory?: any[] }) {
   const meta = CATEGORY_META[catKey] ?? { label: catKey, icon: Activity, description: "" };
   const Icon = meta.icon;
   const [expanded, setExpanded] = useState(false);
 
   const hasIssues = (data.issues?.length ?? 0) > 0;
   const fixPath = meta.fixRoute ? `/app/sites/${siteId}/${meta.fixRoute}` : null;
+
+  const prevScore: number | undefined =
+    scanHistory && scanHistory.length > 1
+      ? (scanHistory[1] as any)?.categoryScores?.[catKey]?.score
+      : undefined;
+  const scoreDiff = prevScore !== undefined ? data.score - prevScore : null;
+  const ScoreTrendIcon =
+    scoreDiff === null ? null : scoreDiff > 0 ? TrendingUp : scoreDiff < 0 ? TrendingDown : Minus;
+  const scoreTrendColor =
+    scoreDiff === null ? "" : scoreDiff > 0 ? "text-green-500" : scoreDiff < 0 ? "text-red-500" : "text-slate-400";
 
   return (
     <div className={`bg-white border rounded-xl overflow-hidden transition-all ${data.status === "critical" ? "border-red-200" : data.status === "warning" ? "border-amber-200" : "border-slate-200"}`}>
@@ -113,7 +123,12 @@ function CategoryCard({ catKey, data, siteId }: { catKey: string; data: any; sit
           <p className="text-xs text-slate-500 mt-0.5">{meta.description}</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          <ScoreRing score={data.score} size={48} />
+          <div className="flex items-center gap-1">
+            <ScoreRing score={data.score} size={48} />
+            {ScoreTrendIcon && (
+              <ScoreTrendIcon className={`h-4 w-4 shrink-0 ${scoreTrendColor}`} />
+            )}
+          </div>
           {fixPath && data.status !== "good" && (
             <Link
               href={fixPath}
@@ -538,7 +553,7 @@ export default function HealthMonitor({ params }: { params: { siteId: string } }
             <div className="space-y-3">
               {filteredCategories.length > 0
                 ? filteredCategories.map((key) => (
-                  <CategoryCard key={key} catKey={key} data={categories[key]} siteId={params.siteId} />
+                  <CategoryCard key={key} catKey={key} data={categories[key]} siteId={params.siteId} scanHistory={scanHistory ?? undefined} />
                 ))
                 : (
                   <div className="text-center py-8 text-slate-400">
