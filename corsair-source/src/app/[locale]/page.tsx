@@ -9,7 +9,7 @@ import { getHomepageCourses } from '@/lib/courses';
 import { getLocalizedCourse } from '@/lib/courseTranslations';
 import HeroCarousel from '@/components/HeroCarousel';
 import DiscountsBanner from '@/components/DiscountsBanner';
-import { getCmsTestimonials } from '@/lib/cms';
+import { getCmsTestimonials, getCmsReviews } from '@/lib/cms';
 
 export async function generateMetadata({
   params,
@@ -96,6 +96,7 @@ export default async function HomePage({
   ];
 
   const cmsTestimonials = await getCmsTestimonials();
+  const cmsReviews = await getCmsReviews();
 
   const testimonials = cmsTestimonials.map((item) => ({
     name: item.name,
@@ -620,6 +621,92 @@ export default async function HomePage({
           </div>
         </section>
       </ScrollReveal>
+
+      {/* ──────── EXTERNAL REVIEWS ──────── */}
+      {cmsReviews.length > 0 && (
+        <ScrollReveal delay={0.1}>
+          <section className="py-16 md:py-20 bg-corsair-gray-50 border-t border-corsair-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <span className="text-xs font-bold text-corsair-red-500 uppercase tracking-widest">
+                  Verified Reviews
+                </span>
+                <h2 className="text-3xl md:text-4xl font-black text-corsair-blue-900 mt-2">
+                  What Our Clients Are Saying
+                </h2>
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  {(['google', 'facebook', 'yelp'] as const).filter((p) => cmsReviews.some((r) => r.provider === p)).map((p) => (
+                    <span
+                      key={p}
+                      className={`text-[11px] font-bold px-3 py-1 rounded-full capitalize ${
+                        p === 'google'   ? 'bg-red-50 text-red-600 border border-red-100' :
+                        p === 'facebook' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                           'bg-orange-50 text-orange-700 border border-orange-100'
+                      }`}
+                    >
+                      {p}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {cmsReviews.slice(0, 9).map((review) => {
+                  const badgeClass =
+                    review.provider === 'google'   ? 'bg-red-50 text-red-600 border-red-100' :
+                    review.provider === 'facebook' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                     'bg-orange-50 text-orange-700 border-orange-100';
+                  return (
+                    <div
+                      key={review.externalId}
+                      className="bg-white border border-corsair-gray-200 rounded-2xl p-6 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-9 h-9 rounded-full bg-corsair-blue-900 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                            {review.reviewerName.charAt(0).toUpperCase()}
+                          </div>
+                          <p className="text-sm font-bold text-corsair-gray-900">{review.reviewerName}</p>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize border ${badgeClass}`}>
+                          {review.provider}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <svg
+                            key={i}
+                            className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-corsair-gray-200'}`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+
+                      {review.text && (
+                        <p className="text-sm text-corsair-gray-600 leading-relaxed line-clamp-4 italic">
+                          &ldquo;{review.text}&rdquo;
+                        </p>
+                      )}
+
+                      <span className="text-[11px] text-corsair-gray-400 mt-auto">
+                        {new Date(review.reviewDate).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+      )}
 
       {/* ──────── FOLLOW US ──────── */}
       <ScrollReveal delay={0.1}>

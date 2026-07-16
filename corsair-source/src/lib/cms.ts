@@ -174,6 +174,34 @@ export function getCmsPricing() {
   }>("pricing");
 }
 
+export interface CmsReview {
+  reviewerName: string;
+  reviewerPhotoUrl?: string;
+  rating: number;
+  text?: string;
+  reviewDate: number;
+  provider: string;
+  pinned: boolean;
+  category?: string;
+  externalId: string;
+}
+
+export async function getCmsReviews(): Promise<CmsReview[]> {
+  try {
+    const url = `${CONVEX_URL}/api/public/reviews?slug=${SITE_SLUG}`;
+    const res = await fetch(url, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      next: { revalidate: 60 } as any,
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as { reviews?: CmsReview[] };
+    return Array.isArray(data.reviews) ? data.reviews : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Submit a form entry to the dashboard inbox.
  * Safe to call from server components or API routes.
