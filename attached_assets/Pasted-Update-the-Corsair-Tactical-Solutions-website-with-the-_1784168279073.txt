@@ -1,0 +1,278 @@
+Update the Corsair Tactical Solutions website with the following changes.
+
+Repo:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Commit author must be:
+
+**Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)**
+
+---
+
+# TASK 1 — UPDATE INSTAGRAM LINK
+
+Replace every occurrence of the old Instagram URL with the new official Instagram account.
+
+## NEW INSTAGRAM URL
+
+```text
+https://www.instagram.com/corsairtacticalsolution?igsh=MTd1MmhkZzZtaWh2MQ==
+```
+
+Search the entire project and update it everywhere, including:
+
+* Header
+* Footer
+* Contact page
+* Social media cards
+* Organization JSON-LD
+* LocalBusiness JSON-LD
+* SEO sameAs array
+* Open Graph/social metadata (if applicable)
+* Any translation files
+* Any constants/config files
+
+Do not leave any references to the previous Instagram URL.
+
+---
+
+# TASK 2 — FIX "ONLINE TEXAS LICENSE TO CARRY ASSESSMENT"
+
+This course should **NOT** go through the Corsair booking or Square checkout flow.
+
+Instead, it should redirect students to the official Texas Carry Academy purchase page.
+
+Official URL:
+
+```text
+https://texascarryacademy.com/product/?add-to-cart=69884
+```
+
+---
+
+## REMOVE ALL PAYMENT OPTIONS
+
+For this course only:
+
+Remove:
+
+* Square checkout
+* Pay Now button
+* Book Now button
+* Registration form
+* Gun Rental option
+* Ammunition Purchase option
+* Required Fees section
+* Order Summary
+* Total Due
+* Checkout page
+* Confirmation page routing
+* Waiver requirement
+* Payment processing
+
+This course is **not sold through Corsair Tactical Solutions**.
+
+---
+
+## REPLACE THE CTA
+
+Replace the payment button with:
+
+**Take Online Assessment**
+
+or
+
+**Begin Online LTC Assessment**
+
+Button color:
+Use the standard Corsair red button.
+
+When clicked:
+
+Open:
+
+```text
+https://texascarryacademy.com/product/?add-to-cart=69884
+```
+
+Open in a new browser tab.
+
+Use:
+
+```tsx
+target="_blank"
+rel="noopener noreferrer"
+```
+
+---
+
+## COURSE PAGE CONTENT
+
+Display a notice above the button:
+
+> This online assessment is provided through our trusted training partner, Texas Carry Academy. Clicking the button below will take you to their secure website to complete your online License to Carry assessment.
+
+Include a small external-link icon next to the button if appropriate.
+
+---
+
+## REMOVE OPTIONAL ADD-ONS
+
+For this course only:
+
+Do NOT display:
+
+* Gun Rental
+* Ammunition Purchase
+* Range Fee
+* Required Fees
+* Optional Add-ons
+* Total Due
+* Checkout Summary
+
+This course requires none of these.
+
+---
+
+## COURSE CARD
+
+On the Courses page:
+
+Update the card for:
+
+**Online Texas License to Carry Assessment**
+
+Button text:
+
+**Go to Online Assessment**
+
+Instead of:
+
+* Book Now
+* Pay Now
+* Register
+
+---
+
+## COURSE DETAIL PAGE
+
+Replace the normal checkout section with:
+
+---
+
+### Online Assessment
+
+Complete your Texas License to Carry online assessment through Texas Carry Academy.
+
+When you're ready, click below to continue securely to their website.
+
+[ Begin Online Assessment ]
+
+---
+
+No pricing.
+
+No checkout.
+
+No Square.
+
+No booking.
+
+---
+
+## CENTRAL CATALOG
+
+Mark this course as:
+
+```ts
+contactOnly: false
+
+externalCourse: true
+
+externalUrl:
+"https://texascarryacademy.com/product/?add-to-cart=69884"
+```
+
+If needed, create:
+
+```ts
+externalCheckout: true
+```
+
+The payment system should ignore any course where:
+
+```ts
+externalCheckout === true
+```
+
+---
+
+## SERVER RULES
+
+Do not allow:
+
+* Square Orders
+* Square Payments
+* Payment API routes
+* Booking storage
+* Webhook processing
+
+for this course.
+
+If someone attempts to submit the course slug to payment routes:
+
+Return a validation response directing them to the external course URL.
+
+---
+
+## SEO
+
+Keep the course indexed.
+
+Do NOT redirect the page itself.
+
+The course page should remain on the Corsair website for SEO purposes.
+
+Only the CTA button redirects externally.
+
+---
+
+## FINAL QA
+
+Before pushing:
+
+✓ Instagram updated everywhere
+
+✓ Organization schema updated
+
+✓ LocalBusiness schema updated
+
+✓ Footer updated
+
+✓ Header updated
+
+✓ Contact page updated
+
+✓ Online Texas License to Carry Assessment no longer uses Square
+
+✓ No checkout shown
+
+✓ No add-ons shown
+
+✓ No gun rental
+
+✓ No ammunition option
+
+✓ No order summary
+
+✓ Button opens:
+
+https://texascarryacademy.com/product/?add-to-cart=69884
+
+✓ Opens in new tab
+
+✓ Build passes
+
+Commit and push as:
+
+**Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)**
