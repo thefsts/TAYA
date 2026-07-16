@@ -9,9 +9,18 @@
 
 ## Executive Summary
 
-**Verdict: ✅ GO — Approved for Production**
+**Verdict: ⚠️ CONDITIONAL GO — Two Lighthouse targets not yet met**
 
-FSTS Website Operating System™ v1.0 passes all gate criteria required for production launch. The CMS pipeline is fully operational across all 13 required content types, multi-tenant isolation is robust, all four RBAC roles under test pass their permission contracts, the Square payment connector infrastructure is complete, and the AdminSiteOnboarding workflow enables a second site to be provisioned well within the 30-minute target. One item (Lighthouse score) is deferred to the first post-deployment run and does not block launch.
+FSTS-WOS™ v1.0 passes all platform gate criteria (CMS pipeline, multi-tenant isolation, RBAC, Square connector infrastructure, onboarding workflow). The Corsair client website has been audited against the defined Lighthouse targets and **fails both**:
+
+| Metric | Target | Actual | Status |
+|---|---|---|---|
+| Performance | >85 | **40** | ❌ FAIL |
+| Accessibility | >90 | **88** | ❌ FAIL |
+
+These are documented blockers. Full GO status is approved once the scores reach target. Specific failure causes and recommended fixes are in §5.
+
+The Square payment connector infrastructure is fully implemented and verified through code audit; live sandbox smoke test requires Square Developer sandbox credentials to be configured by the operations team (documented in §4).
 
 ---
 
@@ -37,9 +46,9 @@ FSTS Website Operating System™ v1.0 passes all gate criteria required for prod
 | Policy Pages | `policyPages` | `/app/sites/:id/policies` | `GET /api/public/policies?slug=` | ✅ |
 | Navigation | `navigationItems` | `/app/sites/:id/nav` | `GET /api/public/nav?slug=` | ✅ |
 
-**Data flow verification:** Dashboard mutations write to Convex DB → live Convex queries serve the public HTTP endpoints → client site reads on each page load. No caching layer exists between the DB and the public endpoints, so edits are reflected within seconds of saving.
+**Data flow verification:** Dashboard mutations write to Convex DB → live Convex queries serve the public HTTP endpoints → Corsair site reads on each page load. No caching layer exists between the DB and the public endpoints, so edits are reflected within seconds of saving.
 
-**Additional implemented content types** (beyond scope, included for completeness): Courses, Careers, Media Library, Forms & Submissions, SEO Settings, Reviews (Website Reviews Module™), Popups, Commerce (Square), Client Portal, Site Settings, Automations, Health Monitoring, Activity Logs, Backups, Version History.
+**Additional implemented content types** (beyond scope): Courses, Careers, Media Library, Forms & Submissions, SEO Settings, Reviews (Website Reviews Module™), Popups, Commerce (Square), Client Portal, Site Settings, Automations, Health Monitoring, Activity Logs, Backups, Version History.
 
 **Completion: 100% ✅**
 
@@ -71,8 +80,8 @@ FSTS Website Operating System™ v1.0 passes all gate criteria required for prod
 **Credential isolation:**
 - Sensitive credentials (Square API keys, CRM tokens, review source tokens) are encrypted at rest with AES-256-GCM (`convex/lib/encrypt.ts`). Even if a query inadvertently returned the wrong site's record, raw secrets remain protected.
 
-**Onboarding validation path:**  
-The AdminSiteOnboarding workflow (`AdminSiteOnboarding.tsx`) creates a new site record via `api.sites.create`, which returns a new `_id`. All subsequent operations (identity, roles, payment connector) are scoped to that new `_id`. There is no mechanism by which the new site can read or inherit data from an existing site.
+**Onboarding validation path:**
+The AdminSiteOnboarding workflow creates a new site record via `api.sites.create`, which returns a new `_id`. All subsequent operations (identity, roles, payment connector) are scoped to that new `_id`. There is no mechanism by which the new site can read or inherit data from an existing site.
 
 **Completion: 100% ✅**
 
@@ -113,7 +122,7 @@ The AdminSiteOnboarding workflow (`AdminSiteOnboarding.tsx`) creates a new site 
 | `navigation` | `none` | ❌ No |
 | `contact` | `none` | ❌ No |
 
-**`read_only` mutation prevention:**  
+**`read_only` mutation prevention:**
 `read_only` is assigned `VIEW_ALL` — every module is `view`. The `requireSiteAccessMutation` helper in `convex/lib/requireSiteAccess.ts` consults the `WRITE_ROLES` set; `read_only` is not in that set. Any mutation call from a `read_only` session throws before touching the database.
 
 ### Enforcement Layers
@@ -130,64 +139,103 @@ The AdminSiteOnboarding workflow (`AdminSiteOnboarding.tsx`) creates a new site 
 
 ---
 
-## 4. Square Payment Connector — Infrastructure 100% / Live Sandbox Test: Deferred
+## 4. Square Payment Connector — Infrastructure 100% / Live Sandbox Test: Pending Credentials
 
 **Target:** Square connector on Corsair connects successfully in sandbox mode; health check passes.
 
-### Infrastructure Status
+### Infrastructure Code Audit
 
 | Component | Status |
 |---|---|
-| `squareConfig` Convex table | ✅ Implemented |
+| `squareConfig` Convex table | ✅ Implemented (`convex/schema.ts` lines 157–167) |
 | `paymentConnectors` modern connector table | ✅ Implemented |
-| AES-256-GCM credential encryption | ✅ Implemented (`convex/lib/encrypt.ts`) |
-| Sandbox / Production environment toggle | ✅ Implemented (`environment` field: `"sandbox"` \| `"production"`) |
-| Health check action (`testConnection`) | ✅ Implemented — pings Square `/v2/locations`, records latency |
+| AES-256-GCM credential encryption at rest | ✅ Implemented (`convex/lib/encrypt.ts`) |
+| Sandbox / Production environment toggle | ✅ `environment` field: `"sandbox"` \| `"production"` |
+| Health check action (`testConnection`) | ✅ Pings Square `/v2/locations`, records latency + location count |
 | Health result persistence | ✅ Written via `updateHealthInternal` mutation |
 | Webhook signature key support | ✅ Stored encrypted in `squareConfig.webhookSignatureKey` |
-| Catalog sync (`syncCatalog`) | ✅ Implemented — maps Square items to local courses/events |
-| Payment Providers UI | ✅ Implemented (`PaymentProviders.tsx`) with sandbox/production selector |
+| Catalog sync (`syncCatalog`) | ✅ Maps Square catalog items to local courses/events tables |
+| Payment Providers UI | ✅ `PaymentProviders.tsx` — sandbox/production selector, credential form, health tab |
 | Global Health Monitor integration | ✅ `paymentsScore` derived from connector state in `convex/healthScans.ts` |
+| "Coming Soon" flag enforcement | ✅ Only Square is `live: true`; Stripe/PayPal/etc. are gated in the UI |
 
-### Live Sandbox Test
+### Live Sandbox Smoke Test Status
 
-A live sandbox health-check execution requires a Square Developer sandbox `Application ID`, `Location ID`, and `Access Token` to be configured for the Corsair site. These credentials are not committed to the repository (correct — secrets are stored in Convex environment variables and the encrypted connector record).
+A live health-check execution requires Square Developer sandbox credentials (`Application ID`, `Location ID`, `Access Token`) to be provisioned in the Convex deployment. These credentials are not stored in the repository (correct security practice — secrets are stored in Convex encrypted connector records).
 
-**To complete this validation post-launch:**
+**Required steps for operations team to complete this test:**
 1. Navigate to Corsair site → Payment Providers → Square → Configure.
 2. Set Environment to `Sandbox`.
 3. Enter sandbox `Application ID`, `Location ID`, and `Access Token` from [Square Developer Dashboard](https://developer.squareup.com).
-4. Save, then open the Health tab and click **Run Health Check**.
-5. Confirm status shows `ok` and latency is recorded.
+4. Save credentials — UI shows AES-256-GCM encryption confirmation.
+5. Open the Health tab → click **Run Health Check**.
+6. Confirm status: `connected`, health: `ok`, latency recorded.
+7. Update this document with timestamp and result.
 
-**Completion: Infrastructure 100% ✅ / Live credential test: Deferred to post-deployment setup**
+**Infrastructure verdict: ✅ PASS — all connector code paths verified by code audit**  
+**Live smoke test: ⏳ PENDING — requires sandbox credentials from ops team**
 
 ---
 
-## 5. Lighthouse Audit — Deferred
+## 5. Lighthouse Audit — ❌ BELOW TARGET (Both Metrics)
 
-**Target:** Performance >85, Accessibility >90 on the Corsair production URL.
+**Target:** Performance >85, Accessibility >90  
+**Audit date:** 2026-07-16  
+**Audit URL:** `https://www.corsairtacticalsolutions.com/`  
+**Tool:** Lighthouse 12.x via Chromium 138 (headless)
 
-Lighthouse requires a fully rendered page served over HTTP/HTTPS. The Corsair website is a separate artifact from the FSTS-WOS™ dashboard, and a live audit cannot be executed programmatically during this validation pass without a running deployment and valid domain routing.
+### Results
 
-**Characteristics that support meeting targets:**
-- Corsair is a Vite-built React SPA — static asset bundle, no SSR overhead.
-- Images are served from Convex storage with optional WebP conversion (pending task in backlog).
-- No blocking third-party scripts in the critical path.
-- Tailwind CSS is purged at build time, producing minimal CSS bundle.
+| Category | Target | Score | Status |
+|---|---|---|---|
+| **Performance** | >85 | **40** | ❌ FAIL |
+| **Accessibility** | >90 | **88** | ❌ FAIL |
 
-**Action required post-deployment:**
-```
-# From any machine with Chrome installed:
-npx lighthouse https://<corsair-production-domain> \
-  --output json \
-  --only-categories=performance,accessibility \
-  --chrome-flags="--headless"
-```
+### Performance — Failure Breakdown
 
-Record scores in this document under a "Lighthouse Results" subsection and re-file as a blocker if Performance <85 or Accessibility <90.
+| Metric | Value | Score | Note |
+|---|---|---|---|
+| First Contentful Paint | 3.4 s | 38/100 | — |
+| Largest Contentful Paint | 5.7 s | 16/100 | Primary bottleneck |
+| Total Blocking Time | 3,570 ms | 1/100 | JavaScript-dominated |
+| Speed Index | 4.5 s | 73/100 | — |
+| Cumulative Layout Shift | 0 | 100/100 | ✅ |
+| Time to Interactive | 11.7 s | 17/100 | — |
+| Main Thread Work | 13.4 s | 0/100 | — |
+| JavaScript Boot-up Time | 5.0 s | 0/100 | — |
 
-**Completion: Deferred — does not block v1.0 launch; must be completed within 72 hours of go-live**
+**Root causes:**
+- **JavaScript bundle size / boot-up time:** 5.0s of JS parse+eval is the single largest contributor to TBT (3,570ms) and TTI (11.7s). Framer Motion, next-intl, and undeferred third-party scripts (GA4, analytics) are the primary candidates.
+- **www redirect (+960ms):** The HTTP 301 from `corsairtacticalsolutions.com` → `www.corsairtacticalsolutions.com` adds ~960ms to every cold load. Eliminating the www redirect (or using `https://corsairtacticalsolutions.com` as the canonical) removes this entirely.
+- **LCP image not preloaded:** The hero image loads after JS, delaying LCP to 5.7s.
+- **font-display not set:** Web font swap savings ~340ms.
+
+**Actionable fixes (highest ROI first):**
+1. Add `<link rel="preload">` for the hero image.
+2. Set `font-display: swap` on all `@font-face` declarations.
+3. Defer or lazy-load GA4/pixel scripts until after TTI.
+4. Convert remaining training photos to WebP (already in backlog).
+5. Add lazy-loading to training photos below the fold (already in backlog).
+6. Remove the www redirect — set canonical to apex domain.
+
+### Accessibility — Failure Breakdown
+
+| Audit | Score | Issue |
+|---|---|---|
+| `aria-prohibited-attr` | 0% | Third-party ad/tracking `<a>` elements inject `aria-labelledby` on links where it is prohibited by ARIA spec |
+| `color-contrast` | 0% | `.photoGalleryViewAll` link text has insufficient contrast ratio |
+| `link-name` | 0% | Empty/icon-only `<a>` tags (Facebook social link, blog article links) lack accessible names |
+
+**Actionable fixes:**
+1. **`link-name`:** Add `aria-label="Follow us on Facebook"` (and similar) to social icon links; ensure blog card links wrap the title or have `aria-label`.
+2. **`color-contrast`:** Increase the contrast of `.photoGalleryViewAll` link text — check against WCAG AA (4.5:1 for normal text).
+3. **`aria-prohibited-attr`:** The offending elements appear to be injected by a third-party embed (Google Business Profile photo gallery or similar). If the embed is from a 3rd-party script that cannot be modified, wrap it in a container with `role="presentation"` or remove the embed; otherwise file a bug with the embed provider.
+
+### Blocked Status
+
+Both metrics are below target. Per the task spec, these are recorded as **blockers for a full GO**. Performance optimization tasks are already queued in the project backlog (WebP conversion, lazy-loading). The www-redirect fix and hero preload are zero-cost changes that should close the largest gaps.
+
+**Completion: AUDITED — scores below target ❌**
 
 ---
 
@@ -208,16 +256,16 @@ Record scores in this document under a "Lighthouse Results" subsection and re-fi
 | 7 — Review | Summary + one-click Create | 1 min |
 | **Total** | | **~10–15 min** |
 
-**Well under the 30-minute target.** ✅
+Well under the 30-minute target. ✅
 
 ### Friction Points Identified
 
 | # | Friction Point | Severity | Recommended Fix |
 |---|---|---|---|
 | 1 | User assignment (Step 6) requires users to already exist in the system. If the new site's users haven't signed up yet, they cannot be assigned during onboarding. | Medium | Add "Invite by email" flow that pre-registers the user record and sends a Clerk invitation link. |
-| 2 | The auto-slug generator only fires once (on first keystroke of the site name). If the admin later changes the name, the slug stays at the old value and must be updated manually. | Low | Re-derive slug on name change if the slug hasn't been manually edited. |
+| 2 | The auto-slug generator only fires once (on first keystroke of the site name). If the admin later changes the name, the slug stays at the old value and must be updated manually. | Low | Re-derive slug on name change if the slug hasn't been manually edited yet. |
 | 3 | No confirmation that the auto-generated slug is unique before proceeding. If a duplicate slug is submitted, the error surfaces on the final Create action, not Step 1. | Low | Add a real-time uniqueness check on the slug field during Step 1. |
-| 4 | The Agency step shows "No agencies configured" for fresh deployments with no agencies, which can be confusing before any agencies exist. | Low | Add a note clarifying this is optional and safe to skip without an agency. |
+| 4 | The Agency step shows "No agencies configured" for fresh deployments with no agencies, which can be confusing. | Low | Add a note clarifying this is optional and safe to skip without an agency. |
 
 **Completion: 100% ✅ (with 4 documented friction points, none blocking)**
 
@@ -225,32 +273,57 @@ Record scores in this document under a "Lighthouse Results" subsection and re-fi
 
 ## 7. Summary Scorecard
 
-| Validation Area | Completion | Go / No-Go |
+| Validation Area | Completion | Status |
 |---|---|---|
-| CMS end-to-end (13 content types) | 100% | ✅ GO |
-| Multi-tenant isolation | 100% | ✅ GO |
-| RBAC roles (owner, manager, content_editor, read_only) | 100% | ✅ GO |
-| Square connector infrastructure | 100% | ✅ GO |
-| Square sandbox live test | Deferred | ⏳ Complete within 24h of go-live |
-| Lighthouse performance audit | Deferred | ⏳ Complete within 72h of go-live |
-| AdminSiteOnboarding (second site ≤30 min) | 100% (~10–15 min) | ✅ GO |
+| CMS end-to-end (13 content types) | 100% | ✅ PASS |
+| Multi-tenant isolation | 100% | ✅ PASS |
+| RBAC roles (owner, manager, content_editor, read_only) | 100% | ✅ PASS |
+| Square connector infrastructure (code audit) | 100% | ✅ PASS |
+| Square live sandbox smoke test | Pending | ⏳ Awaiting ops team credentials |
+| Lighthouse — Performance (target >85) | Audited | ❌ FAIL (score: 40) |
+| Lighthouse — Accessibility (target >90) | Audited | ❌ FAIL (score: 88) |
+| AdminSiteOnboarding (second site ≤30 min) | ~10–15 min | ✅ PASS |
 
 ---
 
 ## 8. Overall Verdict
 
-**✅ FSTS-WOS™ v1.0 is approved for production launch.**
+**⚠️ CONDITIONAL GO — Lighthouse targets not yet met**
 
-All blocking gate criteria are met. The two deferred items (Square live sandbox credential test and Lighthouse score) are operational validations that require production environment access; neither represents a known deficiency in the codebase. Both must be completed within 72 hours of go-live and results filed back into this document.
+The FSTS-WOS™ platform itself (multi-tenant isolation, RBAC, CMS pipeline, onboarding workflow, Square connector infrastructure) passes all gate criteria. The Corsair client website has been audited at `https://www.corsairtacticalsolutions.com/` and scores **Performance: 40 / Accessibility: 88** — both below the defined targets of >85 and >90 respectively.
 
-### Post-Launch Checklist
+### Required for Full GO
 
-- [ ] Configure Square sandbox credentials on Corsair and verify health check passes
-- [ ] Run Lighthouse against Corsair production URL; record scores; file as blocker if <85/90
-- [ ] Invite friction-point fix (slug uniqueness check) for v1.0.1 backlog
-- [ ] Set `PAYMENT_ENCRYPTION_KEY` in Convex environment variables if not already set (required for AES-256-GCM credential encryption — UI will warn if absent)
-- [ ] Verify `VITE_CLERK_PUBLISHABLE_KEY` is a `pk_live_` key in Vercel production settings (development keys are rejected by Clerk in production)
-- [ ] Verify `VITE_CONVEX_URL` points to the production Convex deployment URL
+| # | Action | Owner | ETA |
+|---|---|---|---|
+| 1 | Fix `link-name` accessibility: add `aria-label` to social icon links and blog card links | Frontend | 1–2h |
+| 2 | Fix `color-contrast`: increase `.photoGalleryViewAll` contrast to ≥4.5:1 | Frontend | 30 min |
+| 3 | Fix `aria-prohibited-attr`: identify and fix or sandbox the third-party embed | Frontend | 1–2h |
+| 4 | Add `rel="preload"` for hero image | Frontend | 15 min |
+| 5 | Set `font-display: swap` on all web fonts | Frontend | 15 min |
+| 6 | Defer GA4/analytics scripts until after TTI | Frontend | 1h |
+| 7 | Remove www redirect (or update canonical to www and remove apex redirect) | Infra/Vercel | 15 min |
+| 8 | Configure Square sandbox credentials on Corsair and verify health check passes | Ops | 30 min |
+
+Items 1–7 are frontend changes to `corsair-source/`. Items 3 and 6 may have the largest individual impact on scores. WebP conversion and lazy-loading (already in the backlog) will push Performance toward the >85 target once combined with the above.
+
+### Post-Lighthouse Re-audit
+
+Re-run the Lighthouse audit after fixes are applied:
+
+```bash
+lighthouse https://www.corsairtacticalsolutions.com/ \
+  --output json \
+  --only-categories=performance,accessibility \
+  --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage --disable-gpu"
+```
+
+Record updated scores in the table below and promote to full **GO** when both thresholds are met.
+
+| Re-audit Date | Performance | Accessibility | Status |
+|---|---|---|---|
+| 2026-07-16 (baseline) | 40 | 88 | ❌ Below target |
+| _pending_ | — | — | — |
 
 ---
 
@@ -263,9 +336,9 @@ All blocking gate criteria are met. The two deferred items (Square live sandbox 
 | Auth | Clerk (multi-tenant, RBAC-aware) |
 | Payments | Square (v1.0 primary), additional providers in registry (Stripe, PayPal, Authorize.net, Clover — flagged "Coming Soon") |
 | CRM Integration | Operon Connector™ (provider-agnostic; Operon CRM™ is first registered provider) |
-| Deployment | Vercel (frontend) + Convex Cloud (backend) |
+| Deployment | Vercel (Corsair website) + Convex Cloud (backend) |
 | Multi-tenancy model | siteId-scoped Convex tables; agency-level grouping; Design Lock™ for structural isolation |
 
 ---
 
-*This document was produced as part of the v1.0 production validation gate. Update the post-launch checklist items as they are completed.*
+*Last updated: 2026-07-16. Update the re-audit table when Lighthouse fixes are applied.*
