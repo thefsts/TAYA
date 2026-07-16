@@ -1,0 +1,171 @@
+# PROJECT SEPARATION NOTICE — FSTS WEBSITE OPERATING SYSTEM™ & CLIENT WEBSITES
+
+**Priority:** IMMEDIATE
+
+We are officially separating the FSTS Website Operating System™ (Dashboard) from all client website development.
+
+This decision is being made to eliminate repository contamination, deployment issues, and development setbacks.
+
+From this point forward, these are two completely separate projects.
+
+---
+
+# PROJECT 1 — FSTS WEBSITE OPERATING SYSTEM™ (Dashboard)
+
+This will become its own dedicated development project.
+
+All future Dashboard work will happen there.
+
+Repository:
+
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+
+Vercel:
+
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server
+
+This project now owns ALL platform development, including:
+
+* Dashboard
+* Website Operating System™
+* Multi-Tenant CMS
+* Convex Backend
+* Authentication
+* RBAC
+* Website Health Command Center™
+* Smart Image Manager™
+* Responsive Preview Studio™
+* AI Dashboard Assistant™
+* Client Portal™
+* Membership Portal™
+* Forms Builder™
+* Payment Connector Framework™
+* Media Library™
+* Version History
+* Activity Logs
+* Backups
+* Automation Marketplace™
+* Compliance Center™
+* LMS™
+* Business Intelligence Dashboard™
+* Shared APIs
+* Shared Components
+* Shared Services
+* Operon Connector™
+
+**No further Dashboard feature development should occur in any website repository.**
+
+---
+
+# PROJECT 2 — CLIENT WEBSITES
+
+Each client website will now have its own dedicated project.
+
+Example:
+
+Corsair Tactical Solutions
+
+Repository:
+
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Vercel:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions
+
+This repository owns ONLY:
+
+* Website pages
+* Branding
+* Components
+* Styling
+* Images
+* Assets
+* Website-specific APIs
+* Dashboard integration layer
+* Admin Portal link
+* Client Portal link
+* Public website functionality
+
+It consumes the Dashboard platform but does not contain Dashboard source code.
+
+---
+
+# NEW DEVELOPMENT WORKFLOW
+
+Going forward:
+
+## Dashboard Project
+
+All new platform features.
+
+All CMS improvements.
+
+All Convex work.
+
+All shared services.
+
+All AI features.
+
+All reusable modules.
+
+All multi-tenant development.
+
+All future Version 1.x and Version 2.x Dashboard enhancements.
+
+---
+
+## Website Projects
+
+Only website-specific work:
+
+* Design
+* Branding
+* Content
+* SEO
+* Public pages
+* Website integrations
+* Dashboard connectivity
+* Client-specific functionality
+
+No platform development.
+
+---
+
+# WHY WE ARE DOING THIS
+
+Mixing Dashboard development with website development has caused:
+
+* Repository contamination
+* Incorrect commits
+* Deployment confusion
+* Blocked builds
+* Lost development time
+* Difficult debugging
+* Increased project risk
+
+Separating the projects allows each to evolve independently while maintaining a clean architecture.
+
+---
+
+# NEXT STEPS
+
+1. Complete the current repository audit and cleanup.
+2. Confirm both repositories are clean and correctly separated.
+3. Finish any remaining Corsair website work in the Corsair repository only.
+4. I will start a **new dedicated ChatGPT project** focused exclusively on the **FSTS Website Operating System™**.
+5. From that point forward, all Dashboard development, planning, QA, roadmap work, and new features will happen only within that dedicated Dashboard project.
+6. The current project will remain focused exclusively on the Corsair Tactical Solutions website and its integration with the Dashboard.
+
+---
+
+# EXPECTATION
+
+Treat these as two independent products with separate development cycles.
+
+* **Dashboard Team Mindset:** Build one platform that powers hundreds of client websites.
+* **Website Team Mindset:** Build and maintain a single client website that consumes the platform.
+
+This separation will prevent future setbacks, keep GitHub and Vercel deployments clean, and make the FSTS Website Operating System™ scalable for every future client.
+
+**Acknowledge this new development workflow and confirm that all future work will follow these project boundaries.**

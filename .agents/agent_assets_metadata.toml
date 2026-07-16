@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "fKZ-YD_o2Ec6vKuKx5ypA"
+uri = "file://exports/FSTS-Project-Status-Report.pdf"
+type = "pdf"
+title = "FSTS Project Status Report — July 16, 2026"

@@ -1,0 +1,186 @@
+Update the pricing catalog for all training courses.
+
+Repo:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Commit author must be:
+**Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)**
+
+====================
+PRICING UPDATE
+==============
+
+Update the centralized pricing catalog with the following pricing changes.
+
+These are the new standard prices.
+
+====================
+ALL HANDGUN TRAINING CLASSES
+============================
+
+### Gun Rental
+
+Price:
+**$12.99**
+
+Description:
+Rental handgun for use during training.
+
+Rules:
+
+* Optional add-on
+* Customer may bring their own handgun
+* If selected, add to checkout total
+* Display as:
+  **Gun Rental — $12.99**
+
+---
+
+### Ammunition Purchase
+
+Price:
+**$14.00**
+
+Description:
+One box of 50 rounds of handgun ammunition (50 rounds).
+
+Rules:
+
+* Optional add-on
+* If selected, add to checkout total
+* Display as:
+  **Ammunition Purchase (50 Rounds) — $14.00**
+
+====================
+DO NOT MODIFY THESE COURSES
+===========================
+
+**Do NOT make any pricing or add-on changes to these courses:**
+
+* **AR-15 Rifle Course**
+* **Shotgun Course**
+
+Leave these two courses exactly as they are today, including:
+
+* Course price
+* Gun rental pricing
+* Ammunition pricing
+* Required fees
+* Optional add-ons
+* Checkout logic
+
+These courses already have the correct pricing and must remain unchanged.
+
+====================
+COURSES TO UPDATE
+=================
+
+Apply the new optional pricing ONLY to handgun-based courses, including:
+
+* Texas License to Carry Certification
+* Texas License to Carry Certification / Basic Handgun
+* Texas LTC Shooting Proficiency
+* Introduction to Firearms
+* Basic Handgun Skills Training
+* First Shots Basic Firearm Training
+* Defensive Shooting Skills
+* Women's Firearm Training
+* Private Firearm Training
+* Any other handgun-only training course
+
+**Exclude:**
+
+* AR-15 Rifle Course
+* Shotgun Course
+
+====================
+CHECKOUT
+========
+
+Checkout should display:
+
+Base Class Price
+
+Required Fees (if applicable)
+
+Optional Add-ons
+
+☐ Gun Rental — $12.99
+
+☐ Ammunition Purchase (50 Rounds) — $14.00
+
+Total Due
+
+The total should update immediately when optional add-ons are selected.
+
+====================
+SERVER VALIDATION
+=================
+
+The server must validate:
+
+* Gun Rental = $12.99
+* Ammunition Purchase = $14.00
+
+Do not trust frontend pricing.
+
+The server calculates the final total.
+
+====================
+SQUARE ORDER
+============
+
+If selected, Square Orders should show separate line items:
+
+* Texas License to Carry Certification
+* Gun Rental — $12.99
+* Ammunition Purchase (50 Rounds) — $14.00
+* Required Range Fee (if applicable)
+
+Total
+
+====================
+EMAIL RECEIPT
+=============
+
+Confirmation emails should itemize:
+
+* Course
+* Required Fees
+* Gun Rental (if selected)
+* Ammunition Purchase (if selected)
+* Final Total
+
+====================
+CONFIRMATION PAGE
+=================
+
+Confirmation page should show the same itemized breakdown.
+
+====================
+IMPORTANT
+=========
+
+* The website pricing is the source of truth.
+* Square must match the website pricing.
+* **Do not modify the AR-15 Rifle Course or Shotgun Course in any way.**
+
+====================
+FINAL QA
+========
+
+Before pushing:
+
+* ✓ Gun Rental is $12.99 on all applicable handgun courses
+* ✓ Ammunition Purchase (50 Rounds) is $14.00 on all applicable handgun courses
+* ✓ AR-15 Rifle Course is unchanged
+* ✓ Shotgun Course is unchanged
+* ✓ Checkout totals calculate correctly
+* ✓ Square line items are correct
+* ✓ Confirmation page updated
+* ✓ Email receipt updated
+* ✓ Build passes
+
+Commit and push as:
+
+**Thefsts [amorebey@gmail.com](mailto:amorebey@gmail.com)**
