@@ -1,0 +1,301 @@
+# 🚨 CRITICAL — STOP DEVELOPMENT & CORRECT REPOSITORY CONTAMINATION
+
+**Priority:** IMMEDIATE
+
+We have identified a critical repository management issue.
+
+Dashboard work is being committed to the **Corsair Tactical Solutions** repository.
+
+This is incorrect.
+
+All Dashboard development must live in the Dashboard repository only.
+
+---
+
+# STOP ALL COMMITS
+
+Do not make any additional commits until this has been corrected.
+
+---
+
+# GIT IDENTITY (REQUIRED)
+
+Before making any commits, verify the Git identity being used.
+
+All commits must be made under:
+
+**GitHub Username**
+
+* **thefsts**
+
+**Git Email**
+
+* **[amorebey@gmail.com](mailto:amorebey@gmail.com)**
+
+Verify with:
+
+```bash
+git config user.name
+git config user.email
+```
+
+If incorrect, set:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+```
+
+If using global Git configuration:
+
+```bash
+git config --global user.name "thefsts"
+git config --global user.email "amorebey@gmail.com"
+```
+
+Every future commit must be attributed to:
+
+**thefsts / [amorebey@gmail.com](mailto:amorebey@gmail.com)**
+
+---
+
+# PROJECT SEPARATION
+
+## Project A — FSTS Website Operating System™ (Dashboard)
+
+**GitHub Repository**
+
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+
+**Vercel Project**
+
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server
+
+Purpose:
+
+This repository contains ONLY:
+
+* Dashboard
+* Convex Backend
+* Website Operating System™
+* Multi-Tenant CMS
+* Client Portal
+* Membership System
+* AI Dashboard Assistant
+* Smart Image Manager™
+* Responsive Live Preview Studio™
+* Payment Connector Framework™
+* Website Health Command Center™
+* Operon Connector™
+* Dashboard UI
+* Shared Components
+* Shared APIs
+* Shared Services
+
+This is the master platform used by every client website.
+
+---
+
+## Project B — Corsair Tactical Solutions
+
+**GitHub Repository**
+
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+**Vercel Project**
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions
+
+Purpose:
+
+ONLY the Corsair public website.
+
+Contains:
+
+* Next.js website
+* Website pages
+* Website components
+* Styling
+* Images
+* Assets
+* Website-specific API routes
+* Website branding
+* Dashboard integration layer
+* Admin Portal link
+* Client Portal link
+
+Nothing related to Dashboard development belongs here.
+
+---
+
+# IMMEDIATE REPOSITORY AUDIT
+
+Audit every commit made since Dashboard development began.
+
+Identify:
+
+* Dashboard files committed into the Corsair repository.
+* Dashboard commits that belong in the Dashboard repository.
+* Website commits that belong in the Corsair repository.
+
+Provide a report containing:
+
+* Commit SHA
+* Commit Author
+* Repository
+* Files Changed
+* Correct Repository
+* Action Required
+
+---
+
+# REMOVE MISPLACED WORK
+
+If Dashboard code exists inside the Corsair repository:
+
+Move it into the Dashboard repository.
+
+Examples include:
+
+* Dashboard pages
+* Dashboard components
+* Convex schema
+* Convex functions
+* Dashboard UI
+* Dashboard modules
+* AI Assistant
+* Website Health Center
+* Membership System
+* Client Portal
+* Payment Connector Framework™
+* Smart Image Manager™
+* Responsive Live Preview Studio™
+* Dashboard utilities
+* Shared platform services
+
+These should never exist inside the Corsair website repository unless they are lightweight integration components.
+
+---
+
+# WEBSITE REPOSITORY RULES
+
+The Corsair repository should contain ONLY:
+
+* Website pages
+* Website components
+* Website styling
+* Website assets
+* Website API routes
+* Website configuration
+* Convex client integration (if required)
+* Dashboard connection layer
+* Admin Portal link
+* Client Portal link
+
+The website **consumes** the Dashboard.
+
+It does **NOT** contain the Dashboard.
+
+---
+
+# DASHBOARD REPOSITORY RULES
+
+The Dashboard repository owns:
+
+* Dashboard UI
+* CMS
+* Convex Backend
+* Multi-Tenant Architecture
+* RBAC
+* Authentication
+* Media Library
+* Forms Builder
+* Website Health Center™
+* AI Dashboard Assistant™
+* Client Portal™
+* Membership System™
+* Payment Connector Framework™
+* Operon Connector™
+* Shared Services
+* Shared APIs
+* Shared Components
+
+Future client websites will connect to this platform.
+
+---
+
+# FUTURE DEVELOPMENT POLICY
+
+Beginning immediately:
+
+### Dashboard Repository
+
+Responsible for:
+
+* All platform development
+* All CMS development
+* All new modules
+* All shared services
+* All Convex backend work
+* All reusable functionality
+* All feature enhancements
+
+---
+
+### Website Repository
+
+Responsible for:
+
+* Website branding
+* Website design
+* Website content
+* Website-specific integrations
+* Dashboard API consumption
+* Public-facing pages
+
+No platform development belongs here.
+
+---
+
+# REQUIRED DELIVERABLE
+
+Before continuing development, provide:
+
+1. Repository audit.
+2. Misplaced commit list.
+3. Recovery plan.
+4. Files moved to the correct repository.
+5. Commits reverted (if necessary).
+6. New commits created in the correct repository.
+7. Confirmation that all future commits will use:
+
+   * **GitHub Username:** thefsts
+   * **Git Email:** [amorebey@gmail.com](mailto:amorebey@gmail.com)
+8. Confirmation that:
+
+   * Dashboard work is isolated to the Dashboard repository.
+   * Corsair contains only website code.
+   * Future websites will connect to the Dashboard rather than embedding Dashboard functionality.
+
+---
+
+# ENGINEERING STANDARD
+
+The **FSTS Website Operating System™** is the core platform.
+
+Every client website—including Corsair Tactical Solutions—must remain a **consumer** of the platform, not the location where the platform itself is developed.
+
+This separation allows:
+
+* Independent deployments
+* Independent versioning
+* Cleaner Git history
+* Easier maintenance
+* Multi-tenant scalability
+* Faster onboarding of future client websites
+* A true SaaS architecture
+
+From this point forward, all platform work must be committed to the Dashboard repository using the Git identity:
+
+* **GitHub:** thefsts
+* **Email:** [amorebey@gmail.com](mailto:amorebey@gmail.com)
