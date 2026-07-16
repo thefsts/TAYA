@@ -1,5 +1,12 @@
 #!/bin/bash
 set -e
+
+# ── Git commit identity ───────────────────────────────────────────────────────
+# Enforced unconditionally on every merge so all commits carry the correct
+# author regardless of the local git config state.
+git config user.name  "Thefsts"
+git config user.email "amorebey@gmail.com"
+
 pnpm install --frozen-lockfile
 # drizzle-kit push requires an interactive TTY; skip in non-interactive environments.
 # Run manually in a terminal: pnpm --filter @workspace/db run push

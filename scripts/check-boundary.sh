@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 # check-boundary.sh — Product boundary enforcement for FSTS-WOS™
 #
-# Scans source files for terms that signal Operon CRM™ features being built
-# inside the FSTS-WOS™ codebase. Exits non-zero if any match is found.
+# Two enforcement layers:
 #
-# Reference: docs/product-boundaries.md §2.1
+#   1. CRM TERM SCAN — Scans source files for terms that signal Operon CRM™
+#      features being built inside the FSTS-WOS™ codebase.
+#      Reference: docs/product-boundaries.md §2.1
+#
+#   2. REPOSITORY SEPARATION CHECK — Errors if any Corsair website artifacts
+#      are staged for commit into this Dashboard repo. The Corsair website
+#      belongs exclusively in thefsts/Corsair-Tactical-Solutions.
+#      Reference: docs/repo-governance.md §1
+#
+# Exits non-zero if any match is found.
 #
 # ALLOWLISTED paths (excluded from scan):
 #   - docs/                     — product boundary documentation (defines the terms)
@@ -145,7 +153,6 @@ done
 
 if [ "$FOUND" -eq 0 ]; then
   echo "[boundary-check] ✅  No out-of-scope CRM terms found. Product boundary is clean."
-  exit 0
 else
   echo "[boundary-check] ❌  Product boundary violation(s) detected."
   echo ""
@@ -154,5 +161,117 @@ else
   echo "  To mark a file as boundary-safe, add it to the exclusion list in"
   echo "  scripts/check-boundary.sh with a comment explaining why it is safe."
   echo ""
+fi
+
+# ---------------------------------------------------------------------------
+# REPOSITORY SEPARATION CHECK
+#
+# Detects Corsair website artifacts committed into this Dashboard repo.
+# The Corsair website belongs in thefsts/Corsair-Tactical-Solutions, not here.
+# See docs/repo-governance.md §1.
+#
+# Scans ALL tracked files in the git index (committed + staged) so this check
+# is effective both locally (pre-commit) and in CI (post-push, no staged files).
+#
+# Patterns that signal a Corsair file is present in this repo:
+#
+#   1. Next.js app/ page trees — any artifacts/*/app/ path that is NOT inside
+#      artifacts/fsts-dashboard/. The fsts-dashboard is a plain React/Vite app;
+#      any app/ directory under a different artifact slug is Next.js (Corsair).
+#      POSIX-compatible match: grep ^artifacts/.*/app/ then exclude fsts-dashboard.
+#
+#   2. Corsair i18n JSON files — course translation files at the repo-root
+#      messages/ directory (messages/en.json, messages/es.json, etc.).
+#      The Dashboard has no top-level messages/ directory; any file there is
+#      Corsair website content.
+#
+#   3. Corsair public image assets — static images in a top-level public/
+#      directory. The Dashboard is a Vite app; a repo-root public/ with images
+#      is the Corsair website's static asset folder.
+# ---------------------------------------------------------------------------
+echo ""
+echo "[boundary-check] Checking for Corsair website artifacts in this repository…"
+
+REPO_SEPARATION_FOUND=0
+
+# Only run when inside a git repo.
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  # Scan ALL tracked files (committed + staged).
+  # git ls-files covers the full index, so this works both locally and in CI
+  # where there are no staged files but violations may already be committed.
+  ALL_FILES=$(git ls-files 2>/dev/null || true)
+
+  if [ -n "$ALL_FILES" ]; then
+    # --- Pattern 1: Next.js app/ page trees outside artifacts/fsts-dashboard/ ---
+    # Step 1: match any artifacts/<slug>/app/ path.
+    # Step 2: exclude the fsts-dashboard artifact (its source has no app/ dir,
+    #         but we exclude it explicitly to be safe against future changes).
+    # NOTE: grep -E does NOT support lookaheads in GNU/BSD; use two-pipe approach.
+    NEXTJS_FOUND=$(
+      echo "$ALL_FILES" \
+        | grep -E '^artifacts/[^/]+/app/' \
+        | grep -v '^artifacts/fsts-dashboard/' \
+      || true
+    )
+    if [ -n "$NEXTJS_FOUND" ]; then
+      echo "❌  CORSAIR ARTIFACT: Next.js page tree found outside artifacts/fsts-dashboard/"
+      echo "    These files belong in thefsts/Corsair-Tactical-Solutions:"
+      echo "$NEXTJS_FOUND" | sed 's/^/      /'
+      echo ""
+      REPO_SEPARATION_FOUND=1
+    fi
+
+    # --- Pattern 2: Corsair i18n JSON files (repo-root messages/*.json) ---
+    # The Dashboard has no top-level messages/ directory; any .json file there
+    # is a Corsair website locale translation file.
+    I18N_FOUND=$(echo "$ALL_FILES" | grep -E '^messages/[^/]+\.json$' || true)
+    if [ -n "$I18N_FOUND" ]; then
+      echo "❌  CORSAIR ARTIFACT: Corsair i18n translation files at repo root:"
+      echo "    These files belong in thefsts/Corsair-Tactical-Solutions:"
+      echo "$I18N_FOUND" | sed 's/^/      /'
+      echo ""
+      REPO_SEPARATION_FOUND=1
+    fi
+
+    # --- Pattern 3: Corsair public image assets (repo-root public/) ---
+    # The Dashboard is served from artifacts/fsts-dashboard/; a repo-root
+    # public/ directory containing images is the Corsair site's static folder.
+    PUBLIC_IMAGES_FOUND=$(
+      echo "$ALL_FILES" | grep -E '^public/.*\.(jpg|jpeg|png|webp|gif|svg)$' || true
+    )
+    if [ -n "$PUBLIC_IMAGES_FOUND" ]; then
+      echo "❌  CORSAIR ARTIFACT: Corsair public image assets at repo root:"
+      echo "    These files belong in thefsts/Corsair-Tactical-Solutions:"
+      echo "$PUBLIC_IMAGES_FOUND" | sed 's/^/      /'
+      echo ""
+      REPO_SEPARATION_FOUND=1
+    fi
+
+    if [ "$REPO_SEPARATION_FOUND" -eq 0 ]; then
+      echo "[boundary-check] ✅  No Corsair artifacts found in this repository."
+    fi
+  else
+    echo "[boundary-check] No tracked files found — skipping repo separation check."
+  fi
+else
+  echo "[boundary-check] Not inside a git repository — skipping repo separation check."
+fi
+
+# ---------------------------------------------------------------------------
+# Final result
+# ---------------------------------------------------------------------------
+echo ""
+if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ]; then
+  echo "[boundary-check] ✅  All checks passed. Repository boundary is clean."
+  exit 0
+else
+  if [ "$REPO_SEPARATION_FOUND" -ne 0 ]; then
+    echo "[boundary-check] ❌  Repository separation violation(s) detected."
+    echo ""
+    echo "  Corsair website files must not be committed to this Dashboard repo."
+    echo "  Move the flagged files to thefsts/Corsair-Tactical-Solutions."
+    echo "  See docs/repo-governance.md for the two-repository rule."
+    echo ""
+  fi
   exit 1
 fi
