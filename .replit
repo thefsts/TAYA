@@ -28,6 +28,10 @@ args = "visual-regression"
 task = "workflow.run"
 args = "boundary-check"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "test:post-merge-sync"
+
 [[workflows.workflow]]
 name = "Component Preview Server"
 author = "agent"
@@ -62,6 +66,17 @@ isValidation = true
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash scripts/check-boundary.sh"
+
+[[workflows.workflow]]
+name = "test:post-merge-sync"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @workspace/scripts run test:post-merge-sync"
+
+[workflows.workflow.metadata]
+isValidation = true
 
 [agent]
 stack = "PNPM_WORKSPACE"
