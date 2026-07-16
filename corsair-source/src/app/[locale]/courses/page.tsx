@@ -70,12 +70,23 @@ function QuickView({ course }: { course: Course }) {
       </div>
       {/* CTA */}
       <div className="flex flex-wrap gap-2 pt-2 border-t border-corsair-gray-100">
-        <Link
-          href={`/courses/${course.slug}`}
-          className="bg-corsair-red-500 hover:bg-corsair-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-        >
-          {course.cta}
-        </Link>
+        {course.externalCourse && course.externalUrl ? (
+          <a
+            href={course.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-corsair-red-500 hover:bg-corsair-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+          >
+            {course.cta}
+          </a>
+        ) : (
+          <Link
+            href={`/courses/${course.slug}`}
+            className="bg-corsair-red-500 hover:bg-corsair-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+          >
+            {course.cta}
+          </Link>
+        )}
         <Link
           href={`/contact?course=${encodeURIComponent(course.title)}`}
           className="border border-corsair-blue-900 text-corsair-blue-900 hover:bg-corsair-blue-900 hover:text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"

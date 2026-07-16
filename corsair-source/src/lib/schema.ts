@@ -2,7 +2,7 @@ import { SITE_URL, SITE_NAME, absoluteUrl } from './seo';
 
 const LOGO_URL = absoluteUrl('/corsair-logo.png');
 const SAME_AS = [
-  'https://www.instagram.com/corsairtacticalsolutions',
+  'https://www.instagram.com/corsairtacticalsolution?igsh=MTd1MmhkZzZtaWh2MQ==',
   'https://www.facebook.com/share/17iPFcVg7j/',
   'https://www.tiktok.com/@stevehopwood0',
 ];

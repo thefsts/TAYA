@@ -302,26 +302,58 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
 
             {/* ── Sticky Sidebar ── */}
             <div className="lg:sticky lg:top-28 h-fit space-y-5">
-              {/* Booking Form */}
-              <BookingForm course={course} />
+              {/* External course CTA — replaces booking form entirely */}
+              {course.externalCourse ? (
+                <div className="bg-white border border-corsair-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                  <div className="bg-corsair-blue-900 px-6 py-5">
+                    <h2 className="text-lg font-black text-white">Begin Online Assessment</h2>
+                    <p className="text-corsair-gray-300 text-xs mt-1">Provided through Texas Carry Academy</p>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <p className="text-sm text-corsair-blue-900 leading-relaxed">
+                        This online assessment is provided through our trusted training partner,{' '}
+                        <strong>Texas Carry Academy</strong>. You will be taken to their secure site to complete
+                        your LTC classroom portion. Once finished, return to Corsair to schedule your live-fire
+                        range qualification.
+                      </p>
+                    </div>
+                    <a
+                      href={course.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center bg-corsair-red-500 hover:bg-corsair-red-600 text-white font-bold py-3.5 px-6 rounded-xl transition-colors shadow-sm btn-red-glow"
+                    >
+                      Begin Online Assessment →
+                    </a>
+                    <p className="text-[11px] text-corsair-gray-400 text-center leading-relaxed">
+                      You will be redirected to Texas Carry Academy to complete the online portion of your LTC.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <BookingForm course={course} />
+              )}
 
               {/* Reassurance */}
-              <div className="bg-corsair-gray-50 border border-corsair-gray-200 rounded-2xl p-5">
-                <h4 className="font-bold text-corsair-blue-900 text-sm mb-3">{t('whyBookTitle')}</h4>
-                <ul className="space-y-2.5">
-                  {whyBookItems.map((item, i) => (
-                    <li key={i} className="flex items-center gap-2.5 text-xs text-corsair-gray-600">
-                      <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {!course.externalCourse && (
+                <div className="bg-corsair-gray-50 border border-corsair-gray-200 rounded-2xl p-5">
+                  <h4 className="font-bold text-corsair-blue-900 text-sm mb-3">{t('whyBookTitle')}</h4>
+                  <ul className="space-y-2.5">
+                    {whyBookItems.map((item, i) => (
+                      <li key={i} className="flex items-center gap-2.5 text-xs text-corsair-gray-600">
+                        <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Discounts */}
-              <DiscountsBanner variant="sidebar" />
+              {!course.externalCourse && <DiscountsBanner variant="sidebar" />}
 
               {/* Contact fallback */}
               <div className="bg-white border border-corsair-gray-200 rounded-2xl p-5 text-center">

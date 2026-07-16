@@ -87,7 +87,7 @@ All 367 routes build cleanly with Next.js 16 App Router + Turbopack.
 Update the "Website" / bio link on each profile to
 `https://corsairtacticalsolutions.com`:
 
-- Instagram: https://www.instagram.com/corsairtacticalsolutions
+- Instagram: https://www.instagram.com/corsairtacticalsolution?igsh=MTd1MmhkZzZtaWh2MQ==
 - Facebook: https://www.facebook.com/share/17iPFcVg7j/
 - TikTok: https://www.tiktok.com/@stevehopwood0
 

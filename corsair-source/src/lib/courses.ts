@@ -48,6 +48,9 @@ export interface Course {
   optionalAddOns?: CourseFee[];
   urgencyMessage?: string;
   contactOnly?: boolean;
+  externalCourse?: boolean;
+  externalUrl?: string;
+  externalCheckout?: boolean;
   subCourses?: SubCourse[];
   relatedOldSiteClasses?: string[];
 }
@@ -166,14 +169,14 @@ export const courses: Record<string, Course> = {
     title: 'Online Texas License to Carry Assessment',
     tagline: 'Complete Your LTC Classroom Portion Online.',
     description:
-      'Take the Texas LTC classroom portion online at your own pace, then schedule your live-fire proficiency qualification with Corsair at the range.',
+      'Take the Texas LTC classroom portion online at your own pace through our trusted training partner, Texas Carry Academy. Then schedule your live-fire proficiency qualification with Corsair at the range.',
     longDescription:
-      'This course allows you to complete the Texas License to Carry classroom instruction online through the state-approved DPS portal. Once you finish the online portion, schedule your live-fire proficiency qualification with Corsair Tactical Solutions at the range. Convenient for busy schedules \u2014 study when you want, qualify when you\u2019re ready.',
+      'This course allows you to complete the Texas License to Carry classroom instruction online through our trusted training partner, Texas Carry Academy. The online portion is self-paced and state-approved. Once you finish the online assessment, schedule your live-fire proficiency qualification with Corsair Tactical Solutions at the range. Convenient for busy schedules \u2014 study when you want, qualify when you\u2019re ready.',
     image: '/images/corsair-real/online-ltc-computer-01.jpg',
     imageAlt: 'Complete your Texas LTC classroom portion online at your own pace',
     duration: '4\u20136 hrs online + range',
     level: 'Beginner',
-    price: 'From $49',
+    price: 'Provided by Texas Carry Academy',
     keyPoints: [
       'Complete classroom portion online',
       'Self-paced learning',
@@ -204,22 +207,11 @@ export const courses: Record<string, Course> = {
       '50 rounds of ammunition',
       'Eye and ear protection',
     ],
-    cta: 'Register Online',
-    pricingOptions: [
-      {
-        id: 'online-ltc',
-        name: 'Online LTC Assessment',
-        price: 49,
-        description: 'Online classroom + range qualification',
-        popular: true,
-      },
-    ],
-    requiredFees: [
-      { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access for proficiency test' },
-    ],
-    optionalAddOns: [
-      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the qualification' },
-    ],
+    cta: 'Go to Online Assessment',
+    pricingOptions: [],
+    externalCourse: true,
+    externalCheckout: true,
+    externalUrl: 'https://texascarryacademy.com/product/?add-to-cart=69884',
   },
 
   'texas-ltc-wichita': {

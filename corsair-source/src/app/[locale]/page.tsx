@@ -720,7 +720,7 @@ export default async function HomePage({
               </div>
               <div className="flex items-center gap-4">
                 <a
-                  href="https://www.instagram.com/corsairtacticalsolutions?igsh=MTd1MmhkZzZtaWh2MQ=="
+                  href="https://www.instagram.com/corsairtacticalsolution?igsh=MTd1MmhkZzZtaWh2MQ=="
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Corsair Tactical Solutions on Instagram"

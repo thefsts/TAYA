@@ -60,6 +60,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (courseSlug === 'online-texas-ltc-assessment') {
+    return NextResponse.json(
+      { error: 'This course is completed through Texas Carry Academy. Please visit https://texascarryacademy.com/product/?add-to-cart=69884 to begin your online assessment.' },
+      { status: 400 }
+    );
+  }
+
   // ── Server-side price validation — never trust the client ──────────────────
   const resolved = resolveCoursePayment(courseSlug, pricingOptionId, addOnIds);
   if (!resolved) {
