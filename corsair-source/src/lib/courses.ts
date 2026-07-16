@@ -930,7 +930,7 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: 'Ammo Package (100 rds 9mm)', price: 45, required: false, locked: false, description: '100 rounds of 9mm ammunition' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
       { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the class' },
     ],
   },
