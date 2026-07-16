@@ -218,7 +218,7 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access for proficiency test' },
     ],
     optionalAddOns: [
-      { id: 'firearm-rental', label: 'Firearm Rental', price: 35, required: false, locked: false, description: 'Handgun rental for the qualification' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the qualification' },
     ],
   },
 
@@ -280,8 +280,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access for proficiency test' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the qualification' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the qualification' },
     ],
   },
 
@@ -346,8 +346,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access for proficiency test' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the qualification' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the qualification' },
     ],
   },
 
@@ -408,8 +408,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the qualification' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the qualification' },
     ],
   },
 
@@ -480,8 +480,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the session' },
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the session' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
     ],
   },
 
@@ -540,8 +540,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
-      { id: 'firearm-rental', label: 'Firearm Rental', price: 35, required: false, locked: false, description: 'Handgun for the session' },
-      { id: 'ammo-package', label: 'Ammo Package', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun for the session' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
     ],
   },
 
@@ -598,8 +598,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
-      { id: 'firearm-rental', label: 'Firearm Rental', price: 35, required: false, locked: false, description: 'Try different handguns' },
-      { id: 'ammo-package', label: 'Ammo Package', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Try different handguns' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
     ],
   },
 
@@ -672,8 +672,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the session' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the session' },
     ],
   },
 
@@ -799,8 +799,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access for qualification' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the qualification' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the qualification' },
     ],
   },
 
@@ -931,7 +931,7 @@ export const courses: Record<string, Course> = {
     ],
     optionalAddOns: [
       { id: 'ammo-package', label: 'Ammo Package (100 rds 9mm)', price: 45, required: false, locked: false, description: '100 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Firearm Rental', price: 35, required: false, locked: false, description: 'Handgun rental for the class' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the class' },
     ],
   },
 
@@ -1002,8 +1002,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access for qualification' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the qualification' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the qualification' },
     ],
   },
 
@@ -1120,8 +1120,8 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 30, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
-      { id: 'firearm-rental', label: 'Rent a Handgun', price: 20, required: false, locked: false, description: 'Handgun rental for the session' },
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the session' },
     ],
   },
 
