@@ -26,12 +26,12 @@ export default function ScrollReveal({
   const isInView = useInView(ref, { once, margin: margin as any });
 
   const directionOffset = {
-    up:    { y: 40, x: 0 },
-    down:  { y: -40, x: 0 },
-    left:  { x: 40, y: 0 },
-    right: { x: -40, y: 0 },
+    up:    { y: 20, x: 0 },
+    down:  { y: -20, x: 0 },
+    left:  { x: 20, y: 0 },
+    right: { x: -20, y: 0 },
     none:  { x: 0, y: 0 },
-    scale: { scale: 0.95, x: 0, y: 0 },
+    scale: { scale: 0.98, x: 0, y: 0 },
   };
 
   const offset = directionOffset[direction];
@@ -47,7 +47,7 @@ export default function ScrollReveal({
       className={className}
       initial={{ opacity: 0, x: offset.x, y: offset.y, scale: (offset as any).scale ?? 1 }}
       animate={isInView ? { opacity: 1, x: 0, y: 0, scale: 1 } : { opacity: 0, x: offset.x, y: offset.y, scale: (offset as any).scale ?? 1 }}
-      transition={{ duration, delay, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] }}
+      transition={{ duration: Math.min(duration, 0.4), delay, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] }}
     >
       {children}
     </motion.div>
@@ -98,11 +98,11 @@ export function StaggerItem({
   direction?: 'up' | 'down' | 'left' | 'right' | 'scale';
 }) {
   const offsets = {
-    up:    { y: 30, x: 0 },
-    down:  { y: -30, x: 0 },
-    left:  { x: 30, y: 0 },
-    right: { x: -30, y: 0 },
-    scale: { scale: 0.93, y: 0, x: 0 },
+    up:    { y: 15, x: 0 },
+    down:  { y: -15, x: 0 },
+    left:  { x: 15, y: 0 },
+    right: { x: -15, y: 0 },
+    scale: { scale: 0.97, y: 0, x: 0 },
   };
   const offset = offsets[direction];
 
@@ -111,7 +111,7 @@ export function StaggerItem({
       className={className}
       variants={{
         hidden: { opacity: 0, x: offset.x, y: offset.y, scale: (offset as any).scale ?? 1 },
-        visible: { opacity: 1, x: 0, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] } },
+        visible: { opacity: 1, x: 0, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] } },
       }}
     >
       {children}

@@ -74,19 +74,6 @@ const POPULAR_TOPICS = [
   { label: 'Workplace Safety',  href: '/security-services' },
 ];
 
-const LEARNING_AREAS = [
-  'Security Articles',
-  'Training Resources',
-  'Firearms Safety',
-  'Security Officer Career Development',
-  'Executive Protection',
-  'Church Security',
-  'Home Defense',
-  'Industry News',
-  'Videos',
-  'Professional Tips',
-];
-
 /* ═══════════════════════════════════════════════════════════════
    ANIMATION VARIANTS
    ═══════════════════════════════════════════════════════════════ */
@@ -188,24 +175,12 @@ export default function BlogClient({ cmsArticles = [], cmsDownloads = [] }: Blog
               Training & Knowledge Center
             </h1>
             <p className="text-corsair-gray-300 text-lg leading-relaxed mb-6">
-              Your comprehensive resource for security articles, training resources, firearms safety,
-              security officer career development, executive protection, church security, home defense,
-              and professional industry insights from Corsair Tactical Solutions.
+              Articles, training resources, and field notes from the instructors at Corsair Tactical Solutions. North Texas security, firearms, and LTC training since 2010.
             </p>
 
-            {/* Learning areas tags */}
-            <div className="flex flex-wrap gap-2">
-              {LEARNING_AREAS.map((area, i) => (
-                <motion.span
-                  key={area}
-                  custom={i}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 + i * 0.05, duration: 0.4 }}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white/10 text-corsair-gray-300 border border-white/10 hover:bg-white/20 hover:text-white transition-colors cursor-default"
-                >
-                  {area}
-                </motion.span>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-corsair-gray-500">
+              {['Church Security', 'Security Officer Training', 'License to Carry', 'Firearms Safety', 'Executive Protection'].map((area) => (
+                <span key={area}>{area}</span>
               ))}
             </div>
           </div>
@@ -213,47 +188,40 @@ export default function BlogClient({ cmsArticles = [], cmsDownloads = [] }: Blog
       </section>
 
       {/* ━━ FEATURED ARTICLE ━━ */}
-      <motion.section
-        initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}
-        variants={staggerContainer} className="bg-white py-10 md:py-14"
-      >
+      <section className="bg-white py-10 md:py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 mb-6">
+          <div className="flex items-center gap-2 mb-8">
             <span className="w-8 h-0.5 bg-corsair-red-500" />
-            <span className="text-corsair-red-500 text-xs font-bold uppercase tracking-widest">Featured Article</span>
+            <span className="text-corsair-red-500 text-xs font-bold uppercase tracking-widest">Latest</span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-corsair-gray-50 rounded-2xl overflow-hidden border border-corsair-gray-100">
-            <motion.div variants={fadeUp} custom={0} className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden">
-              <Image src={featured.image} alt={featured.imageAlt} fill className="object-cover object-top" sizes="(max-width: 1024px) 100vw, 50vw" priority />
-              <span className={`absolute top-4 left-4 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border backdrop-blur-sm ${CATEGORY_STYLES[featured.category]?.badge ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${CATEGORY_STYLES[featured.category]?.dot ?? 'bg-gray-400'}`} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <Link href={`/blog/${featured.slug}`} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-corsair-gray-100 block group">
+              <Image src={featured.image} alt={featured.imageAlt} fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 1024px) 100vw, 50vw" priority />
+            </Link>
+            <div className="lg:py-2">
+              <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 border mb-4 ${CATEGORY_STYLES[featured.category]?.badge ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
                 {featured.category}
               </span>
-            </motion.div>
-            <motion.div variants={fadeUp} custom={1} className="p-6 lg:p-10">
-              <div className="flex items-center gap-3 text-xs text-corsair-gray-400 mb-3">
+              <h2 className="text-2xl md:text-3xl font-black text-corsair-blue-900 mb-3 leading-tight">
+                {featured.title}
+              </h2>
+              <div className="flex items-center gap-3 text-xs text-corsair-gray-400 mb-4">
                 <time dateTime={featured.date}>{featured.date}</time>
                 <span aria-hidden>·</span>
                 <span>{featured.readTime}</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-corsair-blue-900 mb-4 leading-snug">
-                {featured.title}
-              </h2>
               <p className="text-corsair-gray-600 leading-relaxed mb-6">
                 {featured.description}
               </p>
-              <Link
-                href={`/blog/${featured.slug}`}
-                className="inline-flex items-center gap-2 bg-corsair-red-500 hover:bg-corsair-red-600 text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm group"
-              >
-                Read More
+              <Link href={`/blog/${featured.slug}`} className="inline-flex items-center gap-2 text-corsair-red-500 hover:text-corsair-red-600 font-bold text-sm transition-colors group">
+                Read the article
                 <svg className="w-4 h-4 translate-x-0 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* ━━ CMS ARTICLES (primary when CMS has published content) ━━ */}
       {publishedCmsArticles.length > 0 && (
@@ -323,19 +291,14 @@ export default function BlogClient({ cmsArticles = [], cmsDownloads = [] }: Blog
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {trainingCategories.map((cat, i) => (
-              <motion.button
+            {trainingCategories.map((cat) => (
+              <button
                 key={cat.id}
-                custom={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05, duration: 0.4 }}
                 onClick={() => handleCategoryClick(cat.id)}
-                className={`group flex flex-col items-center gap-3 p-5 rounded-2xl border transition-all duration-300 text-center
+                className={`group flex flex-col items-center gap-3 p-5 rounded-2xl border transition-all duration-200 text-center
                   ${activeCategory === cat.id
-                    ? 'bg-corsair-blue-900 border-corsair-blue-700 text-white shadow-lg'
-                    : 'bg-white border-corsair-gray-100 text-corsair-gray-700 hover:border-corsair-red-200 hover:shadow-md'
+                    ? 'bg-corsair-blue-900 border-corsair-blue-700 text-white'
+                    : 'bg-white border-corsair-gray-100 text-corsair-gray-700 hover:border-corsair-red-200'
                   }`}
               >
                 <span className={`${activeCategory === cat.id ? 'text-corsair-red-400' : 'text-corsair-blue-900 group-hover:text-corsair-red-500'} transition-colors`}>
@@ -343,7 +306,7 @@ export default function BlogClient({ cmsArticles = [], cmsDownloads = [] }: Blog
                 </span>
                 <span className="text-xs font-bold leading-snug">{cat.label}</span>
                 <span className="text-[10px] text-corsair-gray-400">{cat.topics.length} topics</span>
-              </motion.button>
+              </button>
             ))}
           </div>
 
@@ -412,47 +375,33 @@ export default function BlogClient({ cmsArticles = [], cmsDownloads = [] }: Blog
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8 lg:gap-12">
-            {/* Article Grid */}
+            {/* Article List */}
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="divide-y divide-corsair-gray-100">
                 {filteredArticles.map((article, i) => {
                   const catStyle = CATEGORY_STYLES[article.category] ?? { dot: 'bg-gray-400', badge: 'bg-gray-50 text-gray-700 border-gray-200' };
                   return (
-                    <motion.article
-                      key={article.slug}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.06, duration: 0.5 }}
-                      className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-corsair-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col"
-                    >
-                      <Link href={`/blog/${article.slug}`} className="block relative aspect-[3/2] overflow-hidden bg-corsair-gray-100">
-                        <Image src={article.image} alt={article.imageAlt} fill className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out" sizes="(max-width: 768px) 100vw, 50vw" priority={i < 2} />
-                        <span className={`absolute top-4 left-4 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border backdrop-blur-sm ${catStyle.badge}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${catStyle.dot}`} />
-                          {article.category}
-                        </span>
+                    <article key={article.slug} className="group flex gap-5 py-7 first:pt-0">
+                      <Link href={`/blog/${article.slug}`} className="relative w-32 h-24 sm:w-40 sm:h-28 flex-shrink-0 overflow-hidden rounded-lg bg-corsair-gray-100 block">
+                        <Image src={article.image} alt={article.imageAlt} fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" sizes="160px" priority={i < 2} />
                       </Link>
-                      <div className="p-6 flex flex-col flex-1">
-                        <div className="flex items-center gap-3 text-xs text-corsair-gray-400 mb-3">
-                          <time dateTime={article.date}>{article.date}</time>
-                          <span aria-hidden>·</span>
-                          <span>{article.readTime}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 border ${catStyle.badge}`}>
+                            {article.category}
+                          </span>
+                          <span className="text-xs text-corsair-gray-400">{article.readTime}</span>
                         </div>
                         <Link href={`/blog/${article.slug}`}>
-                          <h2 className="text-base font-black text-corsair-blue-900 mb-3 group-hover:text-corsair-red-600 transition-colors leading-snug">
+                          <h2 className="text-base font-black text-corsair-blue-900 group-hover:text-corsair-red-500 transition-colors leading-snug mb-2">
                             {article.title}
                           </h2>
                         </Link>
-                        <p className="text-sm text-corsair-gray-500 leading-relaxed flex-1 line-clamp-3">
+                        <p className="text-sm text-corsair-gray-500 leading-relaxed line-clamp-2">
                           {article.description}
                         </p>
-                        <Link href={`/blog/${article.slug}`} className="mt-5 inline-flex items-center gap-1.5 text-corsair-red-500 hover:text-corsair-red-600 font-bold text-sm transition-colors group/link">
-                          Read Article
-                          <svg className="w-4 h-4 translate-x-0 group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                        </Link>
                       </div>
-                    </motion.article>
+                    </article>
                   );
                 })}
               </div>

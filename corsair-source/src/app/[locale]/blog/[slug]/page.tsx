@@ -223,15 +223,14 @@ export default async function BlogDetailPage({
                 <span>/</span>
                 <span className="text-white/80">{article.category}</span>
               </div>
-              <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border mb-4 ${catStyle.badge}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${catStyle.dot}`} />
+              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 border mb-4 ${catStyle.badge}`}>
                 {article.category}
               </span>
               <h1 className="text-2xl md:text-4xl font-black text-white leading-tight max-w-3xl">
                 {article.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 text-sm text-white/60">
-                <span className="font-semibold text-white/80">Corsair Tactical Solutions</span>
+                <span className="font-semibold text-white/80">Steve Hopwood · Corsair Tactical Solutions</span>
                 <span aria-hidden>·</span>
                 <time dateTime={article.date}>{article.date}</time>
                 <span aria-hidden>·</span>
@@ -247,14 +246,13 @@ export default async function BlogDetailPage({
               All Articles
             </Link>
             <div className="mb-3">
-              <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${catStyle.badge}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${catStyle.dot}`} />
+              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 border ${catStyle.badge}`}>
                 {article.category}
               </span>
             </div>
             <h1 className="text-xl font-black text-white leading-tight mb-3">{article.title}</h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
-              <span className="font-semibold text-white/70">Corsair Tactical Solutions</span>
+              <span className="font-semibold text-white/70">Steve Hopwood · Corsair Tactical Solutions</span>
               <span aria-hidden>·</span>
               <time dateTime={article.date}>{article.date}</time>
               <span aria-hidden>·</span>
@@ -285,14 +283,11 @@ export default async function BlogDetailPage({
                       }
                       if (section.type === 'bullets') {
                         return (
-                          <div key={i} className="my-6 bg-corsair-gray-50 rounded-2xl p-6 border border-corsair-gray-100">
-                            {section.heading && <p className="font-black text-corsair-blue-900 mb-4 text-sm uppercase tracking-wide">{section.heading}</p>}
-                            <ul className="space-y-3">
+                          <div key={i} className="my-6 pl-0">
+                            {section.heading && <p className="font-bold text-corsair-blue-900 mb-3 text-sm">{section.heading}</p>}
+                            <ul className="space-y-2.5 border-l-2 border-corsair-gray-200 pl-5">
                               {(section.items ?? []).map((item, j) => (
-                                <li key={j} className="flex items-start gap-3 text-corsair-gray-700 text-sm leading-relaxed">
-                                  <span className="w-5 h-5 rounded-full bg-corsair-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                  </span>
+                                <li key={j} className="text-corsair-gray-700 text-sm leading-relaxed">
                                   {item}
                                 </li>
                               ))}
@@ -315,14 +310,15 @@ export default async function BlogDetailPage({
                   </div>
 
                   {/* Article CTA */}
-                  <div className="mt-12 p-7 bg-corsair-gray-50 border border-corsair-gray-200 rounded-2xl">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="mt-12 pt-8 border-t border-corsair-gray-200">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                       <div>
-                        <h3 className="font-black text-corsair-blue-900 mb-1">Ready to Take the Next Step?</h3>
-                        <p className="text-corsair-gray-500 text-sm">No pressure. Our team responds within one business day.</p>
+                        <p className="text-xs font-bold text-corsair-gray-400 uppercase tracking-widest mb-1">Next step</p>
+                        <h3 className="font-black text-corsair-blue-900 mb-1 text-lg">{article.cta.label}</h3>
+                        <p className="text-corsair-gray-500 text-sm">Questions first? Call 214-335-6652. We respond within one business day.</p>
                       </div>
-                      <Link href={article.cta.href} className="shrink-0 inline-flex items-center gap-2 bg-corsair-red-500 hover:bg-corsair-red-600 text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm whitespace-nowrap">
-                        {article.cta.label} →
+                      <Link href={article.cta.href} className="shrink-0 inline-flex items-center gap-2 bg-corsair-red-500 hover:bg-corsair-red-600 text-white font-bold px-6 py-3 transition-colors text-sm whitespace-nowrap">
+                        Get Started →
                       </Link>
                     </div>
                   </div>
@@ -421,16 +417,11 @@ export default async function BlogDetailPage({
                 {/* Sidebar */}
                 <aside className="space-y-6 lg:sticky lg:top-28 lg:h-fit">
                   {/* Author */}
-                  <div className="bg-corsair-blue-900 rounded-2xl p-5 text-white">
-                    <p className="text-xs font-bold text-corsair-red-400 uppercase tracking-widest mb-3">Written By</p>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-corsair-red-500 flex items-center justify-center text-white font-black text-sm flex-shrink-0">CTS</div>
-                      <div>
-                        <p className="font-black text-sm">Corsair Tactical Solutions</p>
-                        <p className="text-xs text-corsair-gray-400">Security Professionals</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-corsair-gray-300 leading-relaxed">DPS-licensed, veteran-founded security company serving North Texas since 2010.</p>
+                  <div className="bg-corsair-blue-900 p-5 text-white">
+                    <p className="text-xs font-bold text-corsair-red-400 uppercase tracking-widest mb-3">About the Author</p>
+                    <p className="font-black text-sm mb-0.5">Steve Hopwood</p>
+                    <p className="text-xs text-corsair-gray-400 mb-3">DPS-Certified Instructor · Corsair Tactical Solutions</p>
+                    <p className="text-xs text-corsair-gray-300 leading-relaxed">U.S. Navy veteran. LTC and security instructor since 2010. Founder of Corsair Tactical Solutions in DFW.</p>
                   </div>
 
                   {/* Popular Topics */}

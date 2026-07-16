@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Oswald } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -32,6 +32,13 @@ import { getCmsContact, getCmsFooter } from '@/lib/cms';
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: 'swap',
+});
+
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -121,7 +128,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir} className="h-full">
-      <body className={`${inter.variable} min-h-full flex flex-col font-sans antialiased`}>
+      <body className={`${inter.variable} ${oswald.variable} min-h-full flex flex-col font-sans antialiased`}>
         {/* Global structured data — Organization, LocalBusiness, WebSite */}
         <JsonLd
           data={[organizationSchema(), localBusinessSchema(), websiteSchema()]}
