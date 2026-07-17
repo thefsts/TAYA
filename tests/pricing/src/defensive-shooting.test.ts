@@ -736,6 +736,23 @@ describe("POST /api/square/create-order — shotgun-course", () => {
     expect(vi.mocked(squareFetch)).not.toHaveBeenCalled();
   });
 
+  it("adds both shotgun-ammunition-50-rounds and shotgun-rental together — totalCents = 16000", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_sg_007" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "shotgun-course",
+      pricingOptionId: "shotgun-base",
+      addOnIds: ["shotgun-ammunition-50-rounds", "shotgun-rental"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(16_000);
+  });
+
   it("rejects an unknown pricingOptionId with HTTP 400", async () => {
     const response = await POST(makeRequest({
       courseSlug: "shotgun-course",
