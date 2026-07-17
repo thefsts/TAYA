@@ -66,6 +66,18 @@ GitHub repo for external hosting), not just single-file edits:
 **Why:** Ported the FSTS dashboard (Express+Postgres+Vite monorepo subset) into a GitHub repo
 that previously held an unrelated Next.js+Sanity starter, for Vercel hosting.
 
+## corsair-source/ git remote does NOT point to Corsair website repo
+The `corsair-source/` directory in this workspace has its `github` remote pointing to
+`thefsts/FSTS-client-Dashboard-for-sites-` (the dashboard repo) — NOT to
+`thefsts/Corsair-Tactical-Solutions` (the Corsair website repo). This means any edits
+to files under `corsair-source/` are **not** automatically deployed to the live website.
+**Why:** Discovered when all pricing task changes (Defensive Shooting $150, LTC $75, AR-15/Shotgun
+add-ons, Continuing Education, etc.) sat locally for many tasks without ever reaching Vercel.
+**How to apply:** After editing any `corsair-source/` file, always push the changed files
+explicitly to `thefsts/Corsair-Tactical-Solutions` using the GitHub API blob→tree→commit→PATCH
+pattern with `GITHUB_PERSONAL_ACCESS_TOKEN` (via bash curl — not the code_execution sandbox,
+which cannot access `process.env`). Verify via the GitHub Contents API, then await Vercel deploy.
+
 ## Local corsair-source clone can drift from GitHub production
 The local `corsair-source/` working copy is a separate clone, not a live mirror — it can silently
 fall behind the `thefsts/Corsair-Tactical-Solutions` GitHub `main` branch if edits happened
