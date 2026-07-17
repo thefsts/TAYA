@@ -402,6 +402,23 @@ describe("POST /api/square/create-order — basic-handgun-skills-training", () =
     expect(body.totalCents).toBe(Math.round((75 + 25 + 12.99) * 100));
   });
 
+  it("adds both firearm-rental and ammo-package together (totalCents = 12699)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_bh_005" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "basic-handgun-skills-training",
+      pricingOptionId: "bh-1session",
+      addOnIds: ["firearm-rental", "ammo-package"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(Math.round((75 + 25 + 12.99 + 14) * 100));
+  });
+
   it("rejects an unknown pricingOptionId with HTTP 400", async () => {
     const response = await POST(makeRequest({
       courseSlug: "basic-handgun-skills-training",
