@@ -1,0 +1,745 @@
+# Replit AI — URGENT: STOP CORSair WORK IN WRONG REPOSITORY AND REPAIR PROJECT/VERCEL LINKAGE
+
+## Priority
+
+CRITICAL — STOP ALL NEW COMMITS AND DEPLOYMENTS UNTIL THIS REPOSITORY MISMATCH IS INVESTIGATED.
+
+Corsair Tactical Solutions updates are being committed or deployed through the wrong GitHub/Vercel project.
+
+This creates a serious risk of:
+
+- Breaking the FSTS Client Dashboard
+- Mixing website-specific code into the SaaS dashboard
+- Deploying Corsair changes to the wrong production application
+- Losing or duplicating commits
+- Creating conflicting Vercel deployments
+- Damaging the future multi-tenant Dashboard architecture
+
+Do not continue implementing pricing, event, or Square changes until the repository and Vercel project are corrected.
+
+---
+
+# Git Identity
+
+All commits must use:
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Configure and verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+Expected:
+
+```text
+thefsts
+amorebey@gmail.com
+```
+
+---
+
+# WRONG PROJECT — DO NOT USE FOR CORSAIR WEBSITE CHANGES
+
+## Wrong Vercel Project
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+This is the FSTS Website Operating System / Client Dashboard project.
+
+Corsair-specific website work must not be deployed here.
+
+## Wrong GitHub Repository
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Do not place Corsair-specific:
+
+- Course pricing
+- Events
+- Corsair Square checkout
+- Corsair course data
+- Corsair event data
+- Corsair website pages
+- Corsair branding
+- Corsair content
+
+inside this repository.
+
+Do not delete, rewrite, reset, or force-push this repository.
+
+---
+
+# CORRECT PROJECT
+
+## Correct Vercel Project
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+## Correct GitHub Repository
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+## Production Website
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+All Corsair website pricing, events, course registration, and Square integration updates must be completed in:
+
+```text
+thefsts/Corsair-Tactical-Solutions
+```
+
+and deployed through:
+
+```text
+fullstacksolutions/corsair-tactical-solutions
+```
+
+---
+
+# IMMEDIATE STOP-WORK CHECK
+
+Before changing anything, report the current working environment.
+
+Run:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+git status
+git log -10 --oneline --decorate
+git config --get user.name
+git config --get user.email
+```
+
+Also inspect:
+
+```bash
+cat .git/config
+```
+
+Do not expose credentials or tokens.
+
+Confirm whether the current workspace is connected to:
+
+```text
+thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+or:
+
+```text
+thefsts/Corsair-Tactical-Solutions
+```
+
+If it is connected to the dashboard repository, stop implementation work immediately.
+
+---
+
+# INVESTIGATE HOW THE MIX-UP HAPPENED
+
+Determine which of the following caused the problem:
+
+- The wrong Git repository was opened in Replit
+- The Git remote points to the dashboard repository
+- The project was cloned from the wrong URL
+- The working directory is inside the dashboard project
+- The Corsair code was copied into the dashboard repository
+- The Vercel project is linked to the wrong GitHub repository
+- The `.vercel/project.json` file points to the wrong Vercel project
+- A Vercel CLI command linked the workspace incorrectly
+- Environment variables came from the wrong Vercel project
+- The branch was pushed to the wrong remote
+- Previous instructions mistakenly named the dashboard repository
+- A monorepo/root-directory setting points Vercel at the wrong application
+- A deployment hook or Git integration targets the wrong project
+
+Document the confirmed root cause.
+
+Do not guess.
+
+---
+
+# PROTECT BOTH CODEBASES
+
+Before attempting repairs:
+
+1. Do not force-push.
+2. Do not reset shared branches.
+3. Do not delete commits.
+4. Do not delete either Vercel project.
+5. Do not overwrite either repository.
+6. Do not copy the entire dashboard repository into Corsair.
+7. Do not copy the entire Corsair repository into the dashboard.
+8. Do not expose environment-variable values.
+9. Do not create a production deployment until the repository diff is reviewed.
+10. Preserve all existing work.
+
+Create a safety branch in the wrong repository if uncommitted or Corsair-specific work exists there.
+
+Suggested branch:
+
+```text
+backup/corsair-misrouted-work
+```
+
+Only create this branch if needed to preserve work.
+
+Do not merge it into the dashboard default branch.
+
+---
+
+# AUDIT THE WRONG REPOSITORY
+
+Inspect recent commits in:
+
+```text
+thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Identify every recent commit related to Corsair, including changes involving:
+
+- `courses.ts`
+- `events.ts`
+- `pricing.ts`
+- Square create-order routes
+- Corsair course names
+- Defensive Shooting
+- Continuing Education
+- AR-15 Rifle Course
+- Shotgun Course
+- Texas LTC Shooting Proficiency
+- Corsair-specific tests
+- Corsair-specific website routes
+- Corsair branding or content
+
+For each suspicious commit, report:
+
+- Commit SHA
+- Commit author
+- Commit date
+- Commit message
+- Files changed
+- Whether the code is Corsair-specific
+- Whether any shared Dashboard code was also modified
+- Whether the commit has already been deployed
+- Which Vercel deployment used it
+
+Do not automatically revert anything until the impact is understood.
+
+---
+
+# AUDIT THE CORRECT CORSAIR REPOSITORY
+
+Inspect:
+
+```text
+thefsts/Corsair-Tactical-Solutions
+```
+
+Run:
+
+```bash
+git remote -v
+git branch -a
+git log -20 --oneline --decorate
+git status
+```
+
+Determine:
+
+- Which Corsair pricing changes already exist
+- Which event changes already exist
+- Which Square changes already exist
+- Which tests already exist
+- Which changes only exist in the wrong dashboard repository
+- Whether the correct repository is behind or missing commits
+- Whether file paths differ between the two repositories
+- Whether the code can be migrated safely using targeted commits
+
+Do not assume both repositories have the same architecture.
+
+---
+
+# SAFE MIGRATION PLAN
+
+If Corsair-specific work exists only in the wrong repository, move it safely to the correct repository.
+
+Preferred approach:
+
+1. Identify the exact Corsair-only commits.
+2. Review every changed file.
+3. Separate Corsair-specific changes from shared Dashboard changes.
+4. Reimplement or selectively cherry-pick only compatible Corsair changes.
+5. Resolve paths and architecture differences carefully.
+6. Run all tests in the Corsair repository.
+7. Review the final diff before deployment.
+
+Do not blindly cherry-pick a commit if it contains:
+
+- Dashboard code
+- Dashboard APIs
+- Multi-tenant CMS changes
+- Convex backend changes owned by FSTS-WOS
+- Authentication/RBAC changes
+- Shared SaaS infrastructure
+- Vercel project configuration from the dashboard
+- Dashboard environment variables
+
+If a commit mixes Dashboard and Corsair changes, manually extract only the Corsair portions.
+
+---
+
+# DASHBOARD REPOSITORY CLEANUP
+
+After the Corsair work is safely present in the correct repository, determine whether the wrong repository needs cleanup.
+
+Do not perform destructive cleanup automatically.
+
+Prepare a report identifying:
+
+- Corsair files incorrectly added to the Dashboard
+- Corsair code incorrectly inserted into shared files
+- Commits that should potentially be reverted
+- Whether a clean revert commit can be made safely
+- Whether any later Dashboard commits depend on those changes
+- Whether the wrong deployment is publicly active
+
+Only create a cleanup/revert commit after confirming it will not remove legitimate Dashboard functionality.
+
+Never rewrite public Git history.
+
+Use a normal revert or corrective commit when appropriate.
+
+---
+
+# VERIFY CORRECT GIT REMOTE
+
+Inside the Corsair project, the remote must point to:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Expected check:
+
+```bash
+git remote get-url origin
+```
+
+If the remote is wrong, correct it safely:
+
+```bash
+git remote set-url origin https://github.com/thefsts/Corsair-Tactical-Solutions.git
+```
+
+Then verify:
+
+```bash
+git remote -v
+```
+
+Do not push until the branch and diff are reviewed.
+
+---
+
+# VERIFY CORRECT VERCEL PROJECT LINK
+
+Inspect:
+
+```text
+.vercel/project.json
+```
+
+The Corsair workspace must be linked to the Vercel project:
+
+```text
+corsair-tactical-solutions
+```
+
+It must not be linked to:
+
+```text
+fsts-client-dashboard-for-sites-api-server
+```
+
+Use Vercel CLI only if already authenticated and authorized.
+
+Safe checks may include:
+
+```bash
+vercel project ls
+vercel env ls
+vercel inspect
+```
+
+Do not print environment-variable values.
+
+If the local project is linked incorrectly:
+
+1. Preserve the existing `.vercel/project.json` for audit.
+2. Unlink only the local workspace association.
+3. Relink the Corsair repository to the correct Vercel project.
+4. Confirm the correct team:
+
+```text
+fullstacksolutions
+```
+
+5. Confirm the project:
+
+```text
+corsair-tactical-solutions
+```
+
+Do not delete either Vercel project.
+
+---
+
+# VERIFY VERCEL GIT INTEGRATION
+
+In the correct Vercel project, confirm:
+
+```text
+Project:
+corsair-tactical-solutions
+```
+
+is connected to:
+
+```text
+GitHub:
+thefsts/Corsair-Tactical-Solutions
+```
+
+Confirm:
+
+- Production branch is correct
+- Root directory is correct
+- Framework preset is correct
+- Build command is correct
+- Output configuration is correct
+- Production domain is correct
+- Corsair environment variables belong to the Corsair project
+- No Dashboard-only variables are being relied on accidentally
+
+The wrong project:
+
+```text
+fsts-client-dashboard-for-sites-api-server
+```
+
+must remain connected to its own Dashboard repository.
+
+---
+
+# VERIFY PRODUCTION DOMAIN
+
+Confirm that:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+is assigned to:
+
+```text
+fullstacksolutions/corsair-tactical-solutions
+```
+
+It must not point to:
+
+```text
+fullstacksolutions/fsts-client-dashboard-for-sites-api-server
+```
+
+Also verify any alternate Corsair domain aliases.
+
+Do not move domains without first checking the current assignment and deployment state.
+
+---
+
+# CORSAIR CHANGES THAT MUST LIVE IN THE CORRECT REPOSITORY
+
+Ensure the following approved work exists in:
+
+```text
+thefsts/Corsair-Tactical-Solutions
+```
+
+## Pricing
+
+- Defensive Shooting: $150
+- Continuing Education: $75
+- Continuing Education optional range time: $25
+- Texas LTC Shooting Proficiency: $75
+- Texas LTC Shooting Proficiency required range fee: $25
+- First Shots required range fee removed
+- Introduction to Firearms individual session: $50
+- Introduction to Firearms required range fee: $25
+
+## Standard handgun add-ons
+
+- Gun Rental: $12.99
+- Ammunition Purchase, 50 rounds: $14.00
+
+## AR-15 Rifle Course
+
+- Base: $90
+- Required range fee: $25
+- Optional 50 rounds: $40
+- Optional AR-15 rental: $35
+
+## Shotgun Course
+
+- Base: $75
+- Required range fee: $25
+- Optional 50 rounds: $35
+- Optional shotgun rental: $25
+
+## Events
+
+- Explicit registration/payment modes
+- Paid events reference valid payable course slugs
+- Contact-only events do not invoke Square
+- Invalid event/course mappings return clear errors
+- No paid event can create a zero-dollar order
+
+## Square
+
+- Server-authoritative pricing
+- Required fees enforced
+- Optional add-ons included only when selected
+- Unknown add-ons rejected
+- Cross-course add-ons rejected
+- Missing or invalid course slugs rejected
+- Correct AR-15 route tests
+- Correct Shotgun route tests
+- Event checkout validation
+- No zero-dollar paid orders
+
+---
+
+# DO NOT BUILD DASHBOARD FEATURES IN CORSAIR
+
+The Corsair repository may consume Dashboard APIs later, but it must not recreate or own:
+
+- Multi-tenant Dashboard
+- CMS backend
+- Convex shared backend
+- RBAC
+- Shared SaaS administration
+- AI Dashboard Assistant
+- Dashboard-wide authentication
+- Other clients' content
+- Operon CRM
+
+Keep the repository boundaries intact.
+
+---
+
+# TEST IN THE CORRECT REPOSITORY
+
+After the work is safely moved or reapplied, run the actual commands from the Corsair repository's `package.json`.
+
+At minimum:
+
+```text
+TypeScript typecheck
+Lint
+Pricing tests
+Event tests
+Square route tests
+Full test suite
+Production build
+```
+
+Confirm all tests run from the correct repository root.
+
+The test output must show a path within:
+
+```text
+Corsair-Tactical-Solutions
+```
+
+not:
+
+```text
+FSTS-client-Dashboard-for-sites-
+```
+
+---
+
+# DEPLOYMENT SAFETY
+
+Before production deployment:
+
+1. Show the correct Git remote.
+2. Show the branch name.
+3. Show the final diff summary.
+4. Confirm no Dashboard files are included.
+5. Confirm the Vercel project link is Corsair.
+6. Confirm the production domain belongs to Corsair.
+7. Confirm tests pass.
+8. Confirm the production build passes.
+
+Deploy only to:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Do not deploy Corsair changes to:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+---
+
+# LIVE VERIFICATION
+
+After the correct deployment, verify:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+Check:
+
+- Courses page
+- Course detail pages
+- Events page
+- Event detail pages
+- Registration flows
+- Checkout
+- AR-15 pricing
+- Shotgun pricing
+- Continuing Education
+- Defensive Shooting
+- Texas LTC Shooting Proficiency
+- First Shots
+- Introduction to Firearms
+- Square order creation in the appropriate safe environment
+
+Do not submit an unauthorized real production payment.
+
+---
+
+# REQUIRED COMPLETION REPORT
+
+Do not reply only with “fixed.”
+
+Provide:
+
+## Root cause
+
+- Why Replit was using the wrong repository
+- Why Vercel deployed to the wrong project
+
+## Wrong repository audit
+
+- Corsair-related commits found
+- Files affected
+- Whether any Dashboard code was damaged
+- Whether cleanup is needed
+
+## Correct repository audit
+
+- Existing Corsair changes found
+- Missing changes migrated or reapplied
+- Files changed
+
+## Git verification
+
+```text
+Repository:
+Branch:
+Origin URL:
+Commit author:
+Commit email:
+```
+
+## Vercel verification
+
+```text
+Team:
+Project:
+GitHub repository:
+Production branch:
+Root directory:
+Production domain:
+```
+
+## Testing
+
+- TypeScript result
+- Lint result
+- Pricing test result
+- Event test result
+- Square route test result
+- Full test count
+- Production build result
+
+## Deployment
+
+- Correct Vercel deployment URL
+- Production deployment status
+- Live site verification
+- Final commit SHA
+
+## Dashboard protection
+
+- Confirmation that Corsair work is no longer being performed in the Dashboard repository
+- Any recommended non-destructive cleanup for the Dashboard repository
+
+Do not expose tokens, secrets, environment-variable values, or customer payment data.
+
+---
+
+# COMMIT
+
+Use a focused commit message in the correct Corsair repository:
+
+```text
+fix(corsair): restore project ownership and deploy website changes from correct repository
+```
+
+If a separate non-destructive cleanup commit is approved for the Dashboard repository, use:
+
+```text
+fix(dashboard): remove misrouted Corsair-specific changes
+```
+
+Do not combine the two repositories into one commit or one deployment.
+
+Commit and push all Corsair work only to:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```

@@ -1,0 +1,682 @@
+# Replit AI — ADD PAID-EVENT COURSE-SLUG GUARD AND SHOTGUN ROUTE-LEVEL SQUARE TEST PARITY
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+This is a focused safety and test-coverage task.
+
+Do not change approved course pricing or unrelated checkout behavior.
+
+---
+
+# Git Identity
+
+Use this identity for every commit:
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+---
+
+# OBJECTIVE 1 — PREVENT PAID EVENTS FROM FAILING SILENTLY ON A BAD COURSE SLUG
+
+## Current Risk
+
+Events are currently contact-only and do not use online checkout.
+
+However, if a future event is enabled for online payment and passes a `courseSlug` into:
+
+```text
+POST /api/square/create-order
+```
+
+a missing or mistyped course slug may cause:
+
+```ts
+resolveCoursePayment(...)
+```
+
+to return `null`.
+
+That can produce a vague or silent booking failure instead of clearly identifying that the event configuration is invalid.
+
+We need an explicit guard so every event enabled for online payment references a real and payable course in the course catalog.
+
+---
+
+# REQUIRED EVENT PAYMENT CONTRACT
+
+Review:
+
+```text
+corsair-source/src/data/events.ts
+corsair-source/src/lib/pricing.ts
+corsair-source/src/app/api/square/create-order/route.ts
+tests/pricing/src/
+```
+
+Use the existing event data model where possible.
+
+If the event model does not currently have an explicit payment flag, introduce a clear field such as:
+
+```ts
+paymentMode: "contact" | "online";
+```
+
+or:
+
+```ts
+onlinePaymentEnabled: boolean;
+```
+
+Do not infer payment eligibility merely from the presence of a `courseSlug`.
+
+The configuration should clearly distinguish:
+
+```ts
+{
+  paymentMode: "contact"
+}
+```
+
+from:
+
+```ts
+{
+  paymentMode: "online",
+  courseSlug: "shotgun-course"
+}
+```
+
+---
+
+# CATALOG GUARD
+
+Add a reusable validation function that checks all online-payment events.
+
+Suggested behavior:
+
+```ts
+type EventPaymentValidationResult =
+  | { valid: true }
+  | {
+      valid: false;
+      eventId: string;
+      eventTitle: string;
+      reason:
+        | "missing-course-slug"
+        | "unknown-course-slug"
+        | "course-not-payable";
+      courseSlug?: string;
+    };
+```
+
+Suggested function:
+
+```ts
+export function validatePaidEventCourseReferences(
+  events: EventDefinition[],
+  courses: CourseDefinition[],
+): EventPaymentValidationResult[];
+```
+
+Or use a similarly clear implementation consistent with the existing architecture.
+
+For each event flagged for online payment:
+
+1. `courseSlug` must be present.
+2. The slug must exactly match a course in the course catalog.
+3. The referenced course must be eligible for website/Square payment.
+4. External-only or contact-only courses must not be accepted as payable event targets.
+
+Contact-only events must not be required to have a course slug.
+
+---
+
+# PAYABLE COURSE ELIGIBILITY
+
+Use existing course fields when available.
+
+If needed, introduce or standardize an explicit field such as:
+
+```ts
+paymentMode: "square" | "external" | "contact";
+```
+
+Examples:
+
+```ts
+{
+  slug: "shotgun-course",
+  paymentMode: "square"
+}
+```
+
+```ts
+{
+  slug: "online-texas-license-to-carry-assessment",
+  paymentMode: "external"
+}
+```
+
+The event guard must reject an online-payment event that points to:
+
+- A nonexistent course
+- An external-only course
+- A contact-only course
+- A course otherwise excluded from Square checkout
+
+Do not duplicate pricing logic inside `events.ts`.
+
+The course catalog remains the authority for whether a course is payable.
+
+---
+
+# ROUTE-LEVEL ERROR HANDLING
+
+Update:
+
+```text
+corsair-source/src/app/api/square/create-order/route.ts
+```
+
+A malformed event payment request must produce a clear client-visible error response.
+
+Do not return a successful response with a zero total.
+
+Do not silently swallow a `null` pricing result.
+
+Use clear HTTP status codes.
+
+Recommended behavior:
+
+## Missing course slug for an online event
+
+```text
+HTTP 400
+```
+
+Example response:
+
+```json
+{
+  "error": "Online-payment event is missing a courseSlug."
+}
+```
+
+## Unknown course slug
+
+```text
+HTTP 400
+```
+
+Example response:
+
+```json
+{
+  "error": "The referenced course could not be found.",
+  "code": "UNKNOWN_COURSE_SLUG"
+}
+```
+
+## Known but non-payable course
+
+```text
+HTTP 400
+```
+
+Example response:
+
+```json
+{
+  "error": "The referenced course is not eligible for online payment.",
+  "code": "COURSE_NOT_PAYABLE"
+}
+```
+
+## Unknown or invalid add-on
+
+Keep the existing strict behavior:
+
+```text
+HTTP 400
+```
+
+Do not expose internal stack traces, Square credentials, environment variables, or sensitive configuration.
+
+---
+
+# NO ZERO-DOLLAR FALLBACK
+
+Explicitly prevent these outcomes:
+
+```ts
+amountCents = 0;
+```
+
+or:
+
+```ts
+lineItems = [];
+```
+
+for a paid course or event request caused by a bad slug.
+
+Before calling Square, assert that:
+
+- The course exists
+- The course is payable
+- The resolved amount is valid
+- At least one legitimate base course line item exists
+- The total is greater than zero for paid Corsair courses
+
+If any assertion fails, return a clear HTTP 400 error before making a Square API call.
+
+---
+
+# BUILD-TIME OR TEST-TIME CATALOG VALIDATION
+
+Add a test that scans every event in:
+
+```text
+corsair-source/src/data/events.ts
+```
+
+Expected behavior:
+
+- Contact-only events pass without a `courseSlug`.
+- Every online-payment event has a nonempty `courseSlug`.
+- Every referenced slug exists in the course catalog.
+- Every referenced course supports Square payment.
+
+Suggested test title:
+
+```text
+all online-payment events reference valid payable course slugs
+```
+
+Include targeted failure tests using fixture events for:
+
+1. Missing slug
+2. Typo/unknown slug
+3. External-only course slug
+4. Contact-only course slug, if that state exists
+5. Valid AR-15 course slug
+6. Valid Shotgun course slug
+
+Do not mutate production data merely to make failure cases.
+
+Use test fixtures.
+
+---
+
+# OBJECTIVE 2 — ADD SHOTGUN ROUTE-LEVEL SQUARE MOCK TEST PARITY
+
+## Current Gap
+
+The AR-15 course has route-level mock integration coverage in:
+
+```text
+tests/pricing/src/defensive-shooting.test.ts
+```
+
+The Shotgun course currently has direct `resolveCoursePayment` tests, but it needs equivalent coverage for the full path:
+
+```text
+request
+→ create-order route
+→ pricing resolution
+→ Square line-item construction
+→ response
+```
+
+---
+
+# REQUIRED TEST BLOCK
+
+Add a new block:
+
+```ts
+describe("POST /api/square/create-order — shotgun-course", () => {
+  // tests
+});
+```
+
+Place it alongside or near the existing AR-15 route-level integration section.
+
+Mirror the same mocking pattern and setup used for AR-15.
+
+Do not create an unrelated second testing framework.
+
+---
+
+# SHOTGUN APPROVED PRICING
+
+The authoritative Shotgun pricing is:
+
+```text
+Base Course: $75.00
+Required Range Fee: $25.00
+Optional Ammunition Purchase (50 Rounds): $35.00
+Optional Shotgun Rental: $25.00
+```
+
+Minimum total:
+
+```text
+$100.00
+10,000 cents
+```
+
+Both optional add-ons selected:
+
+```text
+$160.00
+16,000 cents
+```
+
+---
+
+# REQUIRED SHOTGUN ROUTE TESTS
+
+## 1. No optional add-ons
+
+Request:
+
+```json
+{
+  "courseSlug": "shotgun-course",
+  "addOnIds": []
+}
+```
+
+Assert:
+
+```text
+HTTP success
+Total: 10,000 cents
+Square line items: 2
+```
+
+Expected itemized lines:
+
+```text
+Shotgun Course — 7,500 cents
+Required Range Fee — 2,500 cents
+```
+
+Also verify the Square mock receives exactly two valid line items.
+
+---
+
+## 2. Ammunition selected
+
+Request includes the exact production ammunition add-on ID.
+
+Assert:
+
+```text
+Total: 13,500 cents
+Square line items: 3
+```
+
+Expected items:
+
+```text
+Shotgun Course — 7,500 cents
+Required Range Fee — 2,500 cents
+Shotgun Ammunition Purchase (50 Rounds) — 3,500 cents
+```
+
+---
+
+## 3. Rental selected
+
+Request includes the exact production shotgun-rental add-on ID.
+
+Assert:
+
+```text
+Total: 12,500 cents
+Square line items: 3
+```
+
+Expected items:
+
+```text
+Shotgun Course — 7,500 cents
+Required Range Fee — 2,500 cents
+Shotgun Rental — 2,500 cents
+```
+
+---
+
+## 4. Both optional add-ons selected
+
+Assert:
+
+```text
+Total: 16,000 cents
+Square line items: 4
+```
+
+Expected items:
+
+```text
+Shotgun Course — 7,500 cents
+Required Range Fee — 2,500 cents
+Shotgun Ammunition Purchase (50 Rounds) — 3,500 cents
+Shotgun Rental — 2,500 cents
+```
+
+---
+
+## 5. Unknown option ID
+
+Request:
+
+```json
+{
+  "courseSlug": "shotgun-course",
+  "addOnIds": ["not-a-real-shotgun-option"]
+}
+```
+
+Assert:
+
+```text
+HTTP 400
+Square API is not called
+```
+
+The error should clearly identify an invalid or unknown add-on.
+
+---
+
+## 6. Generic or Cross-Course Add-On ID
+
+Send an add-on ID belonging to another course, such as a handgun or AR-15 option.
+
+Example intent:
+
+```json
+{
+  "courseSlug": "shotgun-course",
+  "addOnIds": ["ar15-rental"]
+}
+```
+
+Use the actual production ID from the course catalog.
+
+Assert:
+
+```text
+HTTP 400
+Square API is not called
+```
+
+This proves add-on IDs are scoped to their own course and cannot be reused across courses.
+
+---
+
+# ADDITIONAL ROUTE TESTS FOR BAD COURSE SLUGS
+
+Add route-level coverage for:
+
+## Unknown course slug
+
+```json
+{
+  "courseSlug": "shotgn-course",
+  "addOnIds": []
+}
+```
+
+Assert:
+
+```text
+HTTP 400
+Clear error code/message
+Square API is not called
+```
+
+## Missing course slug
+
+Submit a malformed payment request without a course slug.
+
+Assert:
+
+```text
+HTTP 400
+Clear error code/message
+Square API is not called
+```
+
+## Non-payable course slug
+
+Use a known external-only or contact-only course slug.
+
+Assert:
+
+```text
+HTTP 400
+Clear error code/message
+Square API is not called
+```
+
+---
+
+# PRESERVE EXISTING BEHAVIOR
+
+Do not change:
+
+- AR-15 base pricing
+- AR-15 required range fee
+- AR-15 optional ammunition
+- AR-15 optional rental
+- Shotgun pricing
+- Shotgun required range fee
+- Shotgun optional ammunition
+- Shotgun optional rental
+- Standard handgun pricing
+- Continuing Education pricing
+- Defensive Shooting pricing
+- Strict unknown-add-on rejection
+- Required-fee server enforcement
+- Existing contact-only event behavior
+
+---
+
+# TEST QUALITY REQUIREMENTS
+
+Tests must assert more than the final total.
+
+For route-level Square tests, verify:
+
+- HTTP status
+- Response payload
+- Number of Square line items
+- Each item name
+- Each item amount
+- Quantity where applicable
+- Final total
+- Square API call count
+- Square API not called on invalid requests
+
+Avoid broad snapshots when direct assertions are clearer.
+
+Use integer cents throughout.
+
+---
+
+# REQUIRED VALIDATION
+
+Run:
+
+```text
+TypeScript typecheck
+Lint
+All pricing tests
+All route integration tests
+Full test suite
+Production build
+```
+
+Confirm that the existing total of 414 tests is updated appropriately and all tests pass.
+
+Do not reduce or skip existing coverage.
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+- Files changed
+- Event payment schema or guard added
+- How payable-course eligibility is determined
+- Error behavior for missing slug
+- Error behavior for unknown slug
+- Error behavior for non-payable course
+- Confirmation that zero-dollar paid orders cannot reach Square
+- New Shotgun route-level tests added
+- Shotgun totals and line-item assertions covered
+- Cross-course add-on rejection result
+- Final test count
+- Typecheck result
+- Lint result
+- Build result
+- Commit SHA
+
+Do not include API keys, Square tokens, environment secrets, or private credentials.
+
+---
+
+# COMMIT
+
+Suggested commit message:
+
+```text
+test(corsair): guard paid event course slugs and add shotgun Square route parity
+```
+
+Commit and push using:
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
