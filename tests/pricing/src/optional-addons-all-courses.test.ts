@@ -189,35 +189,25 @@ describe("resolveCoursePayment — optional add-ons", () => {
         });
       });
 
-      // ── 2c. Unknown add-on ids never inflate the total ─────────────────────
+      // ── 2c. Unknown add-on ids cause strict rejection ──────────────────────
       describe("unknown add-on id rejection", () => {
-        it("passing only an unknown id: optionalAddonsCents stays 0 and total equals baseline", () => {
+        it("passing only an unknown id: returns null (strict rejection)", () => {
           const result = resolveCoursePayment(
             course.slug,
             firstOption.id,
             ["unknown-addon-that-does-not-exist"]
           );
-          expect(result).not.toBeNull();
-          expect(result!.optionalAddonsCents).toBe(0);
-          expect(result!.totalCents).toBe(baselineCents);
-          expect(result!.appliedOptionalAddonIds).toHaveLength(0);
-          expect(
-            result!.lineItems.filter((li) => li.kind === "addon")
-          ).toHaveLength(0);
+          expect(result).toBeNull();
         });
 
-        it("mixing valid and unknown ids: only valid ids are applied", () => {
+        it("mixing valid and unknown ids: returns null (any unknown id is rejected)", () => {
           const firstAddOn = addOns[0];
           const result = resolveCoursePayment(
             course.slug,
             firstOption.id,
             [firstAddOn.id, "bogus-id-xyz-99999"]
           );
-          expect(result!.optionalAddonsCents).toBe(toCents(firstAddOn.price));
-          expect(result!.appliedOptionalAddonIds).toEqual([firstAddOn.id]);
-          expect(result!.totalCents).toBe(
-            baselineCents + toCents(firstAddOn.price)
-          );
+          expect(result).toBeNull();
         });
 
         it("passing a non-array addOnIds: total equals baseline (no add-ons applied)", () => {

@@ -234,13 +234,14 @@ export function resolveCoursePayment(
   const allRequiredFees = course.requiredFees ?? [];
   const requiredFeesCents = allRequiredFees.reduce((sum, f) => sum + toCents(f.price), 0);
 
-  // ── Optional add-ons — only valid ids from the course catalog ────────────
+  // ── Optional add-ons — strict: reject any unrecognised id ───────────────
   const safeIds: string[] = Array.isArray(addOnIds)
     ? addOnIds.filter((id): id is string => typeof id === 'string')
     : [];
   const validOptionalIds = new Set((course.optionalAddOns ?? []).map((a) => a.id));
+  if (safeIds.some((id) => !validOptionalIds.has(id))) return null;
   const appliedOptionalAddons = (course.optionalAddOns ?? []).filter(
-    (a) => safeIds.includes(a.id) && validOptionalIds.has(a.id)
+    (a) => safeIds.includes(a.id)
   );
   const optionalAddonsCents = appliedOptionalAddons.reduce((sum, a) => sum + toCents(a.price), 0);
 
