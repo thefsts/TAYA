@@ -132,7 +132,25 @@ export const updateContact = mutation({
       .query("siteSettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
       .first();
-    const patch = { ...fields, contactUpdatedAt: Date.now() };
+
+    // Merge incoming socialLinks with the stored record so that:
+    // - platforms absent from the payload are preserved
+    // - platforms present with an empty string keep their stored value
+    let mergedSocialLinks = fields.socialLinks;
+    if (fields.socialLinks !== undefined && existing?.socialLinks && typeof existing.socialLinks === "object") {
+      const stored = existing.socialLinks as Record<string, string>;
+      const incoming = fields.socialLinks as Record<string, string>;
+      const merged: Record<string, string> = { ...stored };
+      for (const key of Object.keys(incoming)) {
+        const val = incoming[key];
+        if (val && val.trim() !== "") {
+          merged[key] = val;
+        }
+      }
+      mergedSocialLinks = merged;
+    }
+
+    const patch = { ...fields, socialLinks: mergedSocialLinks, contactUpdatedAt: Date.now() };
     let docId;
     if (existing) {
       await ctx.db.patch(existing._id, patch);
