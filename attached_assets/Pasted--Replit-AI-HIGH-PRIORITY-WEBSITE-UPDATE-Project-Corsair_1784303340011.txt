@@ -1,0 +1,165 @@
+# Replit AI — HIGH PRIORITY WEBSITE UPDATE
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+---
+
+# Git Requirements
+
+Always use the following Git identity.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Commit all changes using this identity.
+
+---
+
+# TASK — ADD OFFICIAL YOUTUBE CHANNEL
+
+The Corsair Tactical Solutions website now has an official YouTube channel.
+
+Add the YouTube link anywhere social media links are displayed.
+
+## Official YouTube URL
+
+https://youtube.com/@corsairtacticalsolutions9474?si=4ds7s4wshyFwg4fe
+
+---
+
+# Update Every Social Media Location
+
+Search the entire project and add the YouTube link anywhere social media links are configured.
+
+This includes, but is not limited to:
+
+- Header
+- Footer
+- Contact Page
+- Mobile Navigation
+- Social Media Components
+- Organization JSON-LD
+- LocalBusiness JSON-LD
+- SEO `sameAs` array
+- Open Graph metadata (if applicable)
+- Configuration/constants files
+- Translation files
+- Footer social icons
+- Contact CTA section
+
+If a reusable social links configuration exists, add YouTube there so every component automatically receives the new link.
+
+---
+
+# Add YouTube Icon
+
+Display the official YouTube icon alongside the existing social media icons.
+
+Current social platforms should include:
+
+- Facebook
+- Instagram
+- YouTube
+
+The icon should:
+
+- Match the existing icon style
+- Match existing hover animations
+- Match existing colors and spacing
+- Be fully responsive
+- Open in a new browser tab
+
+Use:
+
+```html
+target="_blank"
+rel="noopener noreferrer"
+```
+
+---
+
+# SEO Update
+
+Update all structured data.
+
+## Organization Schema
+
+Add YouTube to the `sameAs` array.
+
+## LocalBusiness Schema
+
+Add YouTube to the `sameAs` array.
+
+## Social Metadata
+
+Include the official YouTube channel wherever social profile links are referenced.
+
+---
+
+# Quality Assurance
+
+Verify:
+
+✅ YouTube icon appears in Header (if social icons are present)
+
+✅ YouTube icon appears in Footer
+
+✅ Contact page includes YouTube
+
+✅ Mobile menu includes YouTube (if applicable)
+
+✅ Organization JSON-LD updated
+
+✅ LocalBusiness JSON-LD updated
+
+✅ SEO sameAs updated
+
+✅ Opens in a new browser tab
+
+✅ No broken links
+
+✅ Responsive on mobile, tablet, and desktop
+
+✅ No console errors
+
+✅ Production build passes
+
+---
+
+# Deliverables
+
+Before committing verify:
+
+- Official YouTube channel added everywhere social media links are displayed.
+- Existing Facebook and Instagram links remain unchanged.
+- Structured data updated.
+- Responsive layout verified.
+- Build passes successfully.
+
+---
+
+# Commit
+
+Commit using:
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Push to the repository after all QA checks pass.
