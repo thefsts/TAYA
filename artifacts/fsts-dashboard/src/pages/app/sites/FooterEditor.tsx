@@ -15,11 +15,36 @@ import { LockedField, DesignLockBanner } from "@/components/LockedField";
 type LinkColumn = { heading: string; links: { label: string; url: string }[] };
 type SocialLink = { platform: string; url: string };
 
+const NAMED_PLATFORMS = ["Instagram", "Facebook", "TikTok", "YouTube"] as const;
+type NamedPlatform = typeof NAMED_PLATFORMS[number];
+
 function asColumns(raw: unknown[]): LinkColumn[] {
   return (raw as LinkColumn[]) ?? [];
 }
 function asSocialLinks(raw: unknown[]): SocialLink[] {
   return (raw as SocialLink[]) ?? [];
+}
+
+function extractNamed(links: SocialLink[]): Record<NamedPlatform, string> {
+  const result = {} as Record<NamedPlatform, string>;
+  for (const p of NAMED_PLATFORMS) {
+    const found = links.find((l) => l.platform.toLowerCase() === p.toLowerCase());
+    result[p] = found?.url ?? "";
+  }
+  return result;
+}
+
+function extractCustom(links: SocialLink[]): SocialLink[] {
+  return links.filter(
+    (l) => !NAMED_PLATFORMS.some((p) => p.toLowerCase() === l.platform.toLowerCase())
+  );
+}
+
+function mergeLinks(named: Record<NamedPlatform, string>, custom: SocialLink[]): SocialLink[] {
+  const namedLinks: SocialLink[] = NAMED_PLATFORMS
+    .filter((p) => named[p].trim() !== "")
+    .map((p) => ({ platform: p, url: named[p].trim() }));
+  return [...namedLinks, ...custom];
 }
 
 export default function FooterEditor({ params }: { params: { siteId: string } }) {
@@ -30,20 +55,29 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
 
   const [copyrightText, setCopyrightText] = useState("");
   const [columns, setColumns] = useState<LinkColumn[]>([]);
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [namedPlatforms, setNamedPlatforms] = useState<Record<NamedPlatform, string>>({
+    Instagram: "",
+    Facebook: "",
+    TikTok: "",
+    YouTube: "",
+  });
+  const [customLinks, setCustomLinks] = useState<SocialLink[]>([]);
   const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (data) {
       setCopyrightText(data.copyrightText ?? "");
       setColumns(asColumns((data.columns as unknown[]) ?? []));
-      setSocialLinks(asSocialLinks((data.socialLinks as unknown[]) ?? []));
+      const links = asSocialLinks((data.socialLinks as unknown[]) ?? []);
+      setNamedPlatforms(extractNamed(links));
+      setCustomLinks(extractCustom(links));
     }
   }, [data]);
 
   async function handleSave() {
     setIsPending(true);
     try {
+      const socialLinks = mergeLinks(namedPlatforms, customLinks);
       await updateFooterContent({ siteId, copyrightText, columns, socialLinks });
       toast({ title: "Footer updated" });
     } catch (err) {
@@ -169,43 +203,71 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
 
         <LockedField capabilityLabel="Footer Layout">
           <div className="bg-white p-6 border border-slate-200 rounded-md shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-medium text-slate-900">Social Links</h2>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setSocialLinks([...socialLinks, { platform: "", url: "" }])}
-              >
-                <Plus className="h-4 w-4 mr-1" /> Add
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {socialLinks.map((s, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <Input
-                    placeholder="Platform (e.g. LinkedIn)"
-                    value={s.platform}
-                    onChange={(e) => {
-                      const next = [...socialLinks];
-                      next[i] = { ...s, platform: e.target.value };
-                      setSocialLinks(next);
-                    }}
-                  />
-                  <Input
-                    placeholder="URL"
-                    value={s.url}
-                    onChange={(e) => {
-                      const next = [...socialLinks];
-                      next[i] = { ...s, url: e.target.value };
-                      setSocialLinks(next);
-                    }}
-                  />
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
+            <h2 className="font-medium text-slate-900 mb-1">Social Links</h2>
+            <p className="text-xs text-slate-400 mb-4">Leave a field blank to omit that platform from the footer.</p>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Common Platforms</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {NAMED_PLATFORMS.map((platform) => (
+                    <div key={platform} className="space-y-1">
+                      <Label className="text-xs">{platform}</Label>
+                      <Input
+                        placeholder={`https://${platform.toLowerCase()}.com/yourpage`}
+                        value={namedPlatforms[platform]}
+                        onChange={(e) =>
+                          setNamedPlatforms((prev) => ({ ...prev, [platform]: e.target.value }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Additional Links</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCustomLinks([...customLinks, { platform: "", url: "" }])}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
                 </div>
-              ))}
+                <div className="space-y-2">
+                  {customLinks.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Input
+                        placeholder="Platform (e.g. LinkedIn)"
+                        value={s.platform}
+                        onChange={(e) => {
+                          const next = [...customLinks];
+                          next[i] = { ...s, platform: e.target.value };
+                          setCustomLinks(next);
+                        }}
+                      />
+                      <Input
+                        placeholder="URL"
+                        value={s.url}
+                        onChange={(e) => {
+                          const next = [...customLinks];
+                          next[i] = { ...s, url: e.target.value };
+                          setCustomLinks(next);
+                        }}
+                      />
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setCustomLinks(customLinks.filter((_, idx) => idx !== i))}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  ))}
+                  {customLinks.length === 0 && (
+                    <p className="text-xs text-slate-400 italic">No additional links. Use the button above to add custom platforms.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </LockedField>
