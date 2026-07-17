@@ -500,6 +500,31 @@ export default async function HomePage({
         </section>
       </ScrollReveal>
 
+      {/* ──────── CREDENTIALS BRIDGE ──────── */}
+      <section className="py-8 bg-corsair-blue-900">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs font-bold text-corsair-red-400 uppercase tracking-widest mb-4">Trained by Professionals. Trusted by Texas.</p>
+          <div className="flex flex-wrap justify-center gap-2.5">
+            {[
+              'NRA Certified',
+              'USCCA Certified',
+              'Texas DPS Approved',
+              'State-Licensed Security',
+              'LTC Certified Instructor',
+              'Church Security Specialist',
+              'Active-Shooter Response',
+            ].map((badge) => (
+              <span
+                key={badge}
+                className="text-[11px] font-bold text-white/90 bg-white/10 border border-white/15 px-4 py-1.5 rounded-full"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ───── TESTIMONIALS ───── */}
       <ScrollReveal delay={0.15}>
         <section className="py-16 md:py-20 bg-white">
@@ -641,7 +666,7 @@ export default async function HomePage({
 
       {/* ──────── FOLLOW US ──────── */}
       <ScrollReveal delay={0.1}>
-        <section className="py-10 bg-white border-y border-corsair-gray-200">
+        <section className="py-14 bg-white border-y border-corsair-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left">
