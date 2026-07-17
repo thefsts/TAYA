@@ -11,3 +11,4 @@
 - [Corsair Vercel root directory](corsair-vercel-root.md) — Vercel builds repo ROOT (not corsair-source/); changes to root src/app/globals.css go live, corsair-source/ changes do not
 - [FSTS E2E Clerk auth pattern](fsts-e2e-clerk-auth.md) — use sign_in_tokens + post-sign-in Convex promotion; Clerk Users API returns plain array not {data:[]}; JWT may lack email claim so promote by clerkUserId not email
 - [FSTS GitHub mirror push pattern](fsts-github-mirror.md) — GITHUB_PERSONAL_ACCESS_TOKEN is injected by Replit's GitHub OAuth integration; use it for git push in post-merge hooks
+- [Vercel alias & protection fix via Replit connector](vercel-connector-alias.md) — VERCEL_TOKEN is SAML-locked; use Replit's built-in Vercel connector (proposeIntegration + connectors.proxy) to assign aliases and patch project settings
