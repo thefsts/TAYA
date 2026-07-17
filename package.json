@@ -19,7 +19,8 @@
     "test:e2e:report": "pnpm --filter @workspace/e2e run test:report",
     "test:corsair-e2e": "pnpm --filter @workspace/corsair-e2e run test",
     "test:corsair-e2e:report": "pnpm --filter @workspace/corsair-e2e run test:report",
-    "test:corsair-guard": "bash scripts/check-corsair-guard.sh"
+    "test:corsair-guard": "bash scripts/check-corsair-guard.sh",
+    "test:hook-guard": "bash scripts/test-hook-guard.sh"
   },
   "packageManager": "pnpm@10.26.1",
   "private": true,
