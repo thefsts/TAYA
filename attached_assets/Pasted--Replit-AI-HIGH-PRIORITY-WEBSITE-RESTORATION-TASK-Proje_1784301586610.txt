@@ -1,0 +1,376 @@
+# Replit AI — HIGH PRIORITY WEBSITE RESTORATION TASK
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+This task is a WEBSITE RESTORATION update. Complete every item below before making any new feature changes.
+
+---
+
+# Git Requirements
+
+Always use the following Git identity.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Commit all changes using this identity.
+
+---
+
+# TASK 1 — UPDATE TRAINING CLASS PRICING
+
+Update the pricing configuration for ALL handgun training courses.
+
+## Gun Rental
+
+Price:
+
+$12.99
+
+Description:
+
+Rental handgun for use during training.
+
+Rules
+
+• Optional add-on
+
+• Customer may bring their own handgun
+
+• Add to checkout only when selected
+
+---
+
+## Ammunition Purchase
+
+Price:
+
+$14.00
+
+Description:
+
+One box of 50 rounds of handgun ammunition.
+
+Rules
+
+• Optional add-on
+
+• Add to checkout only when selected
+
+---
+
+## IMPORTANT
+
+DO NOT MODIFY THESE COURSES
+
+The following courses already have the correct pricing.
+
+Leave EVERYTHING exactly as it is.
+
+• AR-15 Rifle Course
+
+• Shotgun Course
+
+Do NOT change:
+
+• Course price
+
+• Gun Rental price
+
+• Ammunition price
+
+• Required Fees
+
+• Optional Add-ons
+
+• Checkout Logic
+
+• Square Integration
+
+These two courses are excluded from this pricing update.
+
+---
+
+## Apply the New Pricing To
+
+Update every handgun-based course including but not limited to:
+
+• Texas License to Carry Certification
+
+• Texas License to Carry Certification / Basic Handgun
+
+• Texas LTC Shooting Proficiency
+
+• Introduction to Firearms
+
+• Basic Handgun Skills Training
+
+• First Shots Basic Firearm Training
+
+• Defensive Shooting Skills
+
+• Women's Firearm Training
+
+• Private Firearm Training
+
+• Any other handgun-only training course
+
+---
+
+# TASK 2 — REMOVE HOMEPAGE SECTIONS
+
+The homepage currently contains sections that should no longer appear.
+
+Completely remove the following sections from the homepage.
+
+• About Your Instructor
+
+• Our Training Team
+
+Requirements
+
+• Remove the sections entirely
+
+• Remove any unused spacing
+
+• Remove any unused homepage components
+
+• Preserve the remaining homepage layout
+
+Do NOT delete:
+
+• Instructor pages
+
+• Instructor routes
+
+• Instructor content
+
+Only remove these sections from the Homepage.
+
+---
+
+# TASK 3 — REDESIGN FEATURED TRAINING PROGRAMS
+
+The Featured Training Programs section should be simplified.
+
+Remove all featured course cards.
+
+Replace the section with a clean promotional call-to-action.
+
+Layout
+
+Heading
+
+Featured Training Programs
+
+Supporting Text
+
+Explore our complete catalog of firearms training, Texas License to Carry courses, defensive shooting instruction, private training, and specialty programs designed for every skill level.
+
+Primary Button
+
+View All Courses
+
+Button Link
+
+https://www.corsairtacticalsolution.com/courses
+
+Requirements
+
+• Use existing Corsair branding
+
+• Use existing primary button styling
+
+• Responsive layout
+
+• Attractive spacing
+
+• Professional appearance
+
+Optional
+
+• Background image
+
+• Firearms training imagery
+
+• Modern iconography
+
+Do NOT display individual course cards inside this section anymore.
+
+---
+
+# TASK 4 — VERIFY ONLINE TEXAS LICENSE TO CARRY ASSESSMENT
+
+Verify this course still behaves correctly.
+
+Course
+
+Online Texas License to Carry Assessment
+
+Requirements
+
+• No Square Checkout
+
+• No Booking Form
+
+• No Registration Form
+
+• No Gun Rental
+
+• No Ammunition Purchase
+
+• No Required Fees
+
+• No Checkout Summary
+
+• No Payment Processing
+
+The page should simply direct users to:
+
+https://texascarryacademy.com/product/?add-to-cart=69884
+
+using the external CTA button.
+
+---
+
+# TASK 5 — GENERAL WEBSITE QA
+
+Verify all homepage sections after changes.
+
+Confirm
+
+✓ Homepage spacing looks correct
+
+✓ Responsive design works
+
+✓ Mobile layout looks good
+
+✓ Tablet layout looks good
+
+✓ Desktop layout looks good
+
+✓ No React warnings
+
+✓ No console errors
+
+✓ No broken images
+
+✓ No broken links
+
+✓ No layout regressions
+
+---
+
+# TASK 6 — CHECKOUT QA
+
+Verify
+
+Handgun Courses
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+Totals calculate correctly.
+
+Square Orders remain itemized.
+
+Server validates pricing.
+
+---
+
+Verify
+
+AR-15 Rifle Course
+
+UNCHANGED
+
+Verify
+
+Shotgun Course
+
+UNCHANGED
+
+---
+
+# TASK 7 — FINAL BUILD VERIFICATION
+
+Run
+
+• Production Build
+
+• Lint
+
+• Type Check
+
+• Verify Vercel build passes
+
+Confirm there are no build errors.
+
+---
+
+# DELIVERABLES
+
+Before committing verify:
+
+✅ Gun Rental updated to $12.99 on all applicable handgun courses
+
+✅ Ammunition Purchase updated to $14.00 on all applicable handgun courses
+
+✅ AR-15 Rifle Course unchanged
+
+✅ Shotgun Course unchanged
+
+✅ About Your Instructor removed from homepage
+
+✅ Our Training Team removed from homepage
+
+✅ Featured Training Programs redesigned
+
+✅ View All Courses button links to
+
+https://www.corsairtacticalsolution.com/courses
+
+✅ Online Texas License to Carry Assessment still uses external Texas Carry Academy link
+
+✅ Homepage responsive
+
+✅ Mobile responsive
+
+✅ Build passes
+
+✅ No console errors
+
+✅ Vercel deployment succeeds
+
+---
+
+# Commit
+
+Commit using:
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Push after all QA checks pass.
