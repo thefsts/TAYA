@@ -11,7 +11,7 @@
  */
 
 import { getAllCourses, getCourseBySlug, type Course } from '@/lib/courses';
-import { upcomingEvents } from '@/data/events';
+import { upcomingEvents, pastEvents } from '@/data/events';
 
 export type CatalogItemType = 'course' | 'service' | 'event';
 
@@ -283,4 +283,79 @@ export function resolveCoursePayment(
     appliedOptionalAddonIds: appliedOptionalAddons.map((a) => a.id),
     lineItems,
   };
+}
+
+// ── Event courseSlug guard ────────────────────────────────────────────────────
+//
+// Events can optionally declare a courseSlug that wires them to a payable
+// catalog entry. A typo in that slug would cause resolveCoursePayment to
+// return null and silently charge $0. The functions below make that failure
+// visible and testable.
+
+export interface EventCourseSlugValidationResult {
+  valid: boolean;
+  /** Human-readable reason when valid is false. */
+  error?: string;
+}
+
+/**
+ * Validates that a given courseSlug exists in the catalog and is payable.
+ * Returns { valid: true } on success, or { valid: false, error: "..." } with
+ * a descriptive message — never a silent null.
+ */
+export function validateEventCourseSlug(courseSlug: string): EventCourseSlugValidationResult {
+  if (!courseSlug || courseSlug.trim() === '') {
+    return { valid: false, error: 'courseSlug is empty or missing.' };
+  }
+  const item = getCatalogItemBySlug(courseSlug);
+  if (!item) {
+    return {
+      valid: false,
+      error: `Course slug "${courseSlug}" does not exist in the catalog. Check for typos.`,
+    };
+  }
+  if (!item.active) {
+    return {
+      valid: false,
+      error: `Course slug "${courseSlug}" exists but is not active.`,
+    };
+  }
+  if (item.contactOnly || item.variations.length === 0) {
+    return {
+      valid: false,
+      error: `Course slug "${courseSlug}" exists but is contact-only and cannot be paid online.`,
+    };
+  }
+  return { valid: true };
+}
+
+export interface InvalidEventCourseSlugEntry {
+  eventSlug: string;
+  courseSlug: string;
+  error: string;
+}
+
+/**
+ * Walks every event (upcoming and past) that declares a courseSlug and returns
+ * all entries where the slug is missing from the catalog or is not payable.
+ * An empty result means the data is consistent; any entry is a broken reference
+ * that would silently charge $0 at checkout.
+ */
+export function getInvalidEventCourseSlugs(): InvalidEventCourseSlugEntry[] {
+  const allEvents = [...upcomingEvents, ...pastEvents];
+  const broken: InvalidEventCourseSlugEntry[] = [];
+
+  for (const event of allEvents) {
+    if (!event.courseSlug) continue;
+    const result = validateEventCourseSlug(event.courseSlug);
+    if (!result.valid) {
+      broken.push({
+        eventSlug: event.slug,
+        courseSlug: event.courseSlug,
+        error: result.error!,
+      });
+    }
+  }
+
+  return broken;
 }

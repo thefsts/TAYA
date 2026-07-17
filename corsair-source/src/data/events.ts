@@ -28,6 +28,12 @@ export interface CorsairEvent {
   registrationUrl?: string;
   contactCta?: string;
   isPast?: boolean;
+  /**
+   * When set, this event is wired for online payment via the course catalog.
+   * Must match a slug that exists in the catalog AND is payable (not contact-only).
+   * A typo here will be caught at build/test time by validateEventCourseSlug().
+   */
+  courseSlug?: string;
 }
 
 export const upcomingEvents: CorsairEvent[] = [
