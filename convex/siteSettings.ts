@@ -252,10 +252,10 @@ export const updateLegal = mutation({
 });
 
 export const generateUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    // SECURITY: uploads must be requested by a user with write access to the site.
+    await requireSiteAccessMutation(ctx, siteId);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -263,6 +263,14 @@ export const generateUploadUrl = mutation({
 export const getFileUrl = query({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, { storageId }) => {
+    // SECURITY: only authenticated, active dashboard users may resolve storage URLs.
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user || !user.isActive) throw new Error("Forbidden");
     return await ctx.storage.getUrl(storageId);
   },
 });

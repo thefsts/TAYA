@@ -7,8 +7,10 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
     "@types/node": "catalog:",
     "convex": "catalog:",
+    "convex-test": "^0.0.54",
     "vitest": "^3.2.4"
   }
 }

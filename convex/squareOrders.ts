@@ -153,6 +153,12 @@ export const updateLastCatalogSync = internalMutation({
 export const syncCatalog = action({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }): Promise<{ synced: number; error?: string }> => {
+    // SECURITY: actions have no ctx.db — verify WRITE-capable site access via
+    // the same internal check used by every other Square action.
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const hasAccess = await ctx.runQuery(internal.square.checkSiteAccessForAction, { siteId });
+    if (!hasAccess) throw new Error("Forbidden: site access required");
     const config = await ctx.runQuery(internal.square.getConfigInternal, { siteId });
     if (!config?.accessToken) return { synced: 0, error: "Square not configured" };
 

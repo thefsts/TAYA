@@ -238,6 +238,12 @@ export const listAllInternal = internalQuery({
 export const promoteToSuperAdminByClerkId = mutation({
   args: { targetClerkUserId: v.string() },
   handler: async (ctx, { targetClerkUserId }) => {
+    // SECURITY: only an existing superadmin may promote — except in test
+    // environments (CONVEX_TEST_MODE=true), where the e2e harness bootstraps.
+    if (process.env.CONVEX_TEST_MODE !== "true") {
+      const me = await provisionUser(ctx);
+      if (!me.isSuperAdmin) throw new Error("Forbidden: superadmin only");
+    }
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_user_id", (q) =>
@@ -253,6 +259,10 @@ export const promoteToSuperAdminByClerkId = mutation({
 export const upsertTestSuperAdmin = mutation({
   args: { email: v.string(), name: v.string() },
   handler: async (ctx, { email, name }) => {
+    // SECURITY: test-only bootstrap. Never available outside test deployments.
+    if (process.env.CONVEX_TEST_MODE !== "true") {
+      throw new Error("upsertTestSuperAdmin is only available in test environments (CONVEX_TEST_MODE=true)");
+    }
     const existing = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvex } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -164,14 +164,17 @@ function ImageUploadField({
   onChange,
   accept,
   hint,
+  siteId,
 }: {
   label: string;
   value: string;
   onChange: (url: string) => void;
   accept?: string;
   hint?: string;
+  siteId: Id<"sites">;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const convex = useConvex();
   const generateUploadUrl = useMutation(api.siteSettings.generateUploadUrl);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -181,18 +184,19 @@ function ImageUploadField({
     if (!file) return;
     setUploading(true);
     try {
-      const uploadUrl = await generateUploadUrl();
+      const uploadUrl = await generateUploadUrl({ siteId });
       const res = await fetch(uploadUrl, {
         method: "POST",
         headers: { "Content-Type": file.type },
         body: file,
       });
       const { storageId } = await res.json();
-      const urlRes = await fetch(
-        `${import.meta.env.VITE_CONVEX_URL?.replace("convex.cloud", "convex.site")}/getStorageUrl?storageId=${storageId}`
-      ).catch(() => null);
-      if (urlRes && urlRes.ok) {
-        const { url } = await urlRes.json();
+      // Resolve the storage URL through the authenticated Convex query so
+      // access control is enforced server-side.
+      const url = await convex
+        .query(api.siteSettings.getFileUrl, { storageId })
+        .catch(() => null);
+      if (url) {
         onChange(url);
       } else {
         toast({ title: "Upload succeeded — paste the URL manually or use the URL field below", description: "Storage ID: " + storageId });
@@ -477,6 +481,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               </div>
 
               <ImageUploadField
+                siteId={siteId}
                 label="Logo"
                 value={logoUrl}
                 onChange={setLogoUrl}
@@ -485,6 +490,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               />
 
               <ImageUploadField
+                siteId={siteId}
                 label="Favicon"
                 value={faviconUrl}
                 onChange={setFaviconUrl}
@@ -740,6 +746,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 <p className="text-xs text-slate-400">{seoGlobalDescription.length}/160 characters</p>
               </div>
               <ImageUploadField
+                siteId={siteId}
                 label="Default OG / Social Share Image"
                 value={seoOgImageUrl}
                 onChange={setSeoOgImageUrl}
