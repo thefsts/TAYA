@@ -652,6 +652,15 @@ importers:
         specifier: 'catalog:'
         version: 25.6.2
 
+  tests/pricing:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.6.2
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@25.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.21.0)
+
   tests/visual-regression:
     devDependencies:
       '@playwright/test':
