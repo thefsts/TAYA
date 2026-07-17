@@ -614,7 +614,7 @@ export const courses: Record<string, Course> = {
     imagePosition: 'object-center',
     duration: '4\u20136 hrs',
     level: 'Intermediate',
-    price: 'From $50',
+    price: 'From $150',
     keyPoints: [
       'Scenario-based defensive training',
       'Draw from holster & concealment',
@@ -649,16 +649,7 @@ export const courses: Record<string, Course> = {
     ],
     cta: 'Level Up Your Skills',
     pricingOptions: [
-      { id: 'dss-standard', name: 'Standard Course', price: 50, description: 'Core defensive skills' },
-      {
-        id: 'dss-advanced',
-        name: 'Advanced Package',
-        price: 125,
-        description: 'Extended scenarios + low-light training',
-        badge: 'Best Value',
-        savings: 'Save $25',
-        popular: true,
-      },
+      { id: 'dss-standard', name: 'Standard Course', price: 150, description: 'Core defensive skills' },
     ],
     requiredFees: [
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
