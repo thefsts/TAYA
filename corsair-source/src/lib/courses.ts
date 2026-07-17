@@ -1298,8 +1298,10 @@ export const courses: Record<string, Course> = {
     ],
     requiredFees: [
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 35, required: true, locked: true, description: '50 rounds of shotgun ammunition' },
-      { id: 'shotgun-rental', label: 'Rent a Shotgun', price: 25, required: true, locked: true, description: 'Shotgun rental for the session' },
+    ],
+    optionalAddOns: [
+      { id: 'shotgun-ammunition-50-rounds', label: 'Shotgun Ammunition (50 Rounds)', price: 35, required: false, locked: false, description: '50 rounds of shotgun ammunition' },
+      { id: 'shotgun-rental', label: 'Rent a Shotgun', price: 25, required: false, locked: false, description: 'Shotgun rental for the session' },
     ],
   },
 
@@ -1360,8 +1362,10 @@ export const courses: Record<string, Course> = {
     ],
     requiredFees: [
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 40, required: true, locked: true, description: '50 rounds of AR-15 ammunition' },
-      { id: 'ar15-rental', label: 'Rent an AR-15 Rifle', price: 35, required: true, locked: true, description: 'AR-15 rental for the session' },
+    ],
+    optionalAddOns: [
+      { id: 'ar15-ammunition-50-rounds', label: 'AR-15 Ammunition (50 Rounds)', price: 40, required: false, locked: false, description: '50 rounds of AR-15 ammunition' },
+      { id: 'ar15-rental', label: 'Rent an AR-15 Rifle', price: 35, required: false, locked: false, description: 'AR-15 rental for the session' },
     ],
   },
 

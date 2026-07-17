@@ -505,9 +505,8 @@ describe("POST /api/square/create-order — armed-first-responder", () => {
 
 // ── 7. ar-15-rifle-course — Square mock integration ───────────────────────
 //
-// Base: $90 + required fees: range $25 + ammo $40 + rifle rental $35 = $190 (19 000 cents)
-// ammo-package and ar15-rental are now required fees, not optional add-ons.
-// No handgun add-ons apply to this course.
+// Base: $90 + required range fee $25 = $115 (11 500 cents) with no add-ons.
+// ar15-ammunition-50-rounds ($40) and ar15-rental ($35) are optional add-ons.
 
 describe("POST /api/square/create-order — ar-15-rifle-course", () => {
   beforeEach(() => {
@@ -520,10 +519,10 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
     return { json: async () => body } as unknown as Request;
   }
 
-  it("returns totalCents = 19000 and success=true (base $90 + range $25 + ammo $40 + rental $35)", async () => {
+  it("returns totalCents = 11500 and success=true with no add-ons (base $90 + range $25)", async () => {
     vi.mocked(squareFetch).mockResolvedValue({
       ok: true,
-      json: async () => ({ order: { id: "ord_ar15_001", total_money: { amount: 19_000 } } }),
+      json: async () => ({ order: { id: "ord_ar15_001", total_money: { amount: 11_500 } } }),
     } as unknown as Response);
 
     const response = await POST(makeRequest({
@@ -534,11 +533,11 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
     const body = await response.json() as Record<string, unknown>;
 
     expect(body.success).toBe(true);
-    expect(body.totalCents).toBe(19_000);
+    expect(body.totalCents).toBe(11_500);
     expect(body.orderId).toBe("ord_ar15_001");
   });
 
-  it("passes four line items to Square: base course (9000) + range fee (2500) + ammo (4000) + rental (3500)", async () => {
+  it("passes two line items to Square with no add-ons: base course (9000) + range fee (2500)", async () => {
     let capturedPayload: Record<string, unknown> | null = null;
 
     vi.mocked(squareFetch).mockImplementation(async (_path, opts) => {
@@ -557,42 +556,52 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
 
     expect(capturedPayload).not.toBeNull();
     const lineItems = (capturedPayload!.order as { line_items: Array<{ base_price_money: { amount: number } }> }).line_items;
-    expect(lineItems).toHaveLength(4);
+    expect(lineItems).toHaveLength(2);
 
     const amounts = lineItems.map((li) => li.base_price_money.amount);
     expect(amounts).toContain(9_000);
     expect(amounts).toContain(2_500);
-    expect(amounts).toContain(4_000);
-    expect(amounts).toContain(3_500);
   });
 
-  it("returns HTTP 400 when ammo-package is sent as add-on ID (it is now a required fee, not an add-on)", async () => {
+  it("adds ar15-ammunition-50-rounds correctly — totalCents = 15500, 3 line items", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ar15_003" } }),
+    } as unknown as Response);
+
     const response = await POST(makeRequest({
       courseSlug: "ar-15-rifle-course",
       pricingOptionId: "ar15-base",
-      addOnIds: ["ammo-package"],
+      addOnIds: ["ar15-ammunition-50-rounds"],
     }));
+    const body = await response.json() as Record<string, unknown>;
 
-    expect(response.status).toBe(400);
-    expect(vi.mocked(squareFetch)).not.toHaveBeenCalled();
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(15_500);
   });
 
-  it("returns HTTP 400 when ar15-rental is sent as add-on ID (it is now a required fee, not an add-on)", async () => {
+  it("adds ar15-rental correctly — totalCents = 15000, 3 line items", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ar15_004" } }),
+    } as unknown as Response);
+
     const response = await POST(makeRequest({
       courseSlug: "ar-15-rifle-course",
       pricingOptionId: "ar15-base",
       addOnIds: ["ar15-rental"],
     }));
+    const body = await response.json() as Record<string, unknown>;
 
-    expect(response.status).toBe(400);
-    expect(vi.mocked(squareFetch)).not.toHaveBeenCalled();
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(15_000);
   });
 
-  it("returns HTTP 400 when both former add-on IDs are sent (both are now required fees, not add-ons)", async () => {
+  it("returns HTTP 400 when an unknown add-on ID is sent (strict rejection)", async () => {
     const response = await POST(makeRequest({
       courseSlug: "ar-15-rifle-course",
       pricingOptionId: "ar15-base",
-      addOnIds: ["ammo-package", "ar15-rental"],
+      addOnIds: ["ammo-package"],
     }));
 
     expect(response.status).toBe(400);

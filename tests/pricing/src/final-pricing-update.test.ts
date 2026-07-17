@@ -6,8 +6,8 @@
  *   - First Shots (no required range fee)
  *   - Introduction to Firearms ($50 individual option + $25 required range fee)
  *   - Continuing Education ($75 base, optional range fee included vs excluded)
- *   - AR-15 Rifle Course ($90 base + required: range $25, ammo $40, rental $35)
- *   - Shotgun Course ($75 base + required: range $25, ammo $35, rental $25)
+ *   - AR-15 Rifle Course ($90 base + $25 required range fee; ammo $40 and rental $35 optional)
+ *   - Shotgun Course ($75 base + $25 required range fee; ammo $35 and rental $25 optional)
  */
 
 import { describe, it, expect } from "vitest";
@@ -177,9 +177,9 @@ describe("continuing-education — optional range fee (included vs excluded)", (
   });
 });
 
-// ── AR-15 Rifle Course — required: range $25, ammo $40, rental $35 ────────
+// ── AR-15 Rifle Course — optional ammo ($40) and rental ($35) ────────────
 
-describe("ar-15-rifle-course — required fees (no handgun add-ons)", () => {
+describe("ar-15-rifle-course — optional add-ons (ammo and rental)", () => {
   const course = getCourseBySlug("ar-15-rifle-course");
 
   it("exists in the catalog", () => {
@@ -191,60 +191,79 @@ describe("ar-15-rifle-course — required fees (no handgun add-ons)", () => {
     expect(opt!.price).toBe(90);
   });
 
-  it("has range fee as required fee at $25", () => {
-    const fee = (course!.requiredFees ?? []).find((f) => f.id === "range-fee");
-    expect(fee).toBeDefined();
-    expect(fee!.price).toBe(25);
-    expect(fee!.required).toBe(true);
-    expect(fee!.locked).toBe(true);
+  it("requiredFees contains only the range-fee ($25)", () => {
+    const fees = course!.requiredFees ?? [];
+    expect(fees).toHaveLength(1);
+    const rangeFee = fees.find((f) => f.id === "range-fee");
+    expect(rangeFee).toBeDefined();
+    expect(rangeFee!.price).toBe(25);
+    expect(rangeFee!.required).toBe(true);
+    expect(rangeFee!.locked).toBe(true);
   });
 
-  it("has ammo as required fee at $40", () => {
-    const fee = (course!.requiredFees ?? []).find((f) => f.id === "ammo-package");
-    expect(fee).toBeDefined();
-    expect(fee!.price).toBe(40);
-    expect(fee!.required).toBe(true);
-    expect(fee!.locked).toBe(true);
+  it("optionalAddOns contains ar15-ammunition-50-rounds ($40) unchecked by default", () => {
+    const addon = (course!.optionalAddOns ?? []).find((a) => a.id === "ar15-ammunition-50-rounds");
+    expect(addon).toBeDefined();
+    expect(addon!.price).toBe(40);
+    expect(addon!.required).toBe(false);
+    expect(addon!.locked).toBe(false);
   });
 
-  it("has AR-15 rental as required fee at $35", () => {
-    const fee = (course!.requiredFees ?? []).find((f) => f.id === "ar15-rental");
-    expect(fee).toBeDefined();
-    expect(fee!.price).toBe(35);
-    expect(fee!.required).toBe(true);
-    expect(fee!.locked).toBe(true);
+  it("optionalAddOns contains ar15-rental ($35) unchecked by default", () => {
+    const addon = (course!.optionalAddOns ?? []).find((a) => a.id === "ar15-rental");
+    expect(addon).toBeDefined();
+    expect(addon!.price).toBe(35);
+    expect(addon!.required).toBe(false);
+    expect(addon!.locked).toBe(false);
   });
 
-  it("has no optional add-ons (no handgun add-ons)", () => {
-    expect((course!.optionalAddOns ?? []).length).toBe(0);
-  });
-
-  it("does not have handgun rental add-on (firearm-rental)", () => {
-    const addon = (course!.optionalAddOns ?? []).find((a) => a.id === "firearm-rental");
-    expect(addon).toBeUndefined();
-  });
-
-  it("resolveCoursePayment: requiredFeesCents = 10000 ($25 + $40 + $35)", () => {
+  it("scenario 1 — no add-ons: 2 line items, totalCents = 11500 ($90 + $25)", () => {
     const r = resolveCoursePayment("ar-15-rifle-course", "ar15-base", []);
-    expect(r!.requiredFeesCents).toBe(10_000);
-  });
-
-  it("resolveCoursePayment: totalCents = 19000 ($90 + $25 + $40 + $35)", () => {
-    const r = resolveCoursePayment("ar-15-rifle-course", "ar15-base", []);
+    expect(r).not.toBeNull();
     expect(r!.baseCents).toBe(9_000);
-    expect(r!.totalCents).toBe(19_000);
+    expect(r!.requiredFeesCents).toBe(2_500);
+    expect(r!.optionalAddonsCents).toBe(0);
+    expect(r!.totalCents).toBe(11_500);
+    expect(r!.lineItems).toHaveLength(2);
+    expect(r!.lineItems.filter((li) => li.kind === "fee")).toHaveLength(1);
   });
 
-  it("three required fee line items are present", () => {
-    const r = resolveCoursePayment("ar-15-rifle-course", "ar15-base", []);
-    const fees = r!.lineItems.filter((li) => li.kind === "fee");
-    expect(fees).toHaveLength(3);
+  it("scenario 2 — ammo only: 3 line items, totalCents = 15500 ($90 + $25 + $40)", () => {
+    const r = resolveCoursePayment("ar-15-rifle-course", "ar15-base", ["ar15-ammunition-50-rounds"]);
+    expect(r).not.toBeNull();
+    expect(r!.optionalAddonsCents).toBe(4_000);
+    expect(r!.totalCents).toBe(15_500);
+    expect(r!.lineItems).toHaveLength(3);
+    expect(r!.appliedOptionalAddonIds).toContain("ar15-ammunition-50-rounds");
+  });
+
+  it("scenario 3 — rental only: 3 line items, totalCents = 15000 ($90 + $25 + $35)", () => {
+    const r = resolveCoursePayment("ar-15-rifle-course", "ar15-base", ["ar15-rental"]);
+    expect(r).not.toBeNull();
+    expect(r!.optionalAddonsCents).toBe(3_500);
+    expect(r!.totalCents).toBe(15_000);
+    expect(r!.lineItems).toHaveLength(3);
+    expect(r!.appliedOptionalAddonIds).toContain("ar15-rental");
+  });
+
+  it("scenario 4 — both add-ons: 4 line items, totalCents = 19000 ($90 + $25 + $40 + $35)", () => {
+    const r = resolveCoursePayment("ar-15-rifle-course", "ar15-base", ["ar15-ammunition-50-rounds", "ar15-rental"]);
+    expect(r).not.toBeNull();
+    expect(r!.optionalAddonsCents).toBe(7_500);
+    expect(r!.totalCents).toBe(19_000);
+    expect(r!.lineItems).toHaveLength(4);
+    expect(r!.appliedOptionalAddonIds.sort()).toEqual(["ar15-ammunition-50-rounds", "ar15-rental"].sort());
+  });
+
+  it("scenario 5 — unknown add-on id: returns null (strict rejection)", () => {
+    const r = resolveCoursePayment("ar-15-rifle-course", "ar15-base", ["unknown-bogus-addon"]);
+    expect(r).toBeNull();
   });
 });
 
-// ── Shotgun Course — required: range $25, ammo $35, rental $25 ────────────
+// ── Shotgun Course — optional ammo ($35) and rental ($25) ─────────────────
 
-describe("shotgun-course — required fees (no handgun add-ons)", () => {
+describe("shotgun-course — optional add-ons (ammo and rental)", () => {
   const course = getCourseBySlug("shotgun-course");
 
   it("exists in the catalog", () => {
@@ -256,53 +275,72 @@ describe("shotgun-course — required fees (no handgun add-ons)", () => {
     expect(opt!.price).toBe(75);
   });
 
-  it("has range fee as required fee at $25", () => {
-    const fee = (course!.requiredFees ?? []).find((f) => f.id === "range-fee");
-    expect(fee).toBeDefined();
-    expect(fee!.price).toBe(25);
-    expect(fee!.required).toBe(true);
-    expect(fee!.locked).toBe(true);
+  it("requiredFees contains only the range-fee ($25)", () => {
+    const fees = course!.requiredFees ?? [];
+    expect(fees).toHaveLength(1);
+    const rangeFee = fees.find((f) => f.id === "range-fee");
+    expect(rangeFee).toBeDefined();
+    expect(rangeFee!.price).toBe(25);
+    expect(rangeFee!.required).toBe(true);
+    expect(rangeFee!.locked).toBe(true);
   });
 
-  it("has ammo as required fee at $35", () => {
-    const fee = (course!.requiredFees ?? []).find((f) => f.id === "ammo-package");
-    expect(fee).toBeDefined();
-    expect(fee!.price).toBe(35);
-    expect(fee!.required).toBe(true);
-    expect(fee!.locked).toBe(true);
+  it("optionalAddOns contains shotgun-ammunition-50-rounds ($35) unchecked by default", () => {
+    const addon = (course!.optionalAddOns ?? []).find((a) => a.id === "shotgun-ammunition-50-rounds");
+    expect(addon).toBeDefined();
+    expect(addon!.price).toBe(35);
+    expect(addon!.required).toBe(false);
+    expect(addon!.locked).toBe(false);
   });
 
-  it("has shotgun rental as required fee at $25", () => {
-    const fee = (course!.requiredFees ?? []).find((f) => f.id === "shotgun-rental");
-    expect(fee).toBeDefined();
-    expect(fee!.price).toBe(25);
-    expect(fee!.required).toBe(true);
-    expect(fee!.locked).toBe(true);
+  it("optionalAddOns contains shotgun-rental ($25) unchecked by default", () => {
+    const addon = (course!.optionalAddOns ?? []).find((a) => a.id === "shotgun-rental");
+    expect(addon).toBeDefined();
+    expect(addon!.price).toBe(25);
+    expect(addon!.required).toBe(false);
+    expect(addon!.locked).toBe(false);
   });
 
-  it("has no optional add-ons (no handgun add-ons)", () => {
-    expect((course!.optionalAddOns ?? []).length).toBe(0);
-  });
-
-  it("does not have handgun rental add-on (firearm-rental)", () => {
-    const addon = (course!.optionalAddOns ?? []).find((a) => a.id === "firearm-rental");
-    expect(addon).toBeUndefined();
-  });
-
-  it("resolveCoursePayment: requiredFeesCents = 8500 ($25 + $35 + $25)", () => {
+  it("scenario 1 — no add-ons: 2 line items, totalCents = 10000 ($75 + $25)", () => {
     const r = resolveCoursePayment("shotgun-course", "shotgun-base", []);
-    expect(r!.requiredFeesCents).toBe(8_500);
-  });
-
-  it("resolveCoursePayment: totalCents = 16000 ($75 + $25 + $35 + $25)", () => {
-    const r = resolveCoursePayment("shotgun-course", "shotgun-base", []);
+    expect(r).not.toBeNull();
     expect(r!.baseCents).toBe(7_500);
-    expect(r!.totalCents).toBe(16_000);
+    expect(r!.requiredFeesCents).toBe(2_500);
+    expect(r!.optionalAddonsCents).toBe(0);
+    expect(r!.totalCents).toBe(10_000);
+    expect(r!.lineItems).toHaveLength(2);
+    expect(r!.lineItems.filter((li) => li.kind === "fee")).toHaveLength(1);
   });
 
-  it("three required fee line items are present", () => {
-    const r = resolveCoursePayment("shotgun-course", "shotgun-base", []);
-    const fees = r!.lineItems.filter((li) => li.kind === "fee");
-    expect(fees).toHaveLength(3);
+  it("scenario 2 — ammo only: 3 line items, totalCents = 13500 ($75 + $25 + $35)", () => {
+    const r = resolveCoursePayment("shotgun-course", "shotgun-base", ["shotgun-ammunition-50-rounds"]);
+    expect(r).not.toBeNull();
+    expect(r!.optionalAddonsCents).toBe(3_500);
+    expect(r!.totalCents).toBe(13_500);
+    expect(r!.lineItems).toHaveLength(3);
+    expect(r!.appliedOptionalAddonIds).toContain("shotgun-ammunition-50-rounds");
+  });
+
+  it("scenario 3 — rental only: 3 line items, totalCents = 12500 ($75 + $25 + $25)", () => {
+    const r = resolveCoursePayment("shotgun-course", "shotgun-base", ["shotgun-rental"]);
+    expect(r).not.toBeNull();
+    expect(r!.optionalAddonsCents).toBe(2_500);
+    expect(r!.totalCents).toBe(12_500);
+    expect(r!.lineItems).toHaveLength(3);
+    expect(r!.appliedOptionalAddonIds).toContain("shotgun-rental");
+  });
+
+  it("scenario 4 — both add-ons: 4 line items, totalCents = 16000 ($75 + $25 + $35 + $25)", () => {
+    const r = resolveCoursePayment("shotgun-course", "shotgun-base", ["shotgun-ammunition-50-rounds", "shotgun-rental"]);
+    expect(r).not.toBeNull();
+    expect(r!.optionalAddonsCents).toBe(6_000);
+    expect(r!.totalCents).toBe(16_000);
+    expect(r!.lineItems).toHaveLength(4);
+    expect(r!.appliedOptionalAddonIds.sort()).toEqual(["shotgun-ammunition-50-rounds", "shotgun-rental"].sort());
+  });
+
+  it("scenario 5 — unknown add-on id: returns null (strict rejection)", () => {
+    const r = resolveCoursePayment("shotgun-course", "shotgun-base", ["unknown-bogus-addon"]);
+    expect(r).toBeNull();
   });
 });
