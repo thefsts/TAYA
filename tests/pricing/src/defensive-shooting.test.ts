@@ -507,8 +507,9 @@ describe("POST /api/square/create-order — armed-first-responder", () => {
 
 // ── 7. ar-15-rifle-course — Square mock integration ───────────────────────
 //
-// Base: $90 + range fee $25 = $115 (11 500 cents)
-// Optional add-ons: ammo-package ($40), ar15-rental ($35)
+// Base: $90 + required fees: range $25 + ammo $40 + rifle rental $35 = $190 (19 000 cents)
+// ammo-package and ar15-rental are now required fees, not optional add-ons.
+// No handgun add-ons apply to this course.
 
 describe("POST /api/square/create-order — ar-15-rifle-course", () => {
   beforeEach(() => {
@@ -521,10 +522,10 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
     return { json: async () => body } as unknown as Request;
   }
 
-  it("returns totalCents = 11500 and success=true (base $90 + range fee $25)", async () => {
+  it("returns totalCents = 19000 and success=true (base $90 + range $25 + ammo $40 + rental $35)", async () => {
     vi.mocked(squareFetch).mockResolvedValue({
       ok: true,
-      json: async () => ({ order: { id: "ord_ar15_001", total_money: { amount: 11_500 } } }),
+      json: async () => ({ order: { id: "ord_ar15_001", total_money: { amount: 19_000 } } }),
     } as unknown as Response);
 
     const response = await POST(makeRequest({
@@ -535,11 +536,11 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
     const body = await response.json() as Record<string, unknown>;
 
     expect(body.success).toBe(true);
-    expect(body.totalCents).toBe(11_500);
+    expect(body.totalCents).toBe(19_000);
     expect(body.orderId).toBe("ord_ar15_001");
   });
 
-  it("passes two line items to Square: base course (9000 cents) and range fee (2500 cents)", async () => {
+  it("passes four line items to Square: base course (9000) + range fee (2500) + ammo (4000) + rental (3500)", async () => {
     let capturedPayload: Record<string, unknown> | null = null;
 
     vi.mocked(squareFetch).mockImplementation(async (_path, opts) => {
@@ -558,14 +559,16 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
 
     expect(capturedPayload).not.toBeNull();
     const lineItems = (capturedPayload!.order as { line_items: Array<{ base_price_money: { amount: number } }> }).line_items;
-    expect(lineItems).toHaveLength(2);
+    expect(lineItems).toHaveLength(4);
 
     const amounts = lineItems.map((li) => li.base_price_money.amount);
     expect(amounts).toContain(9_000);
     expect(amounts).toContain(2_500);
+    expect(amounts).toContain(4_000);
+    expect(amounts).toContain(3_500);
   });
 
-  it("adds ammo-package add-on correctly (totalCents = 11500 + 4000 = 15500)", async () => {
+  it("sending ammo-package as add-on ID does NOT change total (it is already a required fee)", async () => {
     vi.mocked(squareFetch).mockResolvedValue({
       ok: true,
       json: async () => ({ order: { id: "ord_ar15_003" } }),
@@ -579,10 +582,10 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
     const body = await response.json() as Record<string, unknown>;
 
     expect(body.success).toBe(true);
-    expect(body.totalCents).toBe(15_500);
+    expect(body.totalCents).toBe(19_000);
   });
 
-  it("adds ar15-rental add-on correctly (totalCents = 11500 + 3500 = 15000)", async () => {
+  it("sending ar15-rental as add-on ID does NOT change total (it is already a required fee)", async () => {
     vi.mocked(squareFetch).mockResolvedValue({
       ok: true,
       json: async () => ({ order: { id: "ord_ar15_004" } }),
@@ -596,10 +599,10 @@ describe("POST /api/square/create-order — ar-15-rifle-course", () => {
     const body = await response.json() as Record<string, unknown>;
 
     expect(body.success).toBe(true);
-    expect(body.totalCents).toBe(15_000);
+    expect(body.totalCents).toBe(19_000);
   });
 
-  it("adds both add-ons correctly (totalCents = 11500 + 4000 + 3500 = 19000)", async () => {
+  it("sending both former add-on IDs still totals 19000 (both are now required fees)", async () => {
     vi.mocked(squareFetch).mockResolvedValue({
       ok: true,
       json: async () => ({ order: { id: "ord_ar15_005" } }),
