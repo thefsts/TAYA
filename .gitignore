@@ -50,3 +50,6 @@ Thumbs.db
 
 # GitHub sync state (written by post-merge hook, not source-controlled)
 .github-sync-state.json
+
+# Corsair Tactical Solutions website source (tracked in thefsts/Corsair-Tactical-Solutions)
+corsair-source/
