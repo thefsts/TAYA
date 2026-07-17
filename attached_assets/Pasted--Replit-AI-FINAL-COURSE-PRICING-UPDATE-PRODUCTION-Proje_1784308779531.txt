@@ -1,0 +1,510 @@
+# Replit AI — FINAL COURSE PRICING UPDATE (PRODUCTION)
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production Website:
+https://www.corsairtacticalsolution.com
+
+This is the **final approved pricing update** from the client. These values replace any previous pricing instructions.
+
+---
+
+# Git Identity
+
+Use the following Git identity for ALL commits.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+---
+
+# IMPORTANT
+
+These pricing changes must be applied consistently across the entire website.
+
+This includes:
+
+- Courses page
+- Individual course pages
+- Events page
+- Event registration
+- Checkout
+- Order Summary
+- Confirmation page
+- Confirmation emails
+- Server-side pricing validation
+- Square order creation
+- Square payment validation
+- Square line items
+
+The website, backend, and Square MUST all match.
+
+---
+
+# APPROVED COURSE PRICING
+
+## Texas License to Carry Certification
+
+No base price changes.
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+Leave current required fees as configured.
+
+---
+
+## Texas LTC / Basic Handgun Combo
+
+No base price changes.
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+Leave current required fees as configured.
+
+---
+
+## Texas LTC Shooting Proficiency
+
+### CHANGE
+
+Course Price
+
+**$75.00**
+
+Required Range Fee
+
+**$25.00**
+
+The range fee is REQUIRED.
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+---
+
+## Basic Handgun (1-on-1)
+
+No base price changes.
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+---
+
+## First Shots Basic Firearm Training
+
+No base price change.
+
+### REMOVE
+
+Required Range Fee
+
+Remove the automatic required $25 range fee.
+
+This class should no longer automatically include a required range fee.
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+---
+
+## Introduction to Firearms
+
+### UPDATE
+
+Add an Individual Rate
+
+**$50.00**
+
+Also include:
+
+Required Range Fee
+
+**$25.00**
+
+The range fee is REQUIRED.
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+---
+
+## Defensive Shooting
+
+### UPDATE
+
+Course Price
+
+**$150.00**
+
+Gun Rental
+
+$12.99
+
+Ammunition Purchase (50 Rounds)
+
+$14.00
+
+Leave existing required fees unchanged unless already configured differently.
+
+---
+
+## Continuing Education
+
+### UPDATE
+
+Course Price
+
+**$75.00**
+
+Range Fee
+
+**$25.00**
+
+IMPORTANT
+
+The range fee is **NOT REQUIRED**.
+
+This is the ONLY course that should allow the customer to decide whether they need range time.
+
+Display as an OPTIONAL selection.
+
+Reason:
+
+Some students only need classroom instruction and will not require range time.
+
+Checkout should display:
+
+☐ Add Range Time — $25.00
+
+Only add this fee if selected.
+
+---
+
+## AR-15 Rifle Course
+
+### UPDATE
+
+Course Price
+
+**$90.00**
+
+Required Range Fee
+
+**$25.00**
+
+Required Ammunition
+
+50 Rounds
+
+**$40.00**
+
+AR-15 Rental
+
+**$35.00**
+
+The range fee is REQUIRED.
+
+Do NOT use handgun pricing for this course.
+
+---
+
+## Shotgun Course
+
+### UPDATE
+
+Course Price
+
+**$75.00**
+
+Required Range Fee
+
+**$25.00**
+
+Required Ammunition
+
+50 Rounds
+
+**$35.00**
+
+Shotgun Rental
+
+**$25.00**
+
+The range fee is REQUIRED.
+
+Do NOT use handgun pricing for this course.
+
+---
+
+# HANDGUN STANDARD ADD-ON PRICING
+
+For every applicable handgun course (except where noted above):
+
+Gun Rental
+
+**$12.99**
+
+Ammunition Purchase (50 Rounds)
+
+**$14.00**
+
+These values are the standard handgun pricing.
+
+---
+
+# COURSE LOGIC
+
+## Handgun Classes
+
+Standard:
+
+Gun Rental
+
+$12.99
+
+Ammo
+
+$14.00
+
+Apply to all eligible handgun courses.
+
+---
+
+## Rifle Classes
+
+Use ONLY rifle pricing.
+
+Do not inherit handgun pricing.
+
+---
+
+## Shotgun Classes
+
+Use ONLY shotgun pricing.
+
+Do not inherit handgun pricing.
+
+---
+
+# EVENTS
+
+If an Event is tied to one of these courses:
+
+Use the exact same pricing rules.
+
+Events must never have different pricing than the associated course.
+
+---
+
+# SQUARE
+
+Update every applicable Square integration.
+
+Verify:
+
+- Order creation
+- Payment creation
+- Checkout totals
+- Line items
+- Server validation
+- Confirmation emails
+
+Square line items must remain itemized.
+
+Example:
+
+Texas LTC Shooting Proficiency
+
+Required Range Fee
+
+Gun Rental
+
+Ammunition Purchase
+
+Each should appear as its own line item.
+
+---
+
+# SERVER VALIDATION
+
+Do not trust frontend pricing.
+
+The server must determine:
+
+- Base Course Price
+- Required Fees
+- Optional Fees
+- Rental Costs
+- Ammunition Costs
+
+Reject modified pricing coming from the browser.
+
+---
+
+# REQUIRED QA
+
+Verify the following on the LIVE website after deployment.
+
+## Texas LTC Shooting Proficiency
+
+✅ $75 course
+
+✅ Required $25 range fee
+
+---
+
+## Continuing Education
+
+✅ $75 course
+
+✅ Optional $25 range fee
+
+Not automatic.
+
+---
+
+## First Shots
+
+✅ Required range fee removed
+
+---
+
+## Introduction to Firearms
+
+✅ Individual Rate $50
+
+✅ Required $25 range fee
+
+---
+
+## Defensive Shooting
+
+✅ $150 course
+
+---
+
+## AR-15 Rifle Course
+
+✅ $90 course
+
+✅ Required $25 range fee
+
+✅ Ammo $40
+
+✅ Rental $35
+
+---
+
+## Shotgun Course
+
+✅ $75 course
+
+✅ Required $25 range fee
+
+✅ Ammo $35
+
+✅ Rental $25
+
+---
+
+## Standard Handgun Courses
+
+✅ Gun Rental $12.99
+
+✅ Ammunition Purchase (50 Rounds) $14.00
+
+---
+
+## Square
+
+Verify:
+
+✅ Line items correct
+
+✅ Totals correct
+
+✅ Checkout correct
+
+✅ Confirmation emails correct
+
+---
+
+# COMPLETION REPORT
+
+Include:
+
+- Files changed
+- Courses updated
+- Events updated
+- Square updates
+- Server validation updates
+- TypeScript results
+- Build results
+- Production deployment URL
+- Live verification results
+- Commit SHA
+
+Do not include secrets or API credentials.
+
+---
+
+# COMMIT
+
+Commit using:
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Suggested commit message:
+
+fix(corsair): finalize approved course pricing and synchronize checkout, events, and Square
