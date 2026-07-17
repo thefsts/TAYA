@@ -145,7 +145,17 @@
 }
 
 .btn-red-glow:hover {
-  box-shadow: 0 4px 16px -4px rgba(196, 30, 58, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(196, 30, 58, 0.5);
+}
+
+.btn-red-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  transform: translateX(-100%) skewX(-15deg);
+  animation: lightSweep 4s ease-in-out infinite;
 }
 
 /* ━━ Text glow for headlines ━━ */
