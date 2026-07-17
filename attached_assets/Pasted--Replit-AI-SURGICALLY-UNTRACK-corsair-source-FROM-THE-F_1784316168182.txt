@@ -1,0 +1,425 @@
+# Replit AI — SURGICALLY UNTRACK `corsair-source/` FROM THE FSTS DASHBOARD REPOSITORY
+
+## Priority
+
+URGENT REPOSITORY HYGIENE FIX
+
+The directory:
+
+```text
+corsair-source/
+```
+
+contains the full Corsair Tactical Solutions website and is currently tracked by the FSTS Dashboard repository.
+
+This causes Corsair pricing, course, event, content, and Square changes to appear inside Dashboard commits.
+
+The actual Corsair repository pushes are already going correctly to:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+The problem is local Git tracking inside the FSTS Dashboard workspace.
+
+---
+
+# Correct Objective
+
+Stop tracking:
+
+```text
+corsair-source/
+```
+
+in the FSTS Dashboard repository while:
+
+- Keeping all local `corsair-source/` files intact
+- Adding the directory to `.gitignore`
+- Not rewriting Git history
+- Not force-pushing
+- Not deleting either GitHub repository
+- Not deleting the local Corsair source
+- Not changing the Corsair repository
+- Not reverting legitimate Dashboard work
+
+Important clarification:
+
+This task stops `corsair-source/` from appearing in future Dashboard commits. It does not remove the directory from older existing commits, because rewriting history is explicitly prohibited.
+
+---
+
+# Git Identity
+
+Use this identity for the corrective Dashboard commit:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+Expected:
+
+```text
+thefsts
+amorebey@gmail.com
+```
+
+---
+
+# Repository Safety Check
+
+Before making changes, confirm this is the FSTS Dashboard repository.
+
+Run:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+git status --short
+git log -5 --oneline --decorate
+```
+
+The origin should be the Dashboard repository:
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Do not perform this task inside:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+If the current repository is not the FSTS Dashboard repository, stop and report the mismatch.
+
+---
+
+# Preserve Local Files
+
+Before changing Git tracking, verify the directory exists:
+
+```bash
+test -d corsair-source
+```
+
+Optionally record a local file count for verification:
+
+```bash
+find corsair-source -type f | wc -l
+```
+
+Do not move, rename, or delete the directory.
+
+Do not run:
+
+```bash
+rm -rf corsair-source
+```
+
+Do not use a plain:
+
+```bash
+git rm -r corsair-source
+```
+
+because that would delete the local working files.
+
+---
+
+# Add `corsair-source/` to `.gitignore`
+
+Inspect the current ignore file:
+
+```bash
+grep -n "^corsair-source/$" .gitignore || true
+```
+
+Add this exact entry if it is not already present:
+
+```gitignore
+# Corsair Tactical Solutions website is maintained in its own repository
+corsair-source/
+```
+
+Do not use an overly broad rule that might ignore unrelated Dashboard source directories.
+
+---
+
+# Remove the Directory From the Dashboard Git Index Only
+
+Run:
+
+```bash
+git rm -r --cached -- corsair-source/
+```
+
+The `--cached` flag is required.
+
+This removes the files from the Dashboard repository index while preserving them locally.
+
+If Git reports pathspec issues, first verify which files are tracked:
+
+```bash
+git ls-files corsair-source/
+```
+
+Then retry only after confirming the current repository and path.
+
+Do not delete the local files.
+
+---
+
+# Verify the Local Directory Still Exists
+
+Immediately after running `git rm --cached`, confirm:
+
+```bash
+test -d corsair-source
+find corsair-source -type f | wc -l
+```
+
+Also inspect a few files:
+
+```bash
+find corsair-source -maxdepth 2 -type f | head -20
+```
+
+The files must still be present on disk.
+
+---
+
+# Verify Git No Longer Tracks the Directory
+
+Run:
+
+```bash
+git ls-files corsair-source/
+```
+
+Expected result:
+
+```text
+No output
+```
+
+Confirm Git now ignores the directory:
+
+```bash
+git check-ignore -v corsair-source/
+```
+
+Expected result should reference the new `.gitignore` rule.
+
+Also run:
+
+```bash
+git status --short
+```
+
+It is expected that Git will show many staged deletions under `corsair-source/`.
+
+Those are index removals only. The local files must remain on disk.
+
+The `.gitignore` update should also appear in the staged or unstaged changes.
+
+---
+
+# Stage the `.gitignore` Change
+
+Run:
+
+```bash
+git add .gitignore
+```
+
+Review the staged diff carefully:
+
+```bash
+git diff --cached --stat
+git diff --cached -- .gitignore
+git diff --cached --name-status
+```
+
+The staged change should include:
+
+- `.gitignore` modified
+- `corsair-source/**` removed from the Dashboard repository index
+
+It must not include unrelated Dashboard modifications.
+
+If unrelated changes are staged, unstage them before proceeding.
+
+---
+
+# Do Not Rewrite Existing History
+
+Do not use:
+
+```bash
+git filter-repo
+git filter-branch
+bfg
+git rebase --root
+git reset --hard
+git push --force
+git push --force-with-lease
+```
+
+Do not amend or rewrite previously published commits.
+
+The historical commits containing `corsair-source/` will remain in Git history.
+
+That is acceptable and required by the instruction not to touch repository history.
+
+This corrective commit only removes the directory from the current branch going forward.
+
+---
+
+# Commit the Surgical Fix
+
+Suggested commit message:
+
+```text
+chore(dashboard): stop tracking Corsair website source
+```
+
+Commit:
+
+```bash
+git commit -m "chore(dashboard): stop tracking Corsair website source"
+```
+
+Push normally to the current Dashboard branch:
+
+```bash
+git push origin HEAD
+```
+
+Do not force-push.
+
+---
+
+# Post-Commit Verification
+
+After the commit, run:
+
+```bash
+git status
+git log -3 --oneline --decorate
+git ls-files corsair-source/
+git check-ignore -v corsair-source/
+test -d corsair-source
+```
+
+Required results:
+
+- Working tree is clean, excluding any intentional unrelated local changes
+- `git ls-files corsair-source/` returns no files
+- `git check-ignore` confirms `corsair-source/` is ignored
+- The local `corsair-source/` directory still exists
+- No Git history was rewritten
+- The commit was pushed only to the FSTS Dashboard repository
+
+---
+
+# Confirm Corsair Repository Is Unaffected
+
+Do not commit or push anything to the Corsair repository during this task.
+
+Confirm that this fix does not change:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+The Corsair website should continue to be maintained and deployed independently through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+The Dashboard should continue deploying independently through its own Vercel project.
+
+---
+
+# Optional Local Architecture Note
+
+Add a short comment to the Dashboard README or developer documentation only if appropriate:
+
+```text
+The local corsair-source/ directory is an untracked working copy of the
+Corsair Tactical Solutions website. It is maintained in the separate
+thefsts/Corsair-Tactical-Solutions repository and must never be committed
+to the FSTS Dashboard repository.
+```
+
+Do not add the Corsair source as a Git submodule unless explicitly approved later.
+
+---
+
+# Acceptance Criteria
+
+This task is complete only when:
+
+✅ `corsair-source/` remains present locally
+
+✅ `corsair-source/` is listed in `.gitignore`
+
+✅ `git ls-files corsair-source/` returns no results
+
+✅ Future Corsair edits do not appear in Dashboard `git status`
+
+✅ No existing Git history was rewritten
+
+✅ No force-push occurred
+
+✅ No files were deleted from the local Corsair workspace
+
+✅ No changes were made to the Corsair GitHub repository
+
+✅ The corrective commit was pushed only to the FSTS Dashboard repository
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository root:
+Origin URL:
+Branch:
+.gitignore rule added:
+Tracked Corsair files before:
+Tracked Corsair files after:
+Local corsair-source directory still present:
+Unrelated files changed:
+Commit SHA:
+Push result:
+```
+
+Also confirm explicitly:
+
+```text
+No Git history was rewritten.
+No force-push was used.
+No local Corsair files were deleted.
+The Corsair repository was not modified.
+```
+
+Do not include tokens, credentials, environment values, or private keys.
