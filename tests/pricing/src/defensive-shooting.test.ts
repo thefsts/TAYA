@@ -714,6 +714,23 @@ describe("POST /api/square/create-order — shotgun-course", () => {
     expect(body.totalCents).toBe(12_500);
   });
 
+  it("adds both add-ons correctly — totalCents = 16000, 4 line items ($75 + $25 + $35 + $25)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_sg_005" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "shotgun-course",
+      pricingOptionId: "shotgun-base",
+      addOnIds: ["shotgun-ammunition-50-rounds", "shotgun-rental"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(16_000);
+  });
+
   it("returns HTTP 400 when a completely unknown add-on ID is sent (strict rejection)", async () => {
     const response = await POST(makeRequest({
       courseSlug: "shotgun-course",
