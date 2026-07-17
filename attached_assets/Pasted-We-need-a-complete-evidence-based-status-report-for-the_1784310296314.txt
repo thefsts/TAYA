@@ -1,0 +1,393 @@
+We need a complete, evidence-based status report for the FSTS Website Operating System™ before we connect or add another website.
+
+Repository:
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+
+You are the Lead Developer and implementation engineer. ChatGPT is acting as Project Manager.
+
+Do not begin new feature development yet. Do not make broad refactors, move files, delete files, or commit changes as part of this request unless an isolated change is absolutely necessary to run the audit. First inspect the entire current project and report exactly where we stand.
+
+## Primary question
+
+Is the FSTS-WOS platform currently ready to onboard and manage a second client website safely, without exposing one tenant’s data, branding, content, settings, integrations, or code to another tenant?
+
+Answer this with one of:
+
+* READY
+* READY WITH CONDITIONS
+* NOT READY
+
+Explain the evidence behind the determination.
+
+## 1. Repository and architecture audit
+
+Inspect the entire repository and report:
+
+* Current branch and latest commit
+* Git working-tree status
+* Monorepo/workspace structure
+* Every application and package in the repository
+* Which folders belong to the reusable FSTS-WOS platform
+* Which folders contain Corsair-specific website code, assets, content, tests, pricing, branding, or business logic
+* Whether any client website source code is currently embedded in this platform repository
+* Whether repository boundaries match the official project rules
+
+The official rule is:
+
+The FSTS-WOS repository owns the reusable SaaS dashboard and platform. It must not own Corsair pages, branding, images, layouts, website components, course pricing, booking content, or any other client-specific website source code.
+
+Recent commits appear to include Corsair pricing and `tests/corsair-e2e`. Investigate this directly and identify every boundary violation. Do not conceal or minimize it.
+
+## 2. Platform runtime status
+
+Report the current status of:
+
+* Dashboard frontend
+* API/server application
+* Convex backend
+* Clerk authentication
+* Role-based access control
+* Tenant resolution
+* Tenant switching
+* User-to-tenant membership
+* Website records
+* Domain mapping
+* Environment-variable management
+* Vercel deployment
+* Production deployment
+* Preview deployment
+* Error monitoring
+* Logging
+* Backups
+* Version history
+* Activity/audit logs
+
+For each item use:
+
+* COMPLETE
+* PARTIAL
+* PLACEHOLDER
+* BROKEN
+* NOT STARTED
+* UNKNOWN
+
+Include the relevant file paths and explain what actually works.
+
+## 3. Multi-tenant safety audit
+
+Inspect the Convex schema, queries, mutations, actions, APIs, authentication middleware, and frontend data-loading paths.
+
+Verify whether every tenant-owned record has a reliable tenant or website identifier.
+
+Check specifically for:
+
+* Queries that return records without tenant filtering
+* Mutations that accept a tenant ID without verifying user access
+* Global singleton settings
+* Hardcoded Corsair IDs, slugs, domains, names, content, prices, or defaults
+* Shared storage paths that could mix tenant assets
+* Shared cache keys
+* Global environment variables being used for tenant-specific secrets
+* APIs that trust client-provided tenant IDs
+* Missing ownership checks
+* Cross-tenant data exposure risks
+* Super-admin versus client-admin permission boundaries
+
+List every relevant table and state how tenant isolation is enforced.
+
+Do not simply say “multi-tenant supported.” Prove it using actual schema and code paths.
+
+## 4. Website onboarding readiness
+
+Trace the complete process that would be required to add a second website today.
+
+Report whether the platform currently supports:
+
+* Creating a tenant
+* Creating a website
+* Assigning a website to a tenant
+* Adding users to the tenant
+* Assigning roles
+* Connecting a domain
+* Connecting a website repository
+* Connecting a Vercel project
+* Configuring Convex
+* Configuring Clerk
+* Adding tenant-specific integrations
+* Adding tenant-specific secrets
+* Creating default CMS records
+* Uploading media
+* Selecting branding or a theme
+* Connecting forms
+* Connecting email
+* Connecting payments
+* Connecting analytics
+* Publishing content
+* Previewing changes
+* Rolling back changes
+* Removing or suspending a website
+
+Describe which steps are automated, manual, incomplete, or nonexistent.
+
+Then provide the exact steps we would have to follow to onboard a second website with the code as it exists now.
+
+## 5. CMS pipeline status
+
+Audit every CMS module and show whether its full pipeline works:
+
+Dashboard editor
+→ validation
+→ Convex mutation
+→ tenant-scoped storage
+→ API/query
+→ client website consumption
+→ preview
+→ published production result
+
+Audit:
+
+* Homepage Editor
+* Courses Manager
+* Events Manager
+* Articles Manager
+* FAQ Manager
+* Testimonials Manager
+* Footer Manager
+* Contact Manager
+* SEO Manager
+* Forms Builder™
+* Media Library
+
+For each module report:
+
+* UI status
+* Backend status
+* Tenant isolation status
+* Draft/publish support
+* Client consumption mechanism
+* Validation
+* Error handling
+* Test coverage
+* Known defects
+* Production readiness
+
+## 6. Version 1.0 priority features
+
+Provide an honest status report for:
+
+* Website Health Command Center™
+* Smart Image Manager™
+* Responsive Preview Studio™
+* AI Dashboard Assistant™
+* Payment Connector Framework™
+* Membership Portal™
+* Client Portal™
+* LMS™
+* Compliance Center™
+* Business Intelligence Dashboard™
+* Automation Marketplace™
+* Reviews Display Integration
+* Operon Connector™
+* Version History
+* Activity Logs
+* Backups
+* Site Provisioning Wizard
+* Multi-Website Management
+* White-Label Platform
+
+Clearly distinguish functional implementations from UI shells, mock data, placeholders, or planned features.
+
+## 7. Payment architecture audit
+
+Inspect the Payment Connector Framework™ and report:
+
+* Supported payment providers
+* Whether provider credentials are tenant-scoped
+* Whether payment logic is reusable or Corsair-specific
+* Whether course pricing is incorrectly stored in the platform repository
+* Checkout creation flow
+* Webhook handling
+* Idempotency
+* Payment status reconciliation
+* Refund support
+* Audit logging
+* Test versus live mode separation
+* Cross-tenant security
+* Current tests
+
+Identify everything that must be completed before another tenant can safely accept payments.
+
+## 8. Testing and build verification
+
+Run the appropriate non-destructive verification commands.
+
+At minimum report:
+
+* Install/dependency status
+* TypeScript/typecheck
+* Lint
+* Unit tests
+* Integration tests
+* End-to-end tests
+* Production build
+* Convex code generation or validation
+* Security-related tests
+* Tenant-isolation tests
+
+Do not report only “tests passed.” Include:
+
+* Exact command
+* Result
+* Number of tests passed, failed, and skipped
+* Failure summaries
+* Whether tests exercise the platform or only Corsair behavior
+* Missing critical test coverage
+
+If a command cannot run because credentials or services are unavailable, state that clearly.
+
+## 9. Deployment and environment audit
+
+Inspect the current Vercel and Convex configuration that is visible from the project.
+
+Report:
+
+* Applications intended for deployment
+* Expected Vercel projects
+* Build and output settings
+* Required environment variables
+* Variables that are missing
+* Variables that are global but should be tenant-scoped
+* Development, preview, and production separation
+* Domain setup
+* Deployment health
+* Known production errors
+* Whether adding a new website requires modifying the dashboard deployment
+
+Do not expose secret values. Report variable names and configuration status only.
+
+## 10. Security audit
+
+Check for:
+
+* Secrets committed to Git
+* Missing authorization checks
+* Client-controlled tenant IDs
+* Insecure direct object references
+* Public mutations or actions
+* Overly broad admin access
+* Missing webhook verification
+* Unsafe file uploads
+* Missing MIME/type validation
+* Missing size limits
+* Cross-site scripting risks in CMS content
+* Unsanitized HTML
+* Missing rate limiting
+* Missing audit events
+* Dependency vulnerabilities
+* Cross-tenant media access
+
+Rank findings:
+
+* CRITICAL
+* HIGH
+* MEDIUM
+* LOW
+
+## 11. Technical debt and defects
+
+List all known:
+
+* Broken features
+* Incomplete implementations
+* Placeholder screens
+* Mock data
+* Dead code
+* Duplicate systems
+* Hardcoded tenant logic
+* Hardcoded Corsair logic
+* Schema inconsistencies
+* Naming inconsistencies
+* Build warnings
+* Type errors
+* Failing tests
+* Deployment blockers
+* Security risks
+
+Include file paths and recommended corrective action.
+
+## 12. Required separation plan
+
+Because client websites must consume the platform without living inside it, propose a safe separation plan for any Corsair website code currently stored in this repository.
+
+The plan must identify:
+
+* What should remain in FSTS-WOS
+* What should move to the Corsair website repository
+* Shared contracts that should replace direct source imports
+* APIs or SDKs the client website should consume
+* Migration order
+* Risk controls
+* Tests required before and after separation
+* How to preserve production behavior
+* Whether Git history or secrets require cleanup
+
+Do not perform this separation until the Project Manager approves the plan.
+
+## 13. Blockers before adding another website
+
+Create three lists:
+
+### Must fix before onboarding
+
+Items that could cause data leakage, broken onboarding, security failures, deployment conflicts, or tenant contamination.
+
+### Should fix during onboarding
+
+Important items that do not prevent a controlled onboarding.
+
+### Can wait until after onboarding
+
+Noncritical enhancements.
+
+## 14. Recommended implementation plan
+
+Provide an ordered plan with:
+
+* Phase
+* Task
+* Dependencies
+* Expected code areas
+* Acceptance criteria
+* Tests required
+* Risk level
+
+The first phase must establish clean repository boundaries and prove tenant isolation.
+
+## Required response format
+
+Return the report in this exact order:
+
+1. Executive Summary
+2. Readiness Decision
+3. Repository Structure
+4. Repository Boundary Violations
+5. Architecture Status
+6. Multi-Tenant Safety
+7. Website Onboarding Workflow
+8. CMS Pipeline Matrix
+9. Version 1.0 Feature Matrix
+10. Payment Framework
+11. Test and Build Results
+12. Deployment and Environment Status
+13. Security Findings
+14. Technical Debt and Defects
+15. Client-Code Separation Plan
+16. Onboarding Blockers
+17. Prioritized Implementation Plan
+18. Exact Recommended Next Task
+
+Include file paths, commands, test results, commit references, and direct evidence throughout the report.
+
+Do not respond with a general summary. Do not claim completion based only on screens being present. Inspect actual implementations.
+
+Do not begin onboarding a new website until this audit is reviewed and approved.
