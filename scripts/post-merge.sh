@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# ── Corsair guard ─────────────────────────────────────────────────────────────
+# Fail fast if corsair-source/ files somehow got tracked by git.
+bash "$(dirname "$0")/check-corsair-guard.sh"
+
+# ── Install git hooks ─────────────────────────────────────────────────────────
+# Keep the pre-commit hook current after every merge.
+bash "$(dirname "$0")/install-hooks.sh"
+
 # ── Git commit identity ───────────────────────────────────────────────────────
 # Enforced unconditionally on every merge so all commits carry the correct
 # author regardless of the local git config state.

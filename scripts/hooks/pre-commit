@@ -1,0 +1,16 @@
+#!/bin/sh
+# Guard: reject any staged file under corsair-source/
+staged=$(git diff --cached --name-only | grep '^corsair-source/')
+if [ -n "$staged" ]; then
+  echo ""
+  echo "✗ pre-commit: corsair-source/ files are staged for commit."
+  echo "  These files must never be committed to this repository."
+  echo ""
+  echo "  Staged files:"
+  echo "$staged" | sed 's/^/    /'
+  echo ""
+  echo "  To unstage them:  git reset HEAD corsair-source/"
+  echo "  To stop tracking: git rm -r --cached corsair-source/"
+  echo ""
+  exit 1
+fi

@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "prepare": "bash scripts/install-hooks.sh",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
@@ -17,7 +18,8 @@
     "test:e2e": "pnpm --filter @workspace/e2e run test",
     "test:e2e:report": "pnpm --filter @workspace/e2e run test:report",
     "test:corsair-e2e": "pnpm --filter @workspace/corsair-e2e run test",
-    "test:corsair-e2e:report": "pnpm --filter @workspace/corsair-e2e run test:report"
+    "test:corsair-e2e:report": "pnpm --filter @workspace/corsair-e2e run test:report",
+    "test:corsair-guard": "bash scripts/check-corsair-guard.sh"
   },
   "packageManager": "pnpm@10.26.1",
   "private": true,
