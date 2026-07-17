@@ -15,7 +15,9 @@
     "test:pricing": "pnpm --filter @workspace/pricing-tests run test",
     "test:convex-unit": "pnpm --filter @workspace/convex-unit run test",
     "test:e2e": "pnpm --filter @workspace/e2e run test",
-    "test:e2e:report": "pnpm --filter @workspace/e2e run test:report"
+    "test:e2e:report": "pnpm --filter @workspace/e2e run test:report",
+    "test:corsair-e2e": "pnpm --filter @workspace/corsair-e2e run test",
+    "test:corsair-e2e:report": "pnpm --filter @workspace/corsair-e2e run test:report"
   },
   "packageManager": "pnpm@10.26.1",
   "private": true,

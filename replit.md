@@ -17,6 +17,8 @@ A multi-tenant client dashboard for managing site settings, integrations, and no
 - `pnpm run test:visual:report` — generate `tests/visual-regression/visual-diff-report.html` from the last failed test run (before/after/diff thumbnails)
 - `pnpm run test:e2e` — run Playwright E2E tests (requires the fsts-dashboard workflow to be running + `CLERK_SECRET_KEY` and `CONVEX_DEPLOY_KEY` env vars)
 - `pnpm run test:e2e:report` — open the last E2E test HTML report
+- `pnpm run test:corsair-e2e` — run Corsair website Playwright tests (auto-starts Next.js dev server; no auth required; covers booking panel pricing assertions)
+- `pnpm run test:corsair-e2e:report` — open the last Corsair E2E test HTML report
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
