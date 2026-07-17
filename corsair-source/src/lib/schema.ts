@@ -5,6 +5,7 @@ const SAME_AS = [
   'https://www.instagram.com/corsairtacticalsolution?igsh=MTd1MmhkZzZtaWh2MQ==',
   'https://www.facebook.com/share/17iPFcVg7j/',
   'https://www.tiktok.com/@stevehopwood0',
+  'https://youtube.com/@corsairtacticalsolutions9474?si=4ds7s4wshyFwg4fe',
 ];
 
 /**
