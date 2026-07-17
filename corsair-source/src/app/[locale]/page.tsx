@@ -257,7 +257,7 @@ export default async function HomePage({
                 href="https://www.corsairtacticalsolution.com/courses"
                 className="btn-navy-approved"
               >
-                View All Courses
+                {t('coursesSection.viewAllCourses')}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
