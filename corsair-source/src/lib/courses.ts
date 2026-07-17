@@ -357,7 +357,7 @@ export const courses: Record<string, Course> = {
     imageAlt: 'Handgun target qualification at the range for LTC proficiency',
     duration: '1\u20132 hrs',
     level: 'Beginner',
-    price: 'From $70',
+    price: 'From $75',
     keyPoints: [
       'Live-fire LTC qualification only',
       'Certified LTC instructor signs off',
@@ -391,7 +391,7 @@ export const courses: Record<string, Course> = {
       {
         id: 'ltc-prof',
         name: 'LTC Shooting Proficiency',
-        price: 70,
+        price: 75,
         description: 'Live-fire qualification with instructor sign-off',
         popular: true,
       },
@@ -528,9 +528,6 @@ export const courses: Record<string, Course> = {
         popular: true,
       },
     ],
-    requiredFees: [
-      { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
-    ],
     optionalAddOns: [
       { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun for the session' },
       { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
@@ -584,6 +581,12 @@ export const courses: Record<string, Course> = {
         price: 50,
         description: 'Small group instruction with range time',
         popular: true,
+      },
+      {
+        id: 'intro-individual',
+        name: 'Individual Session',
+        price: 50,
+        description: 'One-on-one session with personalized instruction',
       },
     ],
     requiredFees: [
@@ -655,6 +658,65 @@ export const courses: Record<string, Course> = {
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
     ],
     optionalAddOns: [
+      { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
+      { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the session' },
+    ],
+  },
+
+  'continuing-education': {
+    slug: 'continuing-education',
+    category: 'Defensive & Scenario-Based Training',
+    categoryTags: ['Defensive', 'Beginner'],
+    title: 'Continuing Education',
+    tagline: 'Keep Your Skills Sharp. Stay Current.',
+    description:
+      'Ongoing skills refresher and continuing education for shooters who want to maintain and build on their existing training. Covers fundamentals review, new techniques, and updated defensive concepts.',
+    longDescription:
+      'Continuing Education is designed for students who have completed prior training and want to keep their skills current. Sessions cover fundamentals review, updated defensive techniques, and practical drills to reinforce muscle memory. Ideal for LTC holders, defensive shooting students, and anyone committed to ongoing firearm proficiency.',
+    image: '/images/corsair-real/defensive-shooting-skills-01.jpg',
+    imageAlt: 'Continuing education firearms training at the range',
+    duration: '2\u20134 hrs',
+    level: 'Intermediate',
+    price: 'From $75',
+    keyPoints: [
+      'Fundamentals review and refresher',
+      'Updated defensive techniques',
+      'Practical range drills',
+      'Ongoing skills maintenance',
+    ],
+    whatYouLearn: [
+      'Firearms fundamentals refresher',
+      'Updated defensive shooting techniques',
+      'Practical drills for muscle memory',
+      'Situational awareness and mindset review',
+    ],
+    whoIsItFor: [
+      'LTC holders maintaining proficiency',
+      'Students of prior Corsair courses',
+      'Anyone committed to ongoing firearms education',
+    ],
+    prerequisites: [
+      'Previous handgun training or equivalent experience',
+      'Must be 18 years or older',
+    ],
+    whatToBring: [
+      'Valid government-issued ID',
+      'Semi-automatic handgun or revolver',
+      'Eye and ear protection',
+      'Ammunition (or purchase from us)',
+    ],
+    cta: 'Book a Session',
+    pricingOptions: [
+      {
+        id: 'ce-standard',
+        name: 'Continuing Education Session',
+        price: 75,
+        description: 'Skills refresher with range drills',
+        popular: true,
+      },
+    ],
+    optionalAddOns: [
+      { id: 'range-fee', label: 'Add Range Time \u2014 $25.00', price: 25, required: false, locked: false, description: 'Indoor range access for live-fire drills' },
       { id: 'ammo-package', label: 'Ammunition Purchase (50 Rounds)', price: 14, required: false, locked: false, description: '50 rounds of 9mm ammunition' },
       { id: 'firearm-rental', label: 'Gun Rental', price: 12.99, required: false, locked: false, description: 'Handgun rental for the session' },
     ],
@@ -1236,10 +1298,8 @@ export const courses: Record<string, Course> = {
     ],
     requiredFees: [
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
-    ],
-    optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 35, required: false, locked: false, description: '50 rounds of shotgun ammunition' },
-      { id: 'shotgun-rental', label: 'Rent a Shotgun', price: 25, required: false, locked: false, description: 'Shotgun rental for the session' },
+      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 35, required: true, locked: true, description: '50 rounds of shotgun ammunition' },
+      { id: 'shotgun-rental', label: 'Rent a Shotgun', price: 25, required: true, locked: true, description: 'Shotgun rental for the session' },
     ],
   },
 
@@ -1300,10 +1360,8 @@ export const courses: Record<string, Course> = {
     ],
     requiredFees: [
       { id: 'range-fee', label: 'Range Fee', price: 25, required: true, locked: true, description: 'Indoor range access' },
-    ],
-    optionalAddOns: [
-      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 40, required: false, locked: false, description: '50 rounds of AR-15 ammunition' },
-      { id: 'ar15-rental', label: 'Rent an AR-15 Rifle', price: 35, required: false, locked: false, description: 'AR-15 rental for the session' },
+      { id: 'ammo-package', label: '50 Rounds of Ammo', price: 40, required: true, locked: true, description: '50 rounds of AR-15 ammunition' },
+      { id: 'ar15-rental', label: 'Rent an AR-15 Rifle', price: 35, required: true, locked: true, description: 'AR-15 rental for the session' },
     ],
   },
 
