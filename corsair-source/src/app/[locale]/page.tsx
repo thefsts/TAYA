@@ -5,8 +5,6 @@ import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/Scroll
 import StatsCounter from '@/components/StatsCounter';
 import { homepageEventsPreview } from '@/data/events';
 import { buildPageMetadata, SITE_NAME, SITE_TAGLINE } from '@/lib/seo';
-import { getHomepageCourses } from '@/lib/courses';
-import { getLocalizedCourse } from '@/lib/courseTranslations';
 import HeroCarousel from '@/components/HeroCarousel';
 import DiscountsBanner from '@/components/DiscountsBanner';
 import { getCmsTestimonials, getCmsReviews } from '@/lib/cms';
@@ -44,27 +42,6 @@ export default async function HomePage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'home' });
   const tc = await getTranslations({ locale, namespace: 'common' });
-
-  const levelColorMap: Record<string, string> = {
-    Beginner: 'bg-green-100 text-green-700',
-    Intermediate: 'bg-yellow-100 text-yellow-700',
-    Advanced: 'bg-red-100 text-red-700',
-    'All Levels': 'bg-blue-100 text-blue-700',
-  };
-
-  const featuredCourses = getHomepageCourses().map((course) => {
-    const localized = getLocalizedCourse(course, locale);
-    return {
-      slug: localized.slug,
-      title: localized.title,
-      description: localized.description,
-      duration: localized.duration,
-      level: localized.level,
-      price: localized.price,
-      levelColor: levelColorMap[course.level] ?? 'bg-gray-100 text-gray-700',
-      image: localized.image,
-    };
-  });
 
   const allOfferings = [
     t('offerings.ltc'),
@@ -112,15 +89,6 @@ export default async function HomePage({
     { icon: '🎯', text: t('whyCorsair.allLevels') },
     { icon: '⚡', text: t('whyCorsair.practicalTraining') },
     { icon: '⭐', text: t('whyCorsair.rating') },
-  ];
-
-  const instructorCerts = [
-    t('instructor.nraCertified'),
-    t('instructor.usccaCertified'),
-    t('instructor.texasLtcInstructor'),
-    t('instructor.securityLevel'),
-    t('instructor.stopTheBleed'),
-    t('instructor.navyVeteran'),
   ];
 
   return (
@@ -280,53 +248,16 @@ export default async function HomePage({
       {/* ── MAIN: Featured Courses + Why Card ── */}
       <main className="home-main-approved concrete-bg">
         <div className="home-grid-approved">
-          {/* Left: Featured Courses */}
-          <section>
+          {/* Left: Featured Training Programs — CTA */}
+          <section className="flex flex-col items-center justify-center text-center py-8">
             <h2 className="section-title-approved">{t('coursesSection.title')}</h2>
             <p className="section-subtitle-approved">{t('coursesSection.description')}</p>
-
-            <div className="course-grid-approved">
-              {featuredCourses.map((course) => (
-                <Link
-                  key={course.slug}
-                  href={`/courses/${course.slug}`}
-                  className="course-card-approved"
-                >
-                  <div className="course-card-image-approved">
-                    <Image
-                      src={course.image}
-                      alt={course.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1180px) 50vw, 25vw"
-                    />
-                  </div>
-                  <div className="course-card-body-approved">
-                    <h3 className="course-card-title-approved">{course.title}</h3>
-                    <p className="course-card-text-approved">{course.description}</p>
-                    <div className="course-card-meta-approved">
-                      <span className="inline-flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {course.duration}
-                      </span>
-                      <span className="course-card-price-approved">{course.price}</span>
-                    </div>
-                    <span className="course-card-link-approved">
-                      {tc('learnMore')}
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
             <div className="mt-7">
-              <Link href="/courses" className="btn-navy-approved">
-                {t('coursesSection.viewAllCourses')}
+              <Link
+                href="https://www.corsairtacticalsolution.com/courses"
+                className="btn-navy-approved"
+              >
+                View All Courses
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
@@ -756,119 +687,6 @@ export default async function HomePage({
                   <span className="text-sm font-bold text-corsair-blue-900 group-hover:text-white transition-colors">TikTok</span>
                 </a>
               </div>
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* ──────── ABOUT PREVIEW ──────── */}
-      <ScrollReveal direction="none">
-        <section className="py-16 bg-corsair-blue-900 text-white relative overflow-hidden">
-          {/* Floating elements for about section */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-10 right-10 w-40 h-40 bg-corsair-red-500/8 rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute bottom-10 left-10 w-32 h-32 bg-corsair-blue-400/8 rounded-full blur-3xl animate-float-medium" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-corsair-red-500/4 rounded-full blur-3xl" />
-          </div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Image */}
-              <div className="relative h-72 md:h-[440px] rounded-2xl overflow-hidden bg-corsair-gray-100">
-                <Image
-                  src="/images/corsair-real/steve-hopwood-bio-01.png"
-                  alt={t('instructor.imageAlt')}
-                  fill
-                  className="object-contain object-center"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-                {/* Floating badge */}
-                <div className="absolute bottom-5 left-5 bg-corsair-red-500 text-white px-4 py-3 rounded-xl shadow-xl">
-                  <p className="text-xs font-bold uppercase tracking-wider">{t('instructor.badgeLabel')}</p>
-                  <p className="text-base font-black">{t('instructor.name')}</p>
-                  <p className="text-xs text-red-200">{t('instructor.badgeSubtitle')}</p>
-                </div>
-              </div>
-
-              {/* Text */}
-              <div>
-                <span className="text-xs font-bold text-corsair-red-400 uppercase tracking-widest">{t('instructorSection.label')}</span>
-                <h2 className="text-3xl md:text-4xl font-black text-white mt-2 mb-4">
-                  {t('instructorSection.title')}
-                </h2>
-                <p className="text-corsair-gray-300 leading-relaxed mb-4">
-                  {t('instructorSection.paragraph1')}
-                </p>
-                <p className="text-corsair-gray-300 leading-relaxed mb-6">
-                  {t('instructorSection.paragraph2')}
-                </p>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {instructorCerts.map((cert, i) => (
-                    <span key={i} className="bg-white/10 border border-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
-                      {cert}
-                    </span>
-                  ))}
-                </div>
-                <Link
-                  href="/about"
-                  className="inline-flex items-center gap-2 bg-corsair-red-500 hover:bg-corsair-red-600 text-white px-6 py-3 rounded-lg text-sm font-bold transition-colors"
-                >
-                  {t('instructorSection.button')} →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-
-
-      {/* ──────── MEET THE TEAM ──────── */}
-      <ScrollReveal direction="none">
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-10">
-              <span className="text-xs font-bold text-corsair-red-500 uppercase tracking-widest">Our Training Team</span>
-              <h2 className="text-2xl md:text-3xl font-black text-corsair-blue-900 mt-2 mb-2">
-                Meet the Instructors Behind the Mission
-              </h2>
-              <p className="text-corsair-gray-500 max-w-xl mx-auto text-sm">
-                CTS is more than one person — it is a team of certified professionals united by a commitment to safety and excellence.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { name: 'Steve Hopwood',        role: 'Founder & Lead Instructor',   tag: 'Navy Veteran · 14 Yrs',        img: '/images/corsair-real/meet-steve-hopwood.jpg',       link: undefined, imgClass: 'object-contain object-center' },
-                { name: 'Hilton Jackson',        role: 'Vice President of Operations',  tag: 'DPS Licensed · Armed Officer', img: '/images/corsair-real/hilton-jackson-bio-01.jpg', link: 'https://www.gideontrainingsolutions.com/', imgClass: 'object-cover object-[center_20%]' },
-                { name: 'Dr. Casilda Maxwell',   role: 'Lead Firearms Instructor',     tag: 'USCCA · NRA Certified',        img: '/images/corsair-real/dr-casilda-maxwell.jpg',       link: 'https://lowkeydefense.com/#home', imgClass: 'object-cover object-[center_25%]' },
-                { name: 'Shannon Gulley',        role: 'Certified LTC Instructor',     tag: 'LTC · NRA Certified',          img: '/images/instructors/shannon-gulley.jpg',            link: undefined, imgClass: 'object-cover object-[center_20%]' },
-              ].map((inst) => (
-                <div key={inst.name} className="text-center group">
-                  <div className="relative h-48 rounded-2xl overflow-hidden mb-3 shadow-sm border border-corsair-gray-100">
-                    <Image
-                      src={inst.img}
-                      alt={inst.name}
-                      fill
-                      className={`${inst.imgClass} group-hover:scale-105 transition-transform duration-500`}
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                    />
-                  </div>
-                  {inst.link ? (
-                    <a href={inst.link} target="_blank" rel="noopener noreferrer" className="text-sm font-black text-corsair-blue-900 hover:text-corsair-red-500 transition-colors">
-                      {inst.name} <span className="text-[9px] font-normal opacity-60">↗</span>
-                    </a>
-                  ) : (
-                    <p className="text-sm font-black text-corsair-blue-900">{inst.name}</p>
-                  )}
-                  <p className="text-xs text-corsair-gray-500 mt-0.5">{inst.role}</p>
-                  <span className="inline-block mt-1.5 text-[10px] font-bold bg-corsair-red-50 text-corsair-red-600 border border-corsair-red-100 px-2 py-0.5 rounded-full">
-                    {inst.tag}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="text-center mt-8">
-              <Link href="/instructors" className="inline-flex items-center gap-2 text-corsair-red-500 font-bold text-sm hover:text-corsair-red-600 transition-colors">
-                Meet the Full Team &amp; View Credentials →
-              </Link>
             </div>
           </div>
         </section>
