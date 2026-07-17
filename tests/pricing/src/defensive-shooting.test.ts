@@ -216,3 +216,414 @@ describe("POST /api/square/create-order — defensive-shooting-skills", () => {
     expect(response.status).toBe(503);
   });
 });
+
+// ── 4. texas-ltc-wichita — Square mock integration ────────────────────────
+//
+// Base: $125 + range fee $25 = $150 (15 000 cents)
+// Optional add-ons: ammo-package ($14), firearm-rental ($12.99)
+
+describe("POST /api/square/create-order — texas-ltc-wichita", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(isSquareConfigured).mockReturnValue(true);
+    process.env.SQUARE_LOCATION_ID = "test-location";
+  });
+
+  function makeRequest(body: Record<string, unknown>): Request {
+    return { json: async () => body } as unknown as Request;
+  }
+
+  it("returns totalCents = 15000 and success=true (base $125 + range fee $25)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ltc_001", total_money: { amount: 15_000 } } }),
+    } as unknown as Response);
+
+    const req = makeRequest({
+      courseSlug: "texas-ltc-wichita",
+      pricingOptionId: "ltc-wichita",
+      addOnIds: [],
+    });
+
+    const response = await POST(req);
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(15_000);
+    expect(body.orderId).toBe("ord_ltc_001");
+  });
+
+  it("passes two line items to Square: base course ($125 = 12500 cents) and range fee ($25 = 2500 cents)", async () => {
+    let capturedPayload: Record<string, unknown> | null = null;
+
+    vi.mocked(squareFetch).mockImplementation(async (_path, opts) => {
+      capturedPayload = JSON.parse((opts as RequestInit).body as string);
+      return {
+        ok: true,
+        json: async () => ({ order: { id: "ord_ltc_002" } }),
+      } as unknown as Response;
+    });
+
+    await POST(makeRequest({
+      courseSlug: "texas-ltc-wichita",
+      pricingOptionId: "ltc-wichita",
+      addOnIds: [],
+    }));
+
+    expect(capturedPayload).not.toBeNull();
+    const lineItems = (capturedPayload!.order as { line_items: Array<{ base_price_money: { amount: number } }> }).line_items;
+    expect(lineItems).toHaveLength(2);
+
+    const amounts = lineItems.map((li) => li.base_price_money.amount);
+    expect(amounts).toContain(12_500);
+    expect(amounts).toContain(2_500);
+  });
+
+  it("adds ammo-package add-on correctly (totalCents = 15000 + 1400 = 16400)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ltc_003" } }),
+    } as unknown as Response);
+
+    const req = makeRequest({
+      courseSlug: "texas-ltc-wichita",
+      pricingOptionId: "ltc-wichita",
+      addOnIds: ["ammo-package"],
+    });
+
+    const response = await POST(req);
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(16_400);
+  });
+
+  it("rejects an unknown pricingOptionId with HTTP 400", async () => {
+    const response = await POST(makeRequest({
+      courseSlug: "texas-ltc-wichita",
+      pricingOptionId: "ltc-bogus",
+      addOnIds: [],
+    }));
+
+    expect(response.status).toBe(400);
+    expect(vi.mocked(squareFetch)).not.toHaveBeenCalled();
+  });
+});
+
+// ── 5. basic-handgun-skills-training — Square mock integration ────────────
+//
+// Option 1 (bh-1session): $75 + range fee $25 = $100 (10 000 cents)
+// Option 2 (bh-3session): $210 + range fee $25 = $235 (23 500 cents)
+// Optional add-ons: firearm-rental ($12.99), ammo-package ($14)
+
+describe("POST /api/square/create-order — basic-handgun-skills-training", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(isSquareConfigured).mockReturnValue(true);
+    process.env.SQUARE_LOCATION_ID = "test-location";
+  });
+
+  function makeRequest(body: Record<string, unknown>): Request {
+    return { json: async () => body } as unknown as Request;
+  }
+
+  it("returns totalCents = 10000 for the 1-session option ($75 + $25 range fee)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_bh_001" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "basic-handgun-skills-training",
+      pricingOptionId: "bh-1session",
+      addOnIds: [],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(10_000);
+  });
+
+  it("returns totalCents = 23500 for the 3-session pack ($210 + $25 range fee)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_bh_002" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "basic-handgun-skills-training",
+      pricingOptionId: "bh-3session",
+      addOnIds: [],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(23_500);
+  });
+
+  it("passes two line items to Square for 1-session: base (7500 cents) and range fee (2500 cents)", async () => {
+    let capturedPayload: Record<string, unknown> | null = null;
+
+    vi.mocked(squareFetch).mockImplementation(async (_path, opts) => {
+      capturedPayload = JSON.parse((opts as RequestInit).body as string);
+      return {
+        ok: true,
+        json: async () => ({ order: { id: "ord_bh_003" } }),
+      } as unknown as Response;
+    });
+
+    await POST(makeRequest({
+      courseSlug: "basic-handgun-skills-training",
+      pricingOptionId: "bh-1session",
+      addOnIds: [],
+    }));
+
+    expect(capturedPayload).not.toBeNull();
+    const lineItems = (capturedPayload!.order as { line_items: Array<{ base_price_money: { amount: number } }> }).line_items;
+    expect(lineItems).toHaveLength(2);
+
+    const amounts = lineItems.map((li) => li.base_price_money.amount);
+    expect(amounts).toContain(7_500);
+    expect(amounts).toContain(2_500);
+  });
+
+  it("adds firearm-rental add-on correctly (totalCents = 10000 + 1299 = 11299)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_bh_004" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "basic-handgun-skills-training",
+      pricingOptionId: "bh-1session",
+      addOnIds: ["firearm-rental"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(Math.round((75 + 25 + 12.99) * 100));
+  });
+
+  it("rejects an unknown pricingOptionId with HTTP 400", async () => {
+    const response = await POST(makeRequest({
+      courseSlug: "basic-handgun-skills-training",
+      pricingOptionId: "bh-bogus",
+      addOnIds: [],
+    }));
+
+    expect(response.status).toBe(400);
+    expect(vi.mocked(squareFetch)).not.toHaveBeenCalled();
+  });
+});
+
+// ── 6. armed-first-responder — Square mock integration ────────────────────
+//
+// Base: $595 + range fee $25 = $620 (62 000 cents)
+// Optional add-ons: ammo-package ($80)
+
+describe("POST /api/square/create-order — armed-first-responder", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(isSquareConfigured).mockReturnValue(true);
+    process.env.SQUARE_LOCATION_ID = "test-location";
+  });
+
+  function makeRequest(body: Record<string, unknown>): Request {
+    return { json: async () => body } as unknown as Request;
+  }
+
+  it("returns totalCents = 62000 and success=true (base $595 + range fee $25)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_afr_001", total_money: { amount: 62_000 } } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "armed-first-responder",
+      pricingOptionId: "afr-cert",
+      addOnIds: [],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(62_000);
+    expect(body.orderId).toBe("ord_afr_001");
+  });
+
+  it("passes two line items to Square: base course (59500 cents) and range fee (2500 cents)", async () => {
+    let capturedPayload: Record<string, unknown> | null = null;
+
+    vi.mocked(squareFetch).mockImplementation(async (_path, opts) => {
+      capturedPayload = JSON.parse((opts as RequestInit).body as string);
+      return {
+        ok: true,
+        json: async () => ({ order: { id: "ord_afr_002" } }),
+      } as unknown as Response;
+    });
+
+    await POST(makeRequest({
+      courseSlug: "armed-first-responder",
+      pricingOptionId: "afr-cert",
+      addOnIds: [],
+    }));
+
+    expect(capturedPayload).not.toBeNull();
+    const lineItems = (capturedPayload!.order as { line_items: Array<{ base_price_money: { amount: number } }> }).line_items;
+    expect(lineItems).toHaveLength(2);
+
+    const amounts = lineItems.map((li) => li.base_price_money.amount);
+    expect(amounts).toContain(59_500);
+    expect(amounts).toContain(2_500);
+  });
+
+  it("adds ammo-package add-on correctly (totalCents = 62000 + 8000 = 70000)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_afr_003" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "armed-first-responder",
+      pricingOptionId: "afr-cert",
+      addOnIds: ["ammo-package"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(70_000);
+  });
+
+  it("rejects an unknown pricingOptionId with HTTP 400", async () => {
+    const response = await POST(makeRequest({
+      courseSlug: "armed-first-responder",
+      pricingOptionId: "afr-bogus",
+      addOnIds: [],
+    }));
+
+    expect(response.status).toBe(400);
+    expect(vi.mocked(squareFetch)).not.toHaveBeenCalled();
+  });
+});
+
+// ── 7. ar-15-rifle-course — Square mock integration ───────────────────────
+//
+// Base: $90 + range fee $25 = $115 (11 500 cents)
+// Optional add-ons: ammo-package ($40), ar15-rental ($35)
+
+describe("POST /api/square/create-order — ar-15-rifle-course", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(isSquareConfigured).mockReturnValue(true);
+    process.env.SQUARE_LOCATION_ID = "test-location";
+  });
+
+  function makeRequest(body: Record<string, unknown>): Request {
+    return { json: async () => body } as unknown as Request;
+  }
+
+  it("returns totalCents = 11500 and success=true (base $90 + range fee $25)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ar15_001", total_money: { amount: 11_500 } } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "ar-15-rifle-course",
+      pricingOptionId: "ar15-base",
+      addOnIds: [],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(11_500);
+    expect(body.orderId).toBe("ord_ar15_001");
+  });
+
+  it("passes two line items to Square: base course (9000 cents) and range fee (2500 cents)", async () => {
+    let capturedPayload: Record<string, unknown> | null = null;
+
+    vi.mocked(squareFetch).mockImplementation(async (_path, opts) => {
+      capturedPayload = JSON.parse((opts as RequestInit).body as string);
+      return {
+        ok: true,
+        json: async () => ({ order: { id: "ord_ar15_002" } }),
+      } as unknown as Response;
+    });
+
+    await POST(makeRequest({
+      courseSlug: "ar-15-rifle-course",
+      pricingOptionId: "ar15-base",
+      addOnIds: [],
+    }));
+
+    expect(capturedPayload).not.toBeNull();
+    const lineItems = (capturedPayload!.order as { line_items: Array<{ base_price_money: { amount: number } }> }).line_items;
+    expect(lineItems).toHaveLength(2);
+
+    const amounts = lineItems.map((li) => li.base_price_money.amount);
+    expect(amounts).toContain(9_000);
+    expect(amounts).toContain(2_500);
+  });
+
+  it("adds ammo-package add-on correctly (totalCents = 11500 + 4000 = 15500)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ar15_003" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "ar-15-rifle-course",
+      pricingOptionId: "ar15-base",
+      addOnIds: ["ammo-package"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(15_500);
+  });
+
+  it("adds ar15-rental add-on correctly (totalCents = 11500 + 3500 = 15000)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ar15_004" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "ar-15-rifle-course",
+      pricingOptionId: "ar15-base",
+      addOnIds: ["ar15-rental"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(15_000);
+  });
+
+  it("adds both add-ons correctly (totalCents = 11500 + 4000 + 3500 = 19000)", async () => {
+    vi.mocked(squareFetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { id: "ord_ar15_005" } }),
+    } as unknown as Response);
+
+    const response = await POST(makeRequest({
+      courseSlug: "ar-15-rifle-course",
+      pricingOptionId: "ar15-base",
+      addOnIds: ["ammo-package", "ar15-rental"],
+    }));
+    const body = await response.json() as Record<string, unknown>;
+
+    expect(body.success).toBe(true);
+    expect(body.totalCents).toBe(19_000);
+  });
+
+  it("rejects an unknown pricingOptionId with HTTP 400", async () => {
+    const response = await POST(makeRequest({
+      courseSlug: "ar-15-rifle-course",
+      pricingOptionId: "ar15-bogus",
+      addOnIds: [],
+    }));
+
+    expect(response.status).toBe(400);
+    expect(vi.mocked(squareFetch)).not.toHaveBeenCalled();
+  });
+});
