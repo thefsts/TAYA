@@ -1,0 +1,693 @@
+# FSTS-WOS™ Production Readiness Sprint
+
+## Phase 1 Closeout + Phase 2 Repository Separation
+
+## OBJECTIVE
+
+Make the **FSTS Website Operating System™ (FSTS-WOS™)** production-ready as a secure, client-neutral, multi-tenant SaaS platform before onboarding Corsair Tactical Solutions or any other client website.
+
+Do not add new product features.
+
+Do not begin Corsair onboarding.
+
+Complete the security closeout, repository separation, deployment safeguards, testing, and verification described below.
+
+---
+
+# MANDATORY WORKSPACE AND DEPLOYMENT BOUNDARY
+
+## Authorized Vercel Project
+
+Replit AI is authorized to work with only this Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+This is the official FSTS-WOS™ dashboard deployment project.
+
+Replit AI must not inspect, configure, modify, link, deploy to, redeploy, or otherwise interact with any other Vercel project.
+
+This restriction includes:
+
+* Corsair Tactical Solutions Vercel projects
+* Other client website projects
+* Personal Vercel projects
+* Test projects outside the authorized FSTS-WOS™ project
+* Projects belonging to other teams or organizations
+* Any similarly named Vercel project
+* Any automatically detected Vercel project that is not the exact authorized project
+
+Before performing any Vercel action, verify all of the following:
+
+* Vercel team or scope is `fullstacksolutions`.
+* Project is `fsts-client-dashboard-for-sites-api-server`.
+* The project URL matches:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+* The connected Git repository is the official FSTS-WOS™ repository.
+* The branch and commit being deployed are the intended FSTS-WOS™ branch and commit.
+
+If any value does not match, stop immediately and report the mismatch.
+
+Do not attempt to correct, relink, or modify an unauthorized Vercel project.
+
+## Prohibited Vercel Actions
+
+Replit AI must not:
+
+* Create another Vercel project.
+* Link the repository to another Vercel project.
+* Change the Vercel team or account scope.
+* Modify Corsair’s Vercel deployment.
+* Deploy client website code through the FSTS-WOS™ Vercel project.
+* copy environment variables between Vercel projects.
+* Modify domains belonging to other projects.
+* Delete deployments.
+* Delete or rename the authorized project.
+* Transfer the project to another Vercel account or team.
+* Change production domains without explicit approval.
+* expose secret environment-variable values in reports, logs, or commits.
+
+All Vercel work must remain inside the single authorized project.
+
+---
+
+# AUTHORIZED GITHUB REPOSITORY
+
+All platform work must remain in the official FSTS-WOS™ repository:
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Do not make changes to the Corsair repository during this phase except for read-only parity verification if access is available.
+
+Do not push platform changes to another repository.
+
+Before committing or pushing, verify the Git remote points to the official FSTS-WOS™ repository.
+
+---
+
+# MANDATORY GIT IDENTITY
+
+Every commit must use:
+
+```text
+Git Name: THEFSTS
+Git Username: thefsts
+Git Email: amorebey@gmail.com
+```
+
+Configure the repository before making or rewriting commits:
+
+```bash
+git config user.name "THEFSTS"
+git config user.email "amorebey@gmail.com"
+```
+
+No commit may remain authored or committed by:
+
+* Replit Agent
+* AI
+* Assistant
+* Default Git User
+* Any identity other than `THEFSTS <amorebey@gmail.com>`
+
+There are earlier unpushed commits authored as `Replit Agent`.
+
+Re-author every unpushed local commit before pushing.
+
+Verify the complete unpushed commit range with:
+
+```bash
+git log --format=fuller
+```
+
+Every unpushed commit must show:
+
+```text
+Author: THEFSTS <amorebey@gmail.com>
+Commit: THEFSTS <amorebey@gmail.com>
+```
+
+Do not push until this is verified.
+
+---
+
+# PHASE 1 SECURITY CLOSEOUT
+
+The deep security audit confirmed that the core CMS modules already use `requireSiteAccess()` or `checkSiteAccess()` consistently.
+
+The following security gaps were identified and fixed:
+
+## Fixed Findings
+
+### `users.promoteToSuperAdminByClerkId`
+
+Previously had no authorization check.
+
+It must now require an authenticated SuperAdmin caller.
+
+Test access may be permitted only in an explicitly approved non-production environment.
+
+### `users.upsertTestSuperAdmin`
+
+Previously allowed an unauthenticated caller to create a test SuperAdmin account.
+
+It must remain locked to approved test environments only.
+
+### `squareOrders.syncCatalog`
+
+Previously allowed unauthenticated callers to trigger a site’s Square catalog synchronization.
+
+It must require authenticated, write-capable access to the requested site.
+
+### `siteSettings.generateUploadUrl`
+
+Previously allowed any logged-in user to obtain an upload URL.
+
+It must require site-scoped write access.
+
+### `siteSettings.getFileUrl`
+
+Previously resolved storage URLs without authentication.
+
+It must require an authenticated, active user.
+
+### `forms.submitToForm`
+
+This remains public by design for anonymous submissions to published forms.
+
+Rate limiting and abuse protection will be handled during the public-endpoint security phase.
+
+---
+
+# TENANT-ISOLATION TEST RESULTS
+
+The new tenant-isolation suite contains 18 tests using `convex-test`, the real schema, and real Convex functions.
+
+The tests prove:
+
+* Site A owner can read Site A.
+* Site A owner can write Site A.
+* Site A owner cannot read Site B.
+* Site A owner cannot create data in Site B.
+* Site A owner cannot update Site B.
+* Site A owner cannot delete Site B data.
+* Read-only staff can read their assigned site.
+* Read-only staff cannot write.
+* SuperAdmin can access all sites.
+* Agency Admin can access only sites assigned to their agency.
+* Portal users cannot access dashboard administration functions.
+* Unknown identities cannot access protected tenant data.
+* Anonymous callers cannot access protected functions.
+* Regression coverage protects all five security fixes.
+
+Current reported verification:
+
+```text
+Tenant isolation: 18/18 passing
+Convex unit tests: 41/41 passing
+Design Lock: 69/69 passing
+Visual regression: 3/3 passing
+Typecheck: clean
+Production build: successful
+```
+
+---
+
+# PRODUCTION PROTECTION FOR `CONVEX_TEST_MODE`
+
+`CONVEX_TEST_MODE` must never be enabled in the production Convex deployment.
+
+Do not rely only on documentation.
+
+Add an automated production guard that fails closed when test-mode functionality is used outside an explicitly approved non-production deployment.
+
+Acceptance requirements:
+
+* Production cannot operate with `CONVEX_TEST_MODE=true`.
+* Test bootstrap functions fail outside approved test environments.
+* Production deployment validation detects conflicting environment settings.
+* Automated tests verify the guard.
+* The environment behavior is documented.
+* No secret environment-variable values are printed or committed.
+
+Before changing Vercel environment variables, confirm the action is being performed only in:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+Convex environment configuration must also target only the FSTS-WOS™ deployment associated with this authorized project.
+
+Do not modify the environment of a Corsair or other client deployment.
+
+---
+
+# PHASE 1 COMMIT AND PUSH CLOSEOUT
+
+After the Git authorship and production test-mode guard are complete:
+
+1. Run the complete validation suite.
+2. Confirm all tests pass or report skips accurately.
+3. Confirm the working tree is clean.
+4. Confirm every unpushed commit is authored and committed by:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+5. Confirm the Git remote is the official FSTS-WOS™ repository.
+6. Push the approved branch.
+7. Confirm that only the authorized Vercel project receives the deployment.
+8. Report the pushed commit hashes.
+9. Report the deployment commit hash and resulting deployment status.
+
+Do not push or deploy unrelated local files, memory files, generated files, secrets, or client website code.
+
+---
+
+# PHASE 2 — REPOSITORY SEPARATION AND BOUNDARY ENFORCEMENT
+
+## PHASE 2 OBJECTIVE
+
+Remove all Corsair Tactical Solutions application source and client-specific production assets from the FSTS-WOS™ platform repository.
+
+FSTS-WOS™ must become a standalone, reusable, client-neutral platform.
+
+Corsair will later be onboarded as Client Website #1 through the same supported public integration contracts and dashboard workflows used by future clients.
+
+Do not onboard Corsair during this phase.
+
+---
+
+# PHASE 2A — VERIFY THE CORSAIR REPOSITORY
+
+Before deleting anything from FSTS-WOS™, perform a read-only comparison against the dedicated Corsair Tactical Solutions repository.
+
+Confirm it contains the complete production website, including:
+
+* Application source
+* Pages and routes
+* Components
+* Public assets
+* Images
+* Branding
+* Course information
+* Pricing logic
+* Booking functionality
+* Square integration routes
+* Email or Resend routes
+* Environment-variable references
+* Build configuration
+* Deployment configuration
+* Package files
+* Lockfile
+* Required documentation
+
+Compare the dedicated repository against:
+
+```text
+corsair-source/
+```
+
+Create a parity report identifying:
+
+* Identical files
+* Files found only in `corsair-source/`
+* Files found only in the dedicated Corsair repository
+* Files with meaningful differences
+* Files containing production-critical behavior
+* Files containing environment assumptions
+* Files that may require migration before deletion
+
+Do not expose secret values during comparison.
+
+## Important Corsair Deployment Restriction
+
+Do not open, inspect, modify, configure, or deploy the Corsair Vercel project.
+
+The only authorized Vercel project remains:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+If confirming Corsair’s Vercel source would require entering another Vercel project, stop and report that this verification requires owner confirmation outside Replit AI’s authorized scope.
+
+Repository-level parity inspection may be performed read-only if access is available.
+
+No Corsair repository changes may be pushed without separate approval.
+
+---
+
+# PHASE 2B — HARDEN THE REPOSITORY BOUNDARY CHECK
+
+Update:
+
+```text
+scripts/check-boundary.sh
+```
+
+The current script has a blind spot because it does not detect client websites stored in arbitrary root-level directories such as:
+
+```text
+corsair-source/
+```
+
+The boundary check must fail when the platform repository contains client-specific website source or client-specific production assets.
+
+It must detect, at minimum:
+
+* Unknown root-level application directories
+* Client Next.js applications
+* Client React applications outside approved platform workspaces
+* Client branding directories
+* Client pricing files
+* Client booking components
+* Client public assets
+* Client deployment configuration
+* Client API routes
+* Full client website implementations embedded in the platform repository
+
+Do not hardcode only the word `corsair`.
+
+The protection must work for all future clients.
+
+Create and document an allowlist of approved platform-owned paths after reviewing the repository.
+
+Expected platform-owned paths may include:
+
+```text
+artifacts/fsts-dashboard/
+convex/
+lib/
+tests/
+scripts/
+docs/
+```
+
+Do not assume this list is complete without inspection.
+
+Acceptance requirements:
+
+* The existing `corsair-source/` directory causes the boundary check to fail before removal.
+* A temporary fake client application also causes the check to fail.
+* Approved platform directories pass.
+* Unknown application directories fail.
+* The script exits non-zero on violations.
+* Failure output identifies the violating paths.
+* The boundary check runs in CI.
+* The check does not scan or alter any other repository.
+
+---
+
+# PHASE 2C — REMOVE CORSAIR SOURCE
+
+After repository parity is confirmed:
+
+Remove:
+
+```text
+corsair-source/
+```
+
+from the FSTS-WOS™ repository.
+
+Remove all duplicated client-specific material, including:
+
+* Corsair website source
+* Corsair pages and routes
+* Corsair components
+* Corsair pricing logic
+* Corsair booking logic
+* Corsair API routes
+* Corsair images
+* Corsair branding
+* Corsair configuration
+* Corsair-specific integrations
+* Duplicate production website code
+
+Do not move files blindly.
+
+If the dedicated Corsair repository is complete, delete the duplicated copy from FSTS-WOS™.
+
+If important files are missing from the Corsair repository, stop and provide a migration report. Do not modify the Corsair repository without separate approval.
+
+Do not rewrite published Git history unless separately authorized.
+
+---
+
+# PHASE 2D — REMOVE CLIENT-SPECIFIC TEST CONTENT
+
+Review all FSTS-WOS™ tests, fixtures, screenshots, and snapshots for Corsair-specific content.
+
+Replace client-specific material with neutral platform fixtures.
+
+Examples:
+
+```text
+Example Business
+Example Course
+Example Event
+Example Service
+Example Instructor
+Test Tenant A
+Test Tenant B
+```
+
+Remove or replace:
+
+* Corsair branding
+* Corsair names
+* Corsair images
+* Corsair course names
+* Corsair pricing
+* Weapons-training-specific content
+* Client-specific production terminology
+
+Do not weaken visual test coverage.
+
+Acceptance requirements:
+
+* Existing layouts remain tested.
+* No Corsair production assets are required.
+* No Corsair branding remains in platform fixtures.
+* Snapshot changes are intentional and reviewed.
+* Visual regression tests pass.
+
+---
+
+# PHASE 2E — VERIFY CLIENT-NEUTRAL INTEGRATION CONTRACTS
+
+Verify that an external client website can use FSTS-WOS™ only through supported contracts.
+
+Review:
+
+```text
+convex/public.ts
+convex/http.ts
+lib/embed-widget
+API client libraries
+Public form submission
+Public media delivery
+Published courses
+Published events
+Published articles
+Homepage content
+Footer content
+Contact information
+SEO settings
+Testimonials
+Reviews
+Payment and booking interfaces
+```
+
+A client website must not import internal dashboard components or private Convex implementation files.
+
+Document:
+
+* How a site is identified
+* How public content is queried
+* How forms are submitted
+* How media is retrieved
+* How checkout is initiated
+* Which endpoints are public
+* Which endpoints require authentication
+* How validation errors are returned
+* How client environment variables are configured
+* Which shared packages are officially supported
+
+Do not add unrelated features.
+
+Only correct missing boundaries required for the existing architecture to function safely.
+
+---
+
+# PHASE 2F — FULL VERIFICATION
+
+After repository separation, run:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run typecheck
+pnpm run test:design-lock
+pnpm run test:convex-unit
+pnpm run test:visual
+pnpm run test:health-monitor
+pnpm --filter @workspace/fsts-dashboard run build
+```
+
+Also run:
+
+* Tenant-isolation tests
+* Hardened boundary checks
+* Production test-mode guard tests
+* Repository source-audit checks
+* Any applicable security regression tests
+
+Report skipped tests separately.
+
+Do not call skipped tests passing.
+
+Confirm:
+
+* No Corsair application source remains.
+* No Corsair production assets remain.
+* No client pricing code remains.
+* No client booking code remains.
+* No client-specific API routes remain.
+* Tenant isolation remains secure.
+* The boundary check passes after cleanup.
+* The dashboard build succeeds.
+* The working tree is clean.
+* The Git remote is correct.
+* The only Vercel project touched is:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+---
+
+# DEPLOYMENT VERIFICATION
+
+Any preview or production deployment created during this work must belong only to:
+
+```text
+Team: fullstacksolutions
+Project: fsts-client-dashboard-for-sites-api-server
+Deployments URL: https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+Before reporting success, confirm:
+
+* Deployment belongs to the authorized project.
+* Deployment uses the intended Git commit.
+* Build completed successfully.
+* No other Vercel project was changed.
+* No client website was deployed.
+* No unauthorized domains were modified.
+* No environment secrets were exposed.
+
+Do not manually promote a preview deployment to production unless explicitly authorized.
+
+---
+
+# RECOMMENDED COMMIT STRUCTURE
+
+Use separate commits for logically distinct work:
+
+```text
+fix(security): prevent production test-mode escalation
+test(security): guard production test configuration
+fix(boundary): detect embedded client website source
+chore(repo): remove duplicated Corsair website source
+test(visual): replace client-specific fixtures
+docs(integration): document external website contract
+```
+
+Adjust messages to match the actual changes.
+
+Every commit must be authored and committed as:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+Do not combine unrelated security, repository, test, and documentation work into a single commit.
+
+---
+
+# REQUIRED COMPLETION REPORT
+
+At completion, provide:
+
+1. Phase 1 security closeout status.
+2. Confirmation of the `CONVEX_TEST_MODE` production guard.
+3. Corsair repository parity findings.
+4. Files found only in `corsair-source/`.
+5. Files removed from FSTS-WOS™.
+6. Boundary-check changes.
+7. Test fixtures and snapshots neutralized.
+8. External website integration contract status.
+9. Full test results.
+10. Build results.
+11. Skipped tests and reasons.
+12. Commit hashes.
+13. Push status.
+14. Deployment status.
+15. Exact deployed commit hash.
+16. Confirmation that every commit uses:
+
+* Name: `THEFSTS`
+* Email: `amorebey@gmail.com`
+
+17. Confirmation that the Git remote is the official FSTS-WOS™ repository.
+18. Confirmation that the only Vercel project accessed or modified was:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+19. Confirmation that no Corsair Vercel project or other client project was accessed or changed.
+20. Remaining blockers for Phase 3.
+
+---
+
+# FINAL RESTRICTIONS
+
+Do not add new product features.
+
+Do not onboard Corsair.
+
+Do not onboard another client.
+
+Do not create duplicate CRM functionality.
+
+Do not redesign completed CMS modules.
+
+Do not weaken authorization to make tests pass.
+
+Do not run E2E tests against production.
+
+Do not enable `CONVEX_TEST_MODE` in production.
+
+Do not expose environment-variable values.
+
+Do not push commits authored by Replit Agent.
+
+Do not deploy client website code through the platform project.
+
+Do not access or modify any Vercel project except:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+Once Phase 2 is complete, stop and submit the full completion report for approval before beginning Phase 3.
