@@ -1,0 +1,485 @@
+# Replit AI — CORRECT AR-15 AND SHOTGUN REQUIRED VS. OPTIONAL FEES
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production Website:
+https://www.corsairtacticalsolution.com
+
+This is a focused correction to the recently completed final-pricing implementation.
+
+Do not change any unrelated course pricing.
+
+---
+
+# Git Identity
+
+Use:
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+---
+
+# PROBLEM
+
+The recent implementation incorrectly moved AR-15 and Shotgun ammunition and rentals into `requiredFees`.
+
+Only the range fee is required for these two courses.
+
+Customers may bring their own firearm and ammunition, so rentals and ammunition purchases must remain optional selections.
+
+---
+
+# REQUIRED CORRECTION
+
+## AR-15 Rifle Course
+
+Approved pricing:
+
+- Base Course Price: $90.00
+- Required Range Fee: $25.00
+- Optional 50 Rounds of AR-15 Ammunition: $40.00
+- Optional AR-15 Rental: $35.00
+
+Correct data structure:
+
+```ts
+requiredFees: [
+  {
+    id: "range-fee",
+    label: "Required Range Fee",
+    priceCents: 2500,
+  },
+];
+
+optionalAddOns: [
+  {
+    id: "ar15-ammunition-50-rounds",
+    label: "AR-15 Ammunition Purchase (50 Rounds)",
+    priceCents: 4000,
+  },
+  {
+    id: "ar15-rental",
+    label: "AR-15 Rental",
+    priceCents: 3500,
+  },
+];
+```
+
+Do not automatically charge ammunition or rental.
+
+---
+
+## Shotgun Course
+
+Approved pricing:
+
+- Base Course Price: $75.00
+- Required Range Fee: $25.00
+- Optional 50 Rounds of Shotgun Ammunition: $35.00
+- Optional Shotgun Rental: $25.00
+
+Correct data structure:
+
+```ts
+requiredFees: [
+  {
+    id: "range-fee",
+    label: "Required Range Fee",
+    priceCents: 2500,
+  },
+];
+
+optionalAddOns: [
+  {
+    id: "shotgun-ammunition-50-rounds",
+    label: "Shotgun Ammunition Purchase (50 Rounds)",
+    priceCents: 3500,
+  },
+  {
+    id: "shotgun-rental",
+    label: "Shotgun Rental",
+    priceCents: 2500,
+  },
+];
+```
+
+Do not automatically charge ammunition or rental.
+
+---
+
+# SERVER-SIDE VALIDATION
+
+Keep the new strict unknown-add-on validation.
+
+Do not revert this behavior:
+
+- Unknown add-on IDs must return `null`.
+- The request must return HTTP 400.
+- Mixed valid and unknown add-ons must also be rejected.
+- Required fees must still be automatically enforced by the server.
+
+Update server pricing resolution so:
+
+## AR-15
+
+Always includes:
+
+```text
+Base Course — $90.00
+Required Range Fee — $25.00
+```
+
+Only includes these when selected:
+
+```text
+AR-15 Ammunition Purchase (50 Rounds) — $40.00
+AR-15 Rental — $35.00
+```
+
+## Shotgun
+
+Always includes:
+
+```text
+Base Course — $75.00
+Required Range Fee — $25.00
+```
+
+Only includes these when selected:
+
+```text
+Shotgun Ammunition Purchase (50 Rounds) — $35.00
+Shotgun Rental — $25.00
+```
+
+---
+
+# EXPECTED TOTALS
+
+## AR-15 Rifle Course
+
+Base course plus required range fee:
+
+```text
+$90.00 + $25.00 = $115.00
+```
+
+With ammunition only:
+
+```text
+$115.00 + $40.00 = $155.00
+```
+
+With rental only:
+
+```text
+$115.00 + $35.00 = $150.00
+```
+
+With ammunition and rental:
+
+```text
+$115.00 + $40.00 + $35.00 = $190.00
+```
+
+---
+
+## Shotgun Course
+
+Base course plus required range fee:
+
+```text
+$75.00 + $25.00 = $100.00
+```
+
+With ammunition only:
+
+```text
+$100.00 + $35.00 = $135.00
+```
+
+With rental only:
+
+```text
+$100.00 + $25.00 = $125.00
+```
+
+With ammunition and rental:
+
+```text
+$100.00 + $35.00 + $25.00 = $160.00
+```
+
+---
+
+# WEBSITE UI
+
+On both course pages:
+
+- Display the $25 range fee as required.
+- Display ammunition and rental as unchecked optional selections.
+- Do not preselect ammunition.
+- Do not preselect rental.
+- Update totals immediately when an optional item is selected.
+- Clearly label the number of rounds as 50.
+
+Example AR-15 display:
+
+```text
+Required Fee
+
+Range Fee — $25.00
+
+Optional Add-ons
+
+☐ AR-15 Ammunition Purchase (50 Rounds) — $40.00
+☐ AR-15 Rental — $35.00
+```
+
+Example Shotgun display:
+
+```text
+Required Fee
+
+Range Fee — $25.00
+
+Optional Add-ons
+
+☐ Shotgun Ammunition Purchase (50 Rounds) — $35.00
+☐ Shotgun Rental — $25.00
+```
+
+---
+
+# EVENTS
+
+Audit any events linked to the AR-15 Rifle Course or Shotgun Course.
+
+The event registration flow must follow the same rules:
+
+- Range fee required.
+- Rental optional.
+- Ammunition optional.
+- Server calculates all totals.
+- No event-specific stale pricing override.
+
+---
+
+# SQUARE
+
+Correct Square order construction.
+
+## AR-15 order without optional selections
+
+Square should contain:
+
+```text
+AR-15 Rifle Course — $90.00
+Required Range Fee — $25.00
+```
+
+Total:
+
+```text
+$115.00
+```
+
+## AR-15 order with both optional selections
+
+Square should contain four itemized lines:
+
+```text
+AR-15 Rifle Course — $90.00
+Required Range Fee — $25.00
+AR-15 Ammunition Purchase (50 Rounds) — $40.00
+AR-15 Rental — $35.00
+```
+
+Total:
+
+```text
+$190.00
+```
+
+## Shotgun order without optional selections
+
+Square should contain:
+
+```text
+Shotgun Course — $75.00
+Required Range Fee — $25.00
+```
+
+Total:
+
+```text
+$100.00
+```
+
+## Shotgun order with both optional selections
+
+Square should contain four itemized lines:
+
+```text
+Shotgun Course — $75.00
+Required Range Fee — $25.00
+Shotgun Ammunition Purchase (50 Rounds) — $35.00
+Shotgun Rental — $25.00
+```
+
+Total:
+
+```text
+$160.00
+```
+
+Do not send rental or ammunition to Square unless the customer selected them.
+
+---
+
+# TEST UPDATES
+
+Update the affected tests.
+
+Add coverage for:
+
+## AR-15
+
+1. No optional add-ons:
+   - 2 Square line items
+   - 11,500 cents total
+
+2. Ammunition only:
+   - 3 Square line items
+   - 15,500 cents total
+
+3. Rental only:
+   - 3 Square line items
+   - 15,000 cents total
+
+4. Both selected:
+   - 4 Square line items
+   - 19,000 cents total
+
+5. Unknown add-on:
+   - Returns `null`
+   - HTTP 400
+
+## Shotgun
+
+1. No optional add-ons:
+   - 2 Square line items
+   - 10,000 cents total
+
+2. Ammunition only:
+   - 3 Square line items
+   - 13,500 cents total
+
+3. Rental only:
+   - 3 Square line items
+   - 12,500 cents total
+
+4. Both selected:
+   - 4 Square line items
+   - 16,000 cents total
+
+5. Unknown add-on:
+   - Returns `null`
+   - HTTP 400
+
+Keep all other final-pricing tests passing.
+
+---
+
+# DO NOT CHANGE
+
+Do not change:
+
+- Texas LTC Shooting Proficiency pricing
+- First Shots pricing or range-fee removal
+- Introduction to Firearms pricing
+- Continuing Education pricing or optional range fee
+- Defensive Shooting price
+- Standard handgun rental or ammunition prices
+- Any other verified base course prices
+- Strict unknown-add-on validation
+
+---
+
+# REQUIRED QA
+
+Run:
+
+- TypeScript typecheck
+- Lint
+- All unit tests
+- Integration tests
+- Production build
+
+Then deploy and verify live production.
+
+Confirm:
+
+✅ AR-15 range fee is required
+
+✅ AR-15 ammunition is optional
+
+✅ AR-15 rental is optional
+
+✅ Shotgun range fee is required
+
+✅ Shotgun ammunition is optional
+
+✅ Shotgun rental is optional
+
+✅ Unselected optional items are not included in totals
+
+✅ Square only receives selected optional items
+
+✅ Events use the same rules
+
+✅ Unknown add-ons still return HTTP 400
+
+✅ All other course pricing remains unchanged
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+- Files changed
+- AR-15 data structure before and after
+- Shotgun data structure before and after
+- Server-validation updates
+- Square line-item behavior
+- Tests changed
+- Final test count and results
+- Build result
+- Production deployment URL
+- Live verification results
+- Commit SHA
+
+Do not include API keys, tokens, or secrets.
+
+---
+
+# COMMIT
+
+Suggested commit message:
+
+```text
+fix(corsair): make AR-15 and shotgun ammo and rentals optional
+```
