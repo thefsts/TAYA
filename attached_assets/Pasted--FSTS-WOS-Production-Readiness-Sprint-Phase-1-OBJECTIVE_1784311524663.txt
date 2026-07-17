@@ -1,0 +1,226 @@
+# FSTS-WOS™ Production Readiness Sprint — Phase 1
+
+## OBJECTIVE
+
+Effective immediately, stop all feature development.
+
+The sole objective is to make the **FSTS Website Operating System™ (FSTS-WOS™)** production-ready as a secure, enterprise-grade, multi-tenant SaaS platform before onboarding any client websites.
+
+Corsair Tactical Solutions is **NOT** being onboarded yet.
+
+The platform itself must be production-ready first.
+
+---
+
+# MANDATORY GIT COMMIT REQUIREMENTS
+
+**Every commit made during this project MUST use the following Git identity:**
+
+**Git Username**
+
+```
+thefsts
+```
+
+**Git Name**
+
+```
+THEFSTS
+```
+
+**Git Email**
+
+```
+amorebey@gmail.com
+```
+
+This is **mandatory**.
+
+Before making **any commit**, verify the Git configuration.
+
+If the repository is configured with any other Git user, immediately update it before committing.
+
+No commits are to be authored by:
+
+* Replit Agent
+* AI
+* Assistant
+* Default Git User
+* Any other identity
+
+Every commit must be authored as:
+
+**THEFSTS**
+**[amorebey@gmail.com](mailto:amorebey@gmail.com)**
+
+---
+
+# PRIORITY 1 — MULTI-TENANT SECURITY
+
+This is the highest priority.
+
+Audit every Convex function that accepts a `siteId`.
+
+Anywhere a client-supplied `siteId` is trusted, replace it with proper authorization.
+
+Apply `requireSiteAccess()` consistently across every site-scoped mutation and any sensitive queries.
+
+This includes (but is not limited to):
+
+* Articles
+* Courses
+* Events
+* Site Settings
+* Homepage
+* Footer
+* Contact
+* SEO
+* Forms
+* Media
+* Testimonials
+* Reviews
+* FAQ
+* Future modules
+
+SuperAdmin functionality must remain intact.
+
+Agency Admin permissions must continue working correctly.
+
+---
+
+# BUILD TENANT ISOLATION TESTS
+
+Create automated tests proving:
+
+* User from Site A CAN access Site A.
+* User from Site A CANNOT read Site B.
+* User from Site A CANNOT create data in Site B.
+* User from Site A CANNOT update Site B.
+* User from Site A CANNOT delete Site B.
+
+Verify permissions for:
+
+* SuperAdmin
+* Agency Admin
+* Client Admin
+* Staff
+* Portal User
+
+Every permission path must be validated.
+
+No manual testing.
+
+Automated tests only.
+
+---
+
+# PRIORITY 2 — REMOVE CLIENT WEBSITE FROM PLATFORM
+
+After tenant isolation is complete:
+
+Verify the dedicated Corsair repository contains the complete website.
+
+Then remove:
+
+```
+corsair-source/
+```
+
+from the FSTS-WOS repository.
+
+The Website Operating System™ must never contain an individual client website.
+
+Update:
+
+```
+scripts/check-boundary.sh
+```
+
+so that any client website source code added to the platform repository is detected and causes the boundary check to fail.
+
+---
+
+# PRIORITY 3 — SECURITY HARDENING
+
+Complete all remaining platform security work:
+
+* Secure webhook verification for all providers.
+* Reject invalid webhook signatures.
+* Add rate limiting.
+* Add upload MIME validation.
+* Add upload size limits.
+* Review every public endpoint.
+* Eliminate any remaining IDOR vulnerabilities.
+
+---
+
+# PRIORITY 4 — STAGING ENVIRONMENT
+
+Create a proper staging environment.
+
+Development must NEVER point to production.
+
+Separate:
+
+* Convex
+* Clerk
+* Environment Variables
+
+Production data must remain untouched during development and testing.
+
+---
+
+# PRIORITY 5 — TEST COVERAGE
+
+Create or complete:
+
+* Tenant Isolation Tests
+* Payment Tests
+* Checkout Tests
+* Refund Tests
+* Webhook Tests
+* Health Monitor Tests
+* End-to-End Tests
+* Boundary Tests
+
+Every test must pass before production approval.
+
+---
+
+# PRIORITY 6 — PRODUCTION READINESS
+
+Verify and document:
+
+* Backups
+* Restore procedures
+* Logging
+* Error monitoring
+* Deployment process
+* Rollback process
+* Production documentation
+
+Nothing should be assumed.
+
+Everything must be verified.
+
+---
+
+# IMPORTANT
+
+Do **NOT** add new features.
+
+Do **NOT** redesign existing functionality.
+
+Do **NOT** begin Corsair integration.
+
+Do **NOT** onboard any websites.
+
+The ONLY goal is to make **FSTS-WOS™** production-ready for unlimited client websites.
+
+When every production-readiness task has been completed, tested, and verified, we will begin onboarding **Corsair Tactical Solutions** as **Client Website #1** using the exact same onboarding workflow that every future client will use.
+
+Provide regular progress updates.
+
+Commit each completed phase separately.
+
+Do not proceed to the next phase until the current phase has been verified and approved.

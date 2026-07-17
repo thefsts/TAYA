@@ -13,3 +13,4 @@
 - [FSTS GitHub mirror push pattern](fsts-github-mirror.md) — GITHUB_PERSONAL_ACCESS_TOKEN is injected by Replit's GitHub OAuth integration; use it for git push in post-merge hooks
 - [Vercel alias & protection fix via Replit connector](vercel-connector-alias.md) — VERCEL_TOKEN is SAML-locked; use Replit's built-in Vercel connector (proposeIntegration + connectors.proxy) to assign aliases and patch project settings
 - [Pull external repo over scaffold](pull-external-repo-over-scaffold.md) — set origin + gitPull (merge fails on unrelated history but fetch succeeds), then `git reset --hard origin/<branch>`.
+- [FSTS-WOS security model](fsts-security-model.md) — full guard vocabulary for audits; CONVEX_TEST_MODE is a backdoor if set on prod; convex-test seeding trap.
