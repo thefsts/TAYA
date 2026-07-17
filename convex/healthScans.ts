@@ -2,6 +2,7 @@ import { query, mutation, action, internalMutation, internalAction, internalQuer
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { requireTestEnvironment } from "./lib/testMode";
 
 export type CategoryScore = {
   score: number;
@@ -160,9 +161,7 @@ export const testHarness = action({
     scannedAt: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<unknown> => {
-    if (process.env.CONVEX_TEST_MODE !== "true") {
-      throw new Error("testHarness is only available in test environments (CONVEX_TEST_MODE=true)");
-    }
+    requireTestEnvironment("testHarness");
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
     const hasAccess = await ctx.runQuery(internal.lib.siteAccessInternal.check, {

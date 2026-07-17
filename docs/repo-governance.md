@@ -77,3 +77,32 @@ If you discover Corsair website tasks queued in this project's task board, or Co
 - `docs/product-boundaries.md` — full product boundary specification (FSTS-WOS™ vs. Operon CRM™ vs. Operon Connector™)
 - `scripts/check-boundary.sh` — boundary enforcement script
 - `scripts/post-merge.sh` — post-merge hook (git identity + GitHub mirror sync)
+
+## Environment safety — `CONVEX_TEST_MODE`
+
+`CONVEX_TEST_MODE=true` unlocks test-only Convex functions (superadmin
+bootstrap for the e2e harness, `healthScans.testHarness`). It is a
+**privilege-escalation backdoor if ever enabled on production**.
+
+Protections (fail closed, see `convex/lib/testMode.ts`):
+
+1. **Runtime guard** — test-only functions call `requireTestEnvironment()`.
+   It refuses unless `CONVEX_TEST_MODE=true` AND the deployment is not marked
+   production. If `CONVEX_DEPLOYMENT_ENVIRONMENT=production` is present, test
+   mode is refused even when `CONVEX_TEST_MODE=true`, and a loud `SECURITY:`
+   error is raised.
+2. **Deploy-time validation** — `scripts/check-prod-env.sh` runs before every
+   `scripts/deploy-convex.sh` deploy. It fails if `CONVEX_TEST_MODE=true` is
+   set on the target deployment, or if `CONVEX_DEPLOYMENT_ENVIRONMENT` is not
+   `production`.
+3. **Automated tests** — `tests/convex-unit/src/test-mode-guard.test.ts` and
+   the tenant-isolation suite cover the guard and the gated functions.
+
+Required environment configuration:
+
+| Deployment  | `CONVEX_TEST_MODE` | `CONVEX_DEPLOYMENT_ENVIRONMENT` |
+| ----------- | ------------------ | ------------------------------- |
+| Production  | **never set**      | `production` (required)         |
+| Test/E2E    | `true`             | unset or `test`                 |
+
+Never run E2E tests against the production deployment.

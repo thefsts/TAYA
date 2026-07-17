@@ -14,6 +14,10 @@ fi
 CONVEX_TMPDIR="${CONVEX_TMPDIR:-/home/runner/workspace/.convex-tmp}"
 mkdir -p "$CONVEX_TMPDIR"
 
+# Production safety: refuse to deploy if the target deployment has an unsafe
+# environment configuration (e.g. CONVEX_TEST_MODE=true). Fails closed.
+bash "$(dirname "$0")/check-prod-env.sh"
+
 CONVEX_DEPLOY_KEY="$CONVEX_DEPLOY_KEY" \
 CONVEX_TMPDIR="$CONVEX_TMPDIR" \
 npx convex deploy --yes "$@"
