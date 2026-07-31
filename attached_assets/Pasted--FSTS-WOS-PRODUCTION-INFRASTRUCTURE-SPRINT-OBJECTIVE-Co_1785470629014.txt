@@ -1,0 +1,362 @@
+# FSTS-WOS™ PRODUCTION INFRASTRUCTURE SPRINT
+
+## OBJECTIVE
+
+Complete the production infrastructure for the **FSTS Website Operating System™ (FSTS-WOS™)** so the platform is ready for onboarding its first client website.
+
+This sprint is focused on production readiness only.
+
+Do **NOT** add new features.
+
+Do **NOT** onboard Corsair Tactical Solutions yet.
+
+---
+
+# AUTHORIZED REPOSITORY
+
+Work only in:
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+---
+
+# AUTHORIZED VERCEL PROJECT
+
+Only work inside this Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+Do **NOT** access, modify, deploy, or configure any other Vercel project.
+
+---
+
+# GIT IDENTITY
+
+Every commit must use:
+
+```text
+Git Name:
+THEFSTS
+
+Git Username:
+thefsts
+
+Git Email:
+amorebey@gmail.com
+```
+
+No commits may be authored by:
+
+* Replit Agent
+* users.noreply.replit.com
+* AI
+* Default Git User
+* Any identity other than:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+---
+
+# STEP 1 — CONFIGURE THE PRODUCTION DOMAIN
+
+Configure the official production domain:
+
+```text
+https://fstsclientsystem.com
+```
+
+Verify:
+
+* SSL certificate
+* HTTPS redirect
+* Vercel domain assignment
+* DNS propagation
+* Production routing
+
+This becomes the official production URL for the FSTS Website Operating System™.
+
+---
+
+# STEP 2 — CONFIGURE SUBDOMAINS
+
+Configure:
+
+```text
+www.fstsclientsystem.com
+```
+
+Redirect permanently to:
+
+```text
+https://fstsclientsystem.com
+```
+
+Reserve and configure DNS for:
+
+```text
+api.fstsclientsystem.com
+
+status.fstsclientsystem.com
+
+docs.fstsclientsystem.com
+```
+
+Do not deploy applications to these subdomains yet.
+
+Simply configure and reserve them correctly for future expansion.
+
+Report:
+
+* DNS records
+* SSL status
+* Routing
+* Current destination
+
+---
+
+# STEP 3 — CONFIGURE CLERK
+
+Update Clerk for the new production domain.
+
+Verify and configure:
+
+Production URL
+
+```text
+https://fstsclientsystem.com
+```
+
+Authorized Origins
+
+```text
+https://fstsclientsystem.com
+
+https://www.fstsclientsystem.com
+```
+
+Verify and update:
+
+* Sign In URLs
+* Sign Up URLs
+* After Sign In redirect
+* After Sign Up redirect
+* After Logout redirect
+* Password Reset URLs
+* Email Verification URLs
+* OAuth Callback URLs
+
+Verify:
+
+* Publishable Key
+* Secret Key
+* JWT configuration
+* Session Cookie Domain
+* Cross-domain cookie configuration
+
+Remove old references to:
+
+* localhost
+* preview deployments
+* temporary Vercel URLs
+* obsolete production URLs
+
+---
+
+# STEP 4 — VERIFY CONVEX
+
+Audit the production Convex deployment.
+
+Verify:
+
+* Production deployment
+* Authentication
+* Clerk integration
+* JWT verification
+* File storage
+* Public APIs
+* Private APIs
+* Tenant isolation
+* Webhooks
+* Environment variables
+
+Confirm production is using the correct deployment.
+
+---
+
+# STEP 5 — VERIFY ENVIRONMENT VARIABLES
+
+Audit every production environment variable.
+
+Include:
+
+* Vercel
+* Convex
+* Clerk
+* Resend
+* Square
+* Google
+* Storage
+* AI services
+* Email
+* Payments
+
+Do NOT expose secret values.
+
+Only report:
+
+* Present
+* Missing
+* Unused
+* Deprecated
+
+---
+
+# STEP 6 — VERIFY THE DASHBOARD
+
+Audit every major dashboard module.
+
+Include:
+
+* Authentication
+* Authorization
+* Tenant Isolation
+* CMS
+* Homepage
+* Footer
+* Contact
+* SEO
+* Articles
+* Courses
+* Events
+* Forms
+* Testimonials
+* Reviews
+* Media Library
+* Smart Image Manager™
+* Website Health Command Center™
+* AI Dashboard Assistant™
+* Membership Portal™
+* Integrations
+* APIs
+* Security
+* Logging
+* Monitoring
+* Background Jobs
+* Deployment
+* Performance
+
+For every module report:
+
+* Complete
+* In Progress
+* Blocked
+* Remaining Work
+
+---
+
+# STEP 7 — WEBSITE ONBOARDING READINESS
+
+Determine if the platform is ready to onboard the first client website.
+
+Answer:
+
+Can we onboard a completely new client website today?
+
+If NO:
+
+List every remaining blocker.
+
+For every blocker include:
+
+* Severity
+* Estimated hours
+* Dependencies
+* Recommended priority
+
+---
+
+# STEP 8 — FIRST WEBSITE READINESS
+
+Estimate:
+
+How many development hours remain before the dashboard can successfully power Website #1.
+
+Include:
+
+* Remaining work
+* Risk assessment
+* Confidence percentage
+* Recommended next milestone
+
+---
+
+# STEP 9 — FUTURE SCALE
+
+Estimate readiness for:
+
+* 1 client
+* 10 clients
+* 100 clients
+* 1,000 clients
+
+Identify:
+
+* Bottlenecks
+* Scaling concerns
+* Multi-tenant risks
+* Performance concerns
+
+---
+
+# STEP 10 — FINAL PRODUCTION READINESS REPORT
+
+Provide:
+
+1. Domain configuration status
+2. DNS status
+3. SSL status
+4. Subdomain status
+5. Clerk configuration status
+6. Convex production status
+7. Vercel deployment status
+8. Environment variable audit
+9. Authentication audit
+10. Authorization audit
+11. Tenant isolation status
+12. Dashboard completion percentage
+13. Production readiness percentage
+14. Remaining blockers
+15. Estimated development hours remaining
+16. Recommended next phase
+17. Earliest point we can onboard Website #1
+18. Overall GO / NO-GO recommendation
+
+---
+
+# IMPORTANT
+
+Do NOT add new features.
+
+Do NOT redesign existing modules.
+
+Do NOT onboard Corsair Tactical Solutions.
+
+Do NOT onboard any client website yet.
+
+Do NOT access any Vercel project except:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+Do NOT expose secrets.
+
+Do NOT continue into Phase 3.
+
+Complete this infrastructure sprint first and submit the full production readiness report before any additional development begins.
