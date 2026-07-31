@@ -44,3 +44,11 @@ The project had `ssoProtection: {"deploymentType":"all_except_custom_domains"}` 
 **Why:** A removed custom alias won't auto-reattach on new deployments — only the default project alias (`{project}.vercel.app`) is auto-assigned. Custom aliases like `corsair-tactical-solutions1.vercel.app` must be explicitly re-assigned via API.
 
 **How to apply:** When the Corsair site alias breaks again, skip VERCEL_TOKEN entirely, go straight to the Replit Vercel connector. Two-step fix: (1) assign alias, (2) check/patch ssoProtection.
+
+## ⚠️ Connector availability warning
+As of 2026-07-31, `searchIntegrations({ query: "" })` does NOT return a Vercel connector or connection — the stored connection ID `conn_vercel_01KW8B3K8AP14WE30EDZ87885P` returns "not found" from both `viewIntegration` and `addIntegration`. The Vercel connector may have been removed from the Replit catalog or de-authorized at the account level. Before relying on this pattern, run `searchIntegrations({ query: "vercel" })` to confirm the connection exists and has `status: "added"`. If absent, all Vercel domain/alias management must be done manually via the Vercel dashboard.
+
+## FSTS project coordinates
+- Team: `fullstacksolutions` — `team_00AzAewtangFumhXtrI6kseh`
+- Project: `fsts-client-dashboard-for-sites-api-server`
+- Current production IP: 216.150.1.193 (Vercel CDN, iad1 region)
