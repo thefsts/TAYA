@@ -12,7 +12,7 @@ bash "$(dirname "$0")/install-hooks.sh"
 # ── Git commit identity ───────────────────────────────────────────────────────
 # Enforced unconditionally on every merge so all commits carry the correct
 # author regardless of the local git config state.
-git config user.name  "Thefsts"
+git config user.name  "THEFSTS"
 git config user.email "amorebey@gmail.com"
 
 pnpm install --frozen-lockfile
@@ -29,9 +29,10 @@ echo ""
 echo "--- GitHub mirror sync ---"
 
 if [ -z "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]; then
-  echo "✗ GITHUB_PERSONAL_ACCESS_TOKEN is not set."
-  echo "  Connect the GitHub integration so the token is available."
-  exit 1
+  echo "⚠ GITHUB_PERSONAL_ACCESS_TOKEN is not set — skipping GitHub mirror sync."
+  echo "  The agent can push via its GitHub integration instead, or reconnect"
+  echo "  the GitHub integration so the token is available for this script."
+  exit 0
 fi
 
 TOKEN="${GITHUB_PERSONAL_ACCESS_TOKEN}"
