@@ -258,13 +258,29 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 3. COMMIT IDENTITY CHECK — every outgoing commit must be authored and
+#    committed by THEFSTS <amorebey@gmail.com>. Reference: docs/repo-governance.md
+# ---------------------------------------------------------------------------
+IDENTITY_FOUND=0
+if ! bash "$(dirname "$0")/check-commit-identity.sh"; then
+  IDENTITY_FOUND=1
+fi
+
+# ---------------------------------------------------------------------------
 # Final result
 # ---------------------------------------------------------------------------
 echo ""
-if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ]; then
+if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ]; then
   echo "[boundary-check] ✅  All checks passed. Repository boundary is clean."
   exit 0
 else
+  if [ "$IDENTITY_FOUND" -ne 0 ]; then
+    echo "[boundary-check] ❌  Commit identity violation(s) detected."
+    echo ""
+    echo "  Every outgoing commit must be authored and committed by"
+    echo "  THEFSTS <amorebey@gmail.com>. See docs/repo-governance.md."
+    echo ""
+  fi
   if [ "$REPO_SEPARATION_FOUND" -ne 0 ]; then
     echo "[boundary-check] ❌  Repository separation violation(s) detected."
     echo ""

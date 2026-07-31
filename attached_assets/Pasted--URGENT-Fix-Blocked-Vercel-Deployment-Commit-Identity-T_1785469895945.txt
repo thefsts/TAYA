@@ -1,0 +1,269 @@
+# URGENT — Fix Blocked Vercel Deployment Commit Identity
+
+The latest FSTS-WOS™ deployment was blocked because the commit email was:
+
+```text
+59946806-fstacktsolution@users.noreply.replit.com
+```
+
+Vercel could not match that email to the connected GitHub account.
+
+This must be corrected before any additional Phase 2 work or deployment.
+
+## Required Git Identity
+
+All commits must use:
+
+```text
+Git Name: THEFSTS
+Git Username: thefsts
+Git Email: amorebey@gmail.com
+```
+
+## Authorized Repository
+
+Only work in:
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+## Authorized Vercel Project
+
+Only deploy to:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+Do not access, modify, relink, or deploy any other Vercel project.
+
+---
+
+# REQUIRED CORRECTION
+
+## 1. Verify GitHub Email
+
+Confirm that:
+
+```text
+amorebey@gmail.com
+```
+
+is added to and verified on the GitHub account:
+
+```text
+thefsts
+```
+
+Do not expose account credentials or verification links.
+
+If the email is not verified, stop and report that owner action is required.
+
+## 2. Configure Repository Git Identity
+
+Run inside the FSTS-WOS™ repository:
+
+```bash
+git config user.name "THEFSTS"
+git config user.email "amorebey@gmail.com"
+```
+
+Verify:
+
+```bash
+git config user.name
+git config user.email
+```
+
+Expected:
+
+```text
+THEFSTS
+amorebey@gmail.com
+```
+
+Also inspect global configuration so it cannot override or recreate the Replit identity:
+
+```bash
+git config --global user.name
+git config --global user.email
+git config --show-origin --get-regexp '^user\.(name|email)$'
+```
+
+Repository-local values must take precedence.
+
+## 3. Inspect Every Unpushed Commit
+
+Identify the upstream branch and inspect the complete unpushed range:
+
+```bash
+git branch --show-current
+git remote -v
+git fetch origin
+git log --format=fuller origin/main..HEAD
+```
+
+Every unpushed commit must show:
+
+```text
+Author: THEFSTS <amorebey@gmail.com>
+Commit: THEFSTS <amorebey@gmail.com>
+```
+
+No unpushed commit may contain:
+
+```text
+59946806-fstacktsolution@users.noreply.replit.com
+Replit Agent
+users.noreply.replit.com
+```
+
+## 4. Re-author the Blocked Commit and All Other Incorrect Local Commits
+
+Rewrite every unpushed commit with the wrong author or committer identity.
+
+Do not only amend the latest commit if earlier unpushed commits also contain the Replit identity.
+
+Preserve:
+
+* Commit contents
+* Commit order
+* Commit messages unless correction is necessary
+* Logical separation between commits
+
+After rewriting, verify again:
+
+```bash
+git log --format=fuller origin/main..HEAD
+```
+
+Also run:
+
+```bash
+git log origin/main..HEAD --format='%H | %an <%ae> | %cn <%ce>'
+```
+
+Every line must show:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+for both author and committer.
+
+## 5. Confirm the Blocked Commit Hash Changed
+
+Because commit metadata is part of the commit hash, re-authoring must create a new commit hash.
+
+Report:
+
+* Old blocked commit hash
+* New corrected commit hash
+* Commit message
+* Author
+* Committer
+
+Do not attempt to redeploy the old blocked hash.
+
+## 6. Run Verification Before Push
+
+Run the full applicable validation suite:
+
+```bash
+pnpm run typecheck
+pnpm run test:design-lock
+pnpm run test:convex-unit
+pnpm run test:visual
+pnpm --filter @workspace/fsts-dashboard run build
+```
+
+Also run:
+
+* Tenant-isolation tests
+* Production `CONVEX_TEST_MODE` guard tests
+* Boundary checks currently available
+
+Report skipped tests separately.
+
+## 7. Push the Corrected History
+
+Push only after confirming:
+
+* Git remote is the official FSTS-WOS™ repository.
+* Every unpushed commit uses `THEFSTS <amorebey@gmail.com>`.
+* No Replit noreply identity remains.
+* Tests and production build pass.
+* No secrets or unrelated files are included.
+
+Because local commit hashes were rewritten, use the safest appropriate push method.
+
+Do not overwrite unrelated remote work.
+
+If the remote branch has diverged, stop and report the divergence instead of forcing over it blindly.
+
+## 8. Verify Vercel Deployment
+
+After the corrected commit is pushed, verify that the deployment appears only in:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+Confirm:
+
+* Vercel recognizes the commit author.
+* The deployment is no longer blocked by commit attribution.
+* The deployment uses the new corrected commit hash.
+* The build succeeds.
+* No other Vercel project was accessed or changed.
+
+Do not manually redeploy the old blocked deployment.
+
+Do not manually promote a preview deployment to production unless explicitly approved.
+
+---
+
+# PREVENTION REQUIREMENT
+
+Add a repository-level guard that fails before push or deployment when commits in the outgoing range use an unauthorized email.
+
+Approved commit identity:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+The guard must reject:
+
+```text
+@users.noreply.replit.com
+Replit Agent
+Any other author email
+Any other committer email
+```
+
+Add this identity verification to the existing source-audit, pre-push, or CI process so this deployment failure cannot recur.
+
+Do not rely only on the current Git configuration.
+
+---
+
+# REQUIRED REPORT
+
+Return:
+
+1. Verified repository Git name and email.
+2. Confirmation that `amorebey@gmail.com` is verified on GitHub, or state that owner action is required.
+3. All unpushed commits before correction.
+4. All unpushed commits after correction.
+5. Old blocked commit hash.
+6. New corrected commit hash.
+7. Confirmation that author and committer are both `THEFSTS <amorebey@gmail.com>`.
+8. Test and build results.
+9. Push result.
+10. Authorized Vercel deployment result.
+11. Confirmation that no other Vercel project was accessed.
+12. Details of the permanent commit-identity guard added.
+
+Do not continue Phase 2 until this deployment identity issue is fully corrected and verified.

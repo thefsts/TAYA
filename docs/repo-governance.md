@@ -106,3 +106,24 @@ Required environment configuration:
 | Test/E2E    | `true`             | unset or `test`                 |
 
 Never run E2E tests against the production deployment.
+
+## Commit identity
+
+Every commit in this repository must be authored **and** committed by:
+
+    THEFSTS <amorebey@gmail.com>
+
+Rejected identities include `Replit Agent`, `agent@replit.com`, any
+`@users.noreply.replit.com` address, and any other name/email. Vercel blocks
+deployments whose commit email cannot be matched to the connected GitHub
+account, so this is deployment-critical.
+
+Enforcement (do not rely on git config alone):
+
+1. `scripts/check-commit-identity.sh` — validates the outgoing range
+   (`origin/main..HEAD`); runs inside `scripts/check-boundary.sh` (CI /
+   source audit).
+2. `.githooks/pre-push` — local pre-push guard. Enable once per clone:
+   `git config core.hooksPath .githooks` (already set in this workspace).
+3. Repo-local `git config user.name "THEFSTS"` / `user.email
+   "amorebey@gmail.com"` takes precedence over any global identity.
