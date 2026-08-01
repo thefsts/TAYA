@@ -224,6 +224,7 @@ export default defineSchema({
     fromName: v.string(),
     fromEmail: v.string(),
     replyToEmail: v.string(),
+    notificationEmail: v.optional(v.string()),
     notifyOnNewLead: v.boolean(),
     notifyOnBooking: v.boolean(),
   }).index("by_site", ["siteId"]),

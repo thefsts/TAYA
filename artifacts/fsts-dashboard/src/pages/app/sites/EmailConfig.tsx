@@ -20,6 +20,7 @@ export default function EmailConfig({ params }: { params: { siteId: string } }) 
   const [fromName, setFromName] = useState("");
   const [fromEmail, setFromEmail] = useState("");
   const [replyToEmail, setReplyToEmail] = useState("");
+  const [notificationEmail, setNotificationEmail] = useState("");
   const [notifyOnNewLead, setNotifyOnNewLead] = useState(false);
   const [notifyOnBooking, setNotifyOnBooking] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -29,6 +30,7 @@ export default function EmailConfig({ params }: { params: { siteId: string } }) 
       setFromName(data.fromName ?? "");
       setFromEmail(data.fromEmail ?? "");
       setReplyToEmail(data.replyToEmail ?? "");
+      setNotificationEmail((data as { notificationEmail?: string }).notificationEmail ?? "");
       setNotifyOnNewLead(data.notifyOnNewLead ?? false);
       setNotifyOnBooking(data.notifyOnBooking ?? false);
     }
@@ -37,7 +39,7 @@ export default function EmailConfig({ params }: { params: { siteId: string } }) 
   async function handleSave() {
     setIsPending(true);
     try {
-      await updateEmailSettings({ siteId, fromName, fromEmail, replyToEmail, notifyOnNewLead, notifyOnBooking });
+      await updateEmailSettings({ siteId, fromName, fromEmail, replyToEmail, notificationEmail: notificationEmail || undefined, notifyOnNewLead, notifyOnBooking });
       toast({ title: "Email settings updated" });
     } catch (err) {
       toast({
@@ -71,6 +73,18 @@ export default function EmailConfig({ params }: { params: { siteId: string } }) 
             <div className="space-y-1.5">
               <Label>Reply To</Label>
               <Input type="email" value={replyToEmail} onChange={(e) => setReplyToEmail(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Lead Alert Recipient</Label>
+              <Input
+                type="email"
+                placeholder={fromEmail || "Where should lead alerts be sent?"}
+                value={notificationEmail}
+                onChange={(e) => setNotificationEmail(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">
+                Where should lead alert emails be delivered? Leave blank to use the From Email above.
+              </p>
             </div>
             <div className="flex items-center justify-between py-1">
               <Label>Notify on new lead</Label>

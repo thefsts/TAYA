@@ -98,14 +98,15 @@ export const sendFormNotification = internalAction({
 
     if (!shouldNotify) return { skipped: true };
 
-    // Recipient: the configured fromEmail (site owner's address)
-    const recipientEmail = settings?.fromEmail;
+    // Recipient: notificationEmail if set, otherwise fall back to fromEmail
+    const recipientEmail = settings?.notificationEmail || settings?.fromEmail;
     if (!recipientEmail) {
-      console.warn("[email.sendFormNotification] No fromEmail configured for site", args.siteId);
-      return { skipped: true, reason: "no fromEmail configured" };
+      console.warn("[email.sendFormNotification] No notification email configured for site", args.siteId);
+      return { skipped: true, reason: "no notification email configured" };
     }
 
     const fromName = settings?.fromName ?? "FSTS Platform";
+    const senderEmail = settings?.fromEmail; // sender identity stays as fromEmail regardless of recipient
     const submitterLabel = args.submitterName ?? args.submitterEmail ?? "Someone";
     const formLabel = args.formType.replace(/_/g, " ");
 
@@ -127,7 +128,7 @@ export const sendFormNotification = internalAction({
       subject: `New ${formLabel} from ${submitterLabel}`,
       html,
       fromName,
-      fromEmail: recipientEmail,
+      fromEmail: senderEmail,
       replyTo: args.submitterEmail,
     });
   },
@@ -197,6 +198,7 @@ export const update = mutation({
     fromName: v.optional(v.string()),
     fromEmail: v.optional(v.string()),
     replyToEmail: v.optional(v.string()),
+    notificationEmail: v.optional(v.string()),
     notifyOnNewLead: v.optional(v.boolean()),
     notifyOnBooking: v.optional(v.boolean()),
   },
