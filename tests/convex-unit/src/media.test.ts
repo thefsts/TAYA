@@ -204,3 +204,223 @@ describe("migrateDeleteDataUrls — access control", () => {
     expect(result.deleted).toBe(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Edge cases — added to guard against future schema / logic regressions
+// ---------------------------------------------------------------------------
+
+describe("migrateDeleteDataUrls — edge case: record has both data: URL and storageId", () => {
+  /**
+   * The schema allows both `url` and `storageId` to be present on a single
+   * record (both fields are optional).  If `url` starts with "data:" the
+   * purge logic must still delete the record — the storageId does not
+   * grant immunity.
+   */
+  it("deletes a record that carries both a data: URL and a storageId", async () => {
+    // Insert a hybrid record on Site B (no other media there).
+    const hybridId = await t.run(async (ctx) => {
+      const realStorageId = await ctx.storage.store(
+        new Blob(["hybrid-bytes"], { type: "image/png" }),
+      );
+      return ctx.db.insert("mediaAssets", {
+        siteId: s.siteB,
+        storageId: realStorageId,
+        url: "data:image/png;base64,AAAA",
+        fileName: "hybrid.png",
+        mimeType: "image/png",
+        sizeBytes: 512,
+      });
+    });
+
+    const result = await t
+      .withIdentity({ subject: "superadmin" })
+      .mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteB });
+
+    expect(result.deleted).toBe(1);
+
+    const gone = await t.run((ctx) => ctx.db.get(hybridId));
+    expect(gone).toBeNull();
+  });
+
+  it("does NOT delete the storageId-only record on the same site run", async () => {
+    // Insert one data:+storageId hybrid and one pure-storageId record on Site B.
+    await t.run(async (ctx) => {
+      const sid1 = await ctx.storage.store(
+        new Blob(["hybrid"], { type: "image/png" }),
+      );
+      const sid2 = await ctx.storage.store(
+        new Blob(["pure"], { type: "image/png" }),
+      );
+      await ctx.db.insert("mediaAssets", {
+        siteId: s.siteB,
+        storageId: sid1,
+        url: "data:image/png;base64,AAAA",
+        fileName: "hybrid.png",
+        mimeType: "image/png",
+        sizeBytes: 512,
+      });
+      await ctx.db.insert("mediaAssets", {
+        siteId: s.siteB,
+        storageId: sid2,
+        fileName: "pure.png",
+        mimeType: "image/png",
+        sizeBytes: 512,
+      });
+    });
+
+    const result = await t
+      .withIdentity({ subject: "superadmin" })
+      .mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteB });
+
+    // Only the hybrid (data: URL) record should be removed.
+    expect(result.deleted).toBe(1);
+  });
+});
+
+describe("migrateDeleteDataUrls — edge case: URL starting with 'data-' is NOT base64", () => {
+  /**
+   * A URL such as "data-export/image.png" or a CDN path like
+   * "https://cdn.example.com/data-lake/photo.png" must NOT be treated as a
+   * legacy base64 record.  Only strings that start with the exact token
+   * "data:" (colon, not hyphen) qualify for deletion.
+   */
+
+  const nonBase64Urls = [
+    "data-export/image.png",
+    "data-placeholder.svg",
+    "/media/data-driven/chart.png",
+    "https://cdn.example.com/data-lake/photo.png",
+  ];
+
+  for (const url of nonBase64Urls) {
+    it(`preserves record with url="${url}"`, async () => {
+      const id = await t.run((ctx) =>
+        ctx.db.insert("mediaAssets", {
+          siteId: s.siteB,
+          url,
+          fileName: "data-look-alike.png",
+          mimeType: "image/png",
+          sizeBytes: 256,
+        }),
+      );
+
+      const result = await t
+        .withIdentity({ subject: "superadmin" })
+        .mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteB });
+
+      expect(result.deleted).toBe(0);
+
+      const still = await t.run((ctx) => ctx.db.get(id));
+      expect(still).not.toBeNull();
+      expect(still?.url).toBe(url);
+    });
+  }
+});
+
+describe("migrateDeleteDataUrls — edge case: 50+ mixed records, exact count", () => {
+  /**
+   * Inserts a large batch of records (well above the default Convex query
+   * page size of 8) on a fresh site and verifies that deleted exactly equals
+   * the number of data: records seeded — no under-count, no over-count.
+   */
+  it("deletes exactly the data: records in a 55-record mixed library", async () => {
+    const DATA_URL_COUNT = 30;
+    const REAL_URL_COUNT = 15;
+    const STORAGE_COUNT = 10;
+    const TOTAL_EXPECTED_DELETED = DATA_URL_COUNT;
+
+    const siteC = await t.run((ctx) =>
+      ctx.db.insert("sites", siteDoc("Site C", "site-c")),
+    );
+
+    await t.run(async (ctx) => {
+      // data: URL records — must all be purged
+      for (let i = 0; i < DATA_URL_COUNT; i++) {
+        await ctx.db.insert("mediaAssets", {
+          siteId: siteC,
+          url: `data:image/png;base64,BASE64DATA${i}`,
+          fileName: `base64-${i}.png`,
+          mimeType: "image/png",
+          sizeBytes: 100 + i,
+        });
+      }
+      // Real https URL records — must survive
+      for (let i = 0; i < REAL_URL_COUNT; i++) {
+        await ctx.db.insert("mediaAssets", {
+          siteId: siteC,
+          url: `https://cdn.example.com/real-${i}.png`,
+          fileName: `real-${i}.png`,
+          mimeType: "image/png",
+          sizeBytes: 2000 + i,
+        });
+      }
+      // Storage-backed records — must survive
+      for (let i = 0; i < STORAGE_COUNT; i++) {
+        const sid = await ctx.storage.store(
+          new Blob([`stored-${i}`], { type: "image/png" }),
+        );
+        await ctx.db.insert("mediaAssets", {
+          siteId: siteC,
+          storageId: sid,
+          fileName: `stored-${i}.png`,
+          mimeType: "image/png",
+          sizeBytes: 3000 + i,
+        });
+      }
+    });
+
+    const result = await t
+      .withIdentity({ subject: "superadmin" })
+      .mutation(api.media.migrateDeleteDataUrls, { siteId: siteC });
+
+    expect(result.deleted).toBe(TOTAL_EXPECTED_DELETED);
+
+    // Verify surviving records count matches expectation.
+    const survivors = await t.run((ctx) =>
+      ctx.db
+        .query("mediaAssets")
+        .withIndex("by_site", (q) => q.eq("siteId", siteC))
+        .collect(),
+    );
+    expect(survivors).toHaveLength(REAL_URL_COUNT + STORAGE_COUNT);
+
+    // None of the survivors should have a data: URL.
+    for (const doc of survivors) {
+      expect(doc.url?.startsWith("data:") ?? false).toBe(false);
+    }
+  });
+
+  it("is idempotent on the large mixed library (second run returns 0)", async () => {
+    const siteD = await t.run((ctx) =>
+      ctx.db.insert("sites", siteDoc("Site D", "site-d")),
+    );
+
+    await t.run(async (ctx) => {
+      for (let i = 0; i < 55; i++) {
+        const isBase64 = i % 2 === 0;
+        await ctx.db.insert("mediaAssets", {
+          siteId: siteD,
+          url: isBase64
+            ? `data:image/png;base64,DATA${i}`
+            : `https://cdn.example.com/img-${i}.png`,
+          fileName: `img-${i}.png`,
+          mimeType: "image/png",
+          sizeBytes: 1000,
+        });
+      }
+    });
+
+    const first = await t
+      .withIdentity({ subject: "superadmin" })
+      .mutation(api.media.migrateDeleteDataUrls, { siteId: siteD });
+
+    // 55 records, every even index is base64 → indices 0,2,4,...,54 = 28 records
+    expect(first.deleted).toBe(28);
+
+    const second = await t
+      .withIdentity({ subject: "superadmin" })
+      .mutation(api.media.migrateDeleteDataUrls, { siteId: siteD });
+
+    expect(second.deleted).toBe(0);
+  });
+});
