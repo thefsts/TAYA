@@ -1,3 +1,5 @@
+> ⛔ **PLATFORM FREEZE — Effective August 1, 2026.** No feature enhancements or non-bug-fix changes may be merged until Version 2 planning begins. See `docs/CORSAIR_PRODUCTION_CERTIFICATION.md` for the full freeze notice.
+
 # FSTS-WOS™ Production Readiness Report
 ## Audit Date: July 31, 2026 — Supersedes Sprint Step 10
 
