@@ -32,13 +32,35 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
   const data = useQuery(api.media.list, { siteId });
+  const health = useQuery(api.media.healthStats, { siteId });
   const createMediaAsset = useMutation(api.media.create);
   const deleteMediaAsset = useMutation(api.media.remove);
+  const purgeDataUrls = useMutation(api.media.migrateDeleteDataUrls);
 
   const [uploaderOpen, setUploaderOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
+
+  async function handlePurge() {
+    setIsPurging(true);
+    try {
+      const result = await purgeDataUrls({ siteId });
+      toast({
+        title: `Cleaned up ${result.deleted} broken record${result.deleted !== 1 ? "s" : ""}`,
+        description: "Legacy base64 images have been removed from your media library.",
+      });
+    } catch (err) {
+      toast({
+        title: "Cleanup failed",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPurging(false);
+    }
+  }
 
   const handleSaveImage = async (imageData: {
     storageId?: string;
@@ -113,8 +135,11 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
             <p className="text-2xl font-bold text-slate-900">{data.length}</p>
           </div>
           <div className="bg-white border border-slate-200 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium mb-1">Storage Used</p>
-            <p className="text-2xl font-bold text-slate-900">{formatBytes(totalSize)}</p>
+            <p className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              Ready to Use
+            </p>
+            <p className="text-2xl font-bold text-green-600">{health?.healthy ?? "—"}</p>
           </div>
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <p className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
@@ -127,6 +152,30 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
             <p className="text-xs text-slate-500 font-medium mb-1">WebP Optimized</p>
             <p className="text-2xl font-bold text-slate-900">{data.length > 0 ? Math.round((webpCount / data.length) * 100) : 0}%</p>
           </div>
+        </div>
+      )}
+
+      {/* Broken image health banner */}
+      {health && health.broken > 0 && (
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl mb-5 text-sm">
+          <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-medium text-red-800">
+              {health.broken} broken image record{health.broken > 1 ? "s" : ""} detected
+            </p>
+            <p className="text-red-700 text-xs mt-0.5">
+              {health.broken} of your {health.total} assets {health.broken === 1 ? "is a" : "are"} legacy base64 record{health.broken > 1 ? "s" : ""} that cannot be served on your live site. Clean them up to keep your media library accurate.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-red-300 text-red-700 hover:bg-red-100 flex-shrink-0"
+            onClick={handlePurge}
+            disabled={isPurging}
+          >
+            {isPurging ? "Cleaning…" : "Clean Up"}
+          </Button>
         </div>
       )}
 

@@ -108,6 +108,24 @@ export const remove = mutation({
 });
 
 /**
+ * Returns a quick health summary for the media library without loading full
+ * asset data or base64 payloads. Used by the UI health indicator.
+ */
+export const healthStats = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    if (!await checkSiteAccess(ctx, siteId)) return { total: 0, healthy: 0, broken: 0 };
+    if (!await checkModuleEnabled(ctx, siteId, "media")) return { total: 0, healthy: 0, broken: 0 };
+    const docs = await ctx.db.query("mediaAssets").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect();
+    let broken = 0;
+    for (const doc of docs) {
+      if (!doc.storageId && doc.url?.startsWith("data:")) broken++;
+    }
+    return { total: docs.length, healthy: docs.length - broken, broken };
+  },
+});
+
+/**
  * One-time migration: removes legacy records that stored raw base64 data: URLs
  * (those were never serveable as real CDN links). Safe to call multiple times.
  */
