@@ -60,14 +60,15 @@ pnpm --filter @workspace/db run push || true
 echo ""
 echo "--- GitHub mirror sync ---"
 
-if [ -z "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]; then
-  echo "⚠ GITHUB_PERSONAL_ACCESS_TOKEN is not set — skipping GitHub mirror sync."
-  echo "  The agent can push via its GitHub integration instead, or reconnect"
-  echo "  the GitHub integration so the token is available for this script."
+# Accept either secret name (GITHUB_PAT is the Replit-injected name;
+# GITHUB_PERSONAL_ACCESS_TOKEN is the legacy name from earlier setup).
+TOKEN="${GITHUB_PAT:-${GITHUB_PERSONAL_ACCESS_TOKEN:-}}"
+
+if [ -z "${TOKEN}" ]; then
+  echo "⚠ Neither GITHUB_PAT nor GITHUB_PERSONAL_ACCESS_TOKEN is set — skipping GitHub mirror sync."
+  echo "  Set GITHUB_PAT in the Replit workspace secrets to enable automatic mirror sync."
   exit 0
 fi
-
-TOKEN="${GITHUB_PERSONAL_ACCESS_TOKEN}"
 OWNER="thefsts"
 REPO="FSTS-client-Dashboard-for-sites-"
 BRANCH="main"
