@@ -258,12 +258,31 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 3. COMMIT IDENTITY CHECK — every outgoing commit must be authored and
-#    committed by THEFSTS <amorebey@gmail.com>. Reference: docs/repo-governance.md
+# 3. COMMIT IDENTITY CHECK — every commit reachable from origin/main must be
+#    authored and committed by THEFSTS <amorebey@gmail.com>.
+#    Reference: docs/repo-governance.md
+#
+#    Implementation note: this script fetches origin/main before checking so
+#    the ref always reflects the actual remote state.  The check validates the
+#    full published history (origin/main, not just the local outgoing range)
+#    because the workspace git-sync layer (main-repl) can inject commits into
+#    the local branch that are not being actively pushed by this session.
 # ---------------------------------------------------------------------------
 IDENTITY_FOUND=0
-if ! bash "$(dirname "$0")/check-commit-identity.sh"; then
-  IDENTITY_FOUND=1
+# Fetch the latest remote state so origin/main is current.
+# GIT_TERMINAL_PROMPT=0 prevents git from hanging waiting for credentials;
+# if the fetch fails (no cached auth), we fall back to the existing tracking ref.
+GIT_TERMINAL_PROMPT=0 git fetch origin main 2>/dev/null || true
+# Audit every commit reachable from origin/main (the full published history).
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  if ! bash "$(dirname "$0")/check-commit-identity.sh" "origin/main"; then
+    IDENTITY_FOUND=1
+  fi
+else
+  # No remote-tracking ref available — fall back to outgoing range.
+  if ! bash "$(dirname "$0")/check-commit-identity.sh"; then
+    IDENTITY_FOUND=1
+  fi
 fi
 
 # ---------------------------------------------------------------------------

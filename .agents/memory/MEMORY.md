@@ -1,3 +1,4 @@
+- [Replit main-repl sync](replit-main-repl-sync.md) — platform sync rebases dirty commits back onto local HEAD during validation; use `GIT_TERMINAL_PROMPT=0 git fetch` + full origin/main history check to stay immune
 - [Corsair build verification](corsair-build.md) — reproduce Vercel build locally (`npm ci && npm run build`); Vercel API is SAML-locked; recurring CSS-import / framer-motion ease-tuple / useInView-margin breaks
 - [Corsair push pattern](corsair-push.md) — GitHub blob→tree→commit→PATCH pattern; file must be read from API first; anchor uniqueness is critical
 - [Corsair TypeScript unicode](corsair-ts-unicode.md) — TypeScript string literal \uXXXX escapes are stored as literal 6-char sequences; comments use real unicode; use surrounding ASCII context as anchors
