@@ -93,6 +93,73 @@ export const _createPortalUser = internalMutation({
     ctx.db.insert("portalUsers", { ...args, emailVerified: false }),
 });
 
+/**
+ * Atomically check lockout state and pre-increment the failed-login counter
+ * before password verification happens in the calling action. Because Convex
+ * mutations are serialised, concurrent login requests cannot both read a
+ * stale count and both pass the threshold simultaneously — each request
+ * increments in sequence, so the lockout triggers at exactly the right attempt.
+ *
+ * Returns:
+ *  { status: "locked", lockedUntil }   — existing lock still active; skip hash
+ *  { status: "proceed", passwordHash, passwordSalt, newLockedUntil? }
+ *                                      — count incremented; verify hash, then
+ *                                        if correct call _loginSuccess to reset
+ */
+export const _attemptLogin = internalMutation({
+  args: { portalUserId: v.id("portalUsers") },
+  handler: async (ctx, { portalUserId }) => {
+    const user = await ctx.db.get(portalUserId);
+    if (!user) return null;
+
+    const now = Date.now();
+
+    // Still under an existing lock — reject immediately without incrementing
+    if (user.lockedUntil && user.lockedUntil > now) {
+      return { status: "locked" as const, lockedUntil: user.lockedUntil };
+    }
+
+    // Pre-increment: every attempt (right or wrong) costs one token.
+    // The calling action resets to 0 on a correct password.
+    const newCount = (user.failedLoginCount ?? 0) + 1;
+    let newLockedUntil: number | undefined;
+    if (newCount >= 15) newLockedUntil = now + 60 * 60 * 1_000;       // 1 h
+    else if (newCount >= 10) newLockedUntil = now + 15 * 60 * 1_000;  // 15 min
+    else if (newCount >= 5) newLockedUntil = now + 60 * 1_000;        // 1 min
+
+    await ctx.db.patch(portalUserId, {
+      failedLoginCount: newCount,
+      lockedUntil: newLockedUntil,
+    });
+
+    return {
+      status: "proceed" as const,
+      passwordHash: user.passwordHash,
+      passwordSalt: user.passwordSalt,
+      newLockedUntil,
+    };
+  },
+});
+
+/** Reset counter + create session in one atomic mutation on successful login. */
+export const _loginSuccess = internalMutation({
+  args: {
+    portalUserId: v.id("portalUsers"),
+    siteId: v.id("sites"),
+    token: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (ctx, { portalUserId, siteId, token, expiresAt }) => {
+    await ctx.db.patch(portalUserId, { failedLoginCount: 0, lockedUntil: undefined });
+    const old = await ctx.db
+      .query("portalSessions")
+      .withIndex("by_user", (q) => q.eq("portalUserId", portalUserId))
+      .collect();
+    for (const s of old) await ctx.db.delete(s._id);
+    await ctx.db.insert("portalSessions", { portalUserId, siteId, token, expiresAt, lastActiveAt: Date.now() });
+  },
+});
+
 export const _createPortalSession = internalMutation({
   args: {
     portalUserId: v.id("portalUsers"),
@@ -177,6 +244,7 @@ export const login = action({
     sessionToken?: string;
     user?: { _id: string; firstName: string; lastName: string; email: string; role: string; status: string };
     error?: string;
+    lockedUntil?: number;
   }> => {
     const site = await ctx.runQuery(internal.portal._getSiteBySlug, { slug: args.siteSlug });
     if (!site) return { success: false, error: "Site not found." };
@@ -196,11 +264,34 @@ export const login = action({
     if (portalUser.status === "deactivated")
       return { success: false, error: "Your account has been deactivated. Please contact support." };
 
-    const hash = await hashPassword(args.password, portalUser.passwordSalt);
-    if (hash !== portalUser.passwordHash) return { success: false, error: "Invalid email or password." };
+    // ── Atomic lockout check + counter pre-increment ─────────────────────────
+    // _attemptLogin is a Convex mutation (serialised), so concurrent requests
+    // cannot both pass the threshold simultaneously — they queue and each sees
+    // the updated count written by the previous request.
+    const attempt = await ctx.runMutation(internal.portal._attemptLogin, {
+      portalUserId: portalUser._id,
+    });
 
+    if (!attempt) return { success: false, error: "Invalid email or password." };
+
+    if (attempt.status === "locked") {
+      return { success: false, error: "AccountTemporarilyLocked", lockedUntil: attempt.lockedUntil };
+    }
+
+    // ── Password verification (outside mutation — requires async Web Crypto) ──
+    const hash = await hashPassword(args.password, attempt.passwordSalt);
+    if (hash !== attempt.passwordHash) {
+      // Counter was already incremented; surface a lock if the threshold was
+      // crossed on this exact attempt so the user sees it immediately.
+      if (attempt.newLockedUntil) {
+        return { success: false, error: "AccountTemporarilyLocked", lockedUntil: attempt.newLockedUntil };
+      }
+      return { success: false, error: "Invalid email or password." };
+    }
+
+    // ── Successful login — reset counter + create session (atomic) ───────────
     const token = randomHex(32);
-    await ctx.runMutation(internal.portal._createPortalSession, {
+    await ctx.runMutation(internal.portal._loginSuccess, {
       portalUserId: portalUser._id,
       siteId: site._id,
       token,

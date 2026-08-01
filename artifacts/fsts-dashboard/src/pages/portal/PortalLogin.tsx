@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useLocation, useParams } from "wouter";
-import { Loader2, LogIn } from "lucide-react";
+import { Loader2, LogIn, Lock } from "lucide-react";
 
 function PortalPageShell({
   logoUrl,
@@ -43,6 +43,15 @@ function PortalPageShell({
   );
 }
 
+function formatCountdown(ms: number): string {
+  const totalSecs = Math.ceil(ms / 1_000);
+  if (totalSecs < 60) return `${totalSecs} second${totalSecs !== 1 ? "s" : ""}`;
+  const mins = Math.ceil(totalSecs / 60);
+  if (mins < 60) return `${mins} minute${mins !== 1 ? "s" : ""}`;
+  const hours = Math.ceil(mins / 60);
+  return `${hours} hour${hours !== 1 ? "s" : ""}`;
+}
+
 export default function PortalLogin() {
   const params = useParams<{ siteSlug: string }>();
   const siteSlug = params.siteSlug ?? "";
@@ -54,6 +63,26 @@ export default function PortalLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState<string>("");
+
+  // Tick countdown while account is locked
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const tick = () => {
+      const remaining = lockedUntil - Date.now();
+      if (remaining <= 0) {
+        setLockedUntil(null);
+        setCountdown("");
+        setError("");
+      } else {
+        setCountdown(formatCountdown(remaining));
+      }
+    };
+    tick();
+    const id = setInterval(tick, 1_000);
+    return () => clearInterval(id);
+  }, [lockedUntil]);
 
   if (siteConfig === undefined) {
     return (
@@ -76,9 +105,11 @@ export default function PortalLogin() {
 
   const primaryColor = siteConfig.portalPrimaryColor ?? siteConfig.sitePrimaryColor ?? "#16a34a";
   const logoUrl = siteConfig.portalLogoUrl ?? siteConfig.siteLogoUrl;
+  const isLocked = lockedUntil !== null && lockedUntil > Date.now();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLocked) return;
     setError("");
     setLoading(true);
     try {
@@ -89,6 +120,8 @@ export default function PortalLogin() {
           JSON.stringify({ token: result.sessionToken, user: result.user }),
         );
         setLocation(`/portal/${siteSlug}/dashboard`);
+      } else if (result.error === "AccountTemporarilyLocked" && result.lockedUntil) {
+        setLockedUntil(result.lockedUntil);
       } else {
         setError(result.error ?? "Login failed. Please try again.");
       }
@@ -106,7 +139,17 @@ export default function PortalLogin() {
         {siteConfig.welcomeMessage}
       </p>
 
-      {error && (
+      {isLocked && (
+        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+          <Lock className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>
+            Too many failed attempts. Your account is temporarily locked.{" "}
+            {countdown ? <>Please try again in <strong>{countdown}</strong>.</> : "Please wait."}
+          </span>
+        </div>
+      )}
+
+      {!isLocked && error && (
         <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
@@ -122,9 +165,10 @@ export default function PortalLogin() {
             type="email"
             required
             autoComplete="email"
+            disabled={isLocked}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ "--tw-ring-color": primaryColor } as React.CSSProperties}
             placeholder="you@example.com"
           />
@@ -138,25 +182,28 @@ export default function PortalLogin() {
             type="password"
             required
             autoComplete="current-password"
+            disabled={isLocked}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="••••••••"
           />
         </div>
 
         <button
           type="submit"
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+          disabled={loading || isLocked}
+          className="w-full flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           style={{ backgroundColor: primaryColor }}
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isLocked ? (
+            <Lock className="h-4 w-4" />
           ) : (
             <LogIn className="h-4 w-4" />
           )}
-          Sign in
+          {isLocked ? "Account locked" : "Sign in"}
         </button>
       </form>
 

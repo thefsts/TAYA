@@ -28,8 +28,16 @@ export const me = query({
       .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
       .first();
     if (!user) return null;
-    const sites = await ctx.db.query("sites").collect();
-    const sitesMap = new Map(sites.map((s) => [s._id as string, s.name]));
+    // Only fetch the sites this user actually has roles on — avoids leaking
+    // the full site list to non-superadmin callers.
+    const siteEntries = await Promise.all(
+      user.roles.map((r: { siteId: Id<"sites">; role: string }) => ctx.db.get(r.siteId)),
+    );
+    const sitesMap = new Map(
+      siteEntries
+        .filter((s): s is NonNullable<typeof s> => s !== null)
+        .map((s) => [s._id as string, s.name]),
+    );
     return toUserResponse(user, sitesMap);
   },
 });

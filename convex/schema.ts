@@ -704,6 +704,8 @@ export default defineSchema({
     emailVerified: v.boolean(),
     notes: v.optional(v.string()),
     profileData: v.optional(v.any()),
+    failedLoginCount: v.optional(v.number()),
+    lockedUntil: v.optional(v.number()),
   })
     .index("by_site", ["siteId"])
     .index("by_site_email", ["siteId", "email"])
