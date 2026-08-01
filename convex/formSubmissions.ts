@@ -92,6 +92,15 @@ const submitHandler = async (ctx: any, args: {
       submitterEmail: fields.submitterEmail,
     },
   });
+  // Notify the site owner of the new submission
+  await ctx.scheduler.runAfter(0, internal.email.sendFormNotification, {
+    siteId: site._id,
+    formType: fields.formType,
+    submitterName: fields.submitterName,
+    submitterEmail: fields.submitterEmail,
+    submitterPhone: fields.submitterPhone,
+    message: fields.message,
+  });
   return id;
 };
 

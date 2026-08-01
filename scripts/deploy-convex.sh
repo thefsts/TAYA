@@ -2,7 +2,17 @@
 set -euo pipefail
 
 # Deploy Convex functions unattended.
-# Requires CONVEX_DEPLOY_KEY to be set as a Replit secret.
+#
+# Required Replit secrets:
+#   CONVEX_DEPLOY_KEY   — Convex production deploy key
+#
+# Required Convex environment variables (set via the Convex dashboard or CLI):
+#   RESEND_API_KEY      — Resend transactional email API key (https://resend.com)
+#                         Used by convex/email.ts to send form-submission
+#                         notifications and portal welcome emails.
+#                         If unset, emails are skipped with a console warning
+#                         and no functions are hard-blocked.
+#
 # CONVEX_TMPDIR is pinned to a workspace-local path to avoid cross-filesystem
 # mkdtemp failures that occur when /tmp is on a different mount.
 
