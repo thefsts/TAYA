@@ -1,0 +1,211 @@
+# FSTS-WOS™ — DEPLOYMENT RECOVERY SPRINT (HIGHEST PRIORITY)
+
+## OBJECTIVE
+
+All failed deployments from today must be investigated, documented, and resolved before any additional development, onboarding, or feature work continues.
+
+No new features.
+
+No onboarding.
+
+No production launch.
+
+Restore the deployment pipeline to a stable GREEN state first.
+
+---
+
+# AUTHORIZED REPOSITORY
+
+Only work in:
+
+`https://github.com/thefsts/FSTS-client-Dashboard-for-sites-`
+
+---
+
+# AUTHORIZED VERCEL PROJECT
+
+Only inspect and deploy to:
+
+`https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments`
+
+Do not access or modify any other Vercel project.
+
+---
+
+# GIT IDENTITY
+
+Every commit must use:
+
+`THEFSTS <amorebey@gmail.com>`
+
+Run the commit identity guard before every push.
+
+---
+
+# STEP 1 — AUDIT TODAY'S DEPLOYMENTS
+
+Review **every deployment created today** in the authorized Vercel project.
+
+For each deployment record:
+
+* Deployment ID
+* Commit SHA
+* Commit message
+* Deployment time
+* Branch
+* Environment (Preview or Production)
+* Deployment status
+* Build status
+* Error category
+* Root cause
+* Files involved
+* Whether the failure is reproducible
+* Whether it has already been fixed
+
+Do not skip failed deployments.
+
+---
+
+# STEP 2 — CLASSIFY EACH FAILURE
+
+Group each failed deployment into one of these categories:
+
+* Build error
+* TypeScript error
+* ESLint or lint error
+* Missing environment variable
+* Convex deployment issue
+* Clerk configuration
+* Resend configuration
+* Vercel configuration
+* Domain or DNS issue
+* Dependency or package issue
+* Git identity issue
+* Merge conflict
+* Runtime error
+* Test failure
+* Infrastructure issue
+* Other
+
+If multiple deployments failed for the same root cause, identify the first deployment that introduced it.
+
+---
+
+# STEP 3 — ROOT CAUSE ANALYSIS
+
+For every unique failure:
+
+Document:
+
+* What changed
+* Why it failed
+* Which commit introduced it
+* Which deployment first exposed it
+* Whether later deployments inherited the same issue
+* Whether the issue is code, configuration, or infrastructure
+
+Avoid duplicate fixes for the same root cause.
+
+---
+
+# STEP 4 — FIX THE FAILURES
+
+Resolve every fixable issue.
+
+For each fix:
+
+1. Apply the minimum required change.
+2. Run targeted tests.
+3. Run the production build.
+4. Commit using:
+
+`THEFSTS <amorebey@gmail.com>`
+
+5. Push safely.
+6. Verify that a new deployment starts.
+7. Confirm the deployment succeeds before moving to the next issue.
+
+Do not bundle unrelated fixes into a single commit.
+
+---
+
+# STEP 5 — VERIFY THE PIPELINE
+
+After all fixes are applied:
+
+Run:
+
+* TypeScript
+* Convex tests
+* Design-lock tests
+* Visual tests
+* Health-monitor tests
+* Production build
+
+Confirm:
+
+* GitHub push succeeds.
+* Vercel deployment succeeds.
+* No build warnings indicate a future failure.
+* The production deployment completes successfully.
+
+---
+
+# STEP 6 — DEPLOYMENT HISTORY REPORT
+
+Produce a report containing:
+
+For each deployment today:
+
+* Deployment ID
+* Commit SHA
+* Status
+* Root cause
+* Resolution
+* Current status
+
+Then provide a summary:
+
+* Total deployments today
+* Successful deployments
+* Failed deployments
+* Root causes identified
+* Root causes resolved
+* Remaining unresolved issues
+* Current deployment health
+
+---
+
+# STEP 7 — FINAL PIPELINE CERTIFICATION
+
+Answer the following:
+
+1. Are all deployment failures from today resolved?
+2. Does the latest deployment complete successfully?
+3. Is the production deployment pipeline stable?
+4. Are there any remaining deployment risks?
+5. Is it now safe to resume the Production Launch & Client Onboarding Phase?
+
+Choose exactly one:
+
+* GREEN — Deployment pipeline fully healthy
+* YELLOW — Stable with minor non-blocking issues
+* RED — Deployment pipeline not yet ready
+
+If the answer is GREEN, recommend resuming the Production Launch & Client Onboarding Phase.
+
+If not, list every remaining blocker with its severity and required corrective action.
+
+---
+
+# IMPORTANT
+
+Do not:
+
+* Add new features.
+* Begin Corsair onboarding.
+* Modify unrelated code.
+* Access another Vercel project.
+* Ignore failed deployments.
+
+The deployment pipeline must be fully stable before any additional production work continues.
