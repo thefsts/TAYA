@@ -56,6 +56,10 @@ export const create = mutation({
     width: v.optional(v.number()),
     height: v.optional(v.number()),
     altText: v.optional(v.string()),
+    /** Normalized focal point X (0–1). Stored for CSS object-position. */
+    focalX: v.optional(v.number()),
+    /** Normalized focal point Y (0–1). Stored for CSS object-position. */
+    focalY: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, storageId, url, ...fields }) => {
     if (!storageId && !url) throw new Error("Either storageId or url is required");

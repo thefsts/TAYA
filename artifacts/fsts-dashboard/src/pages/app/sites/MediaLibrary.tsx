@@ -76,6 +76,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
     width?: number;
     height?: number;
     altText?: string;
+    focalX?: number;
+    focalY?: number;
   }) => {
     await createMediaAsset({
       siteId,
@@ -88,6 +90,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
       width: imageData.width,
       height: imageData.height,
       altText: imageData.altText,
+      focalX: imageData.focalX,
+      focalY: imageData.focalY,
     });
     toast({ title: "Media asset added", description: `${imageData.fileName} uploaded and optimized.` });
   };

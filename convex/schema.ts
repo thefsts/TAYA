@@ -155,6 +155,10 @@ export default defineSchema({
     width: v.optional(v.number()),
     height: v.optional(v.number()),
     altText: v.optional(v.string()),
+    /** Normalized focal point X coordinate (0–1). Used as CSS object-position. */
+    focalX: v.optional(v.number()),
+    /** Normalized focal point Y coordinate (0–1). Used as CSS object-position. */
+    focalY: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
 
   squareConfig: defineTable({
