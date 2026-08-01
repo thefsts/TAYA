@@ -219,12 +219,14 @@ All commands run against the current codebase at `6002a58`.
 | Domain | DNS Resolves | SSL | HTTP Response | Server | Status | Required Now |
 |--------|-------------|-----|--------------|--------|--------|-------------|
 | `fstsclientsystem.com` | ✅ | ✅ TLSv1.3 / HSTS 63072000s | ✅ 200 OK | Vercel | **Active** | Yes |
-| `www.fstsclientsystem.com` | ✅ (DNS resolves, SSL negotiates) | ✅ TLSv1.3 handshake complete | ⚠️ No HTTP response (connection closes after TLS) | Unconfirmed | **Partially Verified — Owner Action Required** | Yes — www redirect should work |
+| `www.fstsclientsystem.com` | ✅ (DNS resolves, SSL negotiates) | ✅ TLSv1.3 handshake complete | ❌ No HTTP response (connection closes after TLS) | Vercel (unrouted) | **⚠️ Broken — Owner Action Required** | Yes — see `WWW_DOMAIN_FIX.md` |
 | `api.fstsclientsystem.com` | ❓ Unverified | ❓ | No response | — | **Reserved / Unconfigured** | Not Required for Website #1 |
 | `status.fstsclientsystem.com` | ❓ Unverified | ❓ | No response | — | **Reserved / Unconfigured** | Not Required for Website #1 |
 | `docs.fstsclientsystem.com` | ❓ Unverified | ❓ | No response | — | **Reserved / Unconfigured** | Not Required for Website #1 |
 
-**Finding on `www`:** TLS handshake completes (certificate valid, server responds to TLS) but no HTTP response body is received. This likely means the Vercel project does not have `www.fstsclientsystem.com` as an assigned domain alias, so the Vercel CDN accepts TLS but drops the HTTP layer. **Owner action: add `www.fstsclientsystem.com` as a domain alias in the Vercel project dashboard and set a redirect to apex.**
+**Finding on `www` (confirmed August 1, 2026):** DNS resolves to Vercel's CDN and TLS negotiates successfully, but Vercel returns no HTTP response — confirmed by `curl -sI` which closes with zero bytes. Root cause: `www.fstsclientsystem.com` is not registered as a domain alias on the `fsts-client-dashboard-for-sites-api-server` Vercel project. Vercel accepts the connection at the TLS layer but drops it at HTTP because no project claims that hostname.
+
+**Fix (2 minutes, owner action):** See `WWW_DOMAIN_FIX.md` for exact steps. Short version: Vercel Dashboard → project → Settings → Domains → Add `www.fstsclientsystem.com` → redirect to `fstsclientsystem.com` (308). No DNS change needed — the DNS record already points at Vercel.
 
 **`api`, `status`, `docs`** are not required for Website #1. The dashboard is a Vite SPA served from the apex domain; there is no API subdomain in the current architecture. These should be reported as Reserved and addressed before any subdomain-dependent feature is launched.
 
@@ -272,7 +274,7 @@ All commands run against the current codebase at `6002a58`.
 | # | Item | Status | Detail |
 |---|------|--------|--------|
 | 1 | Domain apex (`fstsclientsystem.com`) | ✅ Active | HTTP 200, Vercel CDN, TLSv1.3, HSTS |
-| 2 | Domain www (`www.fstsclientsystem.com`) | ⚠️ Blocked — Owner Action Required | TLS negotiates but no HTTP response — missing Vercel alias |
+| 2 | Domain www (`www.fstsclientsystem.com`) | ❌ Broken — Owner Action Required | TLS negotiates but no HTTP response — `www` not registered as a Vercel domain alias. Fix documented in `WWW_DOMAIN_FIX.md`: add alias + 308 redirect in Vercel dashboard (2 min, no DNS change needed) |
 | 3 | SSL/TLS | ✅ Verified | TLSv1.3 on apex confirmed; www TLS negotiates |
 | 4 | Subdomains (api, status, docs) | ℹ️ Reserved / Unconfigured | Not required for Website #1; reserved for future phases |
 | 5 | Clerk auth | ✅ Partially Verified | Key present; test-key guard active; owner must confirm `pk_live_` and authorized origins |
