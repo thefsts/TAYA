@@ -63,6 +63,27 @@ _scrub_remote() {
   git remote set-url github "$PUBLIC_URL" 2>/dev/null || true
 }
 
+# ── Identity check before GitHub push ────────────────────────────────────────
+# Fetch so github/${BRANCH} is up-to-date, then inspect every commit that
+# would be sent to GitHub.  If any outgoing commit has an unauthorised author
+# the push is aborted — a stale or wrong-identity commit must never land on
+# the shared GitHub history.
+echo "→ Verifying commit identity of outgoing commits…"
+git fetch github "$BRANCH" >/dev/null 2>&1 || true
+PUSH_RANGE="github/${BRANCH}..HEAD"
+if ! bash "$(dirname "$0")/check-commit-identity.sh" "$PUSH_RANGE" 2>&1; then
+  echo "" >&2
+  echo "✗ GitHub mirror sync ABORTED: one or more outgoing commits have an" >&2
+  echo "  unauthorised author identity (see above)." >&2
+  echo "" >&2
+  echo "  Fix with:" >&2
+  echo "    git rebase github/${BRANCH} \\" >&2
+  echo "      --exec 'git commit --amend --no-edit --reset-author'" >&2
+  echo "  (with git config user.name/user.email = THEFSTS / amorebey@gmail.com)" >&2
+  _scrub_remote
+  exit 1
+fi
+
 echo "→ Pushing to github.com/${OWNER}/${REPO} (branch: ${BRANCH})…"
 
 # Try fast-forward push first; capture combined stdout+stderr

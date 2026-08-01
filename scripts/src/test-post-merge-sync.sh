@@ -66,7 +66,7 @@ setup_repos() {
 
   # Working repo acts as the Replit environment.
   git init "$working" -b main >/dev/null 2>&1
-  git -C "$working" config user.name  "Thefsts"
+  git -C "$working" config user.name  "THEFSTS"
   git -C "$working" config user.email "amorebey@gmail.com"
 
   echo "initial" > "$working/README.md"
@@ -147,7 +147,7 @@ test_diverged_rebase_succeeds() {
   # Simulate a GitHub-only commit (e.g. a hotfix committed directly on GitHub).
   local gh_clone="$tmpdir/gh-clone"
   git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
-  git -C "$gh_clone" config user.name  "Thefsts"
+  git -C "$gh_clone" config user.name  "THEFSTS"
   git -C "$gh_clone" config user.email "amorebey@gmail.com"
   echo "github-only hotfix" > "$gh_clone/hotfix.txt"
   git -C "$gh_clone" add hotfix.txt
@@ -223,7 +223,7 @@ test_conflicting_rebase_exits_nonzero() {
   # Simulate a GitHub-only commit that edits the same file as the Replit commit.
   local gh_clone="$tmpdir/gh-clone"
   git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
-  git -C "$gh_clone" config user.name  "Thefsts"
+  git -C "$gh_clone" config user.name  "THEFSTS"
   git -C "$gh_clone" config user.email "amorebey@gmail.com"
   echo "GitHub version — conflicts with Replit" > "$gh_clone/README.md"
   git -C "$gh_clone" add README.md
@@ -279,6 +279,77 @@ test_conflicting_rebase_exits_nonzero() {
   fi
 }
 
+# ── Test 3: wrong-identity commit in outgoing range → aborts before push ───────
+# post-merge.sh amends the HEAD commit to fix its author, but if the outgoing
+# range contains an EARLIER commit with a wrong author identity, the identity
+# check must catch it and abort the push before any bytes reach GitHub.
+test_wrong_identity_aborts_push() {
+  echo ""
+  echo -e "${BOLD}Test 3: Wrong-identity commit in outgoing range — push is aborted${RESET}"
+
+  local tmpdir
+  tmpdir="$(setup_repos)"
+  local fake_remote="$tmpdir/fake-remote.git"
+  local working="$tmpdir/working"
+  local bin_dir="$tmpdir/bin"
+  mkdir -p "$bin_dir"
+  create_git_stub "$bin_dir" "$fake_remote"
+  create_pnpm_stub "$bin_dir"
+
+  # Capture the remote tip SHA before the script runs — it must not change.
+  local remote_tip_before
+  remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
+
+  # Simulate the platform injecting a commit with a wrong author identity that
+  # is NOT the tip (post-merge.sh only amends HEAD, so this one stays wrong).
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --allow-empty -m "platform: wrong-identity commit" >/dev/null 2>&1
+
+  # Add a second commit (this will become HEAD; post-merge.sh will amend it to
+  # the correct identity — but the earlier wrong-identity commit must still be
+  # caught by the outgoing-range check).
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --allow-empty -m "another wrong-identity commit (will become HEAD)" >/dev/null 2>&1
+
+  run_post_merge "$working" "$bin_dir"
+
+  # Assertion 1: script must exit non-zero — identity check must abort the push.
+  if [ "$LAST_EXIT" -ne 0 ]; then
+    pass "Script exits non-zero when outgoing range contains a wrong-identity commit"
+  else
+    fail "Script should exit non-zero but exited 0 — wrong-identity commit was not caught"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+    return
+  fi
+
+  # Assertion 2: output must mention the identity failure clearly.
+  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
+    pass "Output clearly reports the identity violation"
+  else
+    fail "Output should mention the identity failure (unauthorised author / ABORTED)"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # Assertion 3: the remote must NOT have been pushed — tip SHA unchanged.
+  local gh_clone="$tmpdir/gh-clone"
+  git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
+  local remote_tip_after
+  remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
+  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
+    pass "Remote history was not modified — wrong-identity commits were not pushed"
+  else
+    fail "Remote tip changed — wrong-identity commit reached GitHub despite identity failure"
+    echo "    remote before: $remote_tip_before"
+    echo "    remote after:  $remote_tip_after"
+  fi
+}
+
 # ── Test runner ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}=== post-merge.sh GitHub sync integration tests ===${RESET}"
@@ -286,6 +357,7 @@ echo ""
 
 test_diverged_rebase_succeeds
 test_conflicting_rebase_exits_nonzero
+test_wrong_identity_aborts_push
 
 echo ""
 echo -e "${BOLD}=== Results: $PASS passed, $FAIL failed ===${RESET}"
