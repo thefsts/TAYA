@@ -367,6 +367,16 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
     );
   }
 
+  if (data === null) {
+    return (
+      <AppLayout siteId={params.siteId}>
+        <div className="rounded-md border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+          Unable to load Website Settings — you may not have access to this site or the module is disabled.
+        </div>
+      </AppLayout>
+    );
+  }
+
   const d = data as any;
 
   return (

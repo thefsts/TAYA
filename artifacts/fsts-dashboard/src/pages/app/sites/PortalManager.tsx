@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -115,20 +115,22 @@ export default function PortalManager() {
     requireApproval: false,
     enabledFeatures: {} as Record<string, boolean>,
   });
-  const [formReady, setFormReady] = useState(false);
-
-  if (config !== undefined && !formReady) {
-    setFormReady(true);
-    setForm({
-      enabled: config?.enabled ?? false,
-      logoUrl: config?.logoUrl ?? "",
-      welcomeMessage: config?.welcomeMessage ?? "",
-      primaryColor: config?.primaryColor ?? "",
-      registrationOpen: config?.registrationOpen ?? true,
-      requireApproval: config?.requireApproval ?? false,
-      enabledFeatures: (config?.enabledFeatures as Record<string, boolean>) ?? {},
-    });
-  }
+  // Initialize / reset form when config loads or changes.
+  // Using useEffect avoids the render-phase setState anti-pattern.
+  useEffect(() => {
+    if (config !== undefined) {
+      setForm({
+        enabled: config?.enabled ?? false,
+        logoUrl: config?.logoUrl ?? "",
+        welcomeMessage: config?.welcomeMessage ?? "",
+        primaryColor: config?.primaryColor ?? "",
+        registrationOpen: config?.registrationOpen ?? true,
+        requireApproval: config?.requireApproval ?? false,
+        enabledFeatures: (config?.enabledFeatures as Record<string, boolean>) ?? {},
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
 
   const handleSave = async () => {
     try {
@@ -155,19 +157,31 @@ export default function PortalManager() {
   };
 
   const handleUpdateStatus = async (userId: Id<"portalUsers">, status: string) => {
-    await updateStatus({ portalUserId: userId, status });
-    toast({ title: `User ${status === "active" ? "approved" : "updated"}.` });
+    try {
+      await updateStatus({ portalUserId: userId, status });
+      toast({ title: `User ${status === "active" ? "approved" : "updated"}.` });
+    } catch (err: unknown) {
+      toast({ title: "Action failed", description: String(err), variant: "destructive" });
+    }
   };
 
   const handleUpdateRole = async (userId: Id<"portalUsers">, role: string) => {
-    await updateRole({ portalUserId: userId, role });
-    toast({ title: "Role updated." });
+    try {
+      await updateRole({ portalUserId: userId, role });
+      toast({ title: "Role updated." });
+    } catch (err: unknown) {
+      toast({ title: "Role update failed", description: String(err), variant: "destructive" });
+    }
   };
 
   const handleDelete = async (userId: string) => {
-    await deleteUser({ portalUserId: userId as Id<"portalUsers"> });
-    setDeleteTarget(null);
-    toast({ title: "Member removed." });
+    try {
+      await deleteUser({ portalUserId: userId as Id<"portalUsers"> });
+      setDeleteTarget(null);
+      toast({ title: "Member removed." });
+    } catch (err: unknown) {
+      toast({ title: "Delete failed", description: String(err), variant: "destructive" });
+    }
   };
 
   const toggleFeature = (key: string, value: boolean) => {

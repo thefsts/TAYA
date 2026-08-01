@@ -59,6 +59,10 @@ export default function EmailConfig({ params }: { params: { siteId: string } }) 
       <DesignLockBanner label="Email Provider Settings" />
       {data === undefined ? (
         <Skeleton className="h-64 max-w-xl" />
+      ) : data === null ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-6 text-sm text-red-700 max-w-xl">
+          Unable to load Email Settings — you may not have access to this site or the email module is disabled.
+        </div>
       ) : (
         <LockedField capabilityLabel="Email Provider Settings">
           <div className="bg-white p-6 border border-slate-200 rounded-md shadow-sm max-w-xl space-y-4">
