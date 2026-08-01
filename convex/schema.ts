@@ -143,7 +143,10 @@ export default defineSchema({
 
   mediaAssets: defineTable({
     siteId: v.id("sites"),
-    url: v.string(),
+    // storageId is set for files uploaded via Convex File Storage (new path)
+    storageId: v.optional(v.id("_storage")),
+    // url is kept for externally-linked images (URL tab) and legacy records
+    url: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     fileName: v.string(),
     mimeType: v.string(),

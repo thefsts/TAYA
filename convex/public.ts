@@ -171,18 +171,26 @@ export const getMediaBySlug = internalQuery({
     const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
     if (!site) return [];
     const docs = await ctx.db.query("mediaAssets").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
-    return docs.map((d) => ({
-      id: d._id,
-      siteId: d.siteId,
-      url: d.url,
-      thumbnailUrl: d.thumbnailUrl,
-      fileName: d.fileName,
-      mimeType: d.mimeType,
-      sizeBytes: d.sizeBytes,
-      altText: d.altText,
-      width: d.width,
-      height: d.height,
-    }));
+    return await Promise.all(
+      docs.map(async (d) => {
+        // Resolve storage-backed uploads to a real CDN URL; fall back to legacy url field
+        const resolvedUrl = d.storageId
+          ? await ctx.storage.getUrl(d.storageId)
+          : (d.url ?? null);
+        return {
+          id: d._id,
+          siteId: d.siteId,
+          url: resolvedUrl,
+          thumbnailUrl: d.thumbnailUrl,
+          fileName: d.fileName,
+          mimeType: d.mimeType,
+          sizeBytes: d.sizeBytes,
+          altText: d.altText,
+          width: d.width,
+          height: d.height,
+        };
+      })
+    );
   },
 });
 

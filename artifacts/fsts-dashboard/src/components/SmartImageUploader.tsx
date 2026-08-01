@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { useAction } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -130,7 +130,10 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSave: (data: {
-    url: string;
+    /** Set for files uploaded via Convex File Storage */
+    storageId?: string;
+    /** Set for external URL tab entries */
+    url?: string;
     fileName: string;
     mimeType: string;
     sizeBytes: number;
@@ -147,6 +150,7 @@ export function SmartImageUploader({ siteId, open, onClose, onSave, context, tit
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const generateAltText = useAction(api.ai.generateAltText);
+  const generateUploadUrl = useMutation(api.media.generateUploadUrl);
 
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -257,6 +261,7 @@ export function SmartImageUploader({ siteId, open, onClose, onSave, context, tit
     setIsPending(true);
     try {
       if (urlOverride) {
+        // External URL — stored as a plain URL reference, no file upload needed
         await onSave({
           url: urlOverride,
           fileName: urlOverride.split("/").pop() ?? "image",
@@ -265,13 +270,17 @@ export function SmartImageUploader({ siteId, open, onClose, onSave, context, tit
           altText: altText || undefined,
         });
       } else if (file && optimizedBlob) {
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(optimizedBlob);
+        // Upload the WebP blob to Convex File Storage
+        const uploadUrl = await generateUploadUrl({ siteId: siteId as Id<"sites"> });
+        const response = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": "image/webp" },
+          body: optimizedBlob,
         });
+        if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
+        const { storageId } = await response.json() as { storageId: string };
         await onSave({
-          url: dataUrl,
+          storageId,
           fileName: file.name.replace(/\.[^.]+$/, ".webp"),
           mimeType: "image/webp",
           sizeBytes: file.size,

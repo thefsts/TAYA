@@ -41,7 +41,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
   const [selected, setSelected] = useState<any | null>(null);
 
   const handleSaveImage = async (imageData: {
-    url: string;
+    storageId?: string;
+    url?: string;
     fileName: string;
     mimeType: string;
     sizeBytes: number;
@@ -52,7 +53,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
   }) => {
     await createMediaAsset({
       siteId,
-      url: imageData.url,
+      ...(imageData.storageId ? { storageId: imageData.storageId as any } : {}),
+      ...(imageData.url ? { url: imageData.url } : {}),
       fileName: imageData.fileName,
       mimeType: imageData.mimeType,
       sizeBytes: imageData.sizeBytes,
