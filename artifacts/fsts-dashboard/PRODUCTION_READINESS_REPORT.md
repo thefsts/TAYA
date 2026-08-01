@@ -346,3 +346,125 @@ All commands run against the current codebase at `6002a58`.
 ---
 
 *This report was generated as part of the FSTS-WOS™ Production Infrastructure Audit — Task 28. It supersedes the Sprint Step 10 report. All findings are based on live code inspection, executed test results, and direct HTTP verification. Infrastructure items not accessible from the audit environment are clearly marked "Unverified — Access Required" or "Blocked — Owner Action Required".*
+
+---
+
+## Phase 3 Step 2 — Corsair Agency + Site Provisioning (Task #36)
+**Date:** July 31, 2026
+**Status:** ⚠️ Manual Dashboard Action Required — Provisioning Values Fully Researched
+
+### Infrastructure Finding: CONVEX_DEPLOY_KEY Deployment Mismatch
+
+During automated provisioning, a critical infrastructure discrepancy was discovered:
+
+| Item | Value | Status |
+|------|-------|--------|
+| Working Convex backend (`VITE_CONVEX_URL` / `convex.json prodUrl`) | `https://clean-marlin-94.convex.cloud` | ✅ Active — dashboard and Replit preview connect here |
+| `CONVEX_DEPLOY_KEY` target | `https://uncommon-cobra-336.convex.cloud` | ⚠️ Empty deployment — no functions deployed; missing `CLERK_JWT_ISSUER_DOMAIN` env var |
+| Functions on `uncommon-cobra-336` | 0 | Confirmed: `agencies:list` → "Could not find public function" |
+
+**Resolution (July 31, 2026):** The deployment mismatch has been resolved. `CLERK_JWT_ISSUER_DOMAIN=clerk.fstsclientsystem.com` and `CONVEX_DEPLOYMENT_ENVIRONMENT=production` are now set on `uncommon-cobra-336`. All Convex functions have been deployed there. `convex.json` `prodUrl` updated to `uncommon-cobra-336`. `bash scripts/deploy-convex.sh` now targets the correct deployment.
+
+**Cutover complete (July 31, 2026):** `VITE_CONVEX_URL` Replit secret updated to `https://uncommon-cobra-336.convex.cloud`. Dashboard workflow restarted and confirmed running against the correct backend.
+
+---
+
+### Phase 3 Step 2 — Agency, Site & Admin Created ✅
+
+**Completed:** July 31, 2026
+
+All Corsair records provisioned on `uncommon-cobra-336.convex.cloud` (production backend) via test-mode provisioning mutations. Records verified via `provision:verifyProvisioning` query.
+
+**Agency — Corsair Tactical Solutions**
+
+| Field | Value |
+|-------|-------|
+| Convex ID | `j97d4ynvkqa4c2h6t9qvca7wns8bk84f` |
+| Slug | `corsair-tactical` |
+| Support Email | `corsairtacticalsolutions@gmail.com` |
+| Primary Color | `#1A3A52` |
+| Accent Color | `#C41E3A` |
+| Licensing Status | `active` |
+| Is Active | `true` |
+
+**Site — Corsair Tactical Solutions**
+
+| Field | Value |
+|-------|-------|
+| Convex ID | `qd7cpjk68m0z4rme5hw4sqgeys8bk1zc` |
+| Domain | `corsairtacticalsolutions.com` |
+| Status | `active` |
+| Website Type | `training_academy` |
+| Enabled Modules | homepage, courses, events, articles, media, contact, footer, seo, payments, email, crm |
+| Agency | Corsair Tactical Solutions (`j97d4ynvkqa4c2h6t9qvca7wns8bk84f`) |
+
+**Initial Admin User**
+
+| Field | Value |
+|-------|-------|
+| Convex ID | `rd75t0azccd9a815qvsm8dgb698bk5ky` |
+| Email | `corsairtacticalsolutions@gmail.com` |
+| Clerk User ID | `pending:corsairtacticalsolutions@gmail.com` (promoted on first login) |
+| Role | `client_admin` on Corsair site |
+| Agency Admin | `true` |
+
+**Tenant Isolation:** Confirmed at code level — `sites.list` filters by `user.roles` for non-superadmin users; agency admins see only their agency's sites. Full dashboard walkthrough requires `VITE_CONVEX_URL` secret update (see above).
+
+**Provisioning helper added:** `convex/provision.ts` — test-mode only mutations (`upsertTestAgency`, `upsertTestSite`, `upsertTestUser`, `verifyProvisioning`). Safe in production (guarded by `requireTestEnvironment()`).
+
+---
+
+### Corsair Provisioning Values (sourced from `thefsts/Corsair-Tactical-Solutions` repo)
+
+**Agency — Corsair Tactical Solutions**
+
+| Field | Value |
+|-------|-------|
+| Agency Name | Corsair Tactical Solutions |
+| Slug | `corsair-tactical` |
+| Support Email | `corsairtacticalsolutions@gmail.com` |
+| Primary Color | `#1A3A52` (corsair-blue-900) |
+| Accent Color | `#C41E3A` (corsair-red-500) |
+| Licensing Status | `active` |
+| Is Active | `true` |
+| Billing Notes | First production client. Onboarded July 2026. |
+
+**Site — Corsair Tactical Solutions**
+
+| Field | Value |
+|-------|-------|
+| Site Name | Corsair Tactical Solutions |
+| Slug | `corsair-tactical` |
+| Domain | `corsairtacticalsolutions.com` |
+| Status | `active` |
+| Website Type | `training_academy` |
+| Primary Brand Color | `#1A3A52` |
+| Secondary Brand Color | `#C41E3A` |
+| Enabled Modules | All: homepage, courses, events, articles, media, contact, footer, seo, payments, email, crm |
+| Agency | Corsair Tactical Solutions (link after creating agency) |
+
+**Initial Admin User**
+
+| Field | Value |
+|-------|-------|
+| Name | Corsair Admin |
+| Email | `corsairtacticalsolutions@gmail.com` |
+| Super Admin | No |
+| Site Role | Owner — Corsair Tactical Solutions site |
+| Agency Admin | Yes (assign via Agency → Admins tab) |
+
+### Manual Provisioning Steps (via Dashboard UI)
+
+1. **Admin → Agencies** (`/app/admin/agencies`) → Create Agency — fill in values from table above
+2. **Admin → Site Onboarding** (`/app/admin/onboarding`) → complete 7 steps using values above; at Step 3 (Agency) select Corsair Tactical Solutions; at Step 4 (Modules) ensure all modules enabled
+3. **Admin → Manage Users** (`/app/admin/users`) → Invite User — set name, email, site role=Owner for the Corsair site
+4. **Admin → Agencies → Corsair → Admins tab** — enable the agency admin toggle for the Corsair Admin user
+5. **Verify** — sign in as the Corsair admin user and confirm only the Corsair site appears; navigating to another site's URL returns a permission error
+
+### Dashboard Code Verification (completed)
+
+All provisioning operations confirmed supported in code:
+- `AdminAgencies.tsx` — `agencies.create` mutation; all fields available (name, slug, colors, supportEmail, featureFlags, isActive, licensingStatus)
+- `AdminSiteOnboarding.tsx` — 7-step wizard; `sites.create` seeds crmConnections, homepageContent, footerContent, contactInfo, seoSettings automatically
+- `AdminUsers.tsx` — `users.create` with `clerkUserId: "pending:{email}"` pending-match pattern; auto-promoted on first Clerk login via `provisionUser()`
+- Tenant isolation verified: `sites.list` filters by `user.roles` for non-superadmin users; agency admins see only their agency's sites
