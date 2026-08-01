@@ -350,6 +350,111 @@ test_wrong_identity_aborts_push() {
   fi
 }
 
+# ── Test 4: multiple consecutive wrong-identity commits → ALL caught ───────────
+# A regression in check-commit-identity.sh could cause it to stop after the
+# first violation and miss subsequent ones.  This test injects 3 wrong-identity
+# commits and confirms that all three violations are reported and the push is
+# still aborted (full-range scan, not early-exit after first offender).
+test_multiple_wrong_identity_all_caught() {
+  echo ""
+  echo -e "${BOLD}Test 4: Multiple consecutive wrong-identity commits — all violations caught${RESET}"
+
+  local tmpdir
+  tmpdir="$(setup_repos)"
+  local fake_remote="$tmpdir/fake-remote.git"
+  local working="$tmpdir/working"
+  local bin_dir="$tmpdir/bin"
+  mkdir -p "$bin_dir"
+  create_git_stub "$bin_dir" "$fake_remote"
+  create_pnpm_stub "$bin_dir"
+
+  # Capture the remote tip SHA before the script runs — it must not change.
+  local remote_tip_before
+  remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
+
+  # Inject 4 wrong-identity commits.  post-merge.sh amends HEAD to the correct
+  # author identity before running the outgoing-range check, so the final commit
+  # (commit #4) will be fixed automatically.  The remaining 3 non-HEAD commits
+  # must ALL be reported as violations — confirming the scanner does not stop
+  # after the first offender.
+  local sha1 sha2 sha3
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --allow-empty -m "wrong-identity commit #1" >/dev/null 2>&1
+  sha1="$(git -C "$working" rev-parse --short HEAD)"
+
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --allow-empty -m "wrong-identity commit #2" >/dev/null 2>&1
+  sha2="$(git -C "$working" rev-parse --short HEAD)"
+
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --allow-empty -m "wrong-identity commit #3" >/dev/null 2>&1
+  sha3="$(git -C "$working" rev-parse --short HEAD)"
+
+  # Commit #4 becomes HEAD; post-merge.sh amends it to the correct identity so
+  # it won't appear as a violation — but commits #1-#3 must still all be caught.
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --allow-empty -m "wrong-identity commit #4 (HEAD — amended by post-merge)" >/dev/null 2>&1
+
+  run_post_merge "$working" "$bin_dir"
+
+  # Assertion 1: script must exit non-zero — commits #1-#3 are still wrong-identity.
+  if [ "$LAST_EXIT" -ne 0 ]; then
+    pass "Script exits non-zero when outgoing range contains multiple wrong-identity commits"
+  else
+    fail "Script should exit non-zero but exited 0 — wrong-identity commits were not caught"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+    return
+  fi
+
+  # Assertion 2: violation count reported must be ≥ 3.
+  # check-commit-identity.sh prints "N violating commit(s)" in the summary line.
+  local reported_count
+  reported_count="$(echo "$LAST_OUTPUT" | grep -oE '[0-9]+ violating commit' | grep -oE '^[0-9]+' || echo "0")"
+  if [ "${reported_count:-0}" -ge 3 ]; then
+    pass "Violation count reported is $reported_count (≥ 3) — full-range scan confirmed"
+  else
+    fail "Violation count should be ≥ 3 but got '${reported_count:-0}' — scanner may be stopping early"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # Assertion 3: each of the 3 non-HEAD offending SHAs must appear in the output.
+  local all_shas_found=1
+  for sha in "$sha1" "$sha2" "$sha3"; do
+    if echo "$LAST_OUTPUT" | grep -q "$sha"; then
+      : # found
+    else
+      all_shas_found=0
+      fail "Offending commit SHA $sha not found in output — violation may have been skipped"
+    fi
+  done
+  if [ "$all_shas_found" -eq 1 ]; then
+    pass "All 3 non-HEAD offending SHAs ($sha1, $sha2, $sha3) appear in output"
+  fi
+
+  # Assertion 4: the remote must NOT have been pushed — tip SHA unchanged.
+  local gh_clone="$tmpdir/gh-clone"
+  git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
+  local remote_tip_after
+  remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
+  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
+    pass "Remote history was not modified — all wrong-identity commits were blocked"
+  else
+    fail "Remote tip changed — wrong-identity commits reached GitHub despite identity failures"
+    echo "    remote before: $remote_tip_before"
+    echo "    remote after:  $remote_tip_after"
+  fi
+}
+
 # ── Test runner ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}=== post-merge.sh GitHub sync integration tests ===${RESET}"
@@ -358,6 +463,7 @@ echo ""
 test_diverged_rebase_succeeds
 test_conflicting_rebase_exits_nonzero
 test_wrong_identity_aborts_push
+test_multiple_wrong_identity_all_caught
 
 echo ""
 echo -e "${BOLD}=== Results: $PASS passed, $FAIL failed ===${RESET}"
