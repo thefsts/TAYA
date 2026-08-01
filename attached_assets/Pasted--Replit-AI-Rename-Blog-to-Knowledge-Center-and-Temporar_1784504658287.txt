@@ -1,0 +1,549 @@
+# Replit AI — Rename Blog to Knowledge Center and Temporarily Hide It
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+Current page:
+
+```text
+https://www.corsairtacticalsolution.com/blog
+```
+
+Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+This is a focused navigation and route-availability update.
+
+The current Blog will eventually become the **Knowledge Center**, but it must remain hidden from the public until the FSTS Dashboard integration is complete and working with the website.
+
+Do not delete the page or its existing content. We will restore it later.
+
+---
+
+# Git Identity
+
+Use:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+---
+
+# Repository Safety
+
+Before making changes, verify:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+git status --short
+```
+
+The repository must be:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Do not make this change in the FSTS Dashboard repository.
+
+---
+
+# Primary Requirements
+
+Complete both changes:
+
+1. Change the official navigation name from **Blog** to **Knowledge Center**.
+2. Temporarily hide the Knowledge Center from the public website until the Dashboard integration is ready.
+
+Because the page is being hidden, the new **Knowledge Center** label will not currently be visible in the public navbar. However, the underlying navigation configuration, page title, metadata, and future-facing labels should be updated now so the correct name appears when the feature is restored.
+
+---
+
+# Task 1 — Rename Blog to Knowledge Center
+
+Search the repository for all user-facing references to:
+
+```text
+Blog
+Our Blog
+Latest Blog Posts
+Blog Posts
+Articles & Blog
+```
+
+Update references associated with the `/blog` page to:
+
+```text
+Knowledge Center
+```
+
+At minimum, inspect:
+
+- Desktop navbar
+- Mobile navbar
+- Shared navigation configuration
+- Footer
+- Page heading
+- Breadcrumbs
+- Metadata
+- Open Graph metadata
+- Structured data
+- Services or homepage links
+- Locale files
+- Sitemap configuration
+- Any article-related empty states or headings
+
+Do not blindly replace the word “blog” inside technical variable names, API paths, database identifiers, or article content where doing so could break functionality.
+
+The existing route may remain:
+
+```text
+/blog
+```
+
+Do not rename the URL during this task unless the application already has an approved `/knowledge-center` route.
+
+---
+
+# Task 2 — Temporarily Hide the Navbar Entry
+
+Remove or disable the Knowledge Center entry from:
+
+- Desktop navbar
+- Mobile navbar
+- Hamburger menu
+- Footer navigation
+- Homepage shortcuts
+- Any public service or resource menu
+- Any promotional card or CTA that sends visitors to `/blog`
+
+Do not leave:
+
+- Empty separators
+- Blank dropdown space
+- Broken mobile-menu spacing
+- Empty submenu groups
+- Dead links
+
+The navigation configuration should retain the future label:
+
+```text
+Knowledge Center
+```
+
+but the item must not currently render publicly.
+
+---
+
+# Task 3 — Temporarily Disable Public Access to `/blog`
+
+The page must not remain publicly available merely because it was removed from navigation.
+
+Temporarily disable access to:
+
+```text
+/blog
+```
+
+and any associated public article routes, such as:
+
+```text
+/blog/[slug]
+```
+
+if those routes depend on the unfinished Dashboard integration.
+
+## Preferred implementation
+
+Use a centralized feature flag such as:
+
+```ts
+const FEATURES = {
+  knowledgeCenter: false,
+} as const;
+```
+
+or the equivalent architecture already used by the project.
+
+When disabled:
+
+- Do not render the page publicly.
+- Do not fetch unfinished Dashboard article data.
+- Do not expose partially working content.
+- Do not show a broken or empty article listing.
+
+## Route behavior
+
+Use the behavior most consistent with the existing application:
+
+### Preferred
+
+Return the framework’s proper not-found response.
+
+For Next.js, this may be:
+
+```ts
+notFound();
+```
+
+This should result in a real HTTP 404 response where supported.
+
+### Acceptable alternative
+
+Temporarily redirect visitors to the homepage:
+
+```text
+/
+```
+
+Use a temporary redirect, not a permanent redirect, because the Knowledge Center will return later.
+
+Do not redirect `/blog` to the general Contact page.
+
+Do not return a visually blank page with HTTP 200.
+
+---
+
+# Task 4 — Preserve the Existing Implementation
+
+Do not delete:
+
+- Blog or article page components
+- Article layouts
+- Existing article content
+- Dashboard integration preparation
+- API client code
+- Article types
+- SEO utilities
+- Images
+- Database-related code
+- Styling intended for the future Knowledge Center
+
+The feature is being temporarily disabled, not removed from the product.
+
+Keep the implementation easy to restore by changing one centralized feature setting.
+
+Do not scatter hardcoded `false` conditions throughout the repository.
+
+---
+
+# Task 5 — Disable Related Public Routes
+
+Audit all routes related to the Blog or Knowledge Center.
+
+Possible routes may include:
+
+```text
+/blog
+/blog/[slug]
+/articles
+/articles/[slug]
+/category/[slug]
+/author/[slug]
+```
+
+Only disable routes that belong to the unfinished Knowledge Center system.
+
+Do not disable unrelated course articles, legal pages, service pages, or other existing site content.
+
+When the Knowledge Center feature is disabled, article detail URLs must not remain publicly accessible through direct links.
+
+---
+
+# Task 6 — Remove It From Public Discovery
+
+While the Knowledge Center is hidden:
+
+- Remove `/blog` from the sitemap.
+- Remove associated article detail URLs from the sitemap.
+- Remove links from structured navigation data.
+- Remove Knowledge Center URLs from public breadcrumbs where applicable.
+- Ensure no homepage section advertises it.
+- Ensure no footer link advertises it.
+- Ensure no mobile navigation item advertises it.
+
+Do not add a permanent search-engine redirect.
+
+If robots configuration is generated dynamically, ensure disabled Knowledge Center URLs are not promoted for crawling.
+
+A proper 404 or temporary redirect is preferred over relying only on `robots.txt`.
+
+---
+
+# Task 7 — Update Page Identity for Future Restoration
+
+Even though the page is hidden, update its internal user-facing identity for when it returns.
+
+Use:
+
+## Page name
+
+```text
+Knowledge Center
+```
+
+## Suggested metadata title
+
+```text
+Knowledge Center | Corsair Tactical Solutions
+```
+
+## Suggested metadata description
+
+```text
+Explore security insights, training resources, safety guidance, and professional updates from Corsair Tactical Solutions.
+```
+
+Do not expose the page publicly merely to verify this metadata.
+
+The metadata should become active automatically when the feature flag is restored.
+
+---
+
+# Task 8 — Future Dashboard Integration Comment
+
+Add a concise code comment near the centralized feature flag or route guard:
+
+```text
+Knowledge Center is temporarily disabled until the FSTS Dashboard article integration is production-ready.
+```
+
+Do not add a large block of project-management notes inside production code.
+
+Do not create a fake or duplicate article backend inside the Corsair website.
+
+The future page must consume the approved Dashboard integration when it is ready.
+
+---
+
+# Required Tests
+
+Add or update regression tests confirming that, while the feature is disabled:
+
+- Desktop navbar does not display Blog.
+- Desktop navbar does not display Knowledge Center.
+- Mobile navbar does not display Blog.
+- Mobile navbar does not display Knowledge Center.
+- Footer does not link to `/blog`.
+- Homepage does not link to `/blog`.
+- `/blog` returns the intended disabled-state response.
+- Article detail routes are also unavailable where applicable.
+- The sitemap does not include `/blog`.
+- The sitemap does not include disabled article detail URLs.
+- No public navigation entry points to `/blog`.
+- Existing Blog/Knowledge Center source files remain present.
+- The feature can be restored through one centralized flag.
+
+Also verify that the configured future-facing label is:
+
+```text
+Knowledge Center
+```
+
+and not:
+
+```text
+Blog
+```
+
+---
+
+# Do Not Modify
+
+Do not change:
+
+- Service inquiry forms
+- Service-page CTA buttons
+- Security Training class forms
+- Course registration
+- Square checkout
+- Course pricing
+- Event registration
+- Careers
+- Private Investigations
+- Church Safety
+- Security Audits
+- Property Manager Services
+- Realtor Safety Program
+- FSTS Dashboard code
+- Unrelated navigation links
+
+---
+
+# Validation
+
+Inspect `package.json` and run the actual available equivalents of:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+Do not report a check as passing unless it was executed.
+
+Clearly report:
+
+- Passed checks
+- Warnings
+- Pre-existing failures
+- New failures
+- Missing scripts
+
+---
+
+# Production Verification
+
+After deployment, verify:
+
+```text
+https://www.corsairtacticalsolution.com
+https://www.corsairtacticalsolution.com/blog
+```
+
+Confirm:
+
+- Blog is no longer displayed in the desktop navbar.
+- Knowledge Center is not publicly displayed while disabled.
+- Blog is no longer displayed in the mobile navbar.
+- The footer does not advertise the page.
+- `/blog` returns the chosen disabled-state response.
+- Direct article routes are unavailable, where applicable.
+- `/blog` is absent from the sitemap.
+- No broken navigation spacing remains.
+- No console errors occur.
+- No unfinished Dashboard request is made from the disabled routes.
+
+---
+
+# Restoration Requirement
+
+The implementation must make restoration simple.
+
+When the Dashboard integration is complete, the Knowledge Center should be restorable by:
+
+1. Enabling the centralized feature flag.
+2. Confirming Dashboard article data is available.
+3. Re-enabling the sitemap entries.
+4. Rendering the existing navigation item labeled `Knowledge Center`.
+
+Do not require rebuilding the page from scratch later.
+
+---
+
+# Commit
+
+Use:
+
+```text
+feat(corsair): rename blog and temporarily hide Knowledge Center
+```
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+RENAME
+Previous name:
+Future name:
+Route preserved:
+Metadata updated:
+Locale files updated:
+
+TEMPORARY DISABLEMENT
+Feature flag or route guard:
+Desktop navbar hidden:
+Mobile navbar hidden:
+Footer link hidden:
+Homepage links hidden:
+Blog route behavior:
+Article route behavior:
+Dashboard requests prevented:
+
+SEO AND DISCOVERY
+Sitemap entry removed:
+Article URLs removed:
+Structured navigation updated:
+Broken links found and corrected:
+
+PRESERVATION
+Existing page code preserved:
+Existing article components preserved:
+Future restoration process:
+
+VALIDATION
+TypeScript:
+Lint:
+Tests:
+Build:
+Desktop verification:
+Mobile verification:
+Console errors:
+
+FILES
+Files created:
+Files modified:
+```
+
+Explicitly confirm:
+
+```text
+The Blog has been renamed internally to Knowledge Center.
+
+The Knowledge Center is temporarily hidden from all public navigation.
+
+The /blog page and related unfinished article routes are not publicly accessible while the feature is disabled.
+
+The existing Knowledge Center implementation was preserved so it can be restored after the FSTS Dashboard integration is completed.
+
+No unrelated pages, service forms, class registrations, pricing, or Square workflows were modified.
+```
+
+Do not include API keys, secrets, tokens, environment-variable values, or private configuration.

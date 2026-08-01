@@ -1,0 +1,389 @@
+# Replit AI — Phase 2: Service Content Refresh & Rename Security Assessments to Security Assessments Audits
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production:
+https://www.corsairtacticalsolution.com
+
+This is a **production content update**.
+
+Do **not** modify Square, booking, pricing logic, forms (except where noted), or unrelated functionality.
+
+Deploy **ONLY** to the Corsair Tactical Solutions Vercel project.
+
+---
+
+# Git Identity
+
+Use this Git identity for all commits.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+```
+
+---
+
+# TASK 1 — RENAME SECURITY ASSESSMENTS EVERYWHERE
+
+The service is no longer called:
+
+**Security Assessments**
+
+It is now officially:
+
+# Security Assessments Audits
+
+Update this name **everywhere** throughout the website.
+
+This includes, but is not limited to:
+
+- Navigation
+- Services dropdown
+- Services overview page
+- Homepage service cards (if applicable)
+- CTA buttons
+- Internal links
+- Breadcrumbs
+- Page headings
+- SEO titles
+- Meta descriptions
+- Open Graph titles
+- Structured data
+- Sitemap labels (if applicable)
+- Any hardcoded text
+- Contact form titles
+- Success messages
+- Email subject lines
+- Confirmation messages
+
+---
+
+## Page URL
+
+Keep the existing URL:
+
+```
+/security-assessments
+```
+
+Do **NOT** change the slug.
+
+Only change the displayed service name to:
+
+**Security Assessments Audits**
+
+Maintain all existing functionality.
+
+---
+
+# TASK 2 — UPDATE CHURCH SAFETY PAGE
+
+Page:
+
+https://www.corsairtacticalsolution.com/church-safety
+
+---
+
+## HERO
+
+### Protecting Houses of Worship
+
+Corsair Tactical Solutions partners with church leadership teams to develop, strengthen, and implement comprehensive security plans for houses of worship.
+
+Through professional security assessments, specialized training, and onsite armed or unarmed security services, we help create a safer environment for congregations, staff, volunteers, and visitors.
+
+---
+
+## BODY CONTENT
+
+### Protecting Those We Will Never Meet.
+
+We begin with non-lethal de-escalation training, volunteer safety protocols, and medical emergency readiness.
+
+Our initial consultation includes a comprehensive walk-through of your facility, a detailed meeting with church leadership to evaluate current security procedures and emergency planning, and a written scope document outlining our findings, identified vulnerabilities, and opportunities for continued improvement.
+
+Let's make sure the right plans, training, and protocols are in place to protect your house of worship, congregation, staff, and visitors.
+
+Maintain the existing styling while replacing outdated copy.
+
+---
+
+# TASK 3 — UPDATE PROPERTY MANAGER SERVICES PAGE
+
+Page:
+
+https://www.corsairtacticalsolution.com/property-manager-services
+
+---
+
+## HERO
+
+### Protecting Properties, Safeguarding People
+
+Corsair Tactical Solutions provides professional armed and unarmed security services for:
+
+- Property Management Companies
+- Real Estate Professionals
+- Homeowners' Associations
+- Apartment Communities
+- Commercial Properties
+- Residential Developments
+
+---
+
+## BODY
+
+From onsite security officers and mobile patrols to property assessments, access control support, and incident prevention, we deliver practical security solutions designed to protect residents, employees, visitors, and valuable assets.
+
+Licensed, insured, veteran-led, and committed to:
+
+## Protecting Those We Will Never Meet.
+
+---
+
+# TASK 4 — UPDATE EVENT SECURITY PAGE
+
+Page:
+
+https://www.corsairtacticalsolution.com/event-security
+
+---
+
+## HERO
+
+### Licensed Event Security Specialists
+
+# Professional Event Security Services
+
+Corsair Tactical Solutions provides professional security planning, staffing, and deployment for:
+
+- Public Gatherings
+- Private Functions
+- Corporate Events
+- Church Events
+- VIP Appearances
+- Community Programs
+- Special Occasions of All Sizes
+
+---
+
+## BODY
+
+Our team helps protect attendees, staff, property, and your organization's reputation through visible security presence, access control, crowd management, incident prevention, and coordinated emergency response.
+
+From initial planning through final departure, Corsair Tactical Solutions delivers dependable event security built around your venue, audience, schedule, and level of risk.
+
+---
+
+# Tailored to Your Event
+
+## Personalized Event Protection
+
+No two events carry the same risks.
+
+Corsair Tactical Solutions develops customized security strategies based on:
+
+- Venue configuration
+- Attendance
+- Guest profile
+- Event type
+- Threat exposure
+- Operational needs
+- Client expectations
+
+From private gatherings and corporate functions to church events, political appearances, celebrity engagements, VIP movements, and large-scale public events, our team provides disciplined security coverage designed to protect people, property, operations, and reputation.
+
+---
+
+## Event Security Planning May Include
+
+- Customized security operations plan
+- Staffing levels aligned with attendance, visibility, and risk
+- Venue walkthroughs
+- Threat assessments
+- Access control
+- Perimeter security
+- Crowd management planning
+- VIP arrival coordination
+- VIP movement coordination
+- VIP departure coordination
+- Emergency response planning
+- Evacuation planning
+- Coordination with venue management
+- Coordination with emergency services
+- Coordination with local law enforcement when required
+- Post-event reporting
+- Incident documentation
+
+---
+
+Finish the page with:
+
+## Protecting Those We Will Never Meet.
+
+Maintain the site's existing visual hierarchy.
+
+---
+
+# TASK 5 — UPDATE PRIVATE INVESTIGATIONS PAGE
+
+Page:
+
+https://www.corsairtacticalsolution.com/private-investigations
+
+---
+
+## HERO
+
+# Private Investigation Services
+
+### Discreet. Professional. Results-Driven.
+
+Corsair Tactical Solutions provides professional private investigation services throughout the Dallas–Fort Worth Metroplex and select regions across the State of Texas.
+
+---
+
+## BODY
+
+Our licensed investigators bring military, law enforcement, security, and investigative experience to every case.
+
+We conduct each investigation with discretion, attention to detail, professionalism, and respect for client confidentiality.
+
+Whether the matter involves:
+
+- Surveillance
+- Background Research
+- Skip Tracing
+- Workplace Concerns
+- Domestic Investigations
+- Fraud
+- Other Sensitive Matters
+
+our team works to gather accurate information and provide clear, documented findings.
+
+---
+
+Finish with:
+
+# Thorough. Discreet. Trusted.
+
+---
+
+# CONTENT QUALITY
+
+Maintain the Corsair design system.
+
+Do not reduce spacing.
+
+Do not simplify layouts.
+
+Do not remove existing imagery unless required.
+
+Use existing typography and branding.
+
+Maintain accessibility.
+
+---
+
+# SEO
+
+Update SEO where necessary to reflect revised page titles and content.
+
+Verify:
+
+- Meta titles
+- Meta descriptions
+- Open Graph titles
+- Open Graph descriptions
+- Structured data (if present)
+
+---
+
+# QUALITY ASSURANCE
+
+Verify:
+
+✅ Security Assessments renamed everywhere to **Security Assessments Audits**
+
+✅ URL remains `/security-assessments`
+
+✅ Navigation updated
+
+✅ Services overview updated
+
+✅ Church Safety page updated
+
+✅ Property Manager Services page updated
+
+✅ Event Security page updated
+
+✅ Private Investigations page updated
+
+✅ Mobile responsive
+
+✅ Desktop responsive
+
+✅ No broken links
+
+✅ No console errors
+
+✅ TypeScript passes
+
+✅ Lint passes
+
+✅ Production build passes
+
+---
+
+# DEPLOYMENT
+
+Deploy ONLY to:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+
+Verify the deployment completed successfully before closing the task.
+
+---
+
+# COMMIT
+
+Use:
+
+```text
+feat(corsair): refresh service pages and rename Security Assessments to Security Assessments Audits
+```
+
+---
+
+# COMPLETION REPORT
+
+Include:
+
+- Files modified
+- Pages updated
+- Locations where "Security Assessments" was renamed
+- SEO updates
+- Navigation updates
+- Internal link verification
+- Build status
+- Deployment URL
+- Commit SHA
+
+Do not include API keys, secrets, or environment variables.

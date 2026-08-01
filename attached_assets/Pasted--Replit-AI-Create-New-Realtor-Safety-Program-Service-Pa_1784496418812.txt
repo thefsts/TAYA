@@ -1,0 +1,465 @@
+# Replit AI — Create New Realtor Safety Program Service Page and Remove It From Property Manager Services
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production:
+https://www.corsairtacticalsolution.com
+
+This is a production website structure and content correction.
+
+The **Realtor Safety Program** must be its own standalone service page.
+
+It must no longer appear as part of:
+
+https://www.corsairtacticalsolution.com/property-manager-services
+
+Do not modify unrelated services, courses, events, Square logic, pricing logic, or backend systems.
+
+---
+
+# Git Identity
+
+Use this Git identity for all commits:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+---
+
+# Repository and Deployment Safety
+
+Before making changes, verify:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+```
+
+The repository must be:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Do not commit or deploy this work through the FSTS Dashboard repository or Vercel project.
+
+---
+
+# Task 1 — Remove Realtor Safety Program Content From Property Manager Services
+
+Update:
+
+```text
+/property-manager-services
+```
+
+Review the entire page and remove all content that specifically belongs to the Realtor Safety Program.
+
+This includes any:
+
+- Realtor safety headings
+- Real estate agent personal-safety training copy
+- Open-house safety content
+- Showing-property safety content
+- Agent threat-awareness content
+- Realtor-focused cards
+- Realtor-focused CTAs
+- Realtor safety program links embedded as page sections
+- Realtor-specific metadata or structured data
+- Realtor safety form labels
+- Realtor-focused images or icons, where clearly tied to that program
+
+Do not remove legitimate property-management security content.
+
+The Property Manager Services page should remain focused on:
+
+- Property management companies
+- Apartment communities
+- Homeowners’ associations
+- Commercial properties
+- Residential developments
+- Onsite armed and unarmed security
+- Mobile patrols
+- Property assessments
+- Access control support
+- Incident prevention
+- Protection of residents, employees, visitors, and assets
+
+If “real estate professionals” appears only as part of the property-management client list, preserve it only where it genuinely refers to property security services. Remove any standalone Realtor Safety Program promotion from this page.
+
+---
+
+# Task 2 — Create a New Standalone Service Page
+
+Create a new service page named:
+
+# Realtor Safety Program
+
+Use the route:
+
+```text
+/realtor-safety-program
+```
+
+Do not place this page under the Property Manager Services route.
+
+Follow the existing site architecture for service pages, including:
+
+- Locale-aware routing
+- Shared layout components
+- Metadata generation
+- Responsive page sections
+- Existing design system
+- Existing CTA styles
+- Existing contact or inquiry workflow
+
+Do not create a duplicate backend.
+
+---
+
+# Task 3 — Preserve and Move Existing Realtor Safety Content
+
+Search the Property Manager Services page and related components for the Realtor Safety Program content that was previously added in the wrong location.
+
+Move that content to the new standalone page rather than deleting it, unless it is duplicated, outdated, or clearly malformed.
+
+Preserve the intended business message while organizing it as a dedicated service.
+
+The new page should clearly explain that the program is intended for:
+
+- Realtors
+- Real estate agents
+- Brokers
+- Property-showing professionals
+- Leasing professionals
+- Open-house hosts
+- Real estate teams and offices
+
+Organize existing content into a clear service-page structure such as:
+
+1. Hero
+2. Program overview
+3. Risks addressed
+4. Training topics
+5. Who the program serves
+6. Team or office training options
+7. Call to action
+8. Existing contact or inquiry form
+
+Do not invent prices unless a price already exists in the approved site content.
+
+Do not present unapproved certifications, guarantees, or legal claims.
+
+---
+
+# Task 4 — New Page Hero
+
+Use the official page name:
+
+# Realtor Safety Program
+
+If no approved hero copy already exists in the current implementation, use restrained, accurate copy consistent with the program’s existing content.
+
+Suggested structure:
+
+### Personal Safety Training for Real Estate Professionals
+
+# Realtor Safety Program
+
+Practical safety training designed to help real estate professionals recognize risks, improve situational awareness, prepare for emergencies, and work more confidently during property showings, open houses, client meetings, and daily field operations.
+
+Do not use this suggested copy if approved Realtor Safety Program text already exists elsewhere in the codebase. Prefer the previously supplied or implemented approved copy.
+
+---
+
+# Task 5 — Navigation and Services Listings
+
+Add **Realtor Safety Program** everywhere standalone services are normally listed.
+
+Review and update as appropriate:
+
+- Services navigation dropdown
+- Services overview page
+- Homepage services section, if present
+- Mobile navigation
+- Footer service links, if present
+- Internal service cards
+- Related-services sections
+
+The link must point to:
+
+```text
+/realtor-safety-program
+```
+
+Do not continue linking Realtor Safety Program users to:
+
+```text
+/property-manager-services
+```
+
+---
+
+# Task 6 — Internal Link Cleanup
+
+Search the repository for:
+
+```text
+Realtor Safety
+Realtor Safety Program
+realtor-safety
+property-manager-services
+```
+
+Update all Realtor Safety Program links to the new route.
+
+Confirm there are no remaining Realtor Safety Program buttons or cards pointing to the Property Manager Services page.
+
+Do not change legitimate links to Property Manager Services.
+
+---
+
+# Task 7 — Contact Form or CTA
+
+Use the existing production contact workflow.
+
+If the Realtor Safety Program previously had a CTA or form embedded on the Property Manager Services page, move or recreate that interface on the new page using the existing components and endpoint.
+
+Suggested inquiry label:
+
+```text
+Realtor Safety Program
+```
+
+Suggested CTA text:
+
+```text
+Request Realtor Safety Training
+```
+
+The inquiry must clearly identify that the request concerns the Realtor Safety Program.
+
+Verify:
+
+- Required fields validate
+- Submission loading state works
+- Success state works
+- Error state works
+- Duplicate submission protection remains active
+- The inquiry reaches the existing production destination
+
+Do not create a separate API route unless the existing architecture genuinely requires one.
+
+---
+
+# Task 8 — SEO
+
+Add page metadata for the new route.
+
+Suggested SEO title:
+
+```text
+Realtor Safety Program | Corsair Tactical Solutions
+```
+
+Suggested meta description:
+
+```text
+Professional safety training for Realtors and real estate teams covering situational awareness, property-showing safety, open-house security, de-escalation, and emergency readiness.
+```
+
+Also update, where supported:
+
+- Open Graph title
+- Open Graph description
+- Canonical URL
+- Structured data
+- Breadcrumbs
+- Sitemap
+
+Add the new page to the sitemap using a priority consistent with the other primary services.
+
+Review the Property Manager Services metadata and remove any Realtor Safety Program references that no longer belong there.
+
+---
+
+# Task 9 — Locale Files
+
+The site uses locale JSON files.
+
+Add the Realtor Safety Program labels and copy using the existing localization structure.
+
+At minimum:
+
+- Ensure the English locale contains the approved content
+- Ensure all locale files remain valid JSON
+- Preserve existing fallback behavior
+- Do not introduce broken interpolation keys
+- Do not use poor automatic translations
+- If approved translations do not exist, follow the repository’s established fallback convention
+
+Remove Realtor Safety Program text from Property Manager Services locale keys where it was incorrectly embedded.
+
+---
+
+# Task 10 — Redirect Review
+
+Check whether a dedicated Realtor Safety URL existed previously.
+
+If an old route exists and is being replaced, add a permanent redirect to:
+
+```text
+/realtor-safety-program
+```
+
+Do not redirect:
+
+```text
+/property-manager-services
+```
+
+because that page remains a valid standalone service.
+
+No redirect is necessary if this is the first dedicated Realtor Safety Program URL.
+
+---
+
+# Quality Assurance
+
+Verify all of the following:
+
+- Realtor Safety Program has its own page
+- New route is `/realtor-safety-program`
+- Property Manager Services no longer contains the Realtor Safety Program section
+- Property Manager Services still contains its legitimate property-security content
+- Services navigation links to the new page
+- Mobile navigation links to the new page
+- Services overview links to the new page
+- Homepage service card is updated, if applicable
+- Footer is updated, if applicable
+- No Realtor Safety links still point to Property Manager Services
+- New page metadata is correct
+- Sitemap includes the new page
+- Contact CTA or form works
+- Mobile layout is correct
+- Desktop layout is correct
+- No broken links
+- No console errors
+- No new TypeScript errors
+- Lint passes or all pre-existing failures are clearly documented
+- Production build passes
+
+Run the scripts defined in `package.json`, such as:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Do not claim a check passed if it was not executed.
+
+---
+
+# Deployment
+
+Push only to:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Allow Vercel to deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+After deployment, verify these production pages:
+
+```text
+https://www.corsairtacticalsolution.com/realtor-safety-program
+https://www.corsairtacticalsolution.com/property-manager-services
+```
+
+Confirm both return HTTP 200 and display the correct independent content.
+
+---
+
+# Commit
+
+Use:
+
+```text
+feat(corsair): create standalone Realtor Safety Program service page
+```
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+New Realtor Safety route:
+Files created:
+Files modified:
+
+Content removed from Property Manager Services:
+Content moved to Realtor Safety Program:
+Navigation locations updated:
+Internal links updated:
+Form or CTA integration:
+SEO metadata:
+Sitemap update:
+Locale files updated:
+
+TypeScript result:
+Lint result:
+Build result:
+
+Production Realtor Safety Program verification:
+Production Property Manager Services verification:
+```
+
+Explicitly confirm:
+
+```text
+The Realtor Safety Program is now a standalone service.
+It has been removed from the Property Manager Services page.
+No unrelated service content was removed.
+No changes were made to Square, course pricing, event pricing, or the FSTS Dashboard.
+```
+
+Do not include secrets, tokens, API keys, or environment-variable values.

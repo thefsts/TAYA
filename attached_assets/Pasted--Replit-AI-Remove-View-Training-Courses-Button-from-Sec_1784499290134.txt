@@ -1,0 +1,167 @@
+# Replit AI — Remove "View Training Courses" Button from Security Training Page
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production Page:
+
+```text
+https://www.corsairtacticalsolution.com/security-training
+```
+
+This is a small UI cleanup only.
+
+Do **not** modify any other page, forms, navigation, pricing, courses, or backend functionality.
+
+Deploy **only** to the Corsair Tactical Solutions Vercel project.
+
+---
+
+# Git Identity
+
+Use:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+```
+
+---
+
+# Task
+
+Locate the section on the Security Training page titled:
+
+```text
+Now Hiring
+
+Train With Us. Work With Us.
+```
+
+Within this section there is currently a button labeled:
+
+```text
+View Training Courses
+```
+
+## Remove ONLY this button.
+
+Do **not**:
+
+- Remove the "Now Hiring" heading.
+- Remove the "Train With Us. Work With Us." heading.
+- Remove the descriptive text.
+- Remove the "Apply Now" (or other hiring/application) button if one exists.
+- Remove the new Security Training inquiry form or its CTA buttons.
+- Remove any other page functionality.
+
+---
+
+# Layout Cleanup
+
+After removing the button:
+
+- Eliminate any empty container left behind.
+- Remove unnecessary spacing caused by the deleted button.
+- Ensure the remaining content stays centered and visually balanced.
+- Preserve responsive behavior on desktop, tablet, and mobile.
+- Maintain the existing Corsair design system, typography, spacing, and animations.
+
+---
+
+# Search
+
+Search for:
+
+```text
+View Training Courses
+```
+
+Remove only the instance used in the **Now Hiring** section of the Security Training page.
+
+Do not remove links to training courses elsewhere on the site unless they are part of this exact section.
+
+---
+
+# Quality Assurance
+
+Verify:
+
+- "View Training Courses" button is gone.
+- No empty gap remains.
+- "Now Hiring" section still looks polished.
+- Remaining CTA(s) still work.
+- Mobile layout is correct.
+- Desktop layout is correct.
+- No console errors.
+- No broken links.
+- Build succeeds.
+
+Run the project's available validation scripts (such as the TypeScript, lint, and build scripts defined in `package.json`) and report the actual results.
+
+---
+
+# Deployment
+
+Deploy only to:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Verify the live page after deployment.
+
+---
+
+# Commit
+
+Use:
+
+```text
+fix(corsair): remove obsolete training courses CTA from hiring section
+```
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+Files modified:
+Button removed:
+Layout cleanup completed:
+
+TypeScript:
+Lint:
+Build:
+
+Production verification:
+```
+
+Explicitly confirm:
+
+```text
+The "View Training Courses" button has been removed from the "Now Hiring – Train With Us. Work With Us." section.
+All other content and functionality on the Security Training page remains unchanged.
+```

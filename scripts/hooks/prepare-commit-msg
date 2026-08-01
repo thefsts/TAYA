@@ -1,0 +1,8 @@
+#!/bin/sh
+# Set approved git config identity as a last-chance fallback before the commit
+# object is written.  This only takes effect when GIT_AUTHOR_* / GIT_COMMITTER_*
+# env vars are not injected by the platform (env vars take precedence over
+# config).  For platform merge commits, post-merge.sh performs the definitive
+# identity fix via an explicit env-var amend.
+git config user.name  "THEFSTS"
+git config user.email "amorebey@gmail.com"

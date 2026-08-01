@@ -15,6 +15,16 @@ bash "$(dirname "$0")/install-hooks.sh"
 git config user.name  "THEFSTS"
 git config user.email "amorebey@gmail.com"
 
+# Amend the HEAD commit so both author AND committer reflect the approved
+# identity. All four env vars are set explicitly to override any platform-
+# injected GIT_AUTHOR_* / GIT_COMMITTER_* values (which take precedence
+# over git config alone).
+GIT_AUTHOR_NAME="THEFSTS" \
+GIT_AUTHOR_EMAIL="amorebey@gmail.com" \
+GIT_COMMITTER_NAME="THEFSTS" \
+GIT_COMMITTER_EMAIL="amorebey@gmail.com" \
+  git commit --amend --no-edit --reset-author --allow-empty --no-verify
+
 pnpm install --frozen-lockfile
 # drizzle-kit push requires an interactive TTY; skip in non-interactive environments.
 # Run manually in a terminal: pnpm --filter @workspace/db run push

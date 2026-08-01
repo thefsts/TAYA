@@ -504,7 +504,7 @@ describe("portal.register — sendPortalWelcome integration", () => {
     const result = await handler(register)(ctx as never, VALID_ARGS);
 
     expect(result.success).toBe(true);
-    // Welcome email is scheduled via scheduler.runAfter, not runAction
+    // Welcome email is scheduled via scheduler.runAfter (fire-and-forget), not runAction
     const welcomeCall = ctx._schedulerCalls.find((c) => isPortalWelcomeCall(c.args));
     expect(welcomeCall).toBeDefined();
     expect(welcomeCall!.delay).toBe(0);
@@ -529,13 +529,19 @@ describe("portal.register — sendPortalWelcome integration", () => {
 
   it("registration succeeds even if scheduler.runAfter rejects (fire-and-forget)", async () => {
     const ctx = makeCtx(OPEN_CONFIG);
-    // scheduler.runAfter is awaited in the action, so if it throws the error
-    // would propagate — but in practice the Convex runtime catches scheduler
-    // errors.  Here we verify the happy path returns success.
+    // scheduler.runAfter throws — portal.register wraps it in try/catch so
+    // registration must still succeed (true fire-and-forget contract).
+    ctx.scheduler.runAfter = vi.fn(async (_delay: number, _fn: unknown, args: Record<string, unknown>) => {
+      if (isPortalWelcomeCall(args)) throw new Error("scheduler overloaded");
+    });
+
+
     const result = await handler(register)(ctx as never, VALID_ARGS);
     expect(result.success).toBe(true);
-    // Exactly one scheduler call was made (the welcome email)
-    expect(ctx._schedulerCalls.filter((c) => isPortalWelcomeCall(c.args))).toHaveLength(1);
+    // The scheduler was called once (the welcome email attempt).  We check the
+    // vi.fn() call record directly because the override does not push to
+    // _schedulerCalls (it throws before any recording happens).
+    expect(ctx.scheduler.runAfter).toHaveBeenCalledTimes(1);
   });
 
   it("normalises email to lowercase before scheduling sendPortalWelcome", async () => {

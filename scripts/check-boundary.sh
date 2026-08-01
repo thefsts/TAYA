@@ -320,6 +320,9 @@ ALLOWLISTED_DIRS=(
   ".cache"
   ".config"
   ".convex-tmp"
+  # Corsair Tactical Solutions website — client site tracked in its own repo
+  # (thefsts/Corsair-Tactical-Solutions); intentionally gitignored from this repo.
+  "corsair-source"
 )
 
 is_allowlisted() {

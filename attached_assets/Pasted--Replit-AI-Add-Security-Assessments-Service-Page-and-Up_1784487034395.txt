@@ -1,0 +1,511 @@
+# Replit AI — Add "Security Assessments" Service Page and Update Careers Page
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production Website:
+https://www.corsairtacticalsolution.com
+
+This is a production website update.
+
+Do **not** modify pricing logic, Square checkout, courses, events, or any unrelated functionality.
+
+Deploy **ONLY** to the Corsair Tactical Solutions Vercel project.
+
+---
+
+# Git Identity
+
+Use this Git identity for every commit.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+Expected output:
+
+```text
+thefsts
+amorebey@gmail.com
+```
+
+---
+
+# IMPORTANT
+
+This work belongs ONLY in:
+
+GitHub
+
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Deploy ONLY to:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+
+Do NOT deploy or commit anything to:
+
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+
+or
+
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server
+
+Verify before beginning:
+
+```bash
+git remote -v
+pwd
+git branch --show-current
+```
+
+---
+
+# TASK 1 — CREATE NEW SERVICE PAGE
+
+Create a new service page.
+
+## Page Title
+
+# Security Assessments
+
+Add this service everywhere services are listed:
+
+- Services page
+- Services cards
+- Navigation (if applicable)
+- Service index
+
+Maintain the existing Corsair branding and layout.
+
+---
+
+# HERO SECTION
+
+## Security Assessments
+
+### Starting at $499
+
+Protecting your congregation begins with understanding your current risks.
+
+---
+
+# PAGE CONTENT
+
+Corsair Tactical Solutions provides professional church security assessments starting at **$499**.
+
+Each assessment includes:
+
+- Comprehensive facility walkthrough
+- Review of current safety procedures
+- Identification of security vulnerabilities
+- Written summary of findings
+- Recommended improvements
+
+---
+
+# FOLLOW-UP CONSULTATION
+
+Once the assessment is complete, Corsair Tactical Solutions will conduct a follow-up walkthrough with church leadership to:
+
+- Review assessment findings
+- Explain identified concerns
+- Answer questions
+- Discuss practical next steps
+- Prioritize security improvements
+
+---
+
+# RECOMMENDATIONS MAY INCLUDE
+
+- Volunteer Safety Team Training
+- De-escalation Training
+- Emergency Response Training
+- Medical Readiness Instruction
+- Policy & Procedure Development
+- Ongoing Security Consulting
+- Temporary Onsite Officer Placement
+- Permanent Onsite Officer Placement
+- Armed Security Coverage
+- Unarmed Security Coverage
+- Security for Weekly Services
+- Security for Special Events
+- High-Attendance Gatherings
+
+---
+
+# PRICING
+
+Pricing begins at:
+
+## $499
+
+Final pricing may vary depending upon:
+
+- Facility size
+- Campus layout
+- Number of buildings
+- Weekly attendance
+- Scope of assessment
+- Travel requirements
+
+---
+
+# CALL TO ACTION
+
+## Schedule Your Church Security Assessment Today
+
+Make sure your plans, people, and procedures are in place before an emergency occurs.
+
+Include a large branded CTA.
+
+---
+
+# TASK 2 — BUILD A WORKING SECURITY ASSESSMENT REQUEST FORM
+
+This must be a fully functional production form.
+
+Use the website's existing form architecture.
+
+Do NOT create another backend if one already exists.
+
+The form must successfully submit using the existing production email/contact workflow.
+
+---
+
+## Form Title
+
+Request a Security Assessment
+
+---
+
+## Required Fields
+
+Church / Organization Name *
+
+Contact Name *
+
+Phone *
+
+Email *
+
+---
+
+## Optional Fields
+
+Title / Position
+
+Facility Address
+
+City
+
+State
+
+ZIP Code
+
+Number of Buildings
+
+Average Weekly Attendance
+
+Preferred Assessment Date
+
+---
+
+## Current Security Team
+
+Dropdown
+
+- Yes
+- No
+
+---
+
+## Services Interested In
+
+Checkboxes
+
+- Security Assessment
+- Volunteer Safety Team Training
+- De-escalation Training
+- Emergency Response Training
+- Medical Readiness
+- Policy Development
+- Ongoing Security Consulting
+- Armed Security
+- Unarmed Security
+
+---
+
+## Additional Information
+
+Large textarea
+
+---
+
+## Submit Button
+
+Request Assessment
+
+---
+
+# FORM REQUIREMENTS
+
+The form must:
+
+- Validate required fields
+- Validate email address
+- Validate phone number
+- Prevent duplicate submissions
+- Display loading state
+- Display success confirmation
+- Display friendly error messages
+- Be fully responsive
+- Be accessible
+
+Confirm the form actually reaches the production submission destination.
+
+Do not leave a dead form.
+
+---
+
+# TASK 3 — UPDATE CAREERS PAGE
+
+Update:
+
+https://www.corsairtacticalsolution.com/careers
+
+---
+
+# HERO
+
+## Now Hiring
+
+# Join the Corsair Team
+
+Build your career in professional security with a licensed, veteran-owned Texas company committed to high standards, dependable service, and professional growth.
+
+Corsair Tactical Solutions welcomes qualified security professionals as well as motivated individuals entering the industry.
+
+New security officers are encouraged to apply.
+
+Level II training sponsorship may be available for selected candidates who meet company hiring requirements.
+
+---
+
+# WHY CORSAIR
+
+## More Than a Job—A Career in Security
+
+At Corsair Tactical Solutions, our officers are more than a uniform.
+
+They are trusted professionals responsible for protecting:
+
+- Businesses
+- Houses of Worship
+- Residential Communities
+- Events
+- The People We Serve
+
+Whether you are beginning your security career or bringing years of military, law enforcement, or private-security experience, Corsair provides opportunities to develop your skills, expand your qualifications, and advance within the organization.
+
+---
+
+# TEAM MEMBERS MAY RECEIVE
+
+- Professional onboarding
+- Site-specific training
+- Continuing education
+- Certification opportunities
+- Firearms proficiency training
+- Defensive skills development
+- Experience across multiple security environments
+- Advancement opportunities
+- Supervisory positions
+- Training positions
+- Investigative assignments
+- Protective service opportunities
+- Weekly pay
+- Flexible part-time assignments based on availability
+
+Applicants must meet all Texas licensing requirements and successfully complete:
+
+- Company screening
+- Interview
+- Background check
+- Training process
+
+---
+
+# CLOSING
+
+Join a team committed to professionalism, readiness, accountability, and
+
+## Protecting Those We Will Never Meet.
+
+---
+
+# TASK 4 — ADD INDEED APPLICATION BUTTONS
+
+Create two large CTA buttons.
+
+---
+
+## Dallas Job Application
+
+Button Text
+
+Apply — Dallas Area
+
+URL
+
+https://www.indeed.com/viewjob?jk=9485fab0792a1139&from=shareddesktop_copy
+
+Open in a new tab.
+
+---
+
+## Wichita Falls Job Application
+
+Button Text
+
+Apply — Wichita Falls Area
+
+URL
+
+https://www.indeed.com/viewjob?jk=907eaaffbd25a39e&from=shareddesktop_copy
+
+Open in a new tab.
+
+---
+
+Buttons should:
+
+- Match Corsair branding
+- Match existing button styling
+- Be responsive
+- Include hover effects
+- Clearly identify the hiring location
+
+---
+
+# SEO
+
+Create SEO for the new page.
+
+Title
+
+Church Security Assessments | Corsair Tactical Solutions
+
+Description
+
+Professional church security assessments starting at $499. Facility walkthroughs, vulnerability reviews, written recommendations, and security consulting from Corsair Tactical Solutions.
+
+Add Open Graph metadata if supported.
+
+---
+
+# QUALITY ASSURANCE
+
+Verify:
+
+✅ Navigation updated
+
+✅ Services page updated
+
+✅ Security Assessments page renders correctly
+
+✅ Mobile responsive
+
+✅ Desktop responsive
+
+✅ Form submits successfully
+
+✅ Success message displays
+
+✅ Error handling works
+
+✅ Careers page updated
+
+✅ Dallas Indeed button works
+
+✅ Wichita Falls Indeed button works
+
+✅ No console errors
+
+✅ No broken links
+
+✅ TypeScript passes
+
+✅ Lint passes
+
+✅ Production build passes
+
+---
+
+# DEPLOYMENT
+
+Deploy ONLY to:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+
+Do NOT deploy to the Dashboard project.
+
+Verify:
+
+- Correct GitHub repository
+- Correct Vercel project
+- Correct production domain
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+- Files changed
+- New route/page created
+- Navigation updates
+- Service card updates
+- Form implementation details
+- Form submission verification
+- Careers page updates
+- Indeed links verified
+- SEO updates
+- Accessibility improvements
+- TypeScript results
+- Lint results
+- Production build results
+- Deployment URL
+- Production verification
+- Commit SHA
+
+Do not include secrets, API keys, or environment variables.
+
+---
+
+# COMMIT
+
+Use:
+
+```text
+feat(corsair): add Security Assessments service and update Careers page
+```

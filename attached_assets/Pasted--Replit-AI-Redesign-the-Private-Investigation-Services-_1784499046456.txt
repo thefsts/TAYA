@@ -1,0 +1,575 @@
+# Replit AI — Redesign the Private Investigation Services Page Correctly
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production page:
+
+```text
+https://www.corsairtacticalsolution.com/private-investigations
+```
+
+Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+This is a focused redesign and content-correction task for the **Private Investigation Services** page.
+
+Do not modify unrelated service pages, course pages, pricing, Square integrations, careers, the FSTS Dashboard, or any other repository.
+
+---
+
+# Git Identity
+
+Use this identity for all commits:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+---
+
+# Repository Safety Check
+
+Before making changes, verify:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+git status --short
+```
+
+The repository must be:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Do not make these changes in the FSTS Dashboard repository.
+
+---
+
+# Primary Objective
+
+Redesign the existing page:
+
+```text
+/private-investigations
+```
+
+The current implementation is not acceptable and must be corrected.
+
+The redesigned page must:
+
+- Use the exact approved hero copy below
+- Add the exact approved body copy below
+- Keep the existing photos unchanged
+- Improve the layout, hierarchy, spacing, readability, and conversion flow
+- Preserve the existing Corsair branding
+- Preserve the service-specific form and both form buttons if they already exist
+- Maintain mobile and desktop responsiveness
+
+Do not replace, remove, crop differently, or swap the existing photographs unless required to fix a technical rendering issue.
+
+---
+
+# HERO — USE THIS EXACT CONTENT
+
+The hero must display the following content in this order:
+
+## Private Investigation Services
+
+### Discreet. Professional. Results-Driven.
+
+Corsair Tactical Solutions provides professional private investigation services throughout the Dallas–Fort Worth Metroplex and select regions across the State of Texas.
+
+Do not rewrite, shorten, paraphrase, or add extra claims to this hero copy.
+
+The hero should feel professional, discreet, credible, and visually distinct from the other service pages.
+
+Keep the current hero photo.
+
+Ensure text contrast remains accessible and readable over the existing image.
+
+---
+
+# BODY — ADD THIS EXACT APPROVED COPY
+
+Add the following copy prominently in the main body of the page:
+
+Our licensed investigators bring military, law enforcement, security, and investigative experience to every case. We conduct each investigation with discretion, attention to detail, professionalism, and respect for client confidentiality.
+
+Whether the matter involves surveillance, background research, skip tracing, workplace concerns, domestic investigations, fraud, or other sensitive issues, our team works to gather accurate information and provide clear, documented findings.
+
+## Thorough. Discreet. Trusted.
+
+Do not replace this copy with summaries, bullet-only content, or generic marketing language.
+
+The exact approved paragraphs must appear as readable body text.
+
+---
+
+# REDESIGN REQUIREMENTS
+
+Redesign the page around the approved content while keeping the current photos.
+
+Use a polished, modern, premium layout appropriate for a professional investigations firm.
+
+The page should have a clear visual flow such as:
+
+1. Hero
+2. Main investigative-services introduction
+3. Core services or case types
+4. Why clients choose Corsair
+5. Confidentiality and professionalism section
+6. Service-specific inquiry CTA
+7. Closing trust statement
+
+Exact section names may vary, but the approved copy must remain unchanged.
+
+---
+
+# SECTION 1 — MAIN INTRODUCTION
+
+Create a strong opening body section using the two approved paragraphs.
+
+Suggested heading:
+
+```text
+Professional Investigative Services
+```
+
+Present the approved copy in full.
+
+Pair it with one of the existing page photos if the current layout supports a split-section design.
+
+Do not add an unrelated stock photo.
+
+---
+
+# SECTION 2 — INVESTIGATION TYPES
+
+Create a visually organized section for the types of matters Corsair may assist with.
+
+Include:
+
+- Surveillance
+- Background Research
+- Skip Tracing
+- Workplace Concerns
+- Domestic Investigations
+- Fraud Investigations
+- Other Sensitive Matters
+
+Use the existing design system, such as:
+
+- icon cards
+- compact service cards
+- clean checklist items
+- two-column responsive grid
+
+Do not imply guaranteed outcomes.
+
+Do not add services that have not been approved.
+
+---
+
+# SECTION 3 — PROFESSIONAL STANDARDS
+
+Create a section focused on how cases are handled.
+
+Use the approved concepts:
+
+- Discretion
+- Attention to Detail
+- Professionalism
+- Client Confidentiality
+- Accurate Information
+- Clear Documentation
+
+This section may use cards or a split layout, but do not repeat the entire approved paragraph unnecessarily.
+
+Do not make unsupported claims about legal authority, licensing scope, evidence admissibility, or guaranteed results.
+
+---
+
+# SECTION 4 — TRUST STATEMENT
+
+Use this exact statement prominently near the lower part of the page:
+
+# Thorough. Discreet. Trusted.
+
+This should be treated as a strong branded closing statement, not buried in a paragraph.
+
+Use it as a section heading or high-impact trust banner.
+
+---
+
+# PHOTOS
+
+Keep the current photos exactly as they are.
+
+Requirements:
+
+- Do not replace image files
+- Do not add new stock photography
+- Do not remove existing images
+- Do not alter image subject matter
+- Do not significantly change cropping unless necessary to prevent layout breakage
+- Preserve image optimization and responsive behavior
+- Preserve alt text or improve it only where inaccurate
+- Do not create duplicate image usage that makes the page feel repetitive
+
+The redesign must work around the existing visual assets.
+
+---
+
+# FORM AND CTA REQUIREMENTS
+
+The Private Investigations page must retain its unique service-specific form.
+
+The page must have two buttons connected to the same form:
+
+## Hero button
+
+Use:
+
+```text
+Request a Confidential Consultation
+```
+
+## Lower-page button
+
+Use:
+
+```text
+Discuss Your Case Confidentially
+```
+
+Both buttons must:
+
+- Open or scroll to the correct Private Investigations form
+- Use the same form instance
+- Work on mobile and desktop
+- Be keyboard accessible
+- Preserve the current service-specific email routing
+
+Do not link either button to the general contact page unless the existing approved form architecture specifically requires that behavior.
+
+---
+
+# PRIVATE INVESTIGATION FORM
+
+Verify the existing form remains correct.
+
+Form title:
+
+```text
+Request a Confidential Investigation Consultation
+```
+
+The form should include the approved service-specific fields already implemented, including:
+
+- Full Name
+- Phone
+- Email
+- Preferred Contact Method
+- Safe Time to Contact
+- City
+- State
+- Client Type
+- Investigation Type
+- Time-Sensitive Matter
+- Requested Start Timeframe
+- General Case Summary
+
+Include this privacy notice:
+
+```text
+Please do not submit highly sensitive personal identifiers, financial account information, passwords, or other confidential evidence through this form. A licensed investigator will contact you to discuss secure next steps.
+```
+
+Do not request:
+
+- Social Security numbers
+- bank credentials
+- passwords
+- payment card information
+- government ID numbers
+- medical records
+
+---
+
+# EMAIL VERIFICATION
+
+Verify that submissions from this page generate the correct email.
+
+Expected subject pattern:
+
+```text
+New Confidential Investigation Consultation — {Client Name}
+```
+
+The email must include:
+
+- Service name
+- Source page
+- Contact information
+- Client type
+- Investigation type
+- Time sensitivity
+- Requested timeframe
+- General case summary
+- Submission timestamp
+
+The visitor's validated email should be used as the reply-to address where supported.
+
+Do not expose email-provider credentials or recipient configuration.
+
+Do not claim email delivery is working based only on an HTTP 200 response. Perform one controlled test submission and confirm actual receipt.
+
+---
+
+# SEO
+
+Update or verify metadata for this page.
+
+Title:
+
+```text
+Private Investigation Services | Corsair Tactical Solutions
+```
+
+Meta description:
+
+```text
+Professional private investigation services throughout the Dallas–Fort Worth Metroplex and select regions of Texas. Discreet, professional investigative support with clear, documented findings.
+```
+
+Also verify:
+
+- Open Graph title
+- Open Graph description
+- Canonical URL
+- Structured data if already used
+- Breadcrumb labels
+- Sitemap entry
+
+Do not add misleading geographic claims beyond the approved service area.
+
+---
+
+# DESIGN QUALITY
+
+The redesigned page must feel intentionally designed, not like text pasted into an existing template.
+
+Improve:
+
+- section spacing
+- typography hierarchy
+- text width
+- content grouping
+- card consistency
+- image placement
+- CTA prominence
+- mobile stacking
+- readability
+- visual balance
+
+Do not:
+
+- overuse cards
+- create huge blank areas
+- duplicate headings
+- repeat the same content in multiple sections
+- use tiny text
+- hide important copy in accordions
+- introduce new visual styles inconsistent with the Corsair site
+
+---
+
+# ACCESSIBILITY
+
+Verify:
+
+- hero text has sufficient contrast
+- headings follow a logical order
+- buttons have visible focus states
+- images retain meaningful alt text
+- form fields have labels
+- form errors are accessible
+- CTA buttons meet minimum tap-target size
+- layout works with keyboard navigation
+- reduced-motion preferences are respected
+
+---
+
+# QUALITY ASSURANCE
+
+Verify the production page at:
+
+```text
+https://www.corsairtacticalsolution.com/private-investigations
+```
+
+Confirm:
+
+- Hero uses the exact approved title
+- Hero uses the exact approved subtitle
+- Hero uses the exact approved service-area paragraph
+- Approved body paragraphs are present in full
+- “Thorough. Discreet. Trusted.” is prominent
+- Existing photos remain unchanged
+- Hero form button works
+- Lower-page form button works
+- Correct form opens or scrolls into view
+- Form submission succeeds
+- Email is delivered and correctly labeled
+- Mobile layout is polished
+- Desktop layout is polished
+- No broken links
+- No console errors
+- No hydration errors
+- No visual overlap
+- No duplicate form instances
+- No unrelated page changes
+
+---
+
+# VALIDATION
+
+Inspect `package.json` and run the actual available commands.
+
+At minimum, run the project equivalents of:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+If a script does not exist, report that accurately.
+
+Do not claim a check passed if it was not run.
+
+Clearly separate:
+
+- passed checks
+- warnings
+- pre-existing errors
+- new errors
+- skipped checks
+
+---
+
+# DEPLOYMENT
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Do not deploy through the FSTS Dashboard project.
+
+After deployment, verify the live production page and confirm the deployment belongs to the Corsair project.
+
+---
+
+# COMMIT
+
+Use:
+
+```text
+feat(corsair): redesign Private Investigation Services page
+```
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+FILES
+Files created:
+Files modified:
+
+HERO
+Title:
+Subtitle:
+Service-area copy:
+Existing hero photo preserved:
+
+BODY
+Approved paragraphs added:
+Investigation types section:
+Professional standards section:
+Trust statement placement:
+
+FORMS
+Hero CTA:
+Lower CTA:
+Form route or anchor:
+Email subject:
+Delivered email verified:
+
+SEO
+Title:
+Description:
+Canonical:
+Open Graph:
+Sitemap:
+
+VALIDATION
+TypeScript:
+Lint:
+Tests:
+Build:
+Console errors:
+Mobile verification:
+Desktop verification:
+Accessibility review:
+```
+
+Explicitly confirm:
+
+```text
+The Private Investigation Services page was redesigned.
+The exact approved hero and body copy are present.
+The existing photos were preserved.
+Both service-form buttons work.
+The form sends a correctly labeled email.
+No unrelated pages or systems were modified.
+```
+
+Do not include secrets, tokens, API keys, recipient addresses, or environment-variable values.

@@ -1,0 +1,214 @@
+# Replit AI — Update Church Safety Service Page
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production:
+https://www.corsairtacticalsolution.com
+
+Page to Update:
+
+https://www.corsairtacticalsolution.com/church-safety
+
+This is a **production content update only**.
+
+Do **not** modify navigation, forms, booking, pricing, Square integrations, or any unrelated pages.
+
+Deploy **ONLY** to the Corsair Tactical Solutions Vercel project.
+
+---
+
+# Git Identity
+
+Use this Git identity for all commits.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+```
+
+---
+
+# TASK
+
+Update the existing **Church Safety** page with the following content while preserving the site's existing design system, spacing, typography, animations, responsive layout, and branding.
+
+---
+
+# HERO SECTION
+
+### Protecting Houses of Worship
+
+## Protecting the House of Worship
+
+Corsair Tactical Solutions assists church leadership teams with developing and improving security plans for houses of worship.
+
+We provide assessments, training, and onsite security—creating a safe environment for your congregation.
+
+---
+
+# BODY CONTENT
+
+## Protecting Houses of Worship
+
+Corsair Tactical Solutions partners with church leadership teams to develop, strengthen, and implement comprehensive security plans for houses of worship.
+
+Through professional security assessments, specialized training, and onsite armed or unarmed security services, we help create a safer environment for congregations, staff, volunteers, and visitors.
+
+---
+
+## Protecting Those We Will Never Meet.
+
+We begin with non-lethal de-escalation training, volunteer safety protocols, and medical emergency readiness.
+
+Our initial consultation includes:
+
+- A comprehensive walk-through of your facility
+- A detailed meeting with church leadership
+- Evaluation of current security procedures
+- Review of emergency planning
+- A written scope document outlining findings
+- Identification of security vulnerabilities
+- Practical recommendations for continued improvement
+
+Let's make sure the right plans, training, and protocols are in place to protect your house of worship, congregation, staff, and visitors.
+
+---
+
+# Professional Security for Every Service
+
+Corsair Tactical Solutions provides onsite armed and unarmed security for:
+
+- Weekly worship services
+- Weekday programs
+- Special events
+- Funerals
+- Revivals
+- Church conferences
+- Community outreach events
+- Other church gatherings
+
+Our Level III and Level IV licensed security officers—including veterans, former law enforcement personnel, and experienced security professionals—are trained to operate within the unique environment of a house of worship.
+
+Our approach emphasizes:
+
+- Prevention
+- Professional visibility
+- De-escalation
+- Emergency response
+- Respectful interaction with congregants and visitors
+
+---
+
+## Ongoing Church Security Partnership
+
+We also assist churches with developing and training internal safety teams while providing ongoing instruction, assessments, and program reviews to ensure security plans remain effective, practical, and current.
+
+From consultation and training to professional onsite protection, let's ensure your church has the right people, procedures, and plans in place.
+
+---
+
+# DESIGN REQUIREMENTS
+
+Maintain the existing Corsair Tactical Solutions visual style.
+
+Do **not** reduce spacing.
+
+Do **not** remove existing imagery unless required by the layout.
+
+Continue using:
+
+- Existing typography
+- Existing iconography
+- Existing animations
+- Existing CTA styling
+- Existing responsive breakpoints
+
+If appropriate, present the lists using the site's existing feature cards, icon lists, or checklist components rather than plain bullets.
+
+---
+
+# SEO
+
+Review the page metadata.
+
+Suggested Title:
+
+**Church Safety & Security Services | Corsair Tactical Solutions**
+
+Suggested Description:
+
+Corsair Tactical Solutions partners with church leadership to provide professional security assessments, safety training, volunteer team development, and onsite armed and unarmed security services for houses of worship throughout Texas.
+
+Update Open Graph metadata if supported.
+
+---
+
+# QUALITY ASSURANCE
+
+Verify:
+
+- Hero updated
+- Body content updated
+- Lists display correctly
+- Mobile responsive
+- Desktop responsive
+- No console errors
+- No broken links
+- Accessibility maintained
+- TypeScript passes
+- Lint passes
+- Production build passes
+
+---
+
+# DEPLOYMENT
+
+Deploy ONLY to:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+
+Confirm the deployment completed successfully before closing the task.
+
+---
+
+# COMMIT
+
+Use:
+
+```text
+feat(corsair): expand Church Safety service page content
+```
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+- Files modified
+- Hero changes
+- Body sections added
+- SEO updates
+- TypeScript results
+- Lint results
+- Production build results
+- Deployment URL
+- Commit SHA
+
+Do not include secrets, API keys, or environment variables.

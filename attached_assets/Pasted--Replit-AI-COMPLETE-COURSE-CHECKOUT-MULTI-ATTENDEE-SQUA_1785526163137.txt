@@ -1,0 +1,2117 @@
+# Replit AI — COMPLETE COURSE CHECKOUT, MULTI-ATTENDEE, SQUARE, PROMO CODE, RESEND, AND WEBHOOK REPAIR
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Correct GitHub repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production website:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+Correct Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+This is a high-priority production audit and repair of the entire course registration, Square payment, customer identification, multi-attendee booking, discount-code, confirmation-email, and webhook system.
+
+The approved paper Client Service Request Form may be used for general field organization, acknowledgment language, service details, and contact-data patterns, but course checkout must remain focused on training registration rather than collecting unrelated security-service or billing questions. :contentReference[oaicite:0]{index=0}
+
+---
+
+# Git Identity
+
+Use this Git identity for every commit:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+Expected:
+
+```text
+thefsts
+amorebey@gmail.com
+```
+
+---
+
+# Repository Safety
+
+Before changing anything, run:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+git status --short
+git log -5 --oneline --decorate
+```
+
+The origin must point to:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Do not make these changes in:
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Do not deploy through:
+
+```text
+fsts-client-dashboard-for-sites-api-server
+```
+
+Deploy only through the Corsair Tactical Solutions Vercel project.
+
+---
+
+# Primary Problems to Fix
+
+The current system has several reported problems:
+
+1. Course emails are not being sent reliably.
+2. When Square receives the order, the customer may appear as `Private` instead of the actual purchaser’s name.
+3. Resend webhooks are not visible or may not exist.
+4. Square webhook setup may be incomplete.
+5. Customers need to add additional attendees to one course order.
+6. Orders with five or more attendees must be identified as group registrations.
+7. Course checkout needs a promo-code field.
+8. The approved promo codes already exist in Square but may not automatically work with the current custom checkout.
+9. The website, Square order, registration record, confirmation page, and emails must all show the same totals.
+10. Production must not be switched publicly to Square Sandbox.
+
+---
+
+# Critical Production Rule
+
+Do not automatically move the public website from Square Production to Sandbox.
+
+Square Sandbox may be used for testing.
+
+The production site must never accept Sandbox payments from customers.
+
+Classify the production status after the audit:
+
+## GREEN
+
+Keep Production active when:
+
+- Payments complete correctly.
+- Amounts are correct.
+- Customer names are attached.
+- Orders are itemized.
+- Registrations are stored.
+- Square webhooks work.
+- Resend emails work.
+
+## YELLOW
+
+Keep Production active but temporarily disable only affected course checkout when:
+
+- Payments are correct.
+- The main problem is email or registration synchronization.
+- Existing paid registrations can be recovered safely.
+
+## RED
+
+Temporarily disable all public checkout when:
+
+- Wrong amounts are charged.
+- Duplicate payments occur.
+- Payments use mixed Sandbox and Production credentials.
+- Orders cannot be reconciled.
+- Customers are being charged without usable registration records.
+- Square customer/payment status cannot be trusted.
+
+If checkout must be disabled, show:
+
+```text
+Online registration is temporarily unavailable while we complete a payment-system update. Please contact Corsair Tactical Solutions for assistance.
+```
+
+Do not silently redirect customers into Sandbox.
+
+---
+
+# PART 1 — AUDIT THE COMPLETE COURSE PAYMENT FLOW
+
+Inspect the full flow:
+
+```text
+Course listing
+Course detail page
+Course registration form
+Attendee form
+Pricing resolver
+Add-on selection
+Promo-code validation
+Square customer search/create
+Square order creation
+Square payment creation
+Registration storage
+Confirmation page
+Customer confirmation email
+Business notification email
+Instructor email
+Square webhook
+Resend webhook
+Refund or cancellation handling
+```
+
+Document:
+
+- Every course slug
+- Payment mode
+- Base price
+- Required fees
+- Optional add-ons
+- Registration route
+- Square route
+- Email workflow
+- Webhook dependency
+- Any duplicated pricing source
+- Any stale or conflicting checkout path
+
+Do not report that all courses work without auditing every course.
+
+---
+
+# PART 2 — EXCLUDE THE ONLINE LTC ASSESSMENT
+
+The following course must remain outside the Corsair Square system:
+
+```text
+Online Texas License to Carry Assessment
+```
+
+Expected slug:
+
+```text
+online-texas-ltc-assessment
+```
+
+External destination:
+
+```text
+https://texascarryacademy.com/product/?add-to-cart=69884
+```
+
+It must not display:
+
+- Corsair Square checkout
+- Add Another Person
+- Group registration
+- Promo-code entry
+- Gun rental
+- Ammunition add-ons
+- Required fees
+- Corsair payment summary
+- Internal payment confirmation
+
+It must continue to use only the approved external link.
+
+---
+
+# PART 3 — PURCHASER AND ATTENDEES
+
+Treat the purchaser and the attendees as separate concepts.
+
+## Purchaser
+
+The purchaser is the person paying for the order.
+
+Require:
+
+- First Name *
+- Last Name *
+- Email Address *
+- Phone Number *
+- Billing information required securely by Square
+- Required checkout acknowledgment
+
+The purchaser’s validated information must be used to create or find a Square Customer profile.
+
+## Purchaser attendance
+
+Add:
+
+```text
+Will the purchaser attend this course?
+
+○ Yes
+○ No
+```
+
+Default:
+
+```text
+Yes
+```
+
+When `Yes`:
+
+- Attendee 1 should be populated from purchaser information.
+- Do not create a duplicate attendee.
+- Allow attendee-specific details to be completed.
+
+When `No`:
+
+- Require Attendee 1 separately.
+- The purchaser remains the payer.
+- The purchaser does not count as a course seat.
+
+---
+
+# PART 4 — ADD ANOTHER PERSON
+
+Add this button to every eligible internally paid course:
+
+```text
++ Add Another Person
+```
+
+Each attendee after the first must have:
+
+```text
+Remove Attendee
+```
+
+Attendee 1 cannot be removed when the order requires at least one paid seat.
+
+## Attendee fields
+
+For every attendee collect:
+
+- First Name *
+- Last Name *
+- Email Address *
+- Phone Number *
+- Experience Level
+- Course-specific eligibility questions where genuinely required
+- Per-attendee add-ons
+- Per-attendee waiver status or waiver link status
+
+Do not collect:
+
+- Social Security numbers
+- Full government ID numbers
+- Banking credentials
+- Payment-card information
+- Unnecessary sensitive personal data
+
+## Experience level dropdown
+
+```text
+First-Time Student
+Beginner
+Intermediate
+Advanced
+Not Sure
+```
+
+---
+
+# PART 5 — MULTI-ATTENDEE PRICING
+
+The total number of attendees determines the number of course seats.
+
+Example:
+
+```text
+Course price per attendee: $75.00
+Attendee count: 3
+Course-seat subtotal: $225.00
+```
+
+The server must calculate all quantities and totals.
+
+Do not trust client-submitted:
+
+- Seat price
+- Fee amount
+- Add-on price
+- Discount amount
+- Subtotal
+- Final total
+
+Use integer cents.
+
+---
+
+# PART 6 — CLASSIFY ALL FEES AND ADD-ONS
+
+Every fee or add-on must explicitly declare how it applies:
+
+```ts
+type ChargeApplication =
+  | "per-attendee"
+  | "per-order"
+  | "per-selected-attendee";
+```
+
+Examples:
+
+## Per attendee
+
+- Course tuition
+- Required range fee
+- Required individual equipment fee
+
+## Per selected attendee
+
+- Gun rental
+- Ammunition
+- AR-15 rental
+- Shotgun rental
+
+## Per order
+
+Use only for charges explicitly approved as applying once per booking.
+
+Do not assume every existing fee is per order.
+
+---
+
+# PART 7 — STANDARD HANDGUN ADD-ONS
+
+For every eligible handgun class:
+
+```text
+Gun Rental — $12.99 per selected attendee
+Ammunition Purchase — $14.00 per selected attendee
+One box of 50 rounds
+```
+
+Do not apply these prices to:
+
+- AR-15 Rifle Course
+- Shotgun Course
+- Online Texas LTC Assessment
+
+---
+
+# PART 8 — AR-15 RIFLE COURSE
+
+Approved pricing:
+
+```text
+Course seat: $90.00 per attendee
+Required range fee: $25.00 per attendee
+Optional AR-15 ammunition, 50 rounds: $40.00 per selected attendee
+Optional AR-15 rental: $35.00 per selected attendee
+```
+
+Example with two attendees, only one needing ammunition and rental:
+
+```text
+AR-15 Rifle Course × 2                 $180.00
+Required Range Fee × 2                  $50.00
+AR-15 Ammunition, 50 Rounds × 1         $40.00
+AR-15 Rental × 1                        $35.00
+Subtotal                               $305.00
+```
+
+Ammunition and rental are optional.
+
+The range fee is required.
+
+---
+
+# PART 9 — SHOTGUN COURSE
+
+Approved pricing:
+
+```text
+Course seat: $75.00 per attendee
+Required range fee: $25.00 per attendee
+Optional Shotgun ammunition, 50 rounds: $35.00 per selected attendee
+Optional Shotgun rental: $25.00 per selected attendee
+```
+
+Example with two attendees, both needing ammunition and one needing rental:
+
+```text
+Shotgun Course × 2                     $150.00
+Required Range Fee × 2                  $50.00
+Shotgun Ammunition, 50 Rounds × 2       $70.00
+Shotgun Rental × 1                      $25.00
+Subtotal                               $295.00
+```
+
+Ammunition and rental are optional.
+
+The range fee is required.
+
+---
+
+# PART 10 — GROUP REGISTRATION
+
+A group registration begins at five attendees:
+
+```ts
+const isGroupRegistration = attendeeCount >= 5;
+```
+
+When the fifth attendee is added, show:
+
+```text
+Group Registration
+
+You are registering five or more attendees. Corsair Tactical Solutions may contact you to confirm scheduling, range capacity, equipment, staffing, and any private-group requirements.
+```
+
+Do not automatically promise a group discount.
+
+Do not automatically convert the booking into a private class.
+
+## Group fields
+
+Display only at five or more attendees:
+
+- Group or Organization Name *
+- Group Contact Name
+- Group Type
+- Total Expected Attendees
+- Private Group Class Request
+- Preferred Group Date
+- Alternate Date
+- Preferred Training Location
+- Additional Group Requirements
+
+## Group Type dropdown
+
+```text
+Business or Corporate Group
+Church or Ministry
+Security Company
+Law Enforcement or Public Safety
+Family or Friends
+Community Organization
+Private Group
+Other
+```
+
+## Private group question
+
+```text
+Would you like to request a private group class?
+
+○ Yes
+○ No
+○ Not Sure
+```
+
+Display:
+
+```text
+Private group scheduling is subject to instructor, facility, and range availability.
+```
+
+Store:
+
+```text
+group_registration: true
+attendee_count: actual count
+```
+
+---
+
+# PART 11 — COURSE CAPACITY
+
+Before allowing payment:
+
+1. Determine course capacity.
+2. Determine seats already sold.
+3. Calculate remaining capacity.
+4. Compare requested attendees against available seats.
+5. Recheck capacity server-side before creating payment.
+6. Prevent simultaneous orders from overselling.
+
+Do not rely on browser-only capacity calculations.
+
+If capacity is not currently modeled, report it as a launch blocker for reliable group registration.
+
+Do not invent arbitrary class-capacity numbers.
+
+---
+
+# PART 12 — APPROVED PROMO CODES
+
+Support only these approved codes:
+
+```text
+GROUPDISCOUNT5
+FAMILY001
+FIRSTRESPONDER1
+TEACHER1
+VETSPOUSE2
+VETERAN01
+```
+
+Normalize codes server-side:
+
+```ts
+const normalizedCode = promoCode.trim().toUpperCase();
+```
+
+Do not expose the full valid-code list in client-side source code.
+
+Do not print the codes in public logs or analytics.
+
+---
+
+# PART 13 — PROMO-CODE FIELD
+
+Add to every eligible internal Square checkout:
+
+```text
+Promo Code
+```
+
+Buttons:
+
+```text
+Apply Code
+Remove Code
+```
+
+Show customer-friendly results:
+
+```text
+Code applied successfully.
+This promo code is not valid.
+This promo code has expired.
+This promo code does not apply to this course.
+This promo code requires a qualifying group registration.
+This promo code requires a higher order subtotal.
+This promo code has reached its usage limit.
+This promo code could not be verified.
+```
+
+Do not silently ignore an entered code.
+
+---
+
+# PART 14 — AUDIT THE SQUARE DISCOUNT TYPE
+
+The codes reportedly appear under gift-card links in Square.
+
+Determine the actual Square object type for each code.
+
+Possible types include:
+
+- Square Online coupon
+- Gift-card promotion
+- Catalog discount
+- Catalog pricing rule
+- Loyalty reward
+- Payment-link discount
+- POS-only discount
+- Application-managed promotion
+
+For every code report:
+
+- Safe or masked code identifier
+- Square object type
+- Active status
+- Percentage or fixed value
+- Eligibility
+- Applicable courses or categories
+- Excluded courses
+- Minimum attendees
+- Minimum subtotal
+- Start date
+- Expiration date
+- Usage limits
+- Per-customer limits
+- Orders API compatibility
+- Migration or server mapping required
+
+Do not assume Square Online or gift-card coupons automatically work in the current custom checkout.
+
+If the codes are incompatible with the Orders API:
+
+1. Do not pretend they work.
+2. Create a secure server-side mapping to compatible Square discount objects.
+3. Preserve the approved code names and discount terms.
+4. Do not change the values or rules without approval.
+5. Clearly document Square owner actions still required.
+
+---
+
+# PART 15 — CODE-SPECIFIC RULES
+
+Do not invent the percentage, fixed value, or eligibility rules.
+
+Inspect Square for the real configuration.
+
+## GROUPDISCOUNT5
+
+Confirm:
+
+- Minimum attendee count
+- Discount value
+- Eligible classes
+- Whether tuition only is discounted
+- Whether required range fees are excluded
+- Whether ammunition and rentals are excluded
+
+Do not automatically apply this code.
+
+The purchaser must enter it unless Square’s approved configuration explicitly auto-applies it.
+
+If it requires five or more attendees:
+
+- Reject it below five.
+- Accept it at five or more.
+- Remove it if attendee count later falls below five.
+- Recalculate the total immediately and server-side.
+
+## FAMILY001
+
+Confirm:
+
+- Minimum family attendees
+- Eligible courses
+- Discount scope
+- Usage limits
+- Whether the purchaser must attend
+
+## FIRSTRESPONDER1
+
+Confirm:
+
+- Eligible first-responder groups
+- Verification requirements
+- Discount value
+- Eligible courses
+- Usage limits
+
+## TEACHER1
+
+Confirm:
+
+- Eligibility
+- Verification
+- Discount value
+- Eligible courses
+- Usage limits
+
+## VETSPOUSE2
+
+Confirm:
+
+- Spouse eligibility
+- Verification
+- Discount value
+- Eligible courses
+- Usage limits
+
+## VETERAN01
+
+Confirm:
+
+- Veteran eligibility
+- Verification
+- Discount value
+- Eligible courses
+- Usage limits
+
+Do not collect military IDs, government IDs, Social Security numbers, or proof-document uploads through checkout unless separately approved.
+
+Where eligibility review is required, use a safe declaration:
+
+```text
+I confirm that I meet the eligibility requirements for this discount and understand that verification may be requested.
+```
+
+---
+
+# PART 16 — PROMO-CODE SECURITY
+
+The browser may submit only:
+
+```text
+promoCode
+```
+
+The browser must not submit:
+
+```text
+discountAmount
+discountPercent
+squareDiscountId
+adjustedSubtotal
+finalTotal
+```
+
+The server must:
+
+1. Normalize the code.
+2. Validate it against approved server-side configuration.
+3. Confirm Square discount compatibility.
+4. Confirm active status.
+5. Confirm date range.
+6. Confirm course eligibility.
+7. Confirm attendee threshold.
+8. Confirm minimum subtotal.
+9. Confirm customer eligibility where applicable.
+10. Apply the correct Square discount.
+11. Let Square calculate the authoritative order total.
+12. Return a safe display result.
+
+Reject invalid or manipulated input.
+
+---
+
+# PART 17 — DISCOUNT SCOPE
+
+For every code, determine whether it applies to:
+
+- Course tuition only
+- Entire order
+- One seat
+- All seats
+- Required fees
+- Optional add-ons
+- Specific courses
+- Specific course categories
+- Group bookings only
+- Individual bookings only
+
+Do not automatically discount:
+
+- Required range fees
+- Ammunition
+- Rentals
+- Pass-through expenses
+
+unless the approved Square configuration explicitly includes them.
+
+Prefer line-item discounts when only tuition is discounted.
+
+---
+
+# PART 18 — ORDER SUMMARY
+
+Display a clear itemized summary:
+
+```text
+Course Seats
+Required Fees
+Optional Add-ons
+Subtotal
+Promo Code
+Discount
+Taxes, if applicable
+Total Due
+```
+
+Example structure:
+
+```text
+Defensive Shooting × 5                $750.00
+Required Range Fee × 5                $125.00
+Gun Rental × 2                         $25.98
+Ammunition, 50 Rounds × 3              $42.00
+Subtotal                              $942.98
+Promo Code: [approved code]           -$XX.XX
+Total Due                             $XXX.XX
+```
+
+Do not hardcode the example totals or discount.
+
+Use the server/Square result.
+
+---
+
+# PART 19 — SQUARE CUSTOMER NAME FIX
+
+The customer currently may appear as `Private` in Square.
+
+Audit whether the system:
+
+- Collects first and last name
+- Sends them to the backend
+- Searches Square Customers
+- Creates a Square Customer when needed
+- Attaches `customer_id` to the payment
+- Attaches customer information to the order
+- Uses a stable internal reference ID
+
+## Required flow
+
+1. Validate purchaser first name.
+2. Validate purchaser last name.
+3. Validate email.
+4. Validate phone.
+5. Normalize phone.
+6. Search Square Customers by email, phone, or internal reference.
+7. Reuse an exact suitable existing customer.
+8. Create a new customer if none exists.
+9. Store the Square customer ID.
+10. Attach `customer_id` to the payment.
+11. Attach the order ID and registration reference.
+12. Confirm the actual name appears in Square.
+
+Use:
+
+```text
+given_name
+family_name
+email_address
+phone_number
+reference_id
+```
+
+Do not replace real names with:
+
+```text
+Private
+Guest
+Unknown
+Customer
+N/A
+```
+
+---
+
+# PART 20 — SQUARE ORDER STRUCTURE
+
+Create:
+
+- One purchaser
+- One Square Customer profile
+- One itemized Square order
+- One Square payment
+- One registration
+- Multiple attendee records
+
+Do not create one payment per attendee.
+
+Square order lines should use quantities:
+
+```text
+Course × attendee count
+Required fee × attendee count
+Rental × selected attendee count
+Ammunition × selected attendee count
+Approved discount
+```
+
+Include safe metadata:
+
+- Registration ID
+- Course slug
+- Course date
+- Purchaser name
+- Attendee count
+- Group flag
+- Promo-code identifier
+
+Do not put full attendee contact information or sensitive data in public Square notes.
+
+---
+
+# PART 21 — PAYMENT REQUEST AUDIT
+
+Where applicable, verify Square receives:
+
+```text
+source_id
+idempotency_key
+amount_money
+currency
+order_id
+customer_id
+location_id
+reference_id
+buyer_email_address
+buyer_phone_number
+verification_token
+note
+```
+
+Use the correct Production or Sandbox SDK according to environment.
+
+Do not log:
+
+- Card tokens
+- Full card numbers
+- CVV
+- Access tokens
+- Webhook secrets
+- Payment credentials
+
+---
+
+# PART 22 — REGISTRATION STORAGE
+
+Each successful order should store:
+
+```text
+Registration ID
+Course slug
+Course title
+Course date
+Purchaser first name
+Purchaser last name
+Purchaser email
+Purchaser phone
+Purchaser attending: yes/no
+Attendee count
+Group registration: yes/no
+Group organization
+Private-group request
+All attendee records
+Per-attendee add-ons
+Promo code entered
+Normalized promo code
+Promo accepted or rejected
+Square discount ID
+Discount amount
+Discount scope
+Subtotal
+Final total
+Square customer ID
+Square order ID
+Square payment ID
+Square receipt URL
+Payment status
+Customer Resend email ID
+Business Resend email ID
+Instructor Resend email ID
+Email delivery statuses
+Created timestamp
+Updated timestamp
+```
+
+Do not rely only on:
+
+- Confirmation-page query parameters
+- Browser local storage
+- Square receipt
+- Email delivery
+
+---
+
+# PART 23 — WAIVERS
+
+Audit the existing waiver workflow.
+
+Determine:
+
+- Whether every attendee needs a separate waiver
+- Whether the purchaser can sign only for themselves
+- Whether minors require a parent or guardian
+- Whether waiver links are generated per attendee
+- Whether waiver status is stored per attendee
+
+Do not treat one purchaser signature as consent for unrelated adult attendees.
+
+Recommended:
+
+- One registration
+- Multiple attendee records
+- One waiver requirement per attendee
+- Secure individual waiver link
+- Per-attendee waiver status
+
+Document any remaining compliance gap.
+
+---
+
+# PART 24 — COURSE CONFIRMATION EMAILS
+
+Course emails are reportedly not sending reliably.
+
+Audit where emails are triggered.
+
+The correct source of truth is verified successful payment.
+
+Do not send a paid confirmation merely because the browser reached the confirmation page.
+
+## Required sequence
+
+```text
+Server validates registration
+Square customer is found or created
+Square order is created
+Square payment is created
+Payment reaches COMPLETED
+Registration is finalized
+Customer confirmation email is sent
+Business notification email is sent
+Instructor email is sent where applicable
+Resend email IDs are stored
+Resend webhooks update delivery status
+```
+
+Do not send a paid confirmation for:
+
+```text
+PENDING
+APPROVED
+FAILED
+CANCELED
+```
+
+Ensure emails are sent only once.
+
+---
+
+# PART 25 — CUSTOMER CONFIRMATION EMAIL
+
+Include:
+
+- Purchaser name
+- Course name
+- Course date
+- Course time
+- Course location
+- Attendee count
+- Attendee names
+- Per-attendee add-ons
+- Course-seat subtotal
+- Required fees
+- Optional add-ons
+- Promo code used
+- Discount amount
+- Taxes, if applicable
+- Total paid
+- Registration ID
+- Square order/payment or receipt reference
+- Group-registration notice when applicable
+- Arrival instructions
+- What to bring
+- Waiver status or waiver links
+- Contact information
+- Cancellation or rescheduling guidance
+
+Do not expose one attendee’s private contact information to other attendees.
+
+---
+
+# PART 26 — BUSINESS NOTIFICATION EMAIL
+
+Include:
+
+- Purchaser information
+- Course
+- Date and time
+- Attendee names
+- Attendee count
+- Group-registration status
+- Organization name
+- Private-group request
+- Experience levels
+- Rentals by attendee
+- Ammunition by attendee
+- Promo code
+- Discount value
+- Eligibility review status
+- Square customer ID
+- Square order ID
+- Square payment ID
+- Registration ID
+- Total paid
+- Follow-up required
+
+---
+
+# PART 27 — INSTRUCTOR EMAIL
+
+Include only operational information:
+
+- Course
+- Date
+- Time
+- Location
+- Attendee count
+- Attendee names
+- Experience levels
+- Rentals needed
+- Ammunition needed
+- Group status
+- Approved accommodations
+- Waiver completion status where needed
+
+Do not include:
+
+- Payment-card details
+- Billing details
+- Unnecessary purchaser information
+- Promo-code details unless operationally necessary
+
+---
+
+# PART 28 — RESEND CONFIGURATION AUDIT
+
+Provide everything that must exist in Resend.
+
+## Verified sending domain
+
+Report:
+
+```text
+Domain:
+Verification status:
+SPF status:
+DKIM status:
+Sending enabled:
+```
+
+Do not print DNS secrets.
+
+## Required Vercel variable
+
+```text
+RESEND_API_KEY
+```
+
+Confirm:
+
+- It exists in the Corsair Vercel project.
+- It is Production-enabled.
+- It is server-only.
+- It is not prefixed with `NEXT_PUBLIC_`.
+- It belongs to the correct Resend account.
+- It is not expired or revoked.
+
+Do not reveal the value.
+
+## Authenticated sender
+
+Use an approved sender on a verified domain.
+
+Example pattern:
+
+```text
+Corsair Tactical Solutions <notifications@verified-domain>
+```
+
+Do not use an unverified Gmail address as the authenticated sender.
+
+## Reply-to
+
+For business notifications:
+
+```text
+reply_to = validated purchaser email
+```
+
+For customer confirmations:
+
+```text
+reply_to = approved Corsair business email
+```
+
+## Email templates
+
+Audit whether the project uses:
+
+- React Email
+- Local HTML templates
+- Resend hosted templates
+- Plain HTML strings
+
+Confirm all required templates are available and published.
+
+Required email types:
+
+```text
+Customer course confirmation
+Business registration notification
+Instructor notification
+Payment failure or payment review
+Refund or cancellation confirmation, if supported
+```
+
+---
+
+# PART 29 — REQUIRED RESEND WEBHOOK
+
+Preferred endpoint:
+
+```text
+https://www.corsairtacticalsolution.com/api/webhooks/resend
+```
+
+Use a correct existing equivalent if already implemented.
+
+Subscribe in Resend to:
+
+```text
+email.sent
+email.delivered
+email.delivery_delayed
+email.failed
+email.bounced
+email.complained
+email.suppressed
+```
+
+Do not enable these unless separately required:
+
+```text
+email.opened
+email.clicked
+email.received
+contact.created
+contact.updated
+contact.deleted
+domain.created
+domain.updated
+domain.deleted
+```
+
+Required Vercel variable:
+
+```text
+RESEND_WEBHOOK_SECRET
+```
+
+The owner may need to create the webhook manually in Resend and paste the signing secret into Vercel.
+
+Do not claim the Resend dashboard webhook exists unless it was actually verified.
+
+---
+
+# PART 30 — RESEND WEBHOOK SECURITY
+
+The endpoint must:
+
+- Accept POST only.
+- Read the raw request body.
+- Verify Resend/Svix signature headers.
+- Use `RESEND_WEBHOOK_SECRET`.
+- Reject invalid signatures.
+- Deduplicate events using the webhook delivery ID.
+- Record Resend email ID.
+- Record event type.
+- Record latest delivery status.
+- Record event timestamp.
+- Associate status with registration and email type.
+- Return HTTP 200 for processed or duplicate valid events.
+- Avoid logging sensitive registration details.
+
+Resend events may be duplicated or arrive out of order.
+
+Use event timestamps when updating latest status.
+
+---
+
+# PART 31 — RESEND TAGS
+
+Add only non-sensitive tags:
+
+```text
+category: course_confirmation
+email_type: customer_confirmation | business_notification | instructor_notification
+course_slug: sanitized-course-slug
+environment: production | sandbox
+```
+
+Do not put:
+
+- Name
+- Email
+- Phone
+- Address
+- Attendee records
+- Case details
+- Payment data
+
+in tags.
+
+---
+
+# PART 32 — RESEND IDEMPOTENCY
+
+Use a Resend idempotency key.
+
+Recommended:
+
+```text
+course-confirmation-{paymentId}-{emailType}
+```
+
+Examples:
+
+```text
+course-confirmation-{paymentId}-customer
+course-confirmation-{paymentId}-business
+course-confirmation-{paymentId}-instructor
+```
+
+A webhook retry or page refresh must not generate duplicate confirmation emails.
+
+---
+
+# PART 33 — RESEND SUPPRESSION AND LOG AUDIT
+
+Check:
+
+- Customer recipient suppression
+- Business recipient suppression
+- Instructor recipient suppression
+- Hard bounces
+- Spam complaints
+- Invalid API key
+- Invalid sender
+- Unverified domain
+- Template variable failures
+- Quota errors
+- Delivery delays
+- Failed sends
+- Webhook delivery failures
+
+Report findings without exposing private recipient addresses.
+
+---
+
+# PART 34 — SQUARE WEBHOOK
+
+Preferred endpoint:
+
+```text
+https://www.corsairtacticalsolution.com/api/webhooks/square
+```
+
+Use a correct existing equivalent if present.
+
+At minimum subscribe to:
+
+```text
+payment.created
+payment.updated
+```
+
+Also use these only if required by current architecture:
+
+```text
+order.created
+order.updated
+order.fulfillment.updated
+refund.created
+refund.updated
+```
+
+Required Vercel variable:
+
+```text
+SQUARE_WEBHOOK_SIGNATURE_KEY
+```
+
+Also audit whether the project expects:
+
+```text
+SQUARE_WEBHOOK_NOTIFICATION_URL
+```
+
+The Square webhook route must:
+
+- Verify the Square signature.
+- Use the exact configured notification URL.
+- Reject invalid signatures.
+- Deduplicate events.
+- Process `COMPLETED` payment exactly once.
+- Update registration payment status.
+- Trigger emails only once.
+- Handle refund status where supported.
+- Return 2xx promptly for valid events.
+
+---
+
+# PART 35 — SQUARE ENVIRONMENT VARIABLES
+
+Audit the presence, not the values, of:
+
+```text
+NEXT_PUBLIC_SQUARE_APPLICATION_ID
+NEXT_PUBLIC_SQUARE_LOCATION_ID
+SQUARE_ACCESS_TOKEN
+SQUARE_LOCATION_ID
+SQUARE_ENVIRONMENT
+SQUARE_WEBHOOK_SIGNATURE_KEY
+SQUARE_WEBHOOK_NOTIFICATION_URL
+```
+
+Use existing names if they differ.
+
+Confirm:
+
+- Application ID matches the environment.
+- Location ID matches the environment.
+- Access token matches the environment.
+- Production SDK is used in Production.
+- Sandbox SDK is used only in testing.
+- Server secrets are not exposed to the browser.
+- Sandbox discount object IDs are not used in Production.
+- Production discount object IDs are not used in Sandbox.
+
+Do not print the values.
+
+---
+
+# PART 36 — RECOVERY AND RECONCILIATION
+
+Identify the date/time of the last known successful course email.
+
+Review Square production payments since then.
+
+For every payment, report using masked identifiers:
+
+```text
+Payment timestamp
+Payment ID
+Order ID
+Customer linked?
+Customer name available?
+Course identified?
+Amount correct?
+Payment status
+Registration present?
+Customer email sent?
+Business email sent?
+Instructor email sent?
+Resend delivery status
+Manual follow-up required?
+```
+
+If a valid payment exists without an email:
+
+- Do not charge the customer again.
+- Confirm the registration details.
+- Send the missing confirmation using an idempotent recovery action.
+- Record that the email was recovered.
+- Avoid duplicate sends.
+
+---
+
+# PART 37 — VALIDATION RULES
+
+Require:
+
+- Valid purchaser identity
+- At least one attendee
+- Valid attendee names
+- Valid attendee emails
+- Valid attendee phones
+- Unique attendee records
+- Valid course slug
+- Valid course date
+- Seats within capacity
+- Valid add-on IDs
+- Valid attendee/add-on association
+- Valid promo code or no promo code
+- Server-calculated total
+- Required acknowledgments
+- Successful Square payment before paid confirmation
+
+Reject:
+
+- Duplicate attendees
+- Unknown attendees
+- Unknown add-ons
+- Cross-course add-ons
+- Unknown promo codes
+- Expired promo codes
+- Ineligible promo codes
+- Negative totals
+- Zero-dollar totals unless an explicitly valid 100% promotion exists
+- Capacity overages
+- Browser-submitted prices
+- Browser-submitted discounts
+- Missing purchaser name
+- Mixed Production/Sandbox configuration
+
+---
+
+# PART 38 — REQUIRED TESTS
+
+## Purchaser tests
+
+1. First and last name collected.
+2. Name reaches the backend.
+3. Existing Square customer reused.
+4. New Square customer created when needed.
+5. Customer ID attached to payment.
+6. Actual name appears in Square.
+7. No `Private` placeholder when valid name exists.
+
+## Multi-attendee tests
+
+1. Purchaser attends alone.
+2. Purchaser pays for another attendee.
+3. Purchaser plus one attendee.
+4. Three attendees with mixed add-ons.
+5. Five attendees triggers group registration.
+6. More than five remains a group.
+7. Removing attendee recalculates quantities.
+8. Dropping below five clears group-only state.
+9. Duplicate attendee rejected.
+10. Missing attendee data rejected.
+11. Capacity exceeded rejected.
+12. External Online LTC course has no attendee controls.
+
+## Pricing tests
+
+1. Tuition multiplied by attendee count.
+2. Required per-attendee fee multiplied correctly.
+3. Per-order fee applies once.
+4. Rental quantity matches selected attendees.
+5. Ammunition quantity matches selected attendees.
+6. AR-15 totals correct.
+7. Shotgun totals correct.
+8. Server ignores browser totals.
+9. Square line quantities match registration.
+
+## Promo-code tests
+
+Test every approved code:
+
+```text
+GROUPDISCOUNT5
+FAMILY001
+FIRSTRESPONDER1
+TEACHER1
+VETSPOUSE2
+VETERAN01
+```
+
+For each applicable scenario test:
+
+1. Valid use.
+2. Invalid course.
+3. Inactive code.
+4. Expired code.
+5. Minimum attendee failure.
+6. Minimum subtotal failure.
+7. Successful Square discount.
+8. Correct final total.
+9. Code removal.
+10. Revalidation when attendees change.
+11. Browser discount override rejected.
+12. Code list not exposed in the browser.
+13. Lowercase and whitespace normalize correctly.
+14. Online LTC course rejects internal promo codes.
+15. Duplicate checkout does not redeem twice.
+16. Order cannot become incorrectly negative.
+
+## Square webhook tests
+
+1. Signature verification.
+2. Invalid signature rejected.
+3. Duplicate event ignored.
+4. COMPLETED finalizes registration once.
+5. Failed payment sends no paid confirmation.
+6. Refunded payment updates status where supported.
+
+## Resend tests
+
+1. Customer confirmation.
+2. Business notification.
+3. Instructor notification.
+4. Correct sender.
+5. Correct reply-to.
+6. Correct tags.
+7. Correct idempotency key.
+8. Email ID stored.
+9. Missing API key handled.
+10. Suppressed recipient handled.
+11. Signature verification.
+12. Duplicate webhook ignored.
+13. Delivered updates status.
+14. Failed updates status.
+15. Bounced updates status.
+16. Complained updates status.
+17. Delayed updates status.
+18. No sensitive data in logs or tags.
+
+## Email content tests
+
+1. All attendees shown correctly.
+2. Attendee add-ons correct.
+3. Group status correct.
+4. Promo code and discount correct.
+5. Square total matches email total.
+6. No paid confirmation on failed payment.
+7. Exactly one confirmation set on completed payment.
+
+---
+
+# PART 39 — SQUARE SANDBOX QA
+
+Use Square Sandbox for full payment testing.
+
+Test:
+
+- One attendee
+- Two attendees
+- Five attendees
+- Standard handgun class
+- Texas LTC Shooting Proficiency
+- Continuing Education
+- AR-15 with mixed add-ons
+- Shotgun with mixed add-ons
+- Every approved discount code where Sandbox equivalents exist
+- Invalid promo code
+- Ineligible code
+- Code removal
+- Customer creation
+- Existing customer reuse
+- Square webhook
+- Resend email sends
+- Resend webhook
+
+Do not switch the public Production website to Sandbox.
+
+Do not create an unauthorized live Production charge.
+
+---
+
+# PART 40 — PRODUCTION QA
+
+Without making an unauthorized charge:
+
+- Confirm Production Square credentials are present.
+- Confirm Production Resend key is present.
+- Confirm webhook routes are public.
+- Confirm Resend webhook subscription exists.
+- Confirm Square webhook subscription exists.
+- Confirm recent Square payments can be reconciled.
+- Confirm production discount objects are used.
+- Confirm customer names appear where correctly linked.
+- Confirm no Sandbox IDs are hardcoded in Production.
+
+A controlled live transaction may be performed only with explicit owner authorization.
+
+---
+
+# PART 41 — OWNER ACTIONS FOR RESEND
+
+The completion report must provide exact manual setup instructions.
+
+## Resend dashboard checklist
+
+```text
+Verified domain:
+Authenticated sender:
+Production API key variable:
+Webhook URL:
+Webhook events:
+Webhook secret variable:
+Templates:
+Suppression status:
+Test process:
+```
+
+Expected webhook URL unless code uses another approved route:
+
+```text
+https://www.corsairtacticalsolution.com/api/webhooks/resend
+```
+
+Events:
+
+```text
+email.sent
+email.delivered
+email.delivery_delayed
+email.failed
+email.bounced
+email.complained
+email.suppressed
+```
+
+Vercel secret:
+
+```text
+RESEND_WEBHOOK_SECRET
+```
+
+Do not claim the webhook exists until it is visible and verified in Resend.
+
+---
+
+# PART 42 — OWNER ACTIONS FOR SQUARE
+
+Provide exact Square Developer Console instructions:
+
+```text
+Square application:
+Environment:
+Webhook URL:
+Events:
+Signature key variable:
+Application ID variable:
+Location ID variable:
+Access token variable:
+Expected SDK URL:
+Discount configuration:
+Sandbox test process:
+Production verification process:
+```
+
+Expected webhook URL unless code uses an approved existing route:
+
+```text
+https://www.corsairtacticalsolution.com/api/webhooks/square
+```
+
+Required events:
+
+```text
+payment.created
+payment.updated
+```
+
+Add order/refund events only if the implementation uses them.
+
+---
+
+# PART 43 — DO NOT MODIFY
+
+Do not change:
+
+- Approved course prices
+- Required-fee amounts
+- Optional add-on prices
+- Online Texas LTC external destination
+- Service inquiry forms
+- Careers page
+- Knowledge Center feature flag
+- General contact page
+- FSTS Dashboard
+- Unrelated service pages
+- Square Production/Sandbox mode without documented approval
+
+Only change pricing logic if needed to correct quantity or confirmed deployment mismatches.
+
+---
+
+# VALIDATION COMMANDS
+
+Inspect `package.json` and run the actual available equivalents of:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+Also run all focused:
+
+```text
+Course checkout tests
+Multi-attendee tests
+Group-registration tests
+Pricing tests
+Promo-code tests
+Square customer tests
+Square route tests
+Square webhook tests
+Resend send tests
+Resend webhook tests
+Email template tests
+Capacity tests
+Waiver tests where available
+```
+
+Do not claim a check passed unless it was executed.
+
+Clearly separate:
+
+- Passed
+- Warnings
+- Pre-existing failures
+- New failures
+- Missing scripts
+- Tests requiring manual dashboard setup
+
+---
+
+# DEPLOYMENT
+
+Push only to:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Do not deploy to the FSTS Dashboard project.
+
+---
+
+# COMMIT
+
+Use:
+
+```text
+feat(corsair): repair Square and Resend and add multi-attendee promo checkout
+```
+
+---
+
+# ACCEPTANCE CRITERIA
+
+This task is complete only when:
+
+- Every eligible Corsair-paid course supports additional attendees.
+- The Online Texas LTC Assessment remains external and unchanged.
+- One purchaser can pay for multiple attendees in one order.
+- Five or more attendees are flagged as a group registration.
+- Course capacity is enforced server-side.
+- Required fees multiply correctly.
+- Per-attendee add-ons apply only to selected attendees.
+- AR-15 pricing remains correct.
+- Shotgun pricing remains correct.
+- The six approved promo codes are supported or documented as needing Square migration.
+- Promo-code validation is server-side.
+- Browser-submitted discount amounts are rejected.
+- Square receives one itemized order and one payment.
+- Square receives the purchaser’s real validated customer profile.
+- The customer no longer appears as `Private` when a valid name was supplied.
+- Course confirmations send after verified successful payment.
+- Customer, business, and instructor emails contain correct details.
+- Resend IDs are stored.
+- Resend webhook requirements are implemented and documented.
+- Square webhook requirements are implemented and documented.
+- Duplicate payments and duplicate emails are prevented.
+- Public Production checkout is not switched to Sandbox.
+- Recovery review identifies paid registrations missing emails.
+- Tests and Production build complete successfully.
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+ROOT CAUSES
+Course email failure:
+Square customer shown as Private:
+Missing Resend webhook:
+Missing Square webhook:
+Environment mismatch:
+Promo-code compatibility issue:
+Multi-attendee limitation:
+Capacity limitation:
+Waiver limitation:
+
+COURSE AUDIT
+Full course/payment audit table:
+
+PURCHASER
+Fields:
+Square customer search:
+Square customer creation:
+Customer ID attached:
+Actual customer name verified:
+
+MULTI-ATTENDEE
+Purchaser attends option:
+Add attendee:
+Remove attendee:
+Attendee fields:
+Seat quantity:
+Capacity protection:
+Per-attendee fees:
+Per-attendee add-ons:
+Maximum attendees:
+
+GROUP REGISTRATION
+Five-person threshold:
+Group fields:
+Private-group request:
+Square metadata:
+Business notification:
+Instructor notification:
+
+PROMO CODES
+GROUPDISCOUNT5:
+FAMILY001:
+FIRSTRESPONDER1:
+TEACHER1:
+VETSPOUSE2:
+VETERAN01:
+
+SQUARE DISCOUNT AUDIT
+Object type:
+Value:
+Eligibility:
+Expiration:
+Usage limits:
+Orders API compatibility:
+Migration required:
+Owner action:
+
+SQUARE
+Application environment:
+SDK environment:
+Location:
+Customer linked:
+Order itemization:
+Quantities:
+Discount:
+Payment:
+Idempotency:
+Webhook URL:
+Webhook events:
+Signature verification:
+Duplicate handling:
+
+RESEND
+Verified domain:
+Authenticated sender:
+API key configured:
+Reply-to:
+Customer template:
+Business template:
+Instructor template:
+Webhook URL:
+Webhook events:
+Webhook secret required:
+Tags:
+Idempotency:
+Suppression audit:
+Delivery tracking:
+
+EMAILS
+Customer confirmation:
+Business notification:
+Instructor notification:
+Attendee list:
+Group details:
+Promo details:
+Square totals:
+Recovered confirmations:
+
+RECOVERY
+Payments reviewed:
+Missing registrations:
+Missing emails:
+Recovered emails:
+Manual follow-up:
+
+TESTS
+Multi-attendee:
+Group registration:
+Capacity:
+Promo codes:
+Square Sandbox:
+Square customer:
+Square webhook:
+Resend sends:
+Resend webhook:
+Email content:
+TypeScript:
+Lint:
+Full tests:
+Build:
+
+PRODUCTION DECISION
+GREEN / YELLOW / RED:
+Production retained or checkout disabled:
+Reason:
+Customer-facing message:
+
+MANUAL RESEND ACTIONS
+Webhook URL:
+Events:
+Secret variable:
+Domain status:
+Sender:
+Templates:
+Suppression:
+Verification steps:
+
+MANUAL SQUARE ACTIONS
+Application:
+Environment:
+Webhook URL:
+Events:
+Signature variable:
+Discount migration:
+Sandbox test:
+Production verification authorization:
+
+FILES
+Files created:
+Files modified:
+```
+
+Explicitly confirm:
+
+```text
+Every eligible Corsair-paid course allows the purchaser to add additional attendees.
+
+Registrations with five or more attendees are identified as group registrations.
+
+One purchaser creates one Square Customer, one Square order, one payment, and one registration containing all attendees.
+
+The six approved discount codes are validated server-side and applied only according to their verified Square rules.
+
+The customer’s validated name and Square customer ID are attached to the payment.
+
+Course confirmation emails are sent only after verified successful payment.
+
+Resend and Square webhook setup requirements are fully documented.
+
+The public production website was not switched to Square Sandbox.
+
+The Online Texas License to Carry Assessment remains external and unchanged.
+
+No unrelated service forms, careers features, Knowledge Center work, or FSTS Dashboard code was modified.
+```
+
+Do not include:
+
+- Square access tokens
+- Resend API keys
+- Webhook secrets
+- Full customer records
+- Payment-card information
+- Sensitive discount verification documents
+- Environment-variable values

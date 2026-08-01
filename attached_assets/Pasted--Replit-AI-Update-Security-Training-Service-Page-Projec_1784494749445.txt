@@ -1,0 +1,184 @@
+# Replit AI — Update Security Training Service Page
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production:
+https://www.corsairtacticalsolution.com
+
+Page to Update:
+
+https://www.corsairtacticalsolution.com/security-training
+
+This is a **production content update** only.
+
+Do **not** modify navigation, pricing, booking logic, Square integrations, or unrelated pages.
+
+Deploy **ONLY** to the Corsair Tactical Solutions Vercel project.
+
+---
+
+# Git Identity
+
+Use this Git identity for all commits.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+```
+
+---
+
+# TASK — UPDATE SECURITY TRAINING PAGE
+
+Update the existing page:
+
+https://www.corsairtacticalsolution.com/security-training
+
+Maintain the current layout, branding, spacing, typography, and responsive design while replacing the existing marketing copy with the following content.
+
+---
+
+# HERO SECTION
+
+### Texas DPS-Certified Security Training
+
+# Security Officer Training & Certification Programs
+
+Launch or advance your security career with professional training through Corsair Tactical Solutions.
+
+---
+
+# BODY CONTENT
+
+## Professional Security Training
+
+We provide **Texas DPS-approved instruction** for:
+
+- Level II Unarmed Security Officers
+- Level III Armed Security Officers
+- Level IV Personal Protection Officers
+
+Courses are taught by experienced veteran instructors with practical backgrounds in:
+
+- Security Operations
+- Firearms Training
+- Threat Response
+- Protective Services
+
+---
+
+## More Than Basic Certification
+
+Our programs are designed to provide more than basic certification.
+
+Students receive disciplined, real-world instruction focused on:
+
+- Professionalism
+- Legal Responsibilities
+- Situational Awareness
+- De-escalation Techniques
+- Officer Safety
+- Operational Readiness
+
+Whether you are entering the security industry or expanding your qualifications, Corsair Tactical Solutions provides the training, knowledge, and practical foundation needed to move forward with confidence.
+
+---
+
+# GET IN TOUCH
+
+## Ready to Train? Let's Talk.
+
+Book a course, explore available training options, request a security consultation, or speak with us about your organization's protection needs.
+
+Every inquiry receives personal attention, and **Steve responds directly and promptly** to help you identify the right training or security solution.
+
+Use the site's existing contact call-to-action or contact form if one already exists. Do not create a duplicate form or backend.
+
+---
+
+# SEO
+
+Review and update the page metadata as needed.
+
+Suggested Title:
+
+**Texas DPS Security Training | Corsair Tactical Solutions**
+
+Suggested Meta Description:
+
+Texas DPS-certified security officer training for Level II, Level III, and Level IV licensing. Professional instruction from experienced veteran instructors at Corsair Tactical Solutions.
+
+Update Open Graph metadata if supported by the site architecture.
+
+---
+
+# QUALITY ASSURANCE
+
+Verify:
+
+- Hero content updated
+- Body copy updated
+- Existing layout preserved
+- Existing contact CTA/form still works
+- Mobile responsive
+- Desktop responsive
+- No broken links
+- No console errors
+- Accessibility maintained
+- TypeScript passes
+- Lint passes
+- Production build passes
+
+---
+
+# DEPLOYMENT
+
+Deploy ONLY to:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+
+Verify the deployment completed successfully.
+
+---
+
+# COMMIT
+
+Use the following commit message:
+
+```text
+feat(corsair): refresh Security Training service page content
+```
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+- Files modified
+- Content sections updated
+- SEO updates
+- CTA/form verification
+- TypeScript results
+- Lint results
+- Production build status
+- Deployment URL
+- Commit SHA
+
+Do not include secrets, API keys, or environment variables.

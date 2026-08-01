@@ -1,0 +1,1824 @@
+# Replit AI — Audit and Rebuild Every Corsair Service Inquiry Form
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+This is a corrective redesign of the service inquiry system.
+
+The previous form implementation is incomplete or incorrect. At least the live Church Safety page still has service CTA buttons routing to the general contact workflow, and the expected service-form anchor is not presenting a working Church Safety form.
+
+Do not merely change button labels.
+
+Build and verify the actual forms.
+
+---
+
+# Git Identity
+
+Use:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+---
+
+# Source Material
+
+Use the approved Corsair Client Service Request Form as the operational source for relevant intake questions.
+
+The source form contains:
+
+- Client and organization information
+- Service address
+- Requested service categories
+- Service dates and hours
+- Staffing quantities
+- Estimated attendance
+- Uniform preferences
+- Site-security conditions
+- Security or investigation needs
+- Billing details
+- Payment preferences
+- Client acknowledgment
+
+Do not copy the complete paper form into every web form.
+
+Select only the questions relevant to each service.
+
+Do not collect billing or payment information in these initial public inquiry forms.
+
+---
+
+# Phase 1 — Audit the Existing Implementation Before Editing
+
+Inspect every active service page and document what currently exists.
+
+At minimum:
+
+```text
+/security-assessments
+/church-safety
+/property-manager-services
+/event-security
+/private-investigations
+/security-training
+/realtor-safety-program
+```
+
+For each route, identify:
+
+- Current hero CTA label and destination
+- Current body CTA label and destination
+- Whether a service-specific form exists
+- Form anchor or modal identifier
+- Current fields
+- Current dropdowns
+- Current API endpoint
+- Submitted service ID
+- Email subject behavior
+- Whether the form actually appears in production
+- Whether its buttons still point to Contact Me
+- Whether its email is delivered
+
+Do not assume the previous task was completed just because configuration files exist.
+
+Inspect the rendered production behavior and the repository implementation.
+
+## Required root-cause investigation
+
+Determine whether the failure comes from:
+
+- Service pages still using generic contact links
+- A shared hero component with a `/contact` fallback
+- CTA configuration not being passed to the page
+- Form components created but never mounted
+- Wrong anchor IDs
+- Locale keys still containing contact routes
+- Hash navigation being removed or ignored
+- Modal triggers not connected
+- A stale deployment
+- Form endpoint rejecting service submissions
+- A branch or repository mismatch
+
+Report the root cause in the completion report.
+
+---
+
+# Primary Outcome
+
+Every service page must have:
+
+1. One unique service-specific inquiry form
+2. One CTA button in the hero
+3. One CTA button in the body or closing CTA section
+4. Both buttons connected to the same form on that page
+5. Relevant dropdowns, radio groups, checkbox groups, dates, and textareas
+6. Correct server-side email labeling
+7. Actual email delivery
+8. No redirect to the general Contact Me page
+
+The visitor must stay on the service page.
+
+---
+
+# Required Form Pattern
+
+Use one embedded form near the lower portion of each page.
+
+Each form must have a unique stable ID.
+
+Use these exact IDs:
+
+```text
+/security-assessments
+#security-audits-inquiry
+
+/church-safety
+#church-safety-inquiry
+
+/property-manager-services
+#property-security-inquiry
+
+/event-security
+#event-security-inquiry
+
+/private-investigations
+#private-investigations-inquiry
+
+/security-training
+#security-training-inquiry
+
+/realtor-safety-program
+#realtor-safety-inquiry
+```
+
+Both buttons on each page must target that page’s exact form ID.
+
+Examples:
+
+```tsx
+href="#church-safety-inquiry"
+```
+
+or an accessible scroll handler targeting that exact ID.
+
+Add appropriate `scroll-margin-top` so the sticky navbar does not cover the form heading.
+
+Respect reduced-motion settings.
+
+---
+
+# Forbidden Service CTA Destinations
+
+The hero and body service-inquiry CTAs must not point to:
+
+```text
+/contact
+/contact-us
+/contact-me
+#contact
+```
+
+They must not use a shared Contact Me fallback.
+
+The general Contact page remains available through normal site navigation, but it is not the destination for service-specific CTAs.
+
+---
+
+# Form Design Standards
+
+The forms should feel professional, modern, and easier to complete than the paper intake form.
+
+Use clearly separated sections such as:
+
+1. Contact Information
+2. Organization or Location
+3. Service Details
+4. Current Conditions
+5. Concerns and Goals
+6. Acknowledgment
+
+Use:
+
+- Two-column layouts on desktop where appropriate
+- One-column layouts on mobile
+- Dropdowns for one-answer controlled choices
+- Radio buttons for short yes/no/unsure choices
+- Checkbox groups when multiple services may be selected
+- Date fields for actual dates
+- Time fields for actual start and end times
+- Number inputs for quantities
+- Textareas for detailed needs and concerns
+
+Do not make every field a text box.
+
+Do not make the initial form excessively long.
+
+Use conditional fields to reveal additional questions only when relevant.
+
+---
+
+# Shared Contact Fields
+
+Use these shared fields where appropriate:
+
+- Contact Name *
+- Organization or Company
+- Title or Role
+- Email Address *
+- Phone Number *
+- Preferred Contact Method *
+- Preferred Contact Time
+- City *
+- State *
+- ZIP Code
+
+## Preferred Contact Method
+
+```text
+Phone
+Email
+Text Message
+No Preference
+```
+
+## Preferred Contact Time
+
+```text
+Morning
+Afternoon
+Evening
+No Preference
+```
+
+Do not require organization information from individual investigation clients or individual training inquiries.
+
+---
+
+# FORM 1 — SECURITY AUDITS
+
+## Route and anchor
+
+```text
+/security-assessments
+#security-audits-inquiry
+```
+
+## Form title
+
+```text
+Request a Security Audit
+```
+
+## Form description
+
+```text
+Tell us about your facility, current security measures, and primary concerns. We will review your request and contact you to discuss the appropriate audit scope and next steps.
+```
+
+## CTAs
+
+Hero:
+
+```text
+Request a Security Audit
+```
+
+Body:
+
+```text
+Schedule Your Security Audit
+```
+
+## Section A — Contact Information
+
+- Organization or Property Name *
+- Contact Name *
+- Title or Role
+- Email Address *
+- Phone Number *
+- Preferred Contact Method
+- Preferred Contact Time
+
+## Section B — Facility Information
+
+- Facility Address *
+- City *
+- State *
+- ZIP Code *
+- Number of Buildings
+- Approximate Facility Size
+- Average Daily or Weekly Occupancy
+- Number of Public Entrances
+
+### Organization Type dropdown
+
+```text
+Church or House of Worship
+Apartment Community
+Homeowners Association
+Commercial Property
+Office Building
+Retail Property
+Residential Development
+School or Educational Facility
+Healthcare Facility
+Nonprofit Organization
+Industrial Facility
+Other
+```
+
+## Section C — Audit Scope
+
+### Audit Services checkbox group
+
+```text
+Full Facility Security Audit
+Threat and Vulnerability Assessment
+Physical Security Review
+Access-Control Review
+Parking and Exterior Review
+Emergency Preparedness Review
+Security Policy and Procedure Review
+Staff or Volunteer Safety-Team Review
+Medical Readiness Review
+Follow-Up Audit
+Not Sure — Need Guidance
+Other
+```
+
+- Preferred Audit Date
+- Alternate Date
+
+## Section D — Current Security Conditions
+
+Use `Yes / No / Unsure` radio groups for:
+
+- Existing Security Personnel
+- Video Surveillance or CCTV
+- Alarm System
+- Electronic Access Control
+- Written Emergency Plan
+- AED Available
+- First-Aid Kit Available
+- Prior Security Audit Completed
+
+### Current Security Coverage dropdown
+
+```text
+None
+Internal Staff or Volunteers
+Unarmed Security Officers
+Armed Security Officers
+Both Armed and Unarmed
+Off-Duty Law Enforcement
+Other
+```
+
+## Section E — Concerns
+
+- Primary Security Concerns *
+- Known Incidents or Recurring Problems
+- Additional Information
+
+## Email subject
+
+```text
+New Security Audit Request — {Organization Name}
+```
+
+Fallback:
+
+```text
+New Security Audit Request — {Contact Name}
+```
+
+---
+
+# FORM 2 — CHURCH SAFETY
+
+## Route and anchor
+
+```text
+/church-safety
+#church-safety-inquiry
+```
+
+This form is the first priority because the live page currently does not present the expected Church Safety form correctly.
+
+## Form title
+
+```text
+Request Church Safety Services
+```
+
+## Form description
+
+```text
+Tell us about your church, current safety program, facility, and areas of concern. Corsair Tactical Solutions will review your request and contact your leadership team to discuss the appropriate next steps.
+```
+
+## CTAs
+
+Hero:
+
+```text
+Request Church Safety Services
+```
+
+Body:
+
+```text
+Protect Your House of Worship
+```
+
+Both must target:
+
+```text
+#church-safety-inquiry
+```
+
+Remove or replace the current service CTAs that go to the general contact workflow.
+
+## Section A — Church Contact
+
+- Church or Ministry Name *
+- Contact Name *
+- Leadership Role or Position
+- Email Address *
+- Phone Number *
+- Preferred Contact Method
+- Preferred Contact Time
+
+### Leadership Role dropdown
+
+```text
+Pastor or Senior Leader
+Executive Pastor
+Church Administrator
+Security or Safety Director
+Facilities Director
+Ministry Leader
+Board Member
+Volunteer Safety-Team Leader
+Other
+```
+
+## Section B — Church and Facility
+
+- Church Address *
+- City *
+- State *
+- ZIP Code *
+- Average Weekly Attendance
+- Number of Weekly Services
+- Number of Buildings
+- Number of Public Entrances
+- Number of Current Safety-Team Members
+
+### Facility Type dropdown
+
+```text
+Single-Building Church
+Multi-Building Campus
+Church with School or Daycare
+Church with Community Center
+Rented or Shared Facility
+Multiple Campuses
+Other
+```
+
+## Section C — Services Needed
+
+Use a checkbox group because the church may need several services:
+
+```text
+Church Security Audit
+Security Consultation
+Facility Walkthrough
+Volunteer Safety-Team Development
+Volunteer Safety-Team Training
+Armed Onsite Security
+Unarmed Onsite Security
+Weekly Worship-Service Coverage
+Weekday Program Coverage
+Special-Event Security
+Funeral Security
+Revival or Conference Security
+De-Escalation Training
+Medical-Readiness Training
+Emergency-Response Planning
+Policy and Procedure Development
+Ongoing Security Consulting
+Not Sure — Need Guidance
+Other
+```
+
+## Section D — Current Safety Program
+
+### Current Safety Team dropdown
+
+```text
+No Safety Team
+Team in Development
+Volunteer Safety Team
+Paid Security Team
+Combination of Volunteers and Paid Officers
+Off-Duty Law Enforcement
+Other
+```
+
+### Current Onsite Security dropdown
+
+```text
+None
+Unarmed Security
+Armed Security
+Both Armed and Unarmed
+Volunteer Team Only
+Off-Duty Law Enforcement
+Other
+```
+
+Use `Yes / No / Unsure` radio groups for:
+
+- Video Surveillance or CCTV
+- Alarm System
+- Electronic Access Control
+- Written Emergency Plan
+- Child Check-In Security
+- AED Available
+- First-Aid Kit Available
+- Emergency Drills Conducted
+- Law Enforcement Previously Contacted About a Safety Concern
+
+## Section E — Requested Timing
+
+### Service timeframe dropdown
+
+```text
+As Soon as Possible
+Within 30 Days
+Within 60 Days
+Within 90 Days
+Planning for a Future Date
+Not Sure Yet
+```
+
+- Preferred Consultation Date
+- Alternate Consultation Date
+
+### Coverage frequency dropdown
+
+Display only when an onsite security option is selected:
+
+```text
+One-Time Service
+Weekly Worship Services
+Weekday Programs
+Special Events Only
+Recurring Events
+Temporary Coverage
+Ongoing Coverage
+Schedule To Be Determined
+```
+
+### Requested service hours
+
+Display only when onsite security is selected.
+
+### Number of officers requested
+
+Display only when armed or unarmed security is selected.
+
+### Uniform preference
+
+Display only when onsite security is selected:
+
+```text
+Standard Duty Uniform
+Polo Uniform
+Business Attire
+Plain Clothes
+Client-Specified Attire
+No Preference
+```
+
+## Section F — Church Needs
+
+- Primary Safety or Security Concerns *
+- Recent Incidents or Recurring Issues
+- Goals for the Church Safety Program
+- Additional Information
+
+## Required acknowledgment
+
+```text
+I understand that submitting this request does not constitute a contract. Services are subject to availability, review of the requested scope, any required facility assessment, and execution of a written service agreement.
+```
+
+## Email subject
+
+```text
+New Church Safety Services Request — {Church Name}
+```
+
+---
+
+# FORM 3 — PROPERTY MANAGER SERVICES
+
+## Route and anchor
+
+```text
+/property-manager-services
+#property-security-inquiry
+```
+
+## Form title
+
+```text
+Request Property Security Services
+```
+
+## CTAs
+
+Hero:
+
+```text
+Request Property Security
+```
+
+Body:
+
+```text
+Discuss Your Property Needs
+```
+
+## Section A — Client Information
+
+- Company or Property Name *
+- Contact Name *
+- Job Title
+- Email Address *
+- Phone Number *
+- Preferred Contact Method
+
+## Section B — Property Information
+
+- Property Address *
+- City *
+- State *
+- ZIP Code *
+- Number of Buildings
+- Number of Units or Suites
+- Approximate Property Size
+- Estimated Daily Occupancy
+- Number of Entrances or Access Points
+
+### Property Type dropdown
+
+```text
+Apartment Community
+Homeowners Association
+Residential Development
+Commercial Property
+Office Building
+Retail Center
+Mixed-Use Property
+Industrial Property
+Construction Site
+Parking Facility
+Other
+```
+
+## Section C — Services Needed
+
+Checkbox group:
+
+```text
+Armed Security Officers
+Unarmed Security Officers
+Mobile Patrol
+Residential Property Patrol
+Commercial Property Security
+Access Control
+Parking-Lot Patrol
+After-Hours Patrol
+Incident Prevention
+Security Consultation
+Security Audit
+Temporary Coverage
+Long-Term Coverage
+Special-Event Coverage
+Not Sure — Need Guidance
+Other
+```
+
+## Section D — Coverage Details
+
+### Coverage schedule dropdown
+
+```text
+Day Shift
+Evening Shift
+Overnight Shift
+Weekends
+24/7 Coverage
+Special Events Only
+Temporary Coverage
+Schedule To Be Determined
+```
+
+- Desired Start Date
+- Requested Start Time
+- Requested End Time
+- Number of Officers Requested
+
+### Uniform preference dropdown
+
+```text
+Standard Duty Uniform
+Polo Uniform
+Business Attire
+Plain Clothes
+Client-Specified Attire
+No Preference
+```
+
+## Section E — Current Conditions
+
+Use `Yes / No / Unsure` for:
+
+- Property Currently Occupied
+- Existing Security Personnel
+- CCTV
+- Alarm System
+- Electronic Access Control
+- AED Available
+- First-Aid Kit Available
+- Weapons Prohibited
+- Law Enforcement Contacted Regarding Current Concerns
+
+## Section F — Concerns
+
+- Primary Security Concerns *
+- Recent Incidents
+- Additional Information
+
+Do not include Realtor Safety Program fields.
+
+## Email subject
+
+```text
+New Property Security Services Request — {Property or Company Name}
+```
+
+---
+
+# FORM 4 — EVENT SECURITY
+
+## Route and anchor
+
+```text
+/event-security
+#event-security-inquiry
+```
+
+## Form title
+
+```text
+Request Event Security Services
+```
+
+## CTAs
+
+Hero:
+
+```text
+Request Event Security
+```
+
+Body:
+
+```text
+Plan Your Event Security
+```
+
+## Section A — Contact
+
+- Company or Organization
+- Contact Name *
+- Title or Role
+- Email Address *
+- Phone Number *
+- Preferred Contact Method
+
+## Section B — Event
+
+- Event Name *
+- Event Date *
+- Alternate Date
+- Start Time *
+- End Time *
+- Venue Name *
+- Venue Address *
+- City *
+- State *
+- ZIP Code *
+- Estimated Attendance *
+- Number of Entrances
+- Number of Officers Requested
+
+### Event Type dropdown
+
+```text
+Corporate Event
+Church Event
+Private Function
+Public Gathering
+Community Event
+Conference
+Concert
+Festival
+Fundraiser
+Political Event
+VIP Appearance
+Wedding or Reception
+Sporting Event
+Other
+```
+
+### Venue format dropdown
+
+```text
+Indoor
+Outdoor
+Indoor and Outdoor
+Multiple Venues
+Other
+```
+
+## Section C — Services Needed
+
+Checkbox group:
+
+```text
+Armed Security Officers
+Unarmed Security Officers
+Executive Protection
+Access Control
+Guest Screening
+Perimeter Security
+Crowd Management
+Parking Security
+VIP Protection
+Mobile Patrol
+Threat Assessment
+Emergency Planning
+Security Consultation
+Post-Event Reporting
+Other
+```
+
+## Section D — Event Conditions
+
+Use `Yes / No / Unsure` for:
+
+- Alcohol Served
+- VIPs or Special Guests
+- Weapons Prohibited
+- Existing Venue Security
+- CCTV
+- Alarm System
+- AED Available
+- First-Aid Kit Available
+- Law Enforcement Contacted
+- Venue Walkthrough Requested
+
+### Uniform preference dropdown
+
+```text
+Standard Duty Uniform
+Polo Uniform
+Business Attire
+Plain Clothes
+Client-Specified Attire
+No Preference
+```
+
+## Section E — Concerns
+
+- Primary Risks or Concerns *
+- Known Threats or Prior Incidents
+- Additional Information
+
+## Email subject
+
+```text
+New Event Security Request — {Event Name} — {Event Date}
+```
+
+---
+
+# FORM 5 — PRIVATE INVESTIGATION SERVICES
+
+## Route and anchor
+
+```text
+/private-investigations
+#private-investigations-inquiry
+```
+
+## Form title
+
+```text
+Request a Confidential Investigation Consultation
+```
+
+## CTAs
+
+Hero:
+
+```text
+Request a Confidential Consultation
+```
+
+Body:
+
+```text
+Discuss Your Case Confidentially
+```
+
+## Section A — Contact
+
+- Full Name *
+- Company or Organization
+- Email Address *
+- Phone Number *
+- City *
+- State *
+
+### Preferred Contact Method
+
+```text
+Phone
+Email
+Text Message
+No Preference
+```
+
+### Safe Time to Contact
+
+```text
+Morning
+Afternoon
+Evening
+Any Time
+Contact Me by Email First
+```
+
+## Section B — Matter Type
+
+### Client Type dropdown
+
+```text
+Individual
+Business
+Attorney or Law Firm
+Insurance Organization
+Property Management Company
+Nonprofit Organization
+Other
+```
+
+### Investigation Type dropdown
+
+```text
+Surveillance
+Background Investigation
+Skip Tracing
+Witness Interviews
+Workplace Concern
+Domestic Investigation
+Fraud Investigation
+Due Diligence
+Location Assistance
+Other Sensitive Matter
+Not Sure
+```
+
+### Urgency dropdown
+
+```text
+Immediate or Time-Sensitive
+Within 7 Days
+Within 30 Days
+Planning Ahead
+Not Sure
+```
+
+- Known Deadline or Relevant Date
+- General Case Summary *
+- Additional Information
+
+## Privacy notice
+
+```text
+Please do not submit Social Security numbers, banking credentials, passwords, payment-card information, medical records, government identification numbers, or confidential evidence through this form. A licensed investigator will contact you to discuss secure next steps.
+```
+
+Do not include:
+
+- Billing fields
+- Payment fields
+- Sensitive identifiers
+- Evidence uploads during this phase
+
+## Email subject
+
+```text
+New Confidential Investigation Consultation — {Client Name}
+```
+
+Do not include case details in the subject.
+
+---
+
+# FORM 6 — SECURITY TRAINING GENERAL INFORMATION
+
+## Route and anchor
+
+```text
+/security-training
+#security-training-inquiry
+```
+
+This is an information form only.
+
+## Form title
+
+```text
+Request Security Training Information
+```
+
+## CTAs
+
+Hero:
+
+```text
+Request Training Information
+```
+
+Body:
+
+```text
+Talk With a Training Specialist
+```
+
+## Section A — Contact
+
+- Full Name *
+- Company or Organization
+- Email Address *
+- Phone Number *
+- City *
+- State *
+- Preferred Contact Method
+
+## Section B — Training Interest
+
+### Training Interest dropdown
+
+```text
+Level II Unarmed Security Officer
+Level III Armed Security Officer
+Level IV Personal Protection Officer
+Continuing Education
+Security Officer Recertification
+Church Security Training
+Corporate Security Training
+Group Training
+Firearms Training
+De-Escalation Training
+Emergency-Response Training
+Not Sure — Need Guidance
+```
+
+### Current License Status dropdown
+
+```text
+Not Currently Licensed
+Level II
+Level III
+Level IV
+Expired License
+Application in Progress
+Other
+```
+
+### Inquiry Type dropdown
+
+```text
+Individual Student
+Security Company
+Church or Ministry
+Business or Corporation
+Nonprofit Organization
+Group Training Request
+Other
+```
+
+### Number of Participants dropdown
+
+```text
+1 Person
+2–5 People
+6–10 People
+11–20 People
+More Than 20 People
+Not Sure
+```
+
+### Preferred Training Timeframe dropdown
+
+```text
+As Soon as Possible
+Within 30 Days
+Within 60 Days
+Within 90 Days
+Future Date
+Not Sure
+```
+
+- Current Employer
+- Questions or Additional Information *
+
+## Required acknowledgment
+
+```text
+I understand that this is an information request and does not register me for a class or process payment.
+```
+
+## Email subject
+
+```text
+New Security Training Information Request — {Name}
+```
+
+## Absolute restrictions
+
+Do not modify:
+
+- Class forms
+- Course registration forms
+- Individual course pages
+- Course prices
+- Register or Enroll buttons
+- Square links
+- Square checkout
+- Payment processing
+- Existing class registration email workflows
+
+The two service-information CTAs must target only:
+
+```text
+#security-training-inquiry
+```
+
+They must not go to Square.
+
+---
+
+# FORM 7 — REALTOR SAFETY PROGRAM
+
+## Route and anchor
+
+```text
+/realtor-safety-program
+#realtor-safety-inquiry
+```
+
+## Form title
+
+```text
+Request Realtor Safety Training
+```
+
+## CTAs
+
+Hero:
+
+```text
+Request Realtor Safety Training
+```
+
+Body:
+
+```text
+Schedule Your Realtor Safety Program
+```
+
+## Section A — Contact
+
+- Brokerage, Company, or Association
+- Contact Name *
+- Job Title or Role
+- Email Address *
+- Phone Number *
+- City *
+- State *
+- Preferred Contact Method
+
+## Section B — Program
+
+### Inquiry Type dropdown
+
+```text
+Individual Training
+Brokerage Training
+Real Estate Team Training
+Office Presentation
+Association Training
+Conference Presentation
+Continuing-Education Event
+Other
+```
+
+### Number of Participants dropdown
+
+```text
+1 Person
+2–5 People
+6–10 People
+11–20 People
+21–50 People
+More Than 50 People
+Not Sure
+```
+
+### Training Format dropdown
+
+```text
+Onsite at Brokerage
+In-Person Workshop
+Conference Presentation
+Private Team Session
+Virtual Presentation
+Format To Be Determined
+```
+
+### Topics checkbox group
+
+```text
+Situational Awareness
+Open-House Safety
+Property-Showing Safety
+Client Meeting Safety
+De-Escalation
+Emergency Readiness
+Personal Safety Planning
+Office Safety Procedures
+Threat Recognition
+Working Alone
+Vehicle and Parking-Lot Safety
+Other
+```
+
+- Preferred Date
+- Alternate Date
+- Preferred Training Location
+
+### Requested Duration dropdown
+
+```text
+30-Minute Presentation
+60-Minute Presentation
+90-Minute Workshop
+Half-Day Program
+Full-Day Program
+Duration To Be Determined
+```
+
+### Recent safety concern dropdown
+
+```text
+Yes
+No
+Prefer to Discuss Privately
+```
+
+- Program Goals *
+- Additional Information
+
+## Email subject
+
+```text
+New Realtor Safety Program Request — {Brokerage or Client Name}
+```
+
+---
+
+# Conditional Logic Requirements
+
+Add conditional logic where it reduces unnecessary questions.
+
+Examples:
+
+- Show staffing count only when officer coverage is selected.
+- Show service hours only when onsite coverage is selected.
+- Show uniform preference only when personnel are requested.
+- Show attendance only on Church Safety and Event Security.
+- Show event date and venue fields only on Event Security.
+- Show safe contact time only on Private Investigations.
+- Show participant count only on training forms.
+- Show an explanation input when “Other” is selected.
+- Show recurring coverage questions only when recurring service is selected.
+
+Hidden fields must not remain required.
+
+Hidden values must be cleared or excluded from the submitted payload when they are no longer applicable.
+
+---
+
+# Billing and Payment Exclusion
+
+The paper intake form contains billing contact details and preferred payment options.
+
+Do not add those fields to these initial website inquiry forms.
+
+Do not request:
+
+- ACH information
+- Credit-card details
+- Banking details
+- Square Invoice selection
+- Payment credentials
+
+Billing is handled later, after:
+
+- Scope review
+- Availability confirmation
+- Any required site assessment
+- Written agreement preparation
+
+---
+
+# Shared Acknowledgment
+
+For security staffing, audits, property services, event services, and investigation requests, use:
+
+```text
+I understand that submitting this request does not constitute a contract. Services are subject to availability, review of the requested scope, any required site assessment, and execution of a written service agreement.
+```
+
+Make the checkbox required.
+
+Do not require a digital signature on the initial public form.
+
+---
+
+# Email System
+
+Use the existing approved Corsair email provider and recipient configuration.
+
+Do not create seven separate email endpoints unless the repository architecture requires it.
+
+A shared secure endpoint is preferred.
+
+## Server requirements
+
+The server must:
+
+- Validate `serviceId`
+- Reject unsupported IDs with HTTP 400
+- Generate the subject server-side
+- Sanitize dynamic subject values
+- Validate every submitted field
+- Include every completed relevant field
+- Exclude hidden and inapplicable fields
+- Include source route
+- Include submission time
+- Include a submission ID
+- Use the validated visitor email as reply-to where supported
+- Produce a readable HTML and plain-text email
+- Record delivery failure accurately
+
+Do not accept an arbitrary browser-supplied subject.
+
+## Allowed service IDs
+
+```ts
+const allowedServiceIds = [
+  "securityAudits",
+  "churchSafety",
+  "propertySecurity",
+  "eventSecurity",
+  "privateInvestigations",
+  "securityTrainingInformation",
+  "realtorSafetyProgram",
+] as const;
+```
+
+---
+
+# Email Format
+
+Example:
+
+```text
+NEW SERVICE INQUIRY
+
+Service:
+Source Page:
+Submitted:
+Submission ID:
+
+CONTACT INFORMATION
+
+Name:
+Organization:
+Role:
+Email:
+Phone:
+Preferred Contact Method:
+
+SERVICE DETAILS
+
+[Only the applicable completed fields]
+
+CLIENT CONCERNS OR GOALS
+
+[Text responses]
+
+ACKNOWLEDGMENT
+
+Accepted: Yes
+```
+
+For Private Investigations, use:
+
+```text
+CONFIDENTIAL INVESTIGATION INQUIRY
+```
+
+Do not send raw JSON to the business.
+
+---
+
+# Form Submission Experience
+
+Every form must provide:
+
+- Required-field indicators
+- Accessible labels
+- Fieldsets and legends for grouped options
+- Inline validation
+- A disabled submit button while sending
+- A clear loading state
+- A success state
+- A clear error state
+- Focus movement to the result message
+- Preservation of entered values after failure
+- Reset only after confirmed success
+- Protection against double submission
+
+Suggested success message:
+
+```text
+Thank you, {First Name}. Your {Service Name} request has been received. A member of the Corsair Tactical Solutions team will contact you.
+```
+
+Do not promise a specific response time.
+
+---
+
+# Security and Anti-Spam
+
+Validate on both client and server:
+
+- Required fields
+- Email
+- Phone
+- ZIP Code
+- Dates
+- Times
+- Number ranges
+- Dropdown values
+- Checkbox values
+- String lengths
+- Payload size
+- Expected field keys
+- Service ID
+
+Protect against:
+
+- Header injection
+- Script injection
+- Unsupported service IDs
+- Unexpected fields
+- Duplicate submission
+- Rapid repeated submission
+- Bot spam
+- Oversized payloads
+
+Reuse existing rate limiting, honeypot, or anti-spam controls.
+
+Do not add a new third-party CAPTCHA without approval.
+
+---
+
+# Automated Regression Tests
+
+Add tests confirming:
+
+- Every service route renders its correct form.
+- Every form has the correct unique anchor.
+- Every page has a hero CTA.
+- Every page has a body CTA.
+- Both CTAs target the page’s form.
+- No service CTA points to `/contact`, `/contact-us`, or `/contact-me`.
+- Church Safety renders `#church-safety-inquiry`.
+- Every form renders its unique dropdowns and checkbox groups.
+- Conditional fields appear only when applicable.
+- Hidden fields are not submitted.
+- Invalid service IDs are rejected.
+- Email subjects are generated server-side.
+- All completed applicable fields appear in the email.
+- Required acknowledgment is enforced.
+- Security Training information submissions do not call Square.
+- Existing class registration and Square behavior remain unchanged.
+
+---
+
+# Production Email Verification
+
+Do not consider a form verified because the browser displays success or the endpoint returns HTTP 200.
+
+For every service:
+
+1. Submit one controlled test.
+2. Confirm actual email receipt.
+3. Confirm the service-specific subject.
+4. Confirm reply-to behavior.
+5. Confirm all completed fields are present.
+6. Confirm no unrelated hidden fields appear.
+7. Confirm the correct source page is shown.
+
+Prefix test data clearly:
+
+```text
+TEST — Service Form Verification
+```
+
+Do not send excessive tests.
+
+---
+
+# Production Verification
+
+Verify these exact production URLs:
+
+```text
+https://www.corsairtacticalsolution.com/security-assessments#security-audits-inquiry
+https://www.corsairtacticalsolution.com/church-safety#church-safety-inquiry
+https://www.corsairtacticalsolution.com/property-manager-services#property-security-inquiry
+https://www.corsairtacticalsolution.com/event-security#event-security-inquiry
+https://www.corsairtacticalsolution.com/private-investigations#private-investigations-inquiry
+https://www.corsairtacticalsolution.com/security-training#security-training-inquiry
+https://www.corsairtacticalsolution.com/realtor-safety-program#realtor-safety-inquiry
+```
+
+For each route verify:
+
+- The form appears at the anchor.
+- The sticky navbar does not cover its title.
+- Hero CTA reaches the form.
+- Body CTA reaches the same form.
+- The visitor remains on the service page.
+- The form is unique to the service.
+- Dropdowns and conditional logic work.
+- Validation works.
+- Submission works.
+- Correct email is delivered.
+- Desktop layout is polished.
+- Mobile layout is polished.
+- Keyboard interaction works.
+- No console or hydration errors occur.
+
+---
+
+# Validation Commands
+
+Inspect `package.json` and run the actual available equivalents of:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+Do not report a command as passing unless it was run.
+
+Document:
+
+- Passed checks
+- Warnings
+- Pre-existing failures
+- New failures
+- Missing scripts
+
+---
+
+# Deployment
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Confirm the deployed commit belongs to:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Do not deploy this work to the FSTS Dashboard project.
+
+---
+
+# Commit
+
+Use:
+
+```text
+fix(corsair): rebuild service inquiry forms and connect page CTAs
+```
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+ROOT CAUSE
+Why the previous service forms were not visible or connected:
+Why Church Safety still routed to Contact Me:
+Shared components involved:
+Stale or incorrect deployment discovered:
+
+SERVICE AUDIT
+
+1. Security Audits
+Previous CTA destinations:
+Previous form status:
+New anchor:
+Hero CTA:
+Body CTA:
+Unique form sections:
+Email delivered:
+
+2. Church Safety
+Previous CTA destinations:
+Previous form status:
+New anchor:
+Hero CTA:
+Body CTA:
+Unique form sections:
+Conditional fields:
+Email delivered:
+
+3. Property Manager Services
+Previous CTA destinations:
+Previous form status:
+New anchor:
+Hero CTA:
+Body CTA:
+Unique form sections:
+Email delivered:
+
+4. Event Security
+Previous CTA destinations:
+Previous form status:
+New anchor:
+Hero CTA:
+Body CTA:
+Unique form sections:
+Email delivered:
+
+5. Private Investigations
+Previous CTA destinations:
+Previous form status:
+New anchor:
+Hero CTA:
+Body CTA:
+Privacy protections:
+Email delivered:
+
+6. Security Training
+Previous CTA destinations:
+Previous form status:
+New anchor:
+Hero CTA:
+Body CTA:
+General information form:
+Class forms unchanged:
+Registration unchanged:
+Square unchanged:
+Email delivered:
+
+7. Realtor Safety Program
+Previous CTA destinations:
+Previous form status:
+New anchor:
+Hero CTA:
+Body CTA:
+Unique form sections:
+Email delivered:
+
+SHARED FORM SYSTEM
+Components:
+Configuration:
+Validation:
+Conditional logic:
+Email formatter:
+Server-side subject mapping:
+Anti-spam controls:
+
+VALIDATION
+TypeScript:
+Lint:
+Tests:
+Build:
+Mobile:
+Desktop:
+Accessibility:
+Console errors:
+
+FILES
+Files created:
+Files modified:
+```
+
+Explicitly confirm:
+
+```text
+Every service page now displays its own unique form.
+
+The Church Safety form is visible at #church-safety-inquiry.
+
+Every service page has one hero CTA and one body CTA connected to its own form.
+
+No service inquiry CTA routes to the general Contact Me page.
+
+Each form uses only fields relevant to that service.
+
+The forms use appropriate dropdowns, checkbox groups, date inputs, number inputs, and conditional questions.
+
+No billing, banking, credit-card, or payment information is collected.
+
+The Security Training information form remains completely separate from class registration and Square.
+
+Actual email receipt was verified for every service form.
+```
+
+Do not include secrets, tokens, API keys, recipient addresses, or environment-variable values.

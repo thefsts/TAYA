@@ -1,0 +1,1215 @@
+# Replit AI — Correct Every Service Page So Both CTAs Open Its Own Unique Form
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+This is a corrective implementation task.
+
+The current behavior is wrong:
+
+- Service-page hero buttons are still going to the general Contact Me page.
+- Service-page body buttons are still going to the general Contact Me page.
+- Each service does not yet have its own unique client inquiry form working directly on its page.
+
+Fix this completely.
+
+---
+
+# Git Identity
+
+Use:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+---
+
+# Repository Safety
+
+Before making any changes, verify:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+git status --short
+```
+
+The repository must be:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Do not make these changes in the FSTS Dashboard repository.
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+---
+
+# Primary Requirement
+
+Every standalone service page must have:
+
+1. Its own unique service-specific form
+2. One form button in the hero
+3. One form button in the body or closing CTA section
+4. Both buttons connected to that page’s own form
+5. Correct service-specific email labeling
+6. No redirect to the general Contact Me page
+
+The user must remain on the same service page when opening or reaching the form.
+
+---
+
+# Required Service Pages
+
+Audit and fix all active service pages, including at minimum:
+
+```text
+/security-assessments
+/church-safety
+/property-manager-services
+/event-security
+/private-investigations
+/security-training
+/realtor-safety-program
+```
+
+Also inspect the Services navigation and services overview for any additional standalone service route.
+
+Do not apply this task to:
+
+- Course detail pages
+- Event registration pages
+- Checkout pages
+- Careers
+- The general Contact Me page
+
+---
+
+# Critical CTA Rule
+
+On every service page, both service inquiry buttons must do one of the following:
+
+## Preferred implementation
+
+Scroll to one embedded form on the same page:
+
+```text
+#service-inquiry
+```
+
+Example:
+
+```tsx
+href="#service-inquiry"
+```
+
+or an accessible scroll handler.
+
+## Acceptable implementation
+
+Open one service-specific modal or drawer on the same page.
+
+The modal must:
+
+- Contain the correct form
+- Be keyboard accessible
+- Close with Escape
+- Trap focus
+- Return focus to the trigger
+- Never route to Contact Me
+
+---
+
+# Forbidden CTA Destinations
+
+No hero or body service-form button may point to:
+
+```text
+/contact
+/contact-us
+/contact-me
+#contact
+```
+
+No service inquiry button may use:
+
+```tsx
+router.push("/contact")
+router.push("/contact-us")
+router.push("/contact-me")
+```
+
+Do not preserve fallback behavior that redirects to Contact Me when a form configuration is missing. Missing service configuration should be treated as an implementation error and fixed.
+
+The general Contact Me page should remain available for general inquiries only.
+
+---
+
+# Search and Root-Cause Audit
+
+Search the entire repository for:
+
+```text
+Contact Me
+contact
+contact-us
+contact-me
+href="/contact"
+href="/contact-us"
+href="/contact-me"
+router.push("/contact")
+router.push("/contact-us")
+router.push("/contact-me")
+service CTA
+hero CTA
+primary CTA
+secondary CTA
+```
+
+Inspect:
+
+- Shared hero components
+- Shared service-page templates
+- Services configuration
+- CTA configuration objects
+- Locale files
+- Desktop components
+- Mobile components
+- Reusable button components
+- Any fallback CTA destination
+- Any page-level hardcoded links
+
+Identify why the previous implementation still routes visitors to Contact Me.
+
+Fix the shared root cause where possible instead of patching only visible text.
+
+---
+
+# Shared Architecture
+
+Use a maintainable shared component architecture.
+
+Recommended structure:
+
+```text
+ServiceInquiryForm
+ServiceInquirySection
+serviceInquiryConfigs
+serviceInquirySchema
+serviceInquiryEmailFormatter
+```
+
+Suggested configuration:
+
+```ts
+type ServiceInquiryConfig = {
+  serviceId: string;
+  serviceName: string;
+  sourcePath: string;
+  formTitle: string;
+  formDescription: string;
+  heroCtaLabel: string;
+  bodyCtaLabel: string;
+  submitLabel: string;
+  fields: ServiceInquiryField[];
+};
+```
+
+Each service must have a unique configuration and unique service-specific fields.
+
+Do not create seven large copied form components with duplicated submission code.
+
+One shared form component is acceptable only when each service has its own:
+
+- `serviceId`
+- title
+- labels
+- field configuration
+- email subject
+- email formatting
+- source path
+
+---
+
+# Service 1 — Security Audits
+
+Route:
+
+```text
+/security-assessments
+```
+
+Displayed service name:
+
+```text
+Security Audits
+```
+
+Form title:
+
+```text
+Request a Security Audit
+```
+
+Hero button:
+
+```text
+Request a Security Audit
+```
+
+Body button:
+
+```text
+Schedule Your Security Audit
+```
+
+Fields:
+
+- Full Name *
+- Email Address *
+- Phone Number *
+- Organization or Property Name *
+- Contact Title or Role
+- Organization Type
+- Facility Address
+- City
+- State
+- ZIP Code
+- Number of Buildings
+- Approximate Facility Size
+- Current Security Team
+- Current Onsite Security
+- Preferred Audit Date
+- Primary Security Concerns *
+- Services of Interest
+- Additional Information
+
+Email subject:
+
+```text
+New Security Audit Request — {Organization or Contact Name}
+```
+
+---
+
+# Service 2 — Church Safety
+
+Route:
+
+```text
+/church-safety
+```
+
+Form title:
+
+```text
+Request Church Safety Services
+```
+
+Hero button:
+
+```text
+Request Church Safety Services
+```
+
+Body button:
+
+```text
+Protect Your House of Worship
+```
+
+Fields:
+
+- Church or Ministry Name *
+- Contact Name *
+- Leadership Role
+- Email Address *
+- Phone Number *
+- Church Address
+- City
+- State
+- ZIP Code
+- Average Weekly Attendance
+- Number of Weekly Services
+- Number of Buildings
+- Existing Volunteer Safety Team
+- Existing Armed or Unarmed Security
+- Services Needed
+- Preferred Consultation Date
+- Primary Concerns *
+- Additional Information
+
+Email subject:
+
+```text
+New Church Safety Services Request — {Church Name}
+```
+
+---
+
+# Service 3 — Property Manager Services
+
+Route:
+
+```text
+/property-manager-services
+```
+
+Form title:
+
+```text
+Request Property Security Services
+```
+
+Hero button:
+
+```text
+Request Property Security
+```
+
+Body button:
+
+```text
+Discuss Your Property Needs
+```
+
+Fields:
+
+- Company or Property Name *
+- Contact Name *
+- Job Title
+- Email Address *
+- Phone Number *
+- Property Address
+- City
+- State
+- ZIP Code
+- Property Type
+- Number of Buildings
+- Number of Units or Suites
+- Approximate Property Size
+- Security Coverage Needed
+- Requested Coverage Schedule
+- Desired Start Date
+- Current Security Provider
+- Primary Security Concerns *
+- Additional Information
+
+Do not include Realtor Safety Program fields.
+
+Email subject:
+
+```text
+New Property Security Services Request — {Property or Company Name}
+```
+
+---
+
+# Service 4 — Event Security
+
+Route:
+
+```text
+/event-security
+```
+
+Form title:
+
+```text
+Request Event Security
+```
+
+Hero button:
+
+```text
+Request Event Security
+```
+
+Body button:
+
+```text
+Plan Your Event Security
+```
+
+Fields:
+
+- Event or Organization Name *
+- Contact Name *
+- Email Address *
+- Phone Number *
+- Event Type
+- Event Date *
+- Start Time
+- End Time
+- Venue Name
+- Venue Address
+- City
+- State
+- ZIP Code
+- Expected Attendance
+- Number of Entrances
+- Indoor, Outdoor, or Both
+- Alcohol Served
+- VIPs or Special Guests
+- Services Needed
+- Venue Walkthrough Requested
+- Primary Risks or Concerns *
+- Additional Information
+
+Email subject:
+
+```text
+New Event Security Request — {Event Name} — {Event Date}
+```
+
+---
+
+# Service 5 — Private Investigation Services
+
+Route:
+
+```text
+/private-investigations
+```
+
+Form title:
+
+```text
+Request a Confidential Investigation Consultation
+```
+
+Hero button:
+
+```text
+Request a Confidential Consultation
+```
+
+Body button:
+
+```text
+Discuss Your Case Confidentially
+```
+
+Fields:
+
+- Full Name *
+- Email Address *
+- Phone Number *
+- Preferred Contact Method
+- Safe Time to Contact
+- City
+- State
+- Client Type
+- Investigation Type
+- Is This Matter Time-Sensitive
+- Requested Start Timeframe
+- General Case Summary *
+
+Privacy notice:
+
+```text
+Please do not submit highly sensitive personal identifiers, financial account information, passwords, or other confidential evidence through this form. A licensed investigator will contact you to discuss secure next steps.
+```
+
+Do not request:
+
+- Social Security numbers
+- bank credentials
+- passwords
+- payment-card information
+- government ID numbers
+- medical records
+
+Email subject:
+
+```text
+New Confidential Investigation Consultation — {Client Name}
+```
+
+---
+
+# Service 6 — Security Training
+
+Route:
+
+```text
+/security-training
+```
+
+Form title:
+
+```text
+Request Security Training Information
+```
+
+Hero button:
+
+```text
+Request Training Information
+```
+
+Body button:
+
+```text
+Talk With a Training Specialist
+```
+
+Fields:
+
+- Full Name *
+- Email Address *
+- Phone Number *
+- City
+- State
+- Current Security License Status
+- Training of Interest
+- Individual or Organization
+- Number of Students
+- Preferred Training Date or Timeframe
+- Preferred Contact Method
+- Sponsorship Inquiry
+- Current Employer
+- Questions or Additional Information *
+
+Email subject:
+
+```text
+New Security Training Information Request — {Name}
+```
+
+## Critical Security Training Restriction
+
+This form is for general questions and training guidance only.
+
+Do not modify or replace:
+
+- Class registration forms
+- Course registration flows
+- Course detail pages
+- Register buttons
+- Enroll buttons
+- Course pricing
+- Square checkout
+- Square payment links
+- Existing payment workflows
+
+The two new Security Training service-form buttons must open or scroll to the general information form only.
+
+They must not go to Square.
+
+They must not register a student.
+
+---
+
+# Service 7 — Realtor Safety Program
+
+Route:
+
+```text
+/realtor-safety-program
+```
+
+Form title:
+
+```text
+Request Realtor Safety Training
+```
+
+Hero button:
+
+```text
+Request Realtor Safety Training
+```
+
+Body button:
+
+```text
+Schedule Your Realtor Safety Program
+```
+
+Fields:
+
+- Full Name *
+- Email Address *
+- Phone Number *
+- Brokerage or Company
+- Job Title
+- City
+- State
+- Inquiry Type
+- Number of Participants
+- Preferred Training Date
+- Preferred Training Location
+- Training Format
+- Topics of Interest
+- Recent Safety Concerns or Incidents
+- Additional Information *
+
+Email subject:
+
+```text
+New Realtor Safety Program Request — {Brokerage or Client Name}
+```
+
+---
+
+# Button Placement Requirements
+
+Every service page must have exactly two prominent service-form CTAs.
+
+## Hero CTA
+
+Place inside the hero.
+
+It must be visible and accessible on desktop and mobile.
+
+## Body CTA
+
+Place lower on the page after meaningful service content, such as:
+
+- After benefits
+- After process
+- Before the closing statement
+- Inside a closing CTA section
+
+Do not place the body CTA immediately beside the hero CTA.
+
+Both buttons must reach the same single form.
+
+Do not render two copies of the form.
+
+---
+
+# Unique Form Requirement
+
+A form is considered unique only when it has service-specific:
+
+- Title
+- Description
+- Labels
+- Field choices
+- Service ID
+- Email subject
+- Email body
+- Source route
+
+Changing only a hidden service name on an otherwise generic Contact Me form is not enough.
+
+The user should immediately see that the form belongs to the service page they are visiting.
+
+---
+
+# Email Delivery
+
+Use the existing approved Corsair email infrastructure.
+
+A shared endpoint is acceptable, but the endpoint must support service-specific submissions securely.
+
+The server must:
+
+- Validate `serviceId`
+- Reject unknown service IDs with HTTP 400
+- Generate subjects server-side
+- Format submitted fields clearly
+- Include the source page
+- Include the service name
+- Include submission time
+- Include all completed fields
+- Use the validated visitor email as reply-to where supported
+- Send to the existing approved Corsair business recipient
+
+Do not expose:
+
+- recipient addresses
+- API keys
+- tokens
+- SMTP passwords
+- environment values
+
+---
+
+# Controlled Subject Mapping
+
+Do not accept an arbitrary subject from the browser.
+
+Use a server-controlled mapping such as:
+
+```ts
+const serviceSubjects = {
+  securityAudits: "New Security Audit Request",
+  churchSafety: "New Church Safety Services Request",
+  propertySecurity: "New Property Security Services Request",
+  eventSecurity: "New Event Security Request",
+  privateInvestigations: "New Confidential Investigation Consultation",
+  securityTraining: "New Security Training Information Request",
+  realtorSafety: "New Realtor Safety Program Request",
+} as const;
+```
+
+Dynamic values such as names, organizations, and dates may be appended only after validation and sanitization.
+
+---
+
+# Email Body Format
+
+Use a readable email body.
+
+Example:
+
+```text
+SERVICE INQUIRY
+
+Service:
+Source Page:
+Submitted:
+Submission ID:
+
+CONTACT INFORMATION
+
+Name:
+Email:
+Phone:
+Preferred Contact Method:
+
+SERVICE DETAILS
+
+[all completed service-specific fields]
+
+ADDITIONAL INFORMATION
+
+[message]
+```
+
+Do not send raw JSON as the final message.
+
+Render checkbox and multi-select values as readable lists.
+
+---
+
+# Validation and Security
+
+Implement client-side and server-side validation.
+
+Validate:
+
+- Required fields
+- Email format
+- Phone format
+- Dates
+- Allowed select values
+- Allowed checkbox values
+- Maximum lengths
+- Payload size
+- Valid service ID
+- Expected object keys
+
+Protect against:
+
+- Double submissions
+- rapid repeated submissions
+- malformed payloads
+- script injection
+- email-header injection
+- unsupported service IDs
+- bot spam
+
+Use existing anti-spam and rate-limiting systems where present.
+
+Do not add a new third-party CAPTCHA without approval.
+
+---
+
+# Form UX
+
+Each form must include:
+
+- Service-specific title
+- Short description
+- Required-field indicators
+- Proper labels
+- Accessible validation errors
+- Loading state
+- Disabled submit button while sending
+- Success state
+- Failure state
+- Data preservation after a failed submission
+- Form reset only after confirmed success
+- Focus movement to success or error message
+
+Suggested success text:
+
+```text
+Thank you, {First Name}. Your {Service Name} request has been received. A member of the Corsair Tactical Solutions team will contact you.
+```
+
+Do not promise an exact response time.
+
+---
+
+# Accessibility
+
+Verify:
+
+- Every field has a label
+- Grouped options use fieldsets and legends
+- Errors use `aria-describedby`
+- Required fields use semantic attributes
+- Success and error notices use live regions
+- Buttons have visible focus states
+- Modal focus behavior is correct, if using a modal
+- The form works with keyboard navigation
+- Tap targets are mobile friendly
+- Smooth scrolling respects reduced-motion settings
+
+---
+
+# Localization
+
+Update locale files where the site uses translated keys.
+
+Add keys for:
+
+- Hero CTA labels
+- Body CTA labels
+- Form titles
+- Form descriptions
+- Field labels
+- Select options
+- Validation messages
+- Submit labels
+- Success messages
+- Error messages
+
+Do not use translated text as the internal `serviceId`.
+
+Keep all locale JSON valid.
+
+Do not use low-quality automatic translations. Follow the project’s established fallback convention where approved translations are unavailable.
+
+---
+
+# Regression Protection
+
+Add tests confirming:
+
+- No service hero CTA points to Contact Me
+- No service body CTA points to Contact Me
+- Each service renders its own form configuration
+- Both CTAs target the same form
+- Every supported service ID is accepted
+- Unsupported service IDs are rejected
+- The server creates the correct subject
+- Email formatting contains completed fields
+- Security Training information CTAs do not go to Square
+- Security Training class registration and Square links remain unchanged
+
+Search the rendered service-page output for forbidden destinations:
+
+```text
+/contact
+/contact-us
+/contact-me
+```
+
+The test should fail if a service-form CTA is configured with one of those routes.
+
+---
+
+# Testing Matrix
+
+Test every service page individually.
+
+For each route, verify:
+
+1. Hero CTA is present
+2. Body CTA is present
+3. Hero CTA does not navigate to Contact Me
+4. Body CTA does not navigate to Contact Me
+5. Both CTAs reach the same service form
+6. The correct unique fields render
+7. Correct service ID is submitted
+8. Required validation works
+9. Invalid email is rejected
+10. Submit button disables while sending
+11. Success state works
+12. Error state works
+13. Correct email subject is generated
+14. All completed fields appear in the email
+15. Actual email delivery is confirmed
+16. Reply-to is correct
+17. Mobile layout works
+18. Desktop layout works
+19. Keyboard navigation works
+20. No console errors occur
+
+Do not claim email delivery is verified based only on a successful API response.
+
+Perform one controlled delivered-email test for each service.
+
+Label testing emails clearly:
+
+```text
+TEST — Service Inquiry Verification
+```
+
+---
+
+# Validation Commands
+
+Inspect `package.json` and run the actual available scripts.
+
+At minimum, run the available equivalents of:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+Do not report a check as passed unless it was executed.
+
+Clearly identify:
+
+- Passed checks
+- Warnings
+- Pre-existing failures
+- New failures
+- Missing scripts
+
+---
+
+# Production Verification
+
+After deployment, verify:
+
+```text
+https://www.corsairtacticalsolution.com/security-assessments
+https://www.corsairtacticalsolution.com/church-safety
+https://www.corsairtacticalsolution.com/property-manager-services
+https://www.corsairtacticalsolution.com/event-security
+https://www.corsairtacticalsolution.com/private-investigations
+https://www.corsairtacticalsolution.com/security-training
+https://www.corsairtacticalsolution.com/realtor-safety-program
+```
+
+For each production page, confirm:
+
+- Hero CTA works
+- Body CTA works
+- Neither CTA routes to Contact Me
+- Correct form opens or scrolls into view
+- Unique fields are visible
+- Submission succeeds
+- Correct email is delivered
+- Correct subject is used
+- Mobile and desktop layouts work
+- No stale deployment is being viewed
+
+---
+
+# Do Not Modify
+
+Do not change:
+
+- General Contact Me page
+- Existing class registration forms
+- Course detail pages
+- Square checkout
+- Course prices
+- Event registration
+- Careers links
+- Existing service-page approved copy, except where necessary to insert the form section and CTAs
+- The FSTS Dashboard
+- Any unrelated backend
+
+---
+
+# Commit
+
+Use:
+
+```text
+fix(corsair): connect every service CTA to its unique inquiry form
+```
+
+---
+
+# Acceptance Criteria
+
+This task is complete only when:
+
+- Every service page has its own unique form
+- Every service page has one hero form button
+- Every service page has one body form button
+- Both buttons remain on the same service page
+- Both buttons reach the same correct form
+- No service-form button routes to Contact Me
+- Every form has service-specific fields
+- Every form uses a validated service ID
+- Every email has the correct service-specific subject
+- Every email includes completed form fields
+- Actual email delivery is verified
+- Security Training inquiry functionality is separate from class registration and Square
+- Existing registration and payment systems remain unchanged
+- Mobile, desktop, and accessibility checks pass
+- Build and tests complete successfully
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+ROOT CAUSE
+Why service buttons were still going to Contact Me:
+Shared files/components involved:
+Fallback routing removed:
+
+SERVICE IMPLEMENTATION
+
+1. Security Audits
+Hero CTA:
+Body CTA:
+Form title:
+Unique fields:
+Email subject:
+Delivered email verified:
+
+2. Church Safety
+Hero CTA:
+Body CTA:
+Form title:
+Unique fields:
+Email subject:
+Delivered email verified:
+
+3. Property Manager Services
+Hero CTA:
+Body CTA:
+Form title:
+Unique fields:
+Email subject:
+Delivered email verified:
+
+4. Event Security
+Hero CTA:
+Body CTA:
+Form title:
+Unique fields:
+Email subject:
+Delivered email verified:
+
+5. Private Investigation Services
+Hero CTA:
+Body CTA:
+Form title:
+Unique fields:
+Email subject:
+Delivered email verified:
+
+6. Security Training
+Hero CTA:
+Body CTA:
+Form title:
+Unique fields:
+Email subject:
+Delivered email verified:
+Class registration unchanged:
+Square unchanged:
+
+7. Realtor Safety Program
+Hero CTA:
+Body CTA:
+Form title:
+Unique fields:
+Email subject:
+Delivered email verified:
+
+SHARED SYSTEM
+Shared form component:
+Configuration file:
+Validation schema:
+Email endpoint:
+Service ID validation:
+Subject mapping:
+Anti-spam controls:
+
+VALIDATION
+TypeScript:
+Lint:
+Tests:
+Build:
+Mobile:
+Desktop:
+Accessibility:
+Console errors:
+
+FILES
+Files created:
+Files modified:
+```
+
+Explicitly confirm:
+
+```text
+Every service page now has its own unique client inquiry form.
+
+Every service page has one form button in the hero and one form button in the body.
+
+No service inquiry button routes to the general Contact Me page.
+
+Both buttons on each service page connect to that page's own form.
+
+The Security Training information form remains separate from class registration and Square payment.
+
+No unrelated functionality was modified.
+```
+
+Do not include secrets, API keys, tokens, recipient addresses, or environment-variable values.

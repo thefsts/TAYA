@@ -1,0 +1,223 @@
+# Replit AI — Update Private Investigation Services Page
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production:
+https://www.corsairtacticalsolution.com
+
+Page to Update:
+
+https://www.corsairtacticalsolution.com/private-investigations
+
+This is a **production content update only**.
+
+Do **not** modify navigation, forms, pricing, booking, Square integrations, or unrelated pages.
+
+Deploy **ONLY** to the Corsair Tactical Solutions Vercel project.
+
+---
+
+# Git Identity
+
+Use this Git identity for all commits.
+
+GitHub Username:
+thefsts
+
+Git Author Name:
+thefsts
+
+Git Author Email:
+amorebey@gmail.com
+
+Verify before committing:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+---
+
+# Repository Verification
+
+Before making changes verify you are working in:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Confirm:
+
+```bash
+pwd
+git remote -v
+git branch --show-current
+```
+
+Deploy ONLY through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+---
+
+# TASK
+
+Update the existing **Private Investigation Services** page while preserving the site's current design system, layout, spacing, animations, responsive behavior, and branding.
+
+Do not redesign the page.
+
+Replace the existing hero and body copy with the following approved content.
+
+---
+
+# HERO SECTION
+
+## Private Investigation Services
+
+### Discreet. Professional. Results-Driven.
+
+Corsair Tactical Solutions provides professional private investigation services throughout the Dallas–Fort Worth Metroplex and select regions across the State of Texas.
+
+---
+
+# BODY CONTENT
+
+## Professional Investigative Services
+
+Our licensed investigators bring military, law enforcement, security, and investigative experience to every case.
+
+We conduct each investigation with:
+
+- Discretion
+- Attention to Detail
+- Professionalism
+- Respect for Client Confidentiality
+
+---
+
+## Investigations Tailored to Your Needs
+
+Whether the matter involves:
+
+- Surveillance
+- Background Research
+- Skip Tracing
+- Workplace Concerns
+- Domestic Investigations
+- Fraud Investigations
+- Other Sensitive Matters
+
+our team works to gather accurate information and provide clear, documented findings that help clients make informed decisions.
+
+---
+
+## Why Choose Corsair Tactical Solutions
+
+Every investigation is handled with professionalism, integrity, and strict confidentiality.
+
+Our goal is to provide factual, well-documented information while maintaining the highest standards of investigative ethics and client service.
+
+Whether you are an individual, business, attorney, or organization, Corsair Tactical Solutions is committed to delivering dependable investigative services you can trust.
+
+---
+
+# CALL TO ACTION
+
+## Need Professional Investigative Assistance?
+
+Contact Corsair Tactical Solutions today to discuss your situation confidentially.
+
+Every inquiry is handled professionally, discreetly, and with respect for your privacy.
+
+Use the site's existing contact button or inquiry form.
+
+Do **not** create a new backend or duplicate form.
+
+---
+
+# SEO
+
+Review and update metadata.
+
+Title:
+
+```text
+Private Investigation Services | Corsair Tactical Solutions
+```
+
+Meta Description:
+
+```text
+Professional private investigation services throughout the Dallas–Fort Worth Metroplex and select regions of Texas. Surveillance, background research, skip tracing, workplace investigations, fraud investigations, and more.
+```
+
+Update Open Graph metadata if supported.
+
+---
+
+# QUALITY ASSURANCE
+
+Verify:
+
+- Hero updated
+- Body content updated
+- Existing layout preserved
+- Existing CTA/form still functions
+- Mobile responsive
+- Desktop responsive
+- No broken links
+- No console errors
+- Accessibility maintained
+- TypeScript passes
+- Lint passes
+- Production build passes
+
+---
+
+# DEPLOYMENT
+
+Deploy ONLY to:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+
+Verify the deployment completed successfully.
+
+---
+
+# COMMIT
+
+Use:
+
+```text
+feat(corsair): refresh Private Investigation Services page content
+```
+
+---
+
+# COMPLETION REPORT
+
+Provide:
+
+- Files modified
+- Hero updates
+- Body sections updated
+- CTA verification
+- SEO updates
+- TypeScript results
+- Lint results
+- Production build results
+- Deployment URL
+- Commit SHA
+
+Do not include API keys, secrets, or environment variables.

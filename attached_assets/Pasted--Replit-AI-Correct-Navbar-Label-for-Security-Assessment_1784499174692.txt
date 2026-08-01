@@ -1,0 +1,211 @@
+# Replit AI — Correct Navbar Label for Security Assessments Page
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+Page affected:
+
+```text
+https://www.corsairtacticalsolution.com/security-assessments
+```
+
+Vercel project:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+---
+
+# Git Identity
+
+Use:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+```
+
+---
+
+# Task
+
+In the website navbar, the service link for:
+
+```text
+/security-assessments
+```
+
+is still labeled:
+
+```text
+Church Assessments
+```
+
+Change the navbar label to:
+
+```text
+Security Audits
+```
+
+The route must remain:
+
+```text
+/security-assessments
+```
+
+Do not rename or change the URL.
+
+---
+
+# Required Search
+
+Search the repository for all occurrences of:
+
+```text
+Church Assessments
+church assessments
+Church Assessment
+church assessment
+```
+
+Update any navigation-related occurrence that refers to the `/security-assessments` service.
+
+At minimum, inspect:
+
+- Desktop navbar
+- Mobile navbar
+- Services dropdown
+- Locale JSON files
+- Shared navigation configuration
+- Footer service links
+- Services overview cards
+- Breadcrumb labels
+- Any hardcoded navigation arrays
+
+Use the exact visible label:
+
+```text
+Security Audits
+```
+
+Do not change legitimate Church Safety content on:
+
+```text
+/church-safety
+```
+
+Do not replace unrelated references to church-specific security assessments inside Church Safety page copy unless they are incorrectly being used as the service name.
+
+---
+
+# Acceptance Criteria
+
+Confirm:
+
+- Desktop navbar shows `Security Audits`
+- Mobile navbar shows `Security Audits`
+- The link still goes to `/security-assessments`
+- No navbar entry still shows `Church Assessments`
+- Church Safety remains a separate service
+- No unrelated routes changed
+- No broken navigation
+- Locale files remain valid
+- Build passes
+
+---
+
+# Validation
+
+Run the project’s actual scripts, including available equivalents of:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Do not report a check as passing unless it was executed.
+
+---
+
+# Deployment
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+After deployment, verify on production:
+
+```text
+https://www.corsairtacticalsolution.com/security-assessments
+```
+
+Check both desktop and mobile navigation.
+
+---
+
+# Commit
+
+Use:
+
+```text
+fix(corsair): rename security assessments navbar label
+```
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+Files modified:
+Desktop navbar label:
+Mobile navbar label:
+Route preserved:
+Footer or service-card updates:
+Locale updates:
+
+TypeScript:
+Lint:
+Build:
+
+Production verification:
+```
+
+Explicitly confirm:
+
+```text
+The navbar now displays Security Audits instead of Church Assessments.
+The link still points to /security-assessments.
+Church Safety remains unchanged as a separate service.
+```

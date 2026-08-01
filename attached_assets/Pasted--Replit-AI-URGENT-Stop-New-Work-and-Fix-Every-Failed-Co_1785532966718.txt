@@ -1,0 +1,755 @@
+# Replit AI — URGENT: Stop New Work and Fix Every Failed Corsair Deployment From Today
+
+## Priority
+
+**CRITICAL — DEPLOYMENT RECOVERY**
+
+Stop all new Corsair feature development until every failed deployment from **July 31, 2026** has been investigated and the current production branch is building successfully again.
+
+Do not continue with:
+
+- Square enhancements
+- Resend enhancements
+- Promo codes
+- Multi-attendee checkout
+- New forms
+- New pages
+- Content changes
+- Dashboard integration
+- Optional improvements
+
+The only objective is to identify, fix, and verify all deployment failures from today.
+
+---
+
+# Correct Project
+
+## GitHub Repository
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+## Correct Vercel Project
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+## Production Website
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+Do not perform this work in:
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Do not deploy through:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+---
+
+# Git Identity
+
+Use this identity for every commit:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Configure and verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+
+git config --get user.name
+git config --get user.email
+```
+
+---
+
+# Step 1 — Stop and Verify the Workspace
+
+Before editing anything, run:
+
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git branch --show-current
+git status --short
+git log -15 --oneline --decorate
+git config --get user.name
+git config --get user.email
+```
+
+Confirm:
+
+```text
+Repository: thefsts/Corsair-Tactical-Solutions
+Branch: main
+Author: thefsts
+Email: amorebey@gmail.com
+```
+
+If the repository, branch, remote, or Vercel project is wrong, stop and report it before making changes.
+
+---
+
+# Step 2 — Audit Every Deployment From Today
+
+Review every Corsair Vercel deployment created on:
+
+```text
+July 31, 2026
+```
+
+Do not inspect only the most recent deployment.
+
+Build a complete deployment table containing:
+
+| Deployment | Commit SHA | Time | Status | Error Stage | Primary Error |
+|---|---|---|---|---|---|
+
+For each failed deployment, capture:
+
+- Deployment ID
+- Deployment URL
+- Commit SHA
+- Commit message
+- Commit author
+- Deployment timestamp
+- Build command
+- Install command
+- Framework detection
+- Root directory
+- Node version
+- Package-manager version
+- Failed build stage
+- First real error
+- All dependent errors
+- Whether the failure is unique or repeated
+- Whether a later deployment fixed it
+- Whether the commit reached production
+
+Do not rely only on the final error line.
+
+Find the **first actionable error** in every build log.
+
+---
+
+# Step 3 — Determine Whether the Failures Share One Root Cause
+
+Compare all failed deployments and group them by root cause.
+
+Possible causes to inspect include:
+
+- TypeScript errors
+- ESLint errors
+- Missing imports
+- Missing files
+- Incorrect route paths
+- Duplicate routes
+- Invalid Next.js server/client boundaries
+- Calling browser code from server components
+- Calling server-only code from client components
+- Invalid environment-variable access
+- Missing environment variables
+- Resend package or webhook errors
+- Square SDK errors
+- Invalid Square API types
+- Promo-code type errors
+- Multi-attendee form state errors
+- Invalid JSON locale files
+- Metadata export errors
+- Dynamic rendering conflicts
+- Build-time network calls
+- Incorrect root directory
+- `corsair-source/` path contamination
+- Wrong `vercel.json`
+- Wrong package-lock state
+- Dependency-version mismatch
+- Node-version mismatch
+- Package installation failures
+- Tests being executed during build
+- Static-generation errors
+- Missing React keys
+- Serialization errors
+- Use of unavailable browser APIs
+- Route-handler signature errors
+- Webhook raw-body implementation errors
+- Svix package/version issues
+- Square webhook route mismatch
+- New files not committed
+- Case-sensitive filename errors
+- Stale generated files
+- Merge-conflict artifacts
+- Wrong Git repository being deployed
+
+Do not guess. Use the deployment logs and repository state.
+
+---
+
+# Step 4 — Preserve the Current Work
+
+Before fixing anything:
+
+- Do not force-push.
+- Do not reset shared history.
+- Do not delete today’s commits.
+- Do not rewrite Git history.
+- Do not remove features blindly.
+- Do not replace the repository with an old ZIP.
+- Do not move work into the Dashboard repository.
+- Do not expose secrets.
+- Do not switch public Square Production to Sandbox.
+
+If there are uncommitted changes, preserve them safely before proceeding.
+
+Use a temporary local backup branch only if necessary:
+
+```text
+backup/corsair-before-deployment-recovery-2026-07-31
+```
+
+Do not merge the backup branch into `main` automatically.
+
+---
+
+# Step 5 — Reproduce the Failure Locally
+
+Use the same environment and commands Vercel uses.
+
+Inspect:
+
+```text
+package.json
+package-lock.json
+vercel.json
+next.config.*
+tsconfig.json
+eslint.config.*
+.env.example
+```
+
+Run a clean installation:
+
+```bash
+rm -rf node_modules
+npm ci
+```
+
+Do not delete the lockfile unless the lockfile itself is proven corrupt.
+
+Then run the exact available project checks:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+If script names differ, use the actual scripts from `package.json`.
+
+Also run:
+
+```bash
+npx tsc --noEmit
+```
+
+if the project does not have a dedicated typecheck script.
+
+Record every failure before changing code.
+
+---
+
+# Step 6 — Identify the First Breaking Commit
+
+Compare today’s commits in order.
+
+Determine:
+
+- Last known green commit
+- First failing commit
+- Files changed in the first failing commit
+- Whether later commits added separate failures
+- Whether the current branch contains several independent breakages
+
+Use targeted comparisons such as:
+
+```bash
+git log --since="2026-07-31 00:00" --oneline --decorate
+git diff <last-green-sha>..<first-failing-sha> --stat
+git diff <last-green-sha>..<first-failing-sha>
+```
+
+Do not revert all of today’s work unless targeted repairs are impossible.
+
+Prefer fixing the current code forward.
+
+---
+
+# Step 7 — Audit the Most Recent Feature Areas
+
+Pay special attention to changes involving:
+
+## Square
+
+- Customer creation
+- Customer search
+- Multi-attendee checkout
+- Group registration
+- Promo-code validation
+- Per-attendee pricing
+- Order quantities
+- Payment completion handling
+- Square webhook
+- Idempotency
+- Environment selection
+
+## Resend
+
+- Confirmation-email gating
+- Resend send calls
+- Email templates
+- Resend webhook
+- Svix verification
+- Raw request body
+- Timestamp verification
+- Deduplication
+- Delivery-event handling
+
+## Forms
+
+- Dynamic attendee arrays
+- Conditional group fields
+- Add-on selections per attendee
+- Purchaser-attends state
+- Validation schemas
+- Serialization to API routes
+
+## Routes
+
+Audit:
+
+```text
+/api/square/create-order
+/api/square/validate-promo
+/api/square/webhook
+/api/webhooks/square
+/api/webhooks/resend
+```
+
+Determine which Square webhook route actually exists.
+
+There must be only one authoritative Square webhook endpoint in the final configuration.
+
+Do not leave duplicated or conflicting webhook implementations.
+
+---
+
+# Step 8 — Fix Every Confirmed Build Error
+
+Fix all confirmed failures required to restore a green production build.
+
+Requirements:
+
+- Fix the root cause, not only the visible symptom.
+- Keep TypeScript strictness intact.
+- Do not suppress errors with broad `any`.
+- Do not disable lint rules merely to pass.
+- Do not remove working features without documenting why.
+- Do not add fake environment-variable defaults.
+- Do not invent promo discount values.
+- Do not bypass security checks.
+- Do not disable webhook signature verification.
+- Do not send emails before payment is completed.
+- Do not expose server secrets to client components.
+
+If a feature cannot safely build because required configuration is not yet approved, fail safely or hide that feature behind a centralized feature flag.
+
+---
+
+# Step 9 — Environment Variable Audit
+
+Determine whether today’s deployments failed because required variables are missing.
+
+Audit the presence—not values—of:
+
+```text
+SQUARE_ACCESS_TOKEN
+SQUARE_LOCATION_ID
+SQUARE_ENVIRONMENT
+NEXT_PUBLIC_SQUARE_APPLICATION_ID
+NEXT_PUBLIC_SQUARE_LOCATION_ID
+SQUARE_WEBHOOK_SIGNATURE_KEY
+SQUARE_WEBHOOK_NOTIFICATION_URL
+RESEND_API_KEY
+RESEND_WEBHOOK_SECRET
+```
+
+Also list every promo-related environment variable currently required.
+
+Do not print secret values.
+
+For every variable report:
+
+| Variable | Required at Build | Required at Runtime | Production Present | Preview Present |
+|---|---|---|---|---|
+
+The production build should not fail solely because a runtime webhook secret has not yet been manually added, unless the application genuinely cannot operate safely without it.
+
+Use safe runtime error handling rather than unsafe fake defaults.
+
+---
+
+# Step 10 — Remove Unapproved Promo Defaults
+
+If the current implementation defaults promo codes to values such as:
+
+```text
+10%
+5%
+```
+
+without verified Square configuration, remove those defaults.
+
+No promotion may apply an invented value.
+
+When configuration is missing, return:
+
+```text
+This promo code is temporarily unavailable. Please contact Corsair Tactical Solutions.
+```
+
+Do not break the entire production build just because one promo code is not configured.
+
+---
+
+# Step 11 — Verify Route Compilation
+
+Explicitly verify these routes compile:
+
+```text
+/
+courses
+courses/[slug]
+events
+security-training
+training-waiver
+confirmation
+api/square/create-order
+api/square/validate-promo
+api/square/webhook or api/webhooks/square
+api/webhooks/resend
+```
+
+Also verify all locale-prefixed page routes used by the site.
+
+Report any route intentionally disabled.
+
+---
+
+# Step 12 — Run the Full Test Matrix
+
+After repairs, run:
+
+```bash
+npm ci
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+Also run focused tests for:
+
+```text
+Course checkout
+Course pricing
+Multi-attendee checkout
+Group registration
+Promo-code validation
+Square customer creation
+Square order creation
+Square payment handling
+Square webhook
+Resend send
+Resend webhook
+Email idempotency
+Course confirmation emails
+```
+
+Do not skip failing tests.
+
+Do not lower coverage.
+
+Do not modify tests merely to conceal incorrect behavior.
+
+---
+
+# Step 13 — Verify No Repository Contamination
+
+Confirm that the Corsair deployment is built only from:
+
+```text
+thefsts/Corsair-Tactical-Solutions
+```
+
+Check:
+
+- Git remote
+- Vercel Git connection
+- Production branch
+- Vercel root directory
+- `.vercel/project.json`
+- Build logs
+- Commit SHA
+
+Confirm no deployment is accidentally coming from:
+
+```text
+thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+---
+
+# Step 14 — Create One Focused Recovery Commit
+
+After all fixes pass locally, create one focused recovery commit.
+
+Suggested commit:
+
+```text
+fix(corsair): repair July 31 deployment failures and restore production build
+```
+
+Do not mix unrelated content or design changes into this commit.
+
+Push normally.
+
+Do not force-push.
+
+---
+
+# Step 15 — Verify the New Vercel Deployment
+
+After pushing:
+
+1. Confirm Vercel created a deployment in:
+   ```text
+   fullstacksolutions/corsair-tactical-solutions
+   ```
+2. Confirm the deployment uses the recovery commit SHA.
+3. Confirm installation succeeds.
+4. Confirm type checking succeeds.
+5. Confirm the Next.js production build succeeds.
+6. Confirm deployment reaches `READY`.
+7. Confirm GitHub commit status is `success`.
+8. Confirm the production domain serves the new deployment.
+
+Verify:
+
+```text
+https://www.corsairtacticalsolution.com
+```
+
+returns HTTP 200.
+
+---
+
+# Step 16 — Production Smoke Test
+
+After the deployment is green, test without making an unauthorized real charge:
+
+- Homepage
+- Courses listing
+- Representative course detail page
+- AR-15 course
+- Shotgun course
+- Online LTC external course
+- Events page
+- Security Training
+- Service pages
+- Careers
+- Contact
+- Service inquiry forms
+- Course registration form
+- Multi-attendee controls
+- Group-registration threshold
+- Promo-code validation response
+- Square checkout initialization
+- Resend endpoint availability
+- Square webhook endpoint availability
+
+Do not perform a real production payment without approval.
+
+Use Square Sandbox for payment-flow testing.
+
+---
+
+# Step 17 — Do Not Resume Feature Development Yet
+
+After the deployment becomes green, stop and provide the completion report.
+
+Do not immediately continue with unfinished Square, Resend, form, or promo work.
+
+We need to review the recovery report first.
+
+---
+
+# Acceptance Criteria
+
+This recovery is complete only when:
+
+- Every failed deployment from July 31, 2026 has been reviewed.
+- Every distinct failure has a documented cause.
+- The first failing commit has been identified.
+- All current build errors are fixed.
+- TypeScript passes.
+- Lint passes or only clearly documented pre-existing warnings remain.
+- Tests pass.
+- Production build passes.
+- A new Corsair Vercel deployment reaches `READY`.
+- GitHub commit status is green.
+- Production returns HTTP 200.
+- No deployment uses the Dashboard repository.
+- No public production flow is switched to Square Sandbox.
+- No unapproved promo discounts are applied.
+- No secrets are exposed.
+- No new feature work resumes before review.
+
+---
+
+# Completion Report
+
+Provide exactly this structure:
+
+```text
+REPOSITORY
+Repository:
+Branch:
+Origin:
+Git author:
+Git email:
+
+DEPLOYMENT AUDIT
+Date audited:
+Total deployments today:
+Successful:
+Failed:
+Canceled:
+Latest green deployment:
+
+DEPLOYMENT TABLE
+Deployment:
+Commit SHA:
+Time:
+Status:
+First actionable error:
+Root cause:
+Resolution:
+
+[Repeat for every deployment from today]
+
+ROOT CAUSE GROUPS
+1.
+2.
+3.
+
+LAST GREEN / FIRST FAILURE
+Last green SHA:
+First failing SHA:
+Breaking files:
+Breaking change:
+
+FIXES
+Files modified:
+Errors fixed:
+Routes repaired:
+Environment handling corrected:
+Square issues corrected:
+Resend issues corrected:
+Promo issues corrected:
+
+VALIDATION
+npm ci:
+TypeScript:
+Lint:
+Tests:
+Focused Square tests:
+Focused Resend tests:
+Production build:
+
+NEW DEPLOYMENT
+Recovery commit SHA:
+Vercel deployment URL:
+Vercel status:
+GitHub commit status:
+Production domain:
+HTTP status:
+
+PRODUCTION SMOKE TEST
+Homepage:
+Courses:
+Course detail:
+AR-15:
+Shotgun:
+Online LTC:
+Events:
+Security Training:
+Service forms:
+Multi-attendee form:
+Promo validation:
+Square initialization:
+Resend webhook route:
+Square webhook route:
+
+REMAINING BLOCKERS
+Manual Resend setup:
+Manual Square setup:
+Missing environment variables:
+Unverified production behavior:
+Follow-up tasks:
+
+FINAL STATUS
+GREEN / YELLOW / RED:
+Safe to resume feature development: Yes/No
+Reason:
+```
+
+Explicitly confirm:
+
+```text
+All Corsair deployments from July 31, 2026 were reviewed.
+
+Every distinct deployment failure was documented and corrected.
+
+The current Corsair production branch builds successfully.
+
+The new Vercel deployment is green and serving the production website.
+
+No new feature development was continued during deployment recovery.
+
+No changes were made to the FSTS Dashboard repository.
+```
+
+Do not include:
+
+- API keys
+- Access tokens
+- Webhook secrets
+- Environment-variable values
+- Customer data
+- Payment-card information

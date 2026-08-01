@@ -1,0 +1,314 @@
+# Replit AI — Update Security Training Service Form Requirements (Do NOT Affect Course Registration)
+
+## Project
+
+**Corsair Tactical Solutions Website**
+
+Repository:
+
+```text
+https://github.com/thefsts/Corsair-Tactical-Solutions
+```
+
+Production Page:
+
+```text
+https://www.corsairtacticalsolution.com/security-training
+```
+
+This task updates **only the Security Training service page**.
+
+It is intended to clarify the difference between:
+
+1. **Security Training Information Requests (service inquiry form)**, and
+2. **Actual Course Registration and Square Payments.**
+
+These are two completely different workflows and must remain separate.
+
+---
+
+# IMPORTANT
+
+The previous implementation misunderstood the requirements.
+
+The Security Training page already contains:
+
+- Class listings
+- Individual course pages
+- Course registration
+- Square checkout/payment
+
+Those systems are already working correctly.
+
+**DO NOT MODIFY THEM.**
+
+---
+
+# DO NOT CHANGE
+
+The AI must NOT modify, replace, or interfere with:
+
+- Course pages
+- Course cards
+- Training schedule
+- Training calendar
+- Square checkout
+- Square payment links
+- Course registration workflow
+- Registration buttons
+- Buy Now buttons
+- Enroll buttons
+- Register buttons
+- Existing pricing
+- Existing checkout logic
+- Existing event/course integrations
+
+Absolutely no changes should be made to any payment workflow.
+
+---
+
+# What This Task IS
+
+This task is ONLY adding a **general Security Training inquiry form** for visitors who have questions before registering.
+
+Examples include:
+
+- Which class should I take?
+- Which license do I need?
+- Group training requests
+- Corporate training
+- Church security training
+- Scheduling questions
+- Instructor questions
+- General training information
+
+This inquiry form is **NOT** used to purchase classes.
+
+---
+
+# Two New CTA Buttons
+
+Add exactly **two** buttons that open or scroll to the Security Training inquiry form.
+
+## Hero Button
+
+```text
+Request Training Information
+```
+
+---
+
+## Lower Page CTA Button
+
+Place another CTA later on the page.
+
+Suggested text:
+
+```text
+Talk With a Training Specialist
+```
+
+or
+
+```text
+Request More Information
+```
+
+Both buttons must connect to the same inquiry form.
+
+Neither button should leave the page.
+
+Neither button should go to:
+
+```text
+/contact
+```
+
+Neither button should go to:
+
+```text
+Square
+```
+
+Neither button should open course registration.
+
+---
+
+# Security Training Inquiry Form
+
+Create or use the dedicated service inquiry form.
+
+Suggested title:
+
+```text
+Request Security Training Information
+```
+
+Suggested description:
+
+```text
+Have questions about licensing, training requirements, or choosing the right course? Contact Corsair Tactical Solutions and we'll help you determine the best training path for your needs.
+```
+
+---
+
+# Form Fields
+
+- Full Name *
+- Email Address *
+- Phone Number *
+- City
+- State
+
+Training Interest
+
+- Level II
+- Level III
+- Level IV
+- Continuing Education
+- Church Security Training
+- Corporate Training
+- Group Training
+- Firearms Training
+- Not Sure Yet
+
+Current License Status
+
+- Not Licensed
+- Level II
+- Level III
+- Level IV
+
+Preferred Contact Method
+
+- Phone
+- Email
+- Text
+
+Questions / Additional Information
+
+---
+
+# Email Subject
+
+```text
+New Security Training Information Request — {Name}
+```
+
+---
+
+# Form Purpose
+
+This form exists ONLY for:
+
+- Questions
+- Information
+- Consultation
+- Training guidance
+
+It must NEVER:
+
+- Register students
+- Charge students
+- Process payments
+- Replace registration
+- Replace Square
+- Replace course checkout
+
+---
+
+# Existing Course Buttons
+
+Every existing button such as:
+
+- Register
+- Enroll
+- Buy Now
+- Pay with Square
+
+must continue working exactly as they do today.
+
+Do not change their destination.
+
+Do not change their URLs.
+
+Do not change their behavior.
+
+---
+
+# Existing Course Pages
+
+Every individual course page must remain exactly as it is.
+
+Do not:
+
+- Inject inquiry forms
+- Replace registration buttons
+- Replace checkout buttons
+
+The inquiry form belongs **only** on the main Security Training service page.
+
+---
+
+# Layout
+
+The inquiry form should appear near the bottom of the page.
+
+The rest of the page remains unchanged.
+
+---
+
+# QA Checklist
+
+Verify:
+
+✅ Existing course registration still works
+
+✅ Existing Square checkout still works
+
+✅ Existing pricing unchanged
+
+✅ Existing course pages unchanged
+
+✅ Hero button opens the inquiry form
+
+✅ Lower CTA opens the same inquiry form
+
+✅ Inquiry form sends email
+
+✅ Correct email subject
+
+✅ Mobile responsive
+
+✅ Desktop responsive
+
+✅ No console errors
+
+---
+
+# Commit
+
+```text
+fix(corsair): separate security training inquiry form from course registration
+```
+
+---
+
+# Completion Report
+
+Provide:
+
+- Files modified
+- Confirmation no course registration was changed
+- Confirmation no Square integration was modified
+- Confirmation inquiry form was added
+- Hero CTA verified
+- Lower CTA verified
+- Email verified
+- Build results
+- Deployment URL
+- Commit SHA
+
+Explicitly confirm:
+
+> The Security Training inquiry form is completely separate from class registration and Square payment. All existing course registration and payment workflows remain unchanged.

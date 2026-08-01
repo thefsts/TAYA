@@ -1,0 +1,1139 @@
+# Replit AI — URGENT Full-Site Square and Resend Payment/Email Audit
+
+## Project
+
+Corsair Tactical Solutions Website
+
+Repository:
+
+https://github.com/thefsts/Corsair-Tactical-Solutions
+
+Production:
+
+https://www.corsairtacticalsolution.com
+
+Correct Vercel project:
+
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+
+This is a critical production audit covering:
+
+- Course checkout
+- Square payments
+- Customer identity in Square
+- Course confirmation emails
+- Instructor/business notification emails
+- Resend configuration
+- Resend webhooks
+- Square webhooks
+- Payment-to-email sequencing
+- Production versus Sandbox configuration
+
+Do not make changes in the FSTS Dashboard repository.
+
+---
+
+# Git Identity
+
+Use:
+
+```text
+GitHub Username: thefsts
+Git Author Name: thefsts
+Git Author Email: amorebey@gmail.com
+```
+
+Verify:
+
+```bash
+git config user.name "thefsts"
+git config user.email "amorebey@gmail.com"
+```
+
+---
+
+# Immediate Safety Rule
+
+Do not automatically disable production Square.
+
+Do not switch the website to Sandbox without first determining:
+
+1. Whether production payments are currently succeeding
+2. Whether amounts are correct
+3. Whether customer records are being created
+4. Whether only the email layer is failing
+5. Whether production and Sandbox environment variables are mixed
+6. Whether a rollback is necessary
+
+If there is evidence that customers may be charged incorrectly, duplicate-charged, charged $0, or charged without a booking record:
+
+- Disable only the affected checkout path
+- Show a clear temporary “Online registration is temporarily unavailable” message
+- Preserve course and service pages
+- Do not silently send customers into Sandbox
+- Do not accept fake Sandbox payments from public users
+
+Sandbox must never be presented as a real production payment flow.
+
+---
+
+# Problem 1 — Course Emails Are Not Sending Reliably
+
+Audit every course checkout flow.
+
+Determine whether the system should send:
+
+1. Customer payment confirmation
+2. Customer course-registration confirmation
+3. Corsair business notification
+4. Instructor notification, where applicable
+5. Failure or payment-review notification
+6. Refund or cancellation notification, if supported
+
+Identify exactly where email sending currently occurs:
+
+- Before Square payment
+- Immediately after CreatePayment
+- After Square returns `COMPLETED`
+- Inside a Square webhook
+- On the confirmation page
+- In more than one location
+- Not at all
+
+The correct source of truth should be a verified successful payment.
+
+Do not rely solely on the browser redirect or confirmation page to send emails.
+
+---
+
+# Required Payment-to-Email Flow
+
+Use this workflow:
+
+```text
+Customer submits checkout
+        ↓
+Server validates course, fees, add-ons, customer details
+        ↓
+Square customer profile is found or created
+        ↓
+Square order is created
+        ↓
+Square payment is created
+        ↓
+Payment status becomes COMPLETED
+        ↓
+Booking/registration is stored or confirmed
+        ↓
+Customer confirmation email is sent
+        ↓
+Corsair notification email is sent
+        ↓
+Resend email IDs are stored
+        ↓
+Resend webhooks update delivery status
+```
+
+If the payment remains:
+
+```text
+PENDING
+APPROVED
+CANCELED
+FAILED
+```
+
+do not send a misleading “payment completed” confirmation.
+
+A Square `payment.updated` webhook is generated when payment fields such as status change, including completion. :contentReference[oaicite:1]{index=1}
+
+---
+
+# Audit Every Course
+
+Build a complete audit table for all current courses.
+
+For every course, report:
+
+- Course name
+- Slug
+- Payment mode
+- Square-enabled?
+- Base price
+- Required fees
+- Optional add-ons
+- Checkout route
+- Customer form fields
+- Square customer linkage
+- Order creation
+- Payment creation
+- Final payment status
+- Customer email
+- Business email
+- Instructor email
+- Resend email IDs stored?
+- Square webhook verified?
+- Resend webhook verified?
+- Production test status
+
+Do not report “all courses work” without listing each course.
+
+---
+
+# Problem 2 — Client Name Appears as “Private” in Square
+
+Investigate the complete buyer-information flow.
+
+Determine:
+
+- Whether first name and last name are collected
+- Whether the fields are sent to the server
+- Whether the server validates them
+- Whether Square Customers API is called
+- Whether an existing customer is searched first
+- Whether duplicate customer profiles are being created
+- Whether the returned `customer_id` is attached to the payment
+- Whether the order and payment both reference the appropriate customer
+- Whether only `buyer_email_address` is currently being sent
+- Whether the payment is being created without any customer profile
+
+Square’s Web Payments SDK does not automatically create a customer profile. The backend must create or locate the customer and attach the returned `customer_id` to the payment. :contentReference[oaicite:2]{index=2}
+
+---
+
+# Required Square Customer Flow
+
+Before creating a new customer:
+
+1. Validate first name
+2. Validate last name
+3. Validate email
+4. Validate phone
+5. Normalize phone number
+6. Search Square Customers using email, phone, or a stable internal reference
+7. Reuse an exact existing customer where appropriate
+8. Create a customer only if no suitable match exists
+9. Store the returned Square customer ID
+10. Pass that `customer_id` into CreatePayment
+11. Associate the internal registration or booking ID using `reference_id`
+
+Square recommends searching before creating a customer to avoid duplicate profiles. :contentReference[oaicite:3]{index=3}
+
+## Customer fields
+
+Use validated values:
+
+```text
+given_name
+family_name
+email_address
+phone_number
+reference_id
+```
+
+Use `company_name` only where relevant.
+
+Do not use:
+
+```text
+Private
+Guest
+Customer
+Unknown
+N/A
+```
+
+as replacement names.
+
+If the customer refuses optional profile information, handle that honestly, but the checkout form should require the actual registration name needed for the class.
+
+---
+
+# Required CreatePayment Fields
+
+Audit the current Square payment request.
+
+Where applicable, include:
+
+```text
+source_id
+idempotency_key
+amount_money
+currency
+order_id
+customer_id
+location_id
+reference_id
+buyer_email_address
+buyer_phone_number
+verification_token
+note
+```
+
+Square’s CreatePayment endpoint supports `customer_id`, `buyer_email_address`, `buyer_phone_number`, `reference_id`, and `order_id`. :contentReference[oaicite:4]{index=4}
+
+Do not send course pricing from the browser as authoritative data.
+
+The server must calculate:
+
+- Base course price
+- Pricing option
+- Required fees
+- Selected optional add-ons
+- Tax if applicable
+- Final total
+
+---
+
+# Buyer Verification
+
+Confirm the production Square Web Payments SDK:
+
+- Uses the production SDK URL
+- Uses the production Application ID
+- Uses the correct production Location ID
+- Tokenizes the card securely
+- Performs buyer verification through the current supported tokenization flow
+- Passes the verification result to CreatePayment
+- Uses a secure context and correct CSP
+
+Square requires the frontend to generate a secure payment token and the backend to process it through the Payments API. :contentReference[oaicite:5]{index=5}
+
+Do not log card tokens, full card data, CVV, or sensitive payment credentials.
+
+---
+
+# Problem 3 — Resend Webhooks Are Missing
+
+Audit the Resend dashboard configuration and code.
+
+Determine:
+
+- Whether a webhook endpoint exists in the repository
+- Whether it is deployed
+- Whether it is publicly reachable
+- Whether it accepts POST
+- Whether it verifies the Resend signature
+- Whether `RESEND_WEBHOOK_SECRET` is present in the correct Vercel project
+- Whether the webhook was ever manually created in Resend
+- Whether the endpoint is subscribed to the right events
+- Whether webhook logs show delivery attempts
+- Whether webhook events are stored or ignored
+
+Do not claim Resend webhooks are configured merely because an API route exists.
+
+The webhook subscription may need to be added manually in the Resend dashboard.
+
+---
+
+# Required Resend Webhook
+
+Preferred production endpoint:
+
+```text
+https://www.corsairtacticalsolution.com/api/webhooks/resend
+```
+
+Use an existing equivalent endpoint if one already exists and is correct.
+
+## Subscribe to these events
+
+```text
+email.sent
+email.delivered
+email.delivery_delayed
+email.failed
+email.bounced
+email.complained
+email.suppressed
+```
+
+Resend supports these delivery lifecycle events. `email.sent` means the API request succeeded and Resend will attempt delivery; `email.delivered` means the recipient mail server accepted the message. Failures, delays, bounces, complaints, and suppressions each have their own event. :contentReference[oaicite:6]{index=6}
+
+Do not enable these unless specifically required:
+
+```text
+email.opened
+email.clicked
+email.received
+contact.created
+contact.updated
+contact.deleted
+domain.created
+domain.updated
+domain.deleted
+```
+
+`email.received` is for inbound email, not normal outgoing course confirmations.
+
+---
+
+# Everything That Should Be Configured in Resend
+
+The completion report must provide an exact Resend setup checklist.
+
+## 1. Verified sending domain
+
+Confirm the correct Corsair sending domain is verified.
+
+Report:
+
+```text
+Domain name:
+Verification status:
+SPF status:
+DKIM status:
+Sending enabled:
+```
+
+Do not expose DNS secrets.
+
+## 2. Production API key
+
+Required Vercel variable:
+
+```text
+RESEND_API_KEY
+```
+
+Confirm:
+
+- It exists in the Corsair Vercel project
+- It is available to Production
+- It is not prefixed with `NEXT_PUBLIC_`
+- It is not hardcoded
+- It belongs to the correct Resend account
+- It has not expired or been revoked
+
+Do not print its value.
+
+## 3. Authenticated sender
+
+Confirm the exact configured sender pattern, for example:
+
+```text
+Corsair Tactical Solutions <notifications@verified-domain>
+```
+
+The `from` domain must be verified.
+
+Do not use an unverified Gmail address as the authenticated sender.
+
+## 4. Business notification recipient
+
+Confirm the server-side environment variable or configuration used for Corsair notifications.
+
+Possible variable:
+
+```text
+COURSE_NOTIFICATION_EMAIL
+```
+
+or the project’s existing equivalent.
+
+Do not expose the recipient in client code.
+
+## 5. Reply-to
+
+Customer-facing and business-facing messages should use the correct reply-to behavior.
+
+For business notification emails:
+
+```text
+reply_to = validated customer email
+```
+
+For customer confirmation emails:
+
+```text
+reply_to = approved Corsair business address
+```
+
+Resend supports `reply_to` on sent emails. :contentReference[oaicite:7]{index=7}
+
+## 6. Resend webhook
+
+Required endpoint:
+
+```text
+https://www.corsairtacticalsolution.com/api/webhooks/resend
+```
+
+Required secret:
+
+```text
+RESEND_WEBHOOK_SECRET
+```
+
+The webhook must be manually present in Resend if the AI cannot create it through the API.
+
+## 7. Resend webhook events
+
+Select:
+
+```text
+email.sent
+email.delivered
+email.delivery_delayed
+email.failed
+email.bounced
+email.complained
+email.suppressed
+```
+
+## 8. Email tags
+
+Add non-sensitive tags to every course email:
+
+```text
+category: course_confirmation
+email_type: customer_confirmation | business_notification | instructor_notification
+course_slug: sanitized-course-slug
+environment: production | sandbox
+```
+
+Do not include:
+
+- Customer name
+- Email
+- Phone
+- Address
+- Payment data
+
+Resend tags are included in webhook events and are suitable for categorizing messages. :contentReference[oaicite:8]{index=8}
+
+## 9. Idempotency
+
+Use a Resend idempotency key to prevent duplicate confirmation emails.
+
+Recommended structure:
+
+```text
+course-confirmation-{paymentId}-{emailType}
+```
+
+Resend supports an `Idempotency-Key` header for preventing duplicate sends. :contentReference[oaicite:9]{index=9}
+
+## 10. Templates
+
+Audit whether emails use:
+
+- React email components
+- HTML templates in the repository
+- Resend hosted templates
+- Plain HTML strings
+
+Confirm all required templates are published and available.
+
+Required email types:
+
+```text
+Customer course confirmation
+Corsair new registration notification
+Instructor notification, if applicable
+Payment failure or review notification, if applicable
+Refund or cancellation confirmation, if supported
+```
+
+If using Resend hosted templates, confirm the template is published and all required variables are passed. A Resend template cannot be combined with separate `html`, `text`, or `react` content in the same request. :contentReference[oaicite:10]{index=10}
+
+## 11. Suppression list
+
+Check whether the business or test recipients are on the Resend suppression list.
+
+Confirm:
+
+- Customer email is not suppressed
+- Business notification email is not suppressed
+- Instructor email is not suppressed
+- Test addresses are not hard-bouncing
+
+## 12. Resend logs
+
+Review recent send logs for:
+
+- API validation errors
+- Invalid sender domain
+- Invalid recipient
+- Quota exceeded
+- Suppression
+- Bounce
+- Delivery delay
+- Failed template variables
+- Invalid API key
+
+## 13. Webhook logs
+
+Confirm:
+
+- Webhook exists
+- Events are being delivered
+- HTTP response is 2xx
+- Signature verification succeeds
+- No repeated failures
+- Retry behavior is not causing duplicate processing
+
+---
+
+# Resend Webhook Security
+
+The endpoint must:
+
+- Read the raw request body
+- Read the signature headers
+- Verify with `RESEND_WEBHOOK_SECRET`
+- Reject missing or invalid signatures
+- Deduplicate webhook events
+- Record the Resend `email_id`
+- Record delivery status
+- Return 2xx promptly for successfully processed or duplicate events
+- Avoid logging sensitive course-registration content
+
+Store or associate:
+
+```text
+Resend email ID
+Square payment ID
+Square order ID
+Booking or registration ID
+Course slug
+Email type
+Recipient category
+Latest delivery status
+Latest event timestamp
+```
+
+Do not store card information.
+
+---
+
+# Problem 4 — Square Webhooks
+
+Audit the Square Developer Console.
+
+Determine:
+
+- Whether a production webhook subscription exists
+- Whether a Sandbox webhook exists separately
+- Whether the correct application is selected
+- Whether the correct endpoint is configured
+- Whether the signature key is present in Vercel
+- Whether webhook event logs show successful deliveries
+- Whether the route verifies Square signatures
+- Whether duplicate webhook events are handled
+- Whether payment completion is processed exactly once
+
+---
+
+# Required Square Webhook
+
+Preferred endpoint:
+
+```text
+https://www.corsairtacticalsolution.com/api/webhooks/square
+```
+
+Use the project’s existing equivalent if already implemented.
+
+## Required events
+
+At minimum:
+
+```text
+payment.created
+payment.updated
+```
+
+Square’s Payments API publishes `payment.created` when a Payment is created and `payment.updated` when payment fields change, including status changes such as completion or failure. :contentReference[oaicite:11]{index=11}
+
+Also consider, only if the current architecture uses them:
+
+```text
+order.created
+order.updated
+order.fulfillment.updated
+refund.created
+refund.updated
+```
+
+Do not subscribe to unrelated Square event types.
+
+Square webhook subscriptions consist of a notification URL and selected event types, and the receiving application must return a 2xx response promptly. :contentReference[oaicite:12]{index=12}
+
+---
+
+# Required Square Environment Variables
+
+Audit and report the presence—not the values—of:
+
+```text
+NEXT_PUBLIC_SQUARE_APPLICATION_ID
+NEXT_PUBLIC_SQUARE_LOCATION_ID
+SQUARE_ACCESS_TOKEN
+SQUARE_LOCATION_ID
+SQUARE_ENVIRONMENT
+SQUARE_WEBHOOK_SIGNATURE_KEY
+SQUARE_WEBHOOK_NOTIFICATION_URL
+```
+
+Use the existing project variable names if they differ.
+
+Confirm:
+
+- Browser-safe values only use `NEXT_PUBLIC_`
+- Access token remains server-only
+- Webhook signature key remains server-only
+- Production values are not mixed with Sandbox
+- Sandbox values are not deployed to Production
+- Production SDK URL is used in Production
+- Sandbox SDK URL is used only in Sandbox/test environments
+
+Do not print values in the completion report.
+
+---
+
+# Production Versus Sandbox Decision
+
+After the audit, classify the live state:
+
+## GREEN
+
+Use Production if:
+
+- Correct Application ID
+- Correct Location ID
+- Correct access token
+- Correct production SDK
+- Correct totals
+- Payments complete
+- Customer profiles are linked
+- Webhooks are working
+- Confirmation emails are working
+
+## YELLOW
+
+Keep Production but temporarily disable affected courses if:
+
+- Payment succeeds
+- Amounts are correct
+- Only email confirmation is failing
+- Registration can be recovered from Square
+- The issue is isolated
+
+Provide a manual reconciliation report for affected payments.
+
+## RED
+
+Temporarily disable all live checkout if:
+
+- Wrong account receives funds
+- Wrong amounts are charged
+- Duplicate charges occur
+- Payments complete without an order or registration record
+- Production uses Sandbox credentials
+- Customer payment status cannot be trusted
+- Webhook processing creates duplicate bookings
+- The checkout is publicly accepting unusable payments
+
+Do not replace the public live checkout with Sandbox.
+
+Show a temporary message and contact option until repaired.
+
+---
+
+# Email Templates
+
+Every successful course registration should send a professional customer confirmation containing:
+
+```text
+Customer name
+Course name
+Course date
+Course time
+Course location
+Base course price
+Required fees
+Selected optional add-ons
+Taxes, if applicable
+Total paid
+Square payment or receipt reference
+Registration or booking ID
+What to bring
+Arrival instructions
+Cancellation or rescheduling guidance
+Contact information
+```
+
+The business notification should include:
+
+```text
+Customer name
+Email
+Phone
+Course
+Date and time
+Payment status
+Amount paid
+Order ID
+Payment ID
+Selected add-ons
+Registration ID
+Any required follow-up
+```
+
+Instructor emails should contain only information needed to conduct the course.
+
+Do not include full payment-card data.
+
+---
+
+# Data Integrity
+
+Store or verify a durable relationship between:
+
+```text
+Internal registration ID
+Square customer ID
+Square order ID
+Square payment ID
+Square receipt URL
+Course slug
+Customer name
+Customer email
+Customer phone
+Amount paid
+Payment status
+Resend customer email ID
+Resend business email ID
+Resend instructor email ID
+Email delivery statuses
+Created timestamp
+Updated timestamp
+```
+
+Do not use the confirmation-page URL as the only record.
+
+Do not trust browser-supplied totals or payment status.
+
+---
+
+# Recovery Audit
+
+Search recent Square production payments and course submissions.
+
+Produce a reconciliation report covering the period since the last known successful course email.
+
+For each payment:
+
+```text
+Payment timestamp
+Payment ID
+Order ID
+Customer profile linked?
+Customer name available?
+Course identified?
+Amount correct?
+Payment status
+Registration record present?
+Customer email sent?
+Business email sent?
+Instructor email sent?
+Email delivery status
+Manual action required?
+```
+
+Do not expose full customer personal details in the completion report.
+
+Use masked identifiers.
+
+If paid registrations exist without emails:
+
+- Do not charge again
+- Send the missing confirmation only after verifying the payment
+- Use idempotency to avoid duplicates
+- Clearly label any recovered confirmation internally
+
+---
+
+# Required Tests
+
+## Square tests
+
+Test:
+
+1. Customer name is collected
+2. First and last names reach the backend
+3. Existing Square customer is reused
+4. New Square customer is created when needed
+5. `customer_id` is attached to payment
+6. Payment is no longer displayed as an anonymous/private customer when valid identity is supplied
+7. Correct order line items
+8. Correct total
+9. Idempotency prevents duplicate payment
+10. Invalid customer data is rejected
+11. Production and Sandbox settings cannot mix
+12. Payment webhook signature verification
+13. Duplicate webhook handling
+14. `COMPLETED` triggers registration confirmation once
+15. Failed payment does not send a paid confirmation
+
+## Resend tests
+
+Test:
+
+1. Customer confirmation send
+2. Business notification send
+3. Instructor notification send
+4. Correct sender
+5. Correct recipient
+6. Correct reply-to
+7. Correct tags
+8. Correct idempotency key
+9. Resend email ID stored
+10. Invalid API key handling
+11. Missing template-variable handling
+12. Suppressed recipient handling
+13. Webhook signature verification
+14. Duplicate webhook handling
+15. Delivered event updates status
+16. Failed event updates status
+17. Bounced event updates status
+18. Complained event updates status
+19. Delayed event updates status
+20. No sensitive data in logs or tags
+
+---
+
+# Controlled Live Verification
+
+Do not perform unauthorized charges.
+
+Use:
+
+- Square Sandbox for full automated payment testing
+- Approved production configuration checks
+- One authorized low-risk production transaction only if the owner explicitly approves it
+
+For production verification without a real charge:
+
+- Confirm credentials exist
+- Confirm environment alignment
+- Confirm webhook subscriptions
+- Confirm recent real payment records
+- Confirm customer linkage
+- Confirm Resend delivery logs
+
+If a production test payment is authorized later, document the amount and refund process separately.
+
+---
+
+# Manual Setup Instructions the Owner Needs
+
+The completion report must include exact manual steps for both dashboards.
+
+## Resend dashboard
+
+Provide:
+
+```text
+Webhook URL:
+Events to select:
+Webhook signing secret variable:
+Verified domain status:
+Sender address:
+API key variable:
+Templates required:
+Suppression-list status:
+Test procedure:
+```
+
+## Square Developer Console
+
+Provide:
+
+```text
+Application name:
+Environment:
+Webhook URL:
+Events to select:
+Signature-key variable:
+Application ID variable:
+Location ID variable:
+Access-token variable:
+SDK URL expected:
+Test procedure:
+```
+
+Do not include actual secret values.
+
+---
+
+# Do Not Modify
+
+Do not change:
+
+- Approved course prices
+- Required fee rules
+- Optional add-on rules
+- Service inquiry forms
+- Careers
+- Knowledge Center feature work
+- FSTS Dashboard
+- Unrelated service pages
+
+Only change pricing code if the audit proves the deployed values differ from the approved values.
+
+---
+
+# Validation Commands
+
+Inspect `package.json` and run the actual available equivalents of:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+Also run the focused:
+
+```text
+Square integration tests
+Course checkout route tests
+Square webhook tests
+Resend send tests
+Resend webhook tests
+Email template tests
+Customer-profile tests
+```
+
+Do not report a check as passing unless it was run.
+
+---
+
+# Deployment
+
+Deploy only through:
+
+```text
+https://vercel.com/fullstacksolutions/corsair-tactical-solutions/deployments
+```
+
+Do not deploy to the FSTS Dashboard Vercel project.
+
+---
+
+# Commit
+
+Suggested commit:
+
+```text
+fix(corsair): restore course emails and Square customer/payment integrity
+```
+
+---
+
+# Completion Report
+
+Provide:
+
+```text
+Repository:
+Branch:
+Commit SHA:
+Deployment URL:
+
+ROOT CAUSES
+Course email failure:
+Square customer shown as Private:
+Missing Resend webhooks:
+Missing Square webhooks:
+Environment mismatch found:
+
+SQUARE CONFIGURATION
+Production application configured:
+Production location configured:
+Production access token configured:
+SDK environment:
+Customer search/create flow:
+Customer ID attached to payment:
+Order ID attached:
+Reference ID attached:
+Idempotency:
+Webhook URL:
+Webhook events:
+Signature verification:
+Duplicate handling:
+
+RESEND CONFIGURATION
+Verified domain:
+Authenticated sender:
+API key configured:
+Recipient configured:
+Reply-to:
+Customer template:
+Business template:
+Instructor template:
+Webhook URL:
+Webhook events:
+Webhook secret:
+Tags:
+Idempotency:
+Suppression list:
+Delivery tracking:
+
+COURSE AUDIT
+[Full course table]
+
+RECOVERY
+Payments reviewed:
+Registrations missing emails:
+Recovered confirmations:
+Manual follow-up required:
+
+TESTS
+Square Sandbox:
+Square production configuration:
+Square customer-name verification:
+Customer email:
+Business email:
+Instructor email:
+Resend webhook:
+Square webhook:
+TypeScript:
+Lint:
+Tests:
+Build:
+
+PRODUCTION DECISION
+GREEN / YELLOW / RED:
+Production checkout retained or disabled:
+Reason:
+Customer-facing message, if disabled:
+
+MANUAL OWNER ACTIONS
+Exact Resend dashboard steps:
+Exact Square dashboard steps:
+Environment variables still required:
+```
+
+Explicitly confirm:
+
+```text
+Course confirmations are sent only after a verified successful payment.
+
+Square receives and links the validated customer name and customer profile.
+
+The Square customer is no longer anonymous/private when valid customer details were supplied.
+
+Resend webhook requirements and manual dashboard steps are fully documented.
+
+Square webhook requirements and manual dashboard steps are fully documented.
+
+Production was not switched to Sandbox for public customers.
+
+No duplicate payment or duplicate email behavior was introduced.
+```
+
+Do not include access tokens, webhook secrets, API keys, full customer records, or payment-card information.
