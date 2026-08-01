@@ -1,0 +1,526 @@
+# FSTS-WOS™ — IMMEDIATE IDENTITY CLEANUP AND DEPLOYMENT VERIFICATION
+
+## AUTHORIZATION STATUS
+
+The owner has already authorized:
+
+* A full rewrite of the published `main` branch history
+* Rewriting every commit author and committer
+* Force-pushing the corrected history to `main`
+* Saving the current remote HEAD SHA before rewriting
+
+Do not request authorization again.
+
+Proceed with the previously approved history rewrite after completing the safety checks below.
+
+---
+
+# AUTHORIZED REPOSITORY
+
+Work only in:
+
+```text
+https://github.com/thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Expected remote repository:
+
+```text
+thefsts/FSTS-client-Dashboard-for-sites-
+```
+
+Do not rewrite, modify, or push to any other repository.
+
+---
+
+# REQUIRED GIT IDENTITY
+
+Every commit must use:
+
+```text
+Author: THEFSTS <amorebey@gmail.com>
+Committer: THEFSTS <amorebey@gmail.com>
+```
+
+Repository configuration must be:
+
+```bash
+git config user.name "THEFSTS"
+git config user.email "amorebey@gmail.com"
+```
+
+The following identities are unauthorized:
+
+```text
+59946806-fstacktsolution@users.noreply.replit.com
+fstacktsolution
+Replit Agent
+agent@replit.com
+Full Stack Teck Solutions
+Thefsts
+Any name other than THEFSTS
+Any email other than amorebey@gmail.com
+```
+
+---
+
+# STEP 1 — STOP COMPETING WRITERS
+
+Before rewriting history, identify whether another Replit workspace, agent session, automation, branch, or Git integration is still pushing to `main`.
+
+The report indicates another active Replit session continued pushing commits with unauthorized identities while the identity fix was being completed.
+
+Take the following precautions:
+
+1. Stop all other Replit AI sessions working on this repository.
+2. Stop all automatic push processes that can write directly to `main`.
+3. Confirm no other session is actively committing or pushing.
+4. Confirm the remote `main` branch remains unchanged during the rewrite preparation.
+5. Do not begin the force push while another writer is active.
+
+If another active writer cannot be stopped, report it as a blocker and do not rewrite history until the branch is stable.
+
+---
+
+# STEP 2 — VERIFY GITHUB EMAIL
+
+The owner must confirm that:
+
+```text
+amorebey@gmail.com
+```
+
+is added to and verified on the GitHub account:
+
+```text
+thefsts
+```
+
+The owner will verify this at:
+
+```text
+https://github.com/settings/emails
+```
+
+Do not expose account credentials or email-verification links.
+
+This verification is required for proper GitHub and Vercel commit attribution.
+
+---
+
+# STEP 3 — SAVE BACKUP REFERENCES
+
+Fetch the latest remote state:
+
+```bash
+git fetch origin
+```
+
+Record the current remote `main` HEAD:
+
+```bash
+git rev-parse origin/main
+```
+
+Save it as both:
+
+1. A written SHA in the completion report
+2. A local backup tag or branch
+
+Recommended backup tag:
+
+```bash
+git tag backup-before-identity-rewrite-2026-07-30 origin/main
+```
+
+Also create a local backup branch:
+
+```bash
+git branch backup/main-before-identity-rewrite origin/main
+```
+
+Do not push the backup reference publicly unless necessary or separately approved.
+
+Report the exact original SHA before rewriting.
+
+---
+
+# STEP 4 — AUDIT THE COMPLETE HISTORY
+
+Audit every commit on `main`.
+
+Report:
+
+* Total commit count
+* Every unique author name
+* Every unique author email
+* Every unique committer name
+* Every unique committer email
+* Number of commits with unauthorized identity
+* Current remote HEAD SHA
+
+Use commands such as:
+
+```bash
+git rev-list --count origin/main
+git log origin/main --format='%an <%ae>' | sort -u
+git log origin/main --format='%cn <%ce>' | sort -u
+```
+
+Do not assume the previously reported count of 310 is still current because additional commits were pushed afterward.
+
+Use the actual current count.
+
+---
+
+# STEP 5 — REWRITE THE FULL MAIN HISTORY
+
+Rewrite every commit reachable from `main` so both the author and committer become:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+Preserve:
+
+* Commit contents
+* Commit order
+* Commit messages
+* Tree state
+* File history
+* Tags unless intentionally excluded
+* Branch contents
+
+Only identity metadata should change unless a technical rewrite tool necessarily updates metadata associated with rewriting.
+
+Do not remove files or change application code during the identity rewrite.
+
+Do not include unrelated fixes in the history-rewrite operation.
+
+---
+
+# STEP 6 — VERIFY THE REWRITTEN HISTORY
+
+Before pushing, verify the rewritten history completely.
+
+Required checks:
+
+```bash
+git log main --format='%an <%ae>' | sort -u
+git log main --format='%cn <%ce>' | sort -u
+git rev-list --count main
+git rev-parse main
+```
+
+The only acceptable output for both author and committer identity is:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+Run the permanent identity guard:
+
+```bash
+scripts/check-commit-identity.sh
+```
+
+Run the repository boundary check:
+
+```bash
+scripts/check-boundary.sh
+```
+
+Confirm no commit remains with:
+
+```text
+users.noreply.replit.com
+agent@replit.com
+Replit Agent
+fstacktsolution
+Full Stack Teck Solutions
+Thefsts
+```
+
+---
+
+# STEP 7 — VALIDATE THE CURRENT CODEBASE
+
+Because rewriting history should not alter the final tree, confirm the rewritten HEAD has the same file contents as the original remote HEAD.
+
+Compare tree hashes before and after rewriting.
+
+Then run:
+
+```bash
+pnpm run typecheck
+pnpm run test:convex-unit
+pnpm run test:design-lock
+pnpm run test:visual
+pnpm run test:health-monitor
+pnpm --filter @workspace/fsts-dashboard run build
+```
+
+Use the required build environment values if the application requires `PORT` or `BASE_PATH` during local verification.
+
+Report skipped tests separately.
+
+Do not describe skipped tests as passing.
+
+Expected existing baseline:
+
+```text
+Convex tests: 47/47
+Design Lock: 69/69
+Visual regression: 3/3
+Tenant isolation: included and passing
+Identity guard: passing
+Boundary check: passing
+Typecheck: clean
+Production build: successful
+```
+
+Report actual results, not assumed results.
+
+---
+
+# STEP 8 — FORCE-PUSH SAFELY
+
+Immediately before pushing:
+
+```bash
+git fetch origin
+git rev-parse origin/main
+```
+
+Confirm the remote SHA still matches the saved pre-rewrite remote SHA.
+
+If it changed, stop. Another session has pushed and the rewrite must be recalculated from the new remote state.
+
+If it has not changed, push the rewritten branch using:
+
+```bash
+git push --force-with-lease origin main
+```
+
+Do not use an unrestricted force push unless `--force-with-lease` is technically impossible and the reason is documented.
+
+Do not rewrite or force-push other branches.
+
+---
+
+# STEP 9 — VERIFY THE REMOTE AFTER PUSH
+
+After the force push:
+
+```bash
+git fetch origin
+git rev-parse main
+git rev-parse origin/main
+```
+
+Confirm local and remote `main` match.
+
+Audit the remote history again:
+
+```bash
+git log origin/main --format='%an <%ae>' | sort -u
+git log origin/main --format='%cn <%ce>' | sort -u
+```
+
+The only identity must be:
+
+```text
+THEFSTS <amorebey@gmail.com>
+```
+
+Report:
+
+* Original remote HEAD SHA
+* New rewritten HEAD SHA
+* Actual number of commits rewritten
+* Force-push result
+* Final remote author identities
+* Final remote committer identities
+
+---
+
+# STEP 10 — PREVENT NEW BAD COMMITS
+
+The existing prevention work must remain in place:
+
+```text
+scripts/check-commit-identity.sh
+.githooks/pre-push
+scripts/check-boundary.sh
+```
+
+Verify:
+
+* `core.hooksPath` points to `.githooks`
+* The pre-push hook is executable
+* Unauthorized identities are rejected
+* CI or source-audit invokes the identity guard
+* `post-merge.sh` configures `THEFSTS`, not `Thefsts`
+* Missing GitHub tokens produce a warning rather than an unrelated hard failure
+* Replit workspace setup applies the correct repository-local identity automatically
+
+Also locate and correct the other Replit session or workspace that has been committing as `fstacktsolution`.
+
+A history rewrite is not sufficient if that source continues creating unauthorized commits.
+
+---
+
+# STEP 11 — VERIFY THE PRODUCTION DEPLOYMENT
+
+Authorized Vercel project only:
+
+```text
+https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments
+```
+
+The Vercel connector currently returns `403 invalidToken`.
+
+Do not repeatedly reconnect the same revoked integration token.
+
+Do not access another Vercel project.
+
+After the corrected Git history is pushed:
+
+1. Check whether GitHub automatically triggers a new Vercel deployment.
+2. Verify manually through the authorized Vercel dashboard if connector access remains unavailable.
+3. Confirm the deployment uses the new rewritten HEAD SHA.
+4. Confirm Vercel recognizes the GitHub commit attribution.
+5. Confirm the deployment is no longer blocked by an unmatched commit email.
+6. Confirm the build result.
+7. Do not redeploy an old commit SHA.
+8. Do not manually promote a preview unless explicitly authorized.
+
+If API verification remains impossible, report:
+
+```text
+Manual Vercel dashboard verification required
+```
+
+This is not permission to skip verifying the public production URL.
+
+Also verify:
+
+```text
+https://fstsclientsystem.com
+```
+
+Report:
+
+* HTTP status
+* HTTPS status
+* SSL status
+* Application response
+* Deployed commit SHA, when available
+
+---
+
+# STEP 12 — DOMAIN AND CLERK WORK AFTER IDENTITY CLEANUP
+
+After the history rewrite and deployment verification are complete, continue the approved production infrastructure work.
+
+Verify:
+
+```text
+fstsclientsystem.com
+www.fstsclientsystem.com
+api.fstsclientsystem.com
+status.fstsclientsystem.com
+docs.fstsclientsystem.com
+```
+
+Current known status:
+
+```text
+fstsclientsystem.com — live
+www.fstsclientsystem.com — redirect exists; SSL requires verification
+api.fstsclientsystem.com — not configured
+status.fstsclientsystem.com — not configured
+docs.fstsclientsystem.com — not configured
+```
+
+Configure Clerk production settings for:
+
+```text
+https://fstsclientsystem.com
+```
+
+Authorized origins must include:
+
+```text
+https://fstsclientsystem.com
+https://www.fstsclientsystem.com
+```
+
+Verify:
+
+* Production Clerk instance
+* Publishable-key environment mapping
+* Secret-key environment mapping
+* Sign-in URL
+* Sign-up URL
+* Post-sign-in redirect
+* Post-sign-up redirect
+* Sign-out redirect
+* Password-reset redirect
+* Email-verification redirect
+* OAuth callback URLs
+* JWT template used by Convex
+* Session and cookie domain behavior
+* Webhook endpoint configuration
+
+Do not print secret values.
+
+---
+
+# REQUIRED COMPLETION REPORT
+
+Return one consolidated report containing:
+
+1. Confirmation that all competing writers were stopped.
+2. GitHub email-verification status.
+3. Original remote `main` SHA.
+4. Backup tag or branch created.
+5. Actual commit count before rewriting.
+6. Unique identities found before rewriting.
+7. Number of commits rewritten.
+8. New remote `main` SHA.
+9. Unique identities after rewriting.
+10. Tree-equivalence verification.
+11. Test results.
+12. Build result.
+13. Force-push result.
+14. Identity-guard verification.
+15. Confirmation that the bad-identity source session was corrected or disabled.
+16. Vercel deployment status.
+17. Public production URL status.
+18. Domain and subdomain status.
+19. Clerk configuration status.
+20. Remaining blockers.
+21. Whether Phase 2 may now resume.
+
+---
+
+# IMPORTANT RESTRICTIONS
+
+Do not request history-rewrite authorization again.
+
+Do not allow another AI session to push during the rewrite.
+
+Do not change application code as part of the identity rewrite.
+
+Do not use an unauthorized Git identity.
+
+Do not access another repository.
+
+Do not access another Vercel project.
+
+Do not expose credentials or secret values.
+
+Do not begin Corsair onboarding.
+
+Do not resume Phase 2 until the history rewrite, remote verification, and deployment verification are complete.
