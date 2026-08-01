@@ -1,5 +1,6 @@
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Redirect } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,9 @@ import {
   ChevronDown,
   ChevronRight,
   ArrowLeft,
+  Trash2,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -656,6 +660,90 @@ function ModuleCard({ mod }: { mod: ModuleDoc }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Maintenance — Purge legacy base64 media
+// ---------------------------------------------------------------------------
+
+type PurgeState =
+  | { status: "idle" }
+  | { status: "running" }
+  | { status: "done"; deleted: number }
+  | { status: "error"; message: string };
+
+function PurgeBase64MediaPanel() {
+  const sites = useQuery(api.sites.list);
+  const migrateDeleteDataUrls = useMutation(api.media.migrateDeleteDataUrls);
+  const [states, setStates] = useState<Record<string, PurgeState>>({});
+
+  async function runPurge(siteId: Id<"sites">) {
+    setStates((prev) => ({ ...prev, [siteId]: { status: "running" } }));
+    try {
+      const result = await migrateDeleteDataUrls({ siteId });
+      setStates((prev) => ({ ...prev, [siteId]: { status: "done", deleted: result.deleted } }));
+    } catch (err: any) {
+      setStates((prev) => ({ ...prev, [siteId]: { status: "error", message: err.message ?? "Unknown error" } }));
+    }
+  }
+
+  if (!sites) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {sites.map((site: any) => {
+        const state: PurgeState = states[site._id] ?? { status: "idle" };
+        return (
+          <div
+            key={site._id}
+            className="flex items-center justify-between gap-4 border border-slate-200 rounded-md px-4 py-3 bg-white"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-slate-900 truncate">{site.name}</p>
+              <p className="text-xs text-slate-400">{site.slug}</p>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {state.status === "done" && (
+                <span className={`text-xs font-medium flex items-center gap-1 ${state.deleted > 0 ? "text-amber-600" : "text-green-600"}`}>
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {state.deleted > 0 ? `${state.deleted} record${state.deleted !== 1 ? "s" : ""} purged` : "No legacy records"}
+                </span>
+              )}
+              {state.status === "error" && (
+                <span className="text-xs text-red-500 truncate max-w-[200px]" title={state.message}>Error: {state.message}</span>
+              )}
+              <Button
+                size="sm"
+                variant={state.status === "done" ? "outline" : "destructive"}
+                className="text-xs"
+                disabled={state.status === "running"}
+                onClick={() => runPurge(site._id)}
+              >
+                {state.status === "running" ? (
+                  <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Running…</>
+                ) : state.status === "done" ? (
+                  <><Trash2 className="h-3.5 w-3.5 mr-1" />Run again</>
+                ) : (
+                  <><Trash2 className="h-3.5 w-3.5 mr-1" />Purge base64 media</>
+                )}
+              </Button>
+            </div>
+          </div>
+        );
+      })}
+      {sites.length === 0 && (
+        <p className="text-sm text-slate-400 py-4 text-center">No sites found.</p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
 export default function AdminPlatformRunbook() {
   const me = useQuery(api.users.me);
   const [searchQuery, setSearchQuery] = useState("");
@@ -711,6 +799,35 @@ export default function AdminPlatformRunbook() {
         (customer outreach, active review workflows, appointment management, lead intelligence, advanced ecommerce)
         belong in <strong>Operon CRM™</strong>, connected exclusively via the <strong>Operon Connector™</strong>.
         See <code className="font-mono text-xs bg-blue-100 px-1 rounded">docs/product-boundaries.md</code> for the full spec.
+      </div>
+
+      {/* Maintenance Actions */}
+      <div className="bg-white border border-slate-200 rounded-md overflow-hidden mb-8">
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+          <div className="h-8 w-8 rounded bg-red-50 flex items-center justify-center flex-shrink-0">
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Maintenance Actions</p>
+            <p className="text-xs text-slate-500">One-time and idempotent data cleanup tools. Safe to run multiple times.</p>
+          </div>
+        </div>
+
+        <div className="px-4 py-4 space-y-4">
+          <div>
+            <p className="text-sm font-medium text-slate-800 mb-1 flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-slate-400" />
+              Purge legacy base64 media
+            </p>
+            <p className="text-xs text-slate-500 mb-3">
+              Removes <code className="font-mono bg-slate-100 px-1 rounded">data:</code> URL records from a site's media library.
+              These were created before Convex File Storage was adopted and cannot be served as real CDN links.
+              Records with a <code className="font-mono bg-slate-100 px-1 rounded">storageId</code> or a real <code className="font-mono bg-slate-100 px-1 rounded">https://</code> URL are never touched.
+              Run this for every site before Website #1 onboarding.
+            </p>
+            <PurgeBase64MediaPanel />
+          </div>
+        </div>
       </div>
 
       {/* Search */}
