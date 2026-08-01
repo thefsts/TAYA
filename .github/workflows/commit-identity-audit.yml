@@ -1,0 +1,46 @@
+name: Commit Identity Audit
+
+# Runs on every push to main and on every pull request targeting main.
+# Catches identity violations in the full published history (post-merge push)
+# and in the incoming PR commits (pre-merge guard), so bad identities can
+# never silently accumulate the way they did before this workflow existed.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  identity-audit:
+    name: Author identity check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          # Full history is required so we can audit all commits reachable
+          # from origin/main, not just the tip.
+          fetch-depth: 0
+
+      - name: Run full-history identity audit (push to main)
+        if: github.event_name == 'push'
+        # After a push, origin/main is the branch itself.
+        # We check every commit reachable from HEAD (= the full published history).
+        run: |
+          echo "Auditing full origin/main history for authorized author identity…"
+          bash scripts/check-commit-identity.sh "origin/main"
+
+      - name: Run PR-range identity audit (pull request)
+        if: github.event_name == 'pull_request'
+        # For a PR, only the incoming commits (base..head) need checking;
+        # the base branch is presumed clean by the push job above.
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Auditing PR commits ($BASE_SHA..$HEAD_SHA) for authorized author identity…"
+          bash scripts/check-commit-identity.sh "${BASE_SHA}..${HEAD_SHA}"

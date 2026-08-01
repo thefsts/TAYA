@@ -197,7 +197,7 @@ describe('POST /api/square/validate-promo — minAttendees enforcement', () => {
   it('accepts GROUPDISCOUNT5 with exactly 5 attendees', async () => {
     const subtotal = PER_SEAT_CENTS * 5; // 62 500 — tuition + range fee
     const res = await validatePromoPost(
-      makeReq({ promoCode: 'GROUPDISCOUNT5', courseSlug: COURSE, attendeeCount: 5, subtotalCents: subtotal }),
+      makeReq({ promoCode: 'GROUPDISCOUNT5', courseSlug: COURSE, pricingOptionId: OPTION, attendeeCount: 5, subtotalCents: subtotal }),
     );
     const body = await res.json() as Record<string, unknown>;
     expect(body.valid).toBe(true);

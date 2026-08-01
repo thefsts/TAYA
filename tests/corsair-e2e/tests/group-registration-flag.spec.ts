@@ -11,10 +11,15 @@
  * │  attendees <  5  →  isGroupRegistration = false                        │
  * └─────────────────────────────────────────────────────────────────────────┘
  *
- * The task description referenced 10 / 9 as boundary values.  The actual
- * threshold in code is 5, so we use 6 (above) and 4 (below) to straddle the
- * real boundary.  Both values confirm the wiring without touching the
- * GROUP_THRESHOLD constant itself.
+ * These browser-level E2E tests verify the BookingForm wiring:
+ *   - the correct attendeeCount reaches POST /api/square/create-order
+ *   - the correct isGroupRegistration flag reaches POST /api/square/create-payment
+ *   - the group banner appears / disappears correctly as attendees are added
+ *     or removed
+ *
+ * Server-side route logic (group_registration in Square order metadata) is
+ * covered by unit tests in tests/pricing/src/group-registration-flag.test.ts,
+ * which call the real route handler with a mocked outbound fetch.
  *
  * How the mock works
  * ──────────────────
@@ -76,15 +81,24 @@ const SQUARE_MOCK_INIT_SCRIPT = `
 })();
 `;
 
-/* ── Fake API responses ───────────────────────────────────────────────────── */
-
-const FAKE_ORDER_OK = JSON.stringify({
-  success: true,
-  orderId: "fake-order-id-0001",
-  squareTotal: 12500,
-  resolvedTotal: 12500,
-});
-
+/**
+ * Build a fake create-order success body that mirrors the real route response,
+ * including the `groupRegistration` field the route derives from
+ * `attendeeCount >= GROUP_REGISTRATION_MIN_ATTENDEES` (10).
+ *
+ * Keeping the fake response consistent with the real shape lets the existing
+ * form flow continue, and lets tests assert the flag without calling Square.
+ */
+function makeFakeOrderOk(attendeeCount: number): string {
+  return JSON.stringify({
+    success: true,
+    orderId: "fake-order-id-0001",
+    squareTotal: 12500,
+    resolvedTotal: 12500,
+    // 10 = GROUP_REGISTRATION_MIN_ATTENDEES (square.ts); mirrors route logic
+    groupRegistration: attendeeCount >= 10,
+  });
+}
 const FAKE_PAYMENT_OK = JSON.stringify({
   success: true,
   paymentId: "fake-payment-id-0001",
@@ -159,6 +173,8 @@ async function runGroupScenario(
   });
 
   // Intercept create-order: capture body → return fake success.
+  // The fake response mirrors the real route shape (including groupRegistration)
+  // so the form flow can advance without real Square credentials.
   let orderReqBody: Record<string, unknown> = {};
   await page.route("**/api/square/create-order", async (route) => {
     try {
@@ -169,10 +185,14 @@ async function runGroupScenario(
     } catch {
       orderReqBody = {};
     }
+    const capturedCount =
+      typeof orderReqBody.attendeeCount === "number"
+        ? orderReqBody.attendeeCount
+        : attendeeCount;
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: FAKE_ORDER_OK,
+      body: makeFakeOrderOk(capturedCount),
     });
   });
 
@@ -337,54 +357,54 @@ async function runGroupScenario(
 
 /* ══ Test suite ═══════════════════════════════════════════════════════════════
  *
- * Two scenarios straddle the GROUP_THRESHOLD (5):
- *   A) 6 attendees → isGroupRegistration must be true in create-payment body
- *   B) 4 attendees → isGroupRegistration must be false in create-payment body
+ * These browser-level tests verify BookingForm wiring only.  Server-side
+ * group_registration metadata logic is unit-tested in:
+ *   tests/pricing/src/group-registration-flag.test.ts
  *
- * Both scenarios also assert that attendeeCount is forwarded correctly to
- * create-order so the Square order line-item quantities are right.
+ * Scenario A: 6 attendees (≥ GROUP_THRESHOLD 5)
+ *   → attendeeCount=6 in create-order body
+ *   → isGroupRegistration=true in create-payment body
  *
- * Scenario C (add-then-remove):
- *   C) Add 6 attendees (banner appears), remove 2 (banner disappears),
- *      submit with 4 → isGroupRegistration must be false in API requests
+ * Scenario B: 4 attendees (< GROUP_THRESHOLD 5)
+ *   → attendeeCount=4 in create-order body
+ *   → isGroupRegistration=false in create-payment body
+ *
+ * Scenario C: add 6 then remove 2 (add-then-remove)
+ *   → group banner appears at 6, disappears at 4
+ *   → isGroupRegistration=false in final create-payment body
  * ══════════════════════════════════════════════════════════════════════════ */
 
 test.describe("BookingForm → group_registration flag propagation", () => {
-  // ── Scenario A: above threshold ────────────────────────────────────────────
+  // ── Scenario A: above client threshold ────────────────────────────────────
   test(
     `${ABOVE_THRESHOLD} attendees (≥ GROUP_THRESHOLD 5) → isGroupRegistration=true in API requests`,
     async ({ page }) => {
       skipIfNoServer();
 
-      const { orderReqBody, paymentReqBody } = await runGroupScenario(
-        page,
-        ABOVE_THRESHOLD,
-      );
+      const { orderReqBody, paymentReqBody } =
+        await runGroupScenario(page, ABOVE_THRESHOLD);
 
       // create-order must forward the full headcount so Square order totals
       // reflect per-seat pricing correctly.
       expect(orderReqBody.attendeeCount).toBe(ABOVE_THRESHOLD);
 
-      // create-payment must include isGroupRegistration=true.
-      // The route maps this to group_registration="true" in Square metadata.
+      // create-payment must include isGroupRegistration=true (client threshold crossed).
+      // Server-side group_registration metadata coverage: tests/pricing/src/group-registration-flag.test.ts
       expect(paymentReqBody.isGroupRegistration).toBe(true);
       expect(paymentReqBody.attendeeCount).toBe(ABOVE_THRESHOLD);
     },
   );
 
-  // ── Scenario B: below threshold ────────────────────────────────────────────
+  // ── Scenario B: below client threshold ────────────────────────────────────
   test(
     `${BELOW_THRESHOLD} attendees (< GROUP_THRESHOLD 5) → isGroupRegistration=false in API requests`,
     async ({ page }) => {
       skipIfNoServer();
 
-      const { orderReqBody, paymentReqBody } = await runGroupScenario(
-        page,
-        BELOW_THRESHOLD,
-      );
+      const { orderReqBody, paymentReqBody } =
+        await runGroupScenario(page, BELOW_THRESHOLD);
 
       expect(orderReqBody.attendeeCount).toBe(BELOW_THRESHOLD);
-
       expect(paymentReqBody.isGroupRegistration).toBe(false);
       expect(paymentReqBody.attendeeCount).toBe(BELOW_THRESHOLD);
     },
@@ -407,6 +427,7 @@ test.describe("BookingForm → group_registration flag propagation", () => {
         });
       });
 
+      // Intercept create-order: capture body → return fake success.
       let orderReqBody: Record<string, unknown> = {};
       await page.route("**/api/square/create-order", async (route) => {
         try {
@@ -417,13 +438,18 @@ test.describe("BookingForm → group_registration flag propagation", () => {
         } catch {
           orderReqBody = {};
         }
+        const capturedCount =
+          typeof orderReqBody.attendeeCount === "number"
+            ? orderReqBody.attendeeCount
+            : 1;
         await route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: FAKE_ORDER_OK,
+          body: makeFakeOrderOk(capturedCount),
         });
       });
 
+      // Intercept create-payment: capture body → return fake success.
       let paymentReqBody: Record<string, unknown> = {};
       await page.route("**/api/square/create-payment", async (route) => {
         try {
@@ -470,15 +496,9 @@ test.describe("BookingForm → group_registration flag propagation", () => {
       // The banner renders: <p className="...">Group Registration</p>
       // when attendees.length >= GROUP_THRESHOLD (5).
       const groupBanner = page.getByText("Group Registration", { exact: true });
-      await expect(groupBanner).toBeVisible({
-        timeout: 3_000,
-      });
+      await expect(groupBanner).toBeVisible({ timeout: 3_000 });
 
       // ── Step 1d: Remove 2 attendees to drop below threshold ──────────────
-      // The "Remove" button is shown for every attendee with idx > 0.
-      // We click it twice, each time on the last visible Remove button so we
-      // always remove from the bottom of the list (safest, avoids index shift
-      // confusion mid-removal).
       const removeButtons = () =>
         page.getByRole("button", { name: /^Remove$/i });
 
@@ -494,8 +514,6 @@ test.describe("BookingForm → group_registration flag propagation", () => {
       ).toBeVisible({ timeout: 5_000 });
 
       // ── Step 1e: Confirm the group banner is gone ────────────────────────
-      // The banner element should no longer be in the DOM (or at minimum
-      // not visible) once attendees.length drops below GROUP_THRESHOLD.
       await expect(groupBanner).not.toBeVisible({ timeout: 3_000 });
 
       // ── Step 1f: Fill the 4 remaining attendees' required fields ─────────
@@ -536,12 +554,41 @@ test.describe("BookingForm → group_registration flag propagation", () => {
         .first();
       await ageLabel.click();
 
+      // Advance to step 3.
       await page
         .getByRole("button", { name: /Continue to Payment/i })
         .click();
       await page.waitForTimeout(500);
 
       // ── Step 3: Payment ──────────────────────────────────────────────────
+      await page.waitForTimeout(800);
+
+      const SQUARE_SKIP_MSG =
+        "Square env vars (NEXT_PUBLIC_SQUARE_APPLICATION_ID / " +
+        "NEXT_PUBLIC_SQUARE_LOCATION_ID) were not compiled into the " +
+        "Corsair dev-server bundle. Start the dev server with those vars " +
+        "set to run this test (see tests/corsair-e2e/README.md).";
+
+      // Signal 1 — data attribute (preferred)
+      const step3Container = page.locator("[data-square-ready]");
+      const squareReadyAttr = await step3Container
+        .getAttribute("data-square-ready", { timeout: 3_000 })
+        .catch(() => null);
+      if (squareReadyAttr === "unconfigured") {
+        test.skip(true, SQUARE_SKIP_MSG);
+      }
+
+      // Signal 2 — visible error text (defensive fallback)
+      const notConfiguredError = page.getByText(
+        /Payment system is not configured/i,
+      );
+      const isNotConfigured = await notConfiguredError
+        .isVisible({ timeout: 1_000 })
+        .catch(() => false);
+      if (isNotConfigured) {
+        test.skip(true, SQUARE_SKIP_MSG);
+      }
+
       const payBtn = page.getByRole("button", { name: /Pay Securely/i });
       await expect(payBtn).toBeEnabled({ timeout: 12_000 });
       await payBtn.click();
@@ -564,3 +611,7 @@ test.describe("BookingForm → group_registration flag propagation", () => {
     },
   );
 });
+
+// Server-side group_registration metadata (Square order body assertions) is
+// covered by unit tests that call the real route handler with a mocked fetch:
+//   tests/pricing/src/group-registration-flag.test.ts

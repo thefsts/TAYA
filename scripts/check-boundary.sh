@@ -376,7 +376,7 @@ if [ "$CLIENT_APP_FOUND" -eq 0 ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 3. COMMIT IDENTITY CHECK — every commit reachable from origin/main must be
+# 4. COMMIT IDENTITY CHECK — every commit reachable from origin/main must be
 #    authored and committed by THEFSTS <amorebey@gmail.com>.
 #    Reference: docs/repo-governance.md
 #

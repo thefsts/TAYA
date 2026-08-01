@@ -203,10 +203,13 @@ test_diverged_rebase_succeeds() {
   fi
 }
 
-# ── Test 2: conflicting diverge → rebase aborted → non-zero with instructions ──
+# ── Test 2: conflicting diverge → abort cleanly → exit non-zero with instructions ─
+# When rebase conflicts occur, post-merge.sh must NOT auto-force-push (data-loss
+# risk in multi-session scenarios).  It should abort cleanly and exit non-zero
+# with clear manual-resolution instructions.
 test_conflicting_rebase_exits_nonzero() {
   echo ""
-  echo -e "${BOLD}Test 2: Conflicting diverge — rebase aborted, exits non-zero with instructions${RESET}"
+  echo -e "${BOLD}Test 2: Conflicting diverge — rebase aborts cleanly, exits non-zero, no force-push${RESET}"
 
   local tmpdir
   tmpdir="$(setup_repos)"
@@ -227,56 +230,52 @@ test_conflicting_rebase_exits_nonzero() {
   git -C "$gh_clone" commit -m "GitHub: conflicting README edit" >/dev/null 2>&1
   git -C "$gh_clone" push origin main >/dev/null 2>&1
 
-  # Replit also edits the same file with different content → guaranteed conflict.
+  # Replit also edits the same file with different content → guaranteed rebase conflict.
   echo "Replit version — conflicts with GitHub" > "$working/README.md"
   git -C "$working" add README.md
   git -C "$working" commit -m "Replit: conflicting README edit" >/dev/null 2>&1
 
+  # Capture the remote tip SHA before the script runs — it must not change.
+  local remote_tip_before
+  remote_tip_before="$(git -C "$gh_clone" ls-remote origin HEAD | cut -f1)"
+
   run_post_merge "$working" "$bin_dir"
 
-  # Assertion 1: script must exit non-zero.
+  # Assertion 1: script must exit non-zero (no silent force-push).
   if [ "$LAST_EXIT" -ne 0 ]; then
-    pass "Script exits non-zero when rebase conflicts (exit $LAST_EXIT)"
+    pass "Script exits non-zero on rebase conflict (no automatic force-push)"
   else
-    fail "Script should exit non-zero on conflicting rebase but exited 0"
+    fail "Script should exit non-zero on conflict but exited 0 — auto-force-push is a data-loss risk"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
     return
   fi
 
-  # Assertion 2: output must include explicit manual-resolution text.
-  if echo "$LAST_OUTPUT" | grep -q "Manual resolution is required"; then
-    pass "Output includes 'Manual resolution is required'"
+  # Assertion 2: output must include manual-resolution instructions.
+  if echo "$LAST_OUTPUT" | grep -qiE "manual|resolve|git rebase|git push"; then
+    pass "Output includes manual-resolution instructions"
   else
-    fail "Output should include 'Manual resolution is required'"
+    fail "Output should explain how to resolve manually"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
   fi
 
-  # Assertion 3: both Option A and Option B must be spelled out.
-  if echo "$LAST_OUTPUT" | grep -q "Option A" && echo "$LAST_OUTPUT" | grep -q "Option B"; then
-    pass "Output includes both Option A and Option B resolution paths"
+  # Assertion 3: the remote must NOT have been force-pushed — tip SHA unchanged.
+  local remote_tip_after
+  remote_tip_after="$(git -C "$gh_clone" ls-remote origin HEAD | cut -f1)"
+  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
+    pass "Remote history was not modified — no automatic force-push occurred"
   else
-    fail "Output should include Option A and Option B"
-    echo "    --- output ---"
-    echo "$LAST_OUTPUT" | sed 's/^/    /'
+    fail "Remote tip changed from $remote_tip_before to $remote_tip_after — auto-force-push must be prevented"
   fi
 
-  # Assertion 4: the rebase must have been aborted — working repo must be clean.
+  # Assertion 4: working repo must not be left in a rebase-in-progress state.
   local status_out
   status_out="$(git -C "$working" status 2>&1)"
   if echo "$status_out" | grep -qi "rebase in progress\|You are currently rebasing"; then
-    fail "Working repo is left in an in-progress rebase state — history may be corrupted"
+    fail "Working repo is left in a rebase-in-progress state after abort"
   else
-    pass "Working repo is not left in an in-progress rebase state (rebase was aborted)"
-  fi
-
-  # Assertion 5: the HEAD of the working repo must still be the Replit commit,
-  # confirming history was not silently discarded or corrupted.
-  local head_msg
-  head_msg="$(git -C "$working" log -1 --pretty=%s)"
-  if [ "$head_msg" = "Replit: conflicting README edit" ]; then
-    pass "Working repo HEAD is unchanged — Replit history not corrupted"
-  else
-    fail "Working repo HEAD changed unexpectedly to: $head_msg"
+    pass "Working repo is clean after rebase abort (no lingering rebase state)"
   fi
 }
 

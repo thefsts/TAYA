@@ -88,16 +88,19 @@ if echo "$push_output" | grep -qE "\[rejected\]|non-fast-forward|fetch first"; t
   else
     git rebase --abort || true
     echo ""
-    echo "✗ Rebase conflict detected. Manual resolution is required."
+    echo "✗ Rebase conflict — manual resolution required."
     echo ""
-    echo "  Option A: Resolve conflicts manually:"
-    echo "    1. cd to the repo root"
-    echo "    2. git fetch github main && git rebase github/main"
-    echo "    3. Resolve each conflict, then: git rebase --continue"
-    echo "    4. git push github main"
+    echo "  GitHub and Replit have diverged commits that conflict."
+    echo "  Automatic force-push is disabled to protect shared history."
     echo ""
-    echo "  Option B: Force-push (overwrites GitHub history — use with caution):"
+    echo "  Resolve manually:"
+    echo "    1. git fetch github main"
+    echo "    2. git rebase github/main        (resolve any conflicts)"
+    echo "    3. git push github main"
+    echo ""
+    echo "  If you are certain that the Replit history should win:"
     echo "    git push github main --force"
+    echo "  (requires explicit operator decision, not done automatically)"
     _scrub_remote
     exit 1
   fi

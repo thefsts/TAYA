@@ -535,7 +535,6 @@ describe("portal.register — sendPortalWelcome integration", () => {
       if (isPortalWelcomeCall(args)) throw new Error("scheduler overloaded");
     });
 
-
     const result = await handler(register)(ctx as never, VALID_ARGS);
     expect(result.success).toBe(true);
     // The scheduler was called once (the welcome email attempt).  We check the

@@ -11,8 +11,11 @@ const CORSAIR_SRC = path.resolve(__dirname, "../../corsair-source/src");
 // To run the full 104-test suite:
 //   git clone https://github.com/thefsts/Corsair-Tactical-Solutions.git corsair-source
 const CORSAIR_DEPENDENT_TESTS = [
+  "src/admin-email-group-label.test.ts",
   "src/checkout-integrity.test.ts",
   "src/group-registration-flag.test.ts",
+  "src/group-registration-flag.integration.test.ts",
+  "src/mid-size-group-regression.test.ts",
   "src/promo-discount-security.test.ts",
   "src/tuition-only-discount.test.ts",
   "src/vetspouse2-fixed-cents.test.ts",
@@ -20,6 +23,8 @@ const CORSAIR_DEPENDENT_TESTS = [
 
 const corsairAvailable = existsSync(path.join(CORSAIR_SRC, "lib/promo.ts"));
 
+// Pricing contract tests import routes directly from corsair-source/src.
+// The "@" alias must point there so route-level tests resolve without a build step.
 export default defineConfig({
   resolve: {
     alias: {
