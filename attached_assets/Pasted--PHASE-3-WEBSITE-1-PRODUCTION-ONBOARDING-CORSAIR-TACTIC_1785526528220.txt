@@ -1,0 +1,168 @@
+# PHASE 3 — WEBSITE #1 PRODUCTION ONBOARDING (CORSAIR TACTICAL SOLUTIONS)
+
+## OBJECTIVE
+
+Use **Corsair Tactical Solutions** as the official production acceptance test and the first live client website.
+
+Do **not** create a temporary production tenant.
+
+The onboarding process for Corsair must become the standard operating procedure (SOP) for every future client.
+
+No shortcuts.
+
+No direct database edits unless required to repair a verified defect.
+
+Everything should occur through the same workflows every future customer will use.
+
+---
+
+## STEP 1 — VERIFY CORSAIR REPOSITORY
+
+Confirm:
+
+* Production repository is current.
+* Build succeeds.
+* Environment variables are documented.
+* Required assets are present.
+* No development configuration remains.
+* Deployment configuration is current.
+
+---
+
+## STEP 2 — CREATE CORSAIR TENANT
+
+Create the production tenant using only supported dashboard workflows.
+
+Verify:
+
+* Tenant creation
+* Site creation
+* Initial administrator
+* Roles and permissions
+* Authentication
+* Tenant isolation
+
+---
+
+## STEP 3 — COMPLETE WEBSITE ONBOARDING
+
+Walk through every onboarding step exactly as a future customer would.
+
+Verify:
+
+* Website registration
+* Branding
+* Homepage
+* Navigation
+* Contact information
+* Footer
+* SEO
+* Articles
+* Courses
+* Events
+* Testimonials
+* Reviews
+* Forms
+* Media uploads
+* Images
+* Email configuration
+* Payment configuration (if applicable)
+* User invitations
+* Member Portal
+
+If any issue is discovered:
+
+1. Fix it.
+2. Test it.
+3. Commit it.
+4. Push it.
+5. Verify deployment.
+6. Resume onboarding.
+
+---
+
+## STEP 4 — PRODUCTION VALIDATION
+
+After onboarding completes, verify:
+
+* Public website
+* Dashboard
+* Authentication
+* Member Portal
+* CMS editing
+* Forms
+* Media uploads
+* Email delivery
+* File storage
+* Tenant isolation
+* Performance
+* Logs
+* Monitoring
+
+No unresolved production errors may remain.
+
+---
+
+# PHASE 4 — CREATE THE WEBSITE #1 LAUNCH CHECKLIST
+
+Produce a reusable SOP document titled:
+
+```text
+WEBSITE_ONBOARDING_CHECKLIST.md
+```
+
+This document will become the official onboarding guide for every future client.
+
+Include:
+
+1. Domain setup
+2. DNS verification
+3. SSL verification
+4. Tenant creation
+5. User creation
+6. Authentication verification
+7. Branding
+8. Homepage
+9. Navigation
+10. CMS
+11. Media
+12. Forms
+13. SEO
+14. Email
+15. Payments
+16. QA
+17. Go Live
+18. Post-launch verification
+
+This checklist must be reusable without modification for future clients.
+
+---
+
+# PHASE 5 — FINAL PRODUCTION CERTIFICATION
+
+Provide a final certification report answering:
+
+Can Corsair Tactical Solutions remain online as Website #1?
+
+Choose exactly one:
+
+* GO
+* GO WITH MINOR CONDITIONS
+* NO-GO
+
+Include:
+
+* Dashboard completion %
+* Production readiness %
+* Security confidence %
+* Infrastructure readiness %
+* Website onboarding readiness %
+* Remaining blockers
+* Production risks
+* Launch recommendation
+* Commit hashes created during onboarding
+* Deployment verification
+* Lessons learned
+* Improvements for Website #2 onboarding
+
+After approval, freeze the platform except for production bug fixes before beginning Version 2 enhancements.

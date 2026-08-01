@@ -1,0 +1,315 @@
+# FSTS-WOS™ — PRODUCTION LAUNCH & CLIENT ONBOARDING PHASE
+
+## MISSION
+
+The FSTS Website Operating System™ has successfully completed its production readiness audit and achieved a **GO WITH CONDITIONS** status.
+
+The platform is now entering its **Production Launch & Client Onboarding Phase**.
+
+From this point forward, the objective is **not to build additional platform features**, but to complete production configuration, validate the live production environment, and onboard the first client website using the exact workflow that every future customer will follow.
+
+All work must support a successful production launch.
+
+---
+
+# PHASE OBJECTIVES
+
+There are now only **three objectives**.
+
+## OBJECTIVE 1 — COMPLETE PRODUCTION CONFIGURATION
+
+Finish all remaining owner-side production configuration.
+
+Verify and complete:
+
+### Convex
+
+* Confirm production deployment.
+* Verify `CONVEX_DEPLOYMENT_ENVIRONMENT=production`.
+* Configure and verify `RESEND_API_KEY`.
+* Verify production environment variables.
+* Verify Clerk JWT integration.
+* Verify scheduled jobs.
+* Verify file storage.
+* Verify webhooks.
+
+---
+
+### Clerk
+
+Verify production configuration.
+
+Confirm:
+
+* Production instance
+* `pk_live_*` publishable key
+* Production secret key
+* JWT template
+* Authorized origins
+* Redirect URLs
+* Session cookie configuration
+* OAuth callback URLs
+
+Remove obsolete development references.
+
+---
+
+### Vercel
+
+Verify only this project:
+
+`https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments`
+
+Verify:
+
+* `https://fstsclientsystem.com`
+* `https://www.fstsclientsystem.com`
+
+Confirm:
+
+* SSL
+* Domain alias
+* Redirect
+* Routing
+* DNS
+* Latest deployment
+* Production deployment status
+
+Do not access or modify any other Vercel project.
+
+---
+
+## OBJECTIVE 2 — COMPLETE PRODUCTION ACCEPTANCE TESTING
+
+Use the live production environment to validate the complete onboarding workflow.
+
+Do not create artificial test features.
+
+Verify the production workflow exactly as a future customer will experience it.
+
+Confirm:
+
+### Authentication
+
+* Login
+* Logout
+* Password reset
+* Email verification
+* Session handling
+
+### Dashboard
+
+* Navigation
+* Roles
+* Permissions
+* Tenant isolation
+
+### CMS
+
+* Homepage
+* Articles
+* Courses
+* Events
+* Testimonials
+* Reviews
+* FAQ
+* Contact
+* Footer
+* SEO
+
+### Media
+
+* Uploads
+* Storage
+* Retrieval
+* Deletion
+* Security
+
+### Forms
+
+* Creation
+* Submission
+* Notifications
+
+### Member Portal
+
+* Registration
+* Login
+* Lockout protection
+* Sessions
+
+### Infrastructure
+
+* Email
+* File storage
+* API endpoints
+* Logging
+* Monitoring
+
+If any production issue is found:
+
+1. Fix it.
+2. Test it.
+3. Commit it.
+4. Push it.
+5. Verify deployment.
+6. Continue testing.
+
+Do not leave fixable production issues unresolved.
+
+---
+
+## OBJECTIVE 3 — ONBOARD WEBSITE #1
+
+After production verification is complete:
+
+Prepare Corsair Tactical Solutions to become the first live client website.
+
+Before onboarding, verify:
+
+* Repository is current.
+* Build succeeds.
+* Environment variables are documented.
+* Required assets are available.
+* Production deployment is ready.
+
+Do not use shortcuts.
+
+Do not bypass dashboard workflows.
+
+Do not manually edit production data unless repairing a verified defect.
+
+Use the same onboarding process that every future client will follow.
+
+During onboarding verify:
+
+* Tenant creation
+* Website registration
+* Branding
+* Homepage
+* Navigation
+* Articles
+* Courses
+* Events
+* Testimonials
+* Reviews
+* Contact information
+* SEO
+* Forms
+* Media
+* User invitations
+* Member Portal
+
+Every issue discovered during onboarding must be:
+
+* Fixed
+* Tested
+* Committed
+* Pushed
+* Verified
+
+Only continue once the issue is resolved.
+
+---
+
+# WEBSITE ONBOARDING SOP
+
+Document the complete onboarding workflow.
+
+Create:
+
+`WEBSITE_ONBOARDING_CHECKLIST.md`
+
+This document will become the official onboarding procedure for every future customer.
+
+Include:
+
+1. Domain setup
+2. DNS verification
+3. SSL verification
+4. Tenant creation
+5. User creation
+6. Authentication verification
+7. Branding
+8. Homepage configuration
+9. Navigation setup
+10. CMS verification
+11. Media upload verification
+12. Forms verification
+13. SEO verification
+14. Email verification
+15. Payment configuration (when applicable)
+16. Final QA
+17. Go Live
+18. Post-launch verification
+
+This checklist must be reusable for every client.
+
+---
+
+# FINAL CERTIFICATION
+
+When all objectives are complete, provide a final certification report answering:
+
+**Can Corsair Tactical Solutions now be launched as Website #1?**
+
+Choose exactly one:
+
+* GO
+* GO WITH MINOR CONDITIONS
+* NO-GO
+
+Include:
+
+* Dashboard completion percentage
+* Production readiness percentage
+* Security confidence percentage
+* Infrastructure readiness percentage
+* Website onboarding readiness percentage
+* Remaining blockers
+* Estimated onboarding time
+* Recommended launch date
+* Commit hashes created during this phase
+* Deployment verification
+* Lessons learned
+* Recommendations for Website #2 onboarding
+
+---
+
+# DEVELOPMENT FREEZE
+
+Until Website #1 is successfully onboarded:
+
+Do **NOT**:
+
+* Build new platform features.
+* Redesign completed modules.
+* Implement the drag-and-drop Smart Image Manager™.
+* Add optional enhancements.
+* Introduce new integrations unrelated to launch.
+
+Only fix production issues discovered during configuration, testing, or onboarding.
+
+---
+
+# GIT REQUIREMENTS
+
+Every commit must use:
+
+`THEFSTS <amorebey@gmail.com>`
+
+Run the commit identity guard before every push.
+
+---
+
+# SUCCESS CRITERIA
+
+This phase is complete when:
+
+* Production infrastructure is fully configured.
+* Production services are verified.
+* Production acceptance testing passes.
+* Corsair Tactical Solutions is successfully onboarded as Website #1.
+* The onboarding SOP is documented.
+* The platform is stable in production.
+* The FSTS Website Operating System™ is officially certified for onboarding future clients.
