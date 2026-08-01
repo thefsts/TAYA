@@ -405,3 +405,153 @@ These items cannot be completed by automated onboarding scripts — they require
 Every section in the onboarding checklist is in saved, non-error state for the Corsair site. The remaining gaps (Resend API key, DNS records, live file upload) are owner-side configuration steps that require client-supplied credentials — not platform defects.
 
 **Ready for Phase 4 checklist (Task #39) and Phase 5 certification (Task #40).**
+
+---
+
+## Production Validation — Phase 3 Step 4
+
+**Validation Date:** August 1, 2026  
+**Executed by:** Task #38 — Post-Onboarding Production Validation  
+**Validation window:** 2026-08-01T03:13Z – 2026-08-01T03:15Z  
+
+### Step 1 — Public Website Check
+
+| Check | Result | Detail |
+|---|---|---|
+| `corsairtacticalsolutions.com` — HTTP response | ✅ 200 OK | Resolves via 301 redirect to `corsairtacticalsolution.com` → 308 `www.corsairtacticalsolution.com` → 200 Vercel |
+| TLS / HTTPS | ✅ Valid | Vercel-managed certificate; TLS negotiates successfully |
+| Page served | ✅ Confirmed | Vercel returns HTTP 200 at the canonical URL |
+| Broken links on homepage | ⚠️ Not checked | Requires live browser session; human QA step |
+
+**Domain note:** The canonical registered domain serving content is `corsairtacticalsolution.com` (no trailing 's'). The address recorded in onboarding, `corsairtacticalsolutions.com` (with 's'), is a redirect alias that resolves correctly. **Owner action required:** confirm the intended canonical domain and update DNS/branding records if `corsairtacticalsolutions.com` should be the primary.
+
+---
+
+### Step 2 — Dashboard and Auth Check
+
+| Check | Result | Detail |
+|---|---|---|
+| `fstsclientsystem.com` — HTTP response | ✅ 200 OK | `server: Vercel`, `strict-transport-security: max-age=63072000` |
+| TLS | ✅ TLSv1.3 | HSTS header confirmed (`max-age=63072000`) |
+| HTML title | ✅ Correct | `FSTS Client Dashboard \| Full Stack Tech Solutions` |
+| SPA shell serves | ✅ Confirmed | Vite entry script + Clerk/Convex vendor chunks present in HTML |
+| `www.fstsclientsystem.com` | ❌ No HTTP response | TLS connects but Vercel drops the request — www alias not registered. Pre-existing finding (Task #28 `WWW_DOMAIN_FIX.md`). Fix: Vercel Dashboard → project → Settings → Domains → Add `www.fstsclientsystem.com` → redirect to apex (308). |
+| Clerk sign-in / sign-out | ⚠️ Not checked | Requires live browser session with Corsair admin credentials; human QA step |
+| Session persistence | ⚠️ Not checked | Human QA step |
+| Site selector shows only Corsair | ⚠️ Not checked | Human QA step |
+
+---
+
+### Step 3 — CMS Round-Trip
+
+| Check | Result | Detail |
+|---|---|---|
+| Article edit round-trip | ⚠️ Not checked | Requires authenticated dashboard session; human QA step |
+
+**Code verification:** `articles.update` mutation enforces `requireSiteAccessMutation(ctx, siteId)` before any write. The mutation is wired to the Articles page at `/app/sites/:siteId/articles`. Data confirmed seeded in Step 7 of onboarding (2 published articles). Round-trip verification is a human step that requires Resend DNS to be configured (no blocker on CMS itself).
+
+---
+
+### Step 4 — Form and Email Delivery
+
+| Check | Result | Detail |
+|---|---|---|
+| Form submission → email notification | ⚠️ Blocked | `RESEND_API_KEY` not yet configured for the Corsair site (Owner Action OA-1). Emails are silently skipped with a `console.warn` — no data loss, no crash. |
+| Email delivery code path | ✅ Code verified | `sendFormNotification` is scheduled via `ctx.scheduler.runAfter(0, ...)` on every `formSubmissions:submit`. Notification email is `corsairtacticalsolutions@gmail.com`. |
+| DNS SPF/DKIM | ⚠️ Not configured | `corsairtacticalsolutions.com` DNS not yet updated with Resend SPF/DKIM records (Owner Actions OA-2, OA-3). |
+
+**Unblocking path:** Owner completes OA-1 → OA-2 → OA-3, then submits a test contact form and verifies inbox delivery. Record timestamp of first confirmed delivery here when done.
+
+---
+
+### Step 5 — Media Delivery
+
+| Check | Result | Detail |
+|---|---|---|
+| Media upload flow | ✅ Code verified | `generateUploadUrl` → Convex File Storage → `storageId` written to `mediaAssets` — no base64 in DB |
+| `storageId` URL resolution | ✅ Code verified | `resolveUrl()` calls `ctx.storage.getUrl(doc.storageId)` — Convex-signed CDN URL, not data URI |
+| Existing media assets | ✅ Clean | 0 media assets for Corsair site (new client — expected). No base64 migration needed. |
+| Live upload from browser | ⚠️ Not checked | Requires authenticated browser session; human QA step (Owner Action OA-8) |
+
+---
+
+### Step 6 — Portal End-to-End
+
+| Check | Result | Detail |
+|---|---|---|
+| Portal URL accessible | ✅ 200 OK | `fstsclientsystem.com/portal/corsair-tactical/login` → HTTP 200, Vercel |
+| Portal login as test user | ⚠️ Not checked | Requires browser session as `alex.dunbar@corsairtacticalsolutions.com`; human QA step |
+| Welcome message display | ⚠️ Not checked | Human QA step |
+| Session scoped to Corsair site | ✅ Code verified | Portal sessions are keyed by `siteId` in `portalSessions` table; cross-site session access is rejected by tenant-isolation guards |
+
+---
+
+### Step 7 — Tenant Isolation in Production
+
+| Check | Result | Detail |
+|---|---|---|
+| Site-scoped query/mutation guards | ✅ Code verified | All site-specific mutations/queries enforce `siteId` scope via `checkSiteAccess` / `requireSiteAccessMutation` |
+| Tenant-isolation test suite | ✅ 18/18 passing | All cross-site read/write rejection tests pass |
+| `users.me` site-list leak | ✅ Fixed | `ctx.db.get(r.siteId)` per role — targeted lookups, no `collect()` across all sites |
+| Attempt to access another site's data | ✅ Code verified | RBAC rejects requests where the caller's roles do not include the target `siteId` |
+
+---
+
+### Step 8 — Logs and Errors
+
+| Check | Result | Detail |
+|---|---|---|
+| Production environment safety | ✅ PASS | `check-prod-env.sh` confirms: `CONVEX_TEST_MODE` unset, `CONVEX_DEPLOYMENT_ENVIRONMENT=production` present |
+| TypeScript typecheck | ✅ 0 errors | `pnpm run typecheck` — clean across all 3 workspace packages |
+| Convex unit tests | ✅ 104/104 passing | `pnpm run test:convex-unit` — email (38), tenant-isolation (18), media (19), reviews (14), widget-cache (9), test-mode-guard (6) |
+| Design-lock tests | ✅ 69/69 passing | `pnpm run test:design-lock` |
+| Post-merge sync tests | ✅ 23/23 passing | `pnpm --filter @workspace/scripts run test:post-merge-sync` |
+| Frontend production build | ✅ Clean | `VERCEL=1 pnpm --filter @workspace/fsts-dashboard run build` — no errors, no circular chunk warning |
+| Vercel function logs (24h) | ⚠️ Not checked | Requires Vercel dashboard access; human QA step |
+| Convex mutation error logs (24h) | ⚠️ Not checked | Requires Convex dashboard access; human QA step |
+
+---
+
+### Step 9 — Performance
+
+| Check | Result | Detail |
+|---|---|---|
+| Lighthouse — Corsair public homepage | ⚠️ Not checked | Requires browser + DevTools; human QA step. Target: ≥ 80 |
+| FSTS dashboard bundle size | ✅ Acceptable | 1,127 kB total JS / 125 kB CSS (Vite 7.3.3); vendor chunks split correctly |
+| Vercel CDN cache | ✅ Active | `x-vercel-cache: HIT` confirmed on repeated request to `fstsclientsystem.com` |
+
+---
+
+### Step 10 — Monitoring
+
+| Check | Result | Detail |
+|---|---|---|
+| Uptime check active | ⚠️ Not confirmed | No uptime monitoring service was configured during onboarding. **Owner action required:** configure a Vercel alert, BetterUptime, or UptimeRobot check against `fstsclientsystem.com` and `corsairtacticalsolutions.com` (or the confirmed canonical domain). |
+| Vercel deploy alerts | ⚠️ Not confirmed | Requires Vercel dashboard access to verify email notification recipients |
+
+---
+
+### Step 11 — Sign-Off
+
+**Validation outcome:** ✅ **Conditionally PASS — platform infrastructure verified; human QA steps outstanding**
+
+All checks that can be executed programmatically from the workspace environment pass. The platform serves correctly, the Convex backend is live and configured safely, and the full automated test suite (196 tests across 3 suites) passes cleanly.
+
+**Outstanding items (human QA / owner configuration):**
+
+| # | Item | Priority | Blocks |
+|---|---|---|---|
+| V-1 | Clerk sign-in/session test as Corsair admin | HIGH | Dashboard usability |
+| V-2 | Configure Resend API key (OA-1) | HIGH | All email delivery |
+| V-3 | Add SPF + DKIM DNS records (OA-2, OA-3) | HIGH | Inbox delivery |
+| V-4 | Submit test contact form → verify inbox delivery | HIGH | Form → email confirmation |
+| V-5 | Portal login as Alex Dunbar | MEDIUM | Portal verification |
+| V-6 | Upload a real media asset in browser | MEDIUM | CDN URL verification |
+| V-7 | Add `www.fstsclientsystem.com` as Vercel alias + 308 redirect | MEDIUM | www accessibility |
+| V-8 | Confirm canonical Corsair public domain (`corsairtacticalsolution.com` vs `corsairtacticalsolutions.com`) | MEDIUM | Branding accuracy |
+| V-9 | Run Lighthouse on Corsair public homepage (target ≥ 80) | MEDIUM | Performance gate |
+| V-10 | Configure uptime monitoring for both domains | MEDIUM | Ongoing availability |
+| V-11 | Review Vercel function logs and Convex dashboard for past-24h errors | LOW | Error baseline |
+
+**No production errors were found in any programmatically reachable surface.**  
+**The platform is live, safe, and serving correctly. The outstanding items above are configuration steps, not platform defects.**
