@@ -1,0 +1,345 @@
+# FSTS-WOS™ VERSION 2 — SMART IMAGE MANAGER™ (DRAG-AND-DROP IMAGE EDITOR)
+
+## OBJECTIVE
+
+Build a professional drag-and-drop image management system for the FSTS Website Operating System™ that allows clients to upload, crop, resize, position, optimize, and manage images directly within the dashboard.
+
+This feature begins **only after Website #1 (Corsair Tactical Solutions) is successfully onboarded and the platform has been certified stable in production.**
+
+This will become the standard image editor used throughout the entire FSTS Website Operating System™.
+
+---
+
+# DESIGN GOALS
+
+The system must be simple enough for non-technical users while providing professional-quality image handling.
+
+Clients should never need Photoshop, Canva, Paint, or another image editor just to prepare images for their website.
+
+Everything should happen inside the dashboard.
+
+---
+
+# SUPPORTED MODULES
+
+The Smart Image Manager™ must integrate with every area that uses images.
+
+Including:
+
+* Homepage
+* Hero banners
+* Sliders
+* Services
+* Team members
+* Staff profiles
+* Articles
+* Blog
+* Events
+* Courses
+* Testimonials
+* Reviews
+* Media Library
+* Contact page
+* Footer
+* SEO images
+* Social sharing images
+* Logos
+* Favicons
+* Background images
+* Future website modules
+
+Build one shared image editor.
+
+Do **NOT** create separate upload components for each module.
+
+---
+
+# IMAGE UPLOAD
+
+Support:
+
+* Drag-and-drop upload
+* Click-to-upload
+* Multiple image upload
+* Progress indicator
+* Upload queue
+* Retry failed uploads
+* Cancel uploads
+
+Supported formats:
+
+* JPG
+* JPEG
+* PNG
+* WebP
+* AVIF (when supported)
+
+SVG uploads must use a separate secured validation path.
+
+---
+
+# IMAGE EDITOR
+
+After upload, open a visual editor.
+
+Allow clients to:
+
+* Drag the image
+* Zoom
+* Rotate
+* Flip horizontally
+* Flip vertically
+* Crop
+* Resize
+* Reset
+* Cancel
+* Save
+
+Changes must be previewed before saving.
+
+---
+
+# ASPECT RATIO PRESETS
+
+Provide built-in presets for:
+
+* Original
+* Free Crop
+* Square (1:1)
+* Landscape (4:3)
+* Wide (16:9)
+* Portrait (3:4)
+* Social Portrait (4:5)
+
+Website-specific presets:
+
+* Hero Banner
+* Homepage Banner
+* Service Card
+* Article Thumbnail
+* Course Thumbnail
+* Event Thumbnail
+* Team Photo
+* Testimonial Photo
+* Review Photo
+* Logo
+* Favicon
+
+These dimensions should come from a shared configuration rather than being hard-coded in each module.
+
+---
+
+# FOCAL POINT SYSTEM
+
+Allow the client to click or drag a focal point.
+
+Store:
+
+* X coordinate
+* Y coordinate
+
+Responsive layouts should use the focal point when applying image positioning.
+
+The focal point should keep:
+
+* Faces
+* Products
+* Logos
+* Key objects
+
+visible across desktop, tablet, and mobile layouts.
+
+---
+
+# RESPONSIVE PREVIEW
+
+Show live previews for:
+
+* Desktop
+* Tablet
+* Mobile
+
+Clients must be able to see exactly how the image will appear before saving.
+
+---
+
+# IMAGE OPTIMIZATION
+
+Automatically generate optimized versions.
+
+Store:
+
+* Original
+* Thumbnail
+* Small
+* Medium
+* Large
+* Hero
+
+Preferred formats:
+
+* WebP
+* AVIF (when supported)
+
+Preserve transparency where required.
+
+---
+
+# MEDIA LIBRARY
+
+Enhance the Media Library with:
+
+* Search
+* Filters
+* Categories
+* Tags
+* Alt text
+* File size
+* Dimensions
+* Usage tracking
+* Upload date
+* Last modified
+* Website ownership
+
+Allow clients to:
+
+* Replace images
+* Edit crops
+* Update focal points
+* Rename assets
+* Archive
+* Delete (with confirmation)
+
+---
+
+# WEBSITE PREVIEW
+
+Allow users to preview the selected image within the page where it will appear before saving changes.
+
+---
+
+# ACCESSIBILITY
+
+Support:
+
+* Keyboard navigation
+* Screen readers
+* Focus indicators
+* Accessible labels
+* High-contrast controls
+
+Users who cannot drag images must still be able to reposition them using keyboard controls.
+
+---
+
+# SECURITY
+
+Enforce:
+
+* Tenant isolation
+* Permission validation
+* MIME validation
+* File size validation
+* Malware protection
+* Image dimension validation
+* Upload ownership
+
+Do not trust client-side validation.
+
+---
+
+# PERFORMANCE
+
+Use optimized processing.
+
+Do not block the browser while processing large images.
+
+Generate derivatives in the background where appropriate.
+
+Use thumbnails throughout the dashboard instead of loading original files.
+
+---
+
+# AI IMAGE ASSISTANCE (FUTURE)
+
+Design the architecture so future AI features can plug into the editor without major redesign.
+
+Future capabilities may include:
+
+* Auto-crop around faces
+* Smart focal-point detection
+* Background removal
+* Image enhancement
+* Auto-generated alt text
+* Automatic compression
+* Smart resizing
+* Content-aware cropping
+
+Do **NOT** implement these features during this phase.
+
+Only prepare the architecture.
+
+---
+
+# TESTING
+
+Add automated tests covering:
+
+* Upload validation
+* Cropping
+* Zoom
+* Rotation
+* Aspect ratios
+* Focal points
+* Image optimization
+* Tenant isolation
+* Security validation
+* Accessibility
+* Media Library integration
+* Responsive previews
+
+Run:
+
+* TypeScript
+* Unit tests
+* Tenant isolation tests
+* Visual regression tests
+* Production build
+
+All tests must pass before deployment.
+
+---
+
+# IMPLEMENTATION REQUIREMENTS
+
+Every commit must use:
+
+`THEFSTS <amorebey@gmail.com>`
+
+Verify deployments only in:
+
+`https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments`
+
+Do not begin this feature until:
+
+1. Corsair Tactical Solutions is successfully onboarded as Website #1.
+2. The platform has received a final **GO** production certification.
+3. The Website Onboarding SOP has been completed.
+4. Production launch stabilization is complete.
+
+---
+
+# SUCCESS CRITERIA
+
+The Smart Image Manager™ is complete when:
+
+* Clients can upload images without external software.
+* Images can be visually cropped and positioned.
+* Responsive previews are available.
+* Optimized image variants are generated automatically.
+* The editor is shared across all dashboard modules.
+* Security and tenant isolation are maintained.
+* All tests pass.
+* Production build succeeds.
+* The feature is deployed successfully.
+* The dashboard provides a professional, user-friendly image editing experience comparable to leading website builders.
