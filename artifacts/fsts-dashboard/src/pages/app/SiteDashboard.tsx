@@ -48,12 +48,13 @@ import { Button } from "@/components/ui/button";
 import { AIAssistant } from "@/components/AIAssistant";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin }: {
+function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin, badge }: {
   icon: any;
   label: string;
   href: string;
   isDesignLocked?: boolean;
   isSuperAdmin?: boolean;
+  badge?: number;
 }) {
   const [location] = useLocation();
   const isActive = location === href;
@@ -90,6 +91,11 @@ function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin }: {
       >
         <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-primary' : 'text-slate-500'}`} />
         <span className="flex-1">{label}</span>
+        {badge != null && badge > 0 && (
+          <span className="ml-1 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex-shrink-0">
+            {badge}
+          </span>
+        )}
         {isDesignLocked && isSuperAdmin && (
           <Lock className="h-3 w-3 text-slate-300 ml-1 flex-shrink-0" />
         )}
@@ -105,6 +111,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId: siteId as Id<"sites"> });
   const isEnabled = (key: string) => (effectiveModules ?? (site?.enabledModules as Record<string, boolean> | undefined))?.[key] ?? true;
   const unreadNotifications = useQuery(api.healthScans.getUnreadNotificationCount, { siteId: siteId as Id<"sites"> });
+  const mediaHealth = useQuery(api.media.healthStats, { siteId: siteId as Id<"sites"> });
   const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
   const isSuperAdmin = me?.isSuperAdmin ?? false;
 
@@ -212,7 +219,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           {isEnabled("courses") && <NavItem icon={BookOpen} label="Courses" href={`/app/sites/${siteId}/courses`} isSuperAdmin={isSuperAdmin} />}
           {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} isSuperAdmin={isSuperAdmin} />}
           {isEnabled("articles") && <NavItem icon={FileText} label="Articles" href={`/app/sites/${siteId}/articles`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} isSuperAdmin={isSuperAdmin} />}
+          {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} isSuperAdmin={isSuperAdmin} badge={mediaHealth?.broken} />}
           <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} isSuperAdmin={isSuperAdmin} />
           <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} isSuperAdmin={isSuperAdmin} />
           {isEnabled("forms") && <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />}
