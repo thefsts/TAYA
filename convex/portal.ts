@@ -219,16 +219,15 @@ export const register = action({
       status,
     });
 
-    // Send welcome email (fire-and-forget; failure must not block registration)
-    await ctx.runAction(internal.email.sendPortalWelcome, {
+    // Schedule welcome email — decoupled so Resend latency/errors can't eat into
+    // the registration action's timeout budget or block the caller.
+    await ctx.scheduler.runAfter(0, internal.email.sendPortalWelcome, {
       siteId: site._id,
       siteName: site.name,
       firstName: args.firstName.trim(),
       email: normalEmail,
       requiresApproval: status === "pending_approval",
-    }).catch((err: unknown) =>
-      console.warn("[portal.register] welcome email failed:", err)
-    );
+    });
 
     if (status === "active") {
       const token = randomHex(32);
