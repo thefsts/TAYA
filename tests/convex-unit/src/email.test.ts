@@ -20,7 +20,7 @@
  * behaviour by the unique argument shapes of each call.
  */
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 
 // ── Mock Convex infrastructure BEFORE importing modules under test ───────────
 
@@ -78,7 +78,7 @@ vi.mock("../../convex/lib/getCurrentUser.js", () => ({
 }));
 
 // ── Import modules under test ────────────────────────────────────────────────
-import { sendFormNotification, sendPortalWelcome } from "../../convex/email.js";
+import { send, sendFormNotification, sendPortalWelcome } from "../../convex/email.js";
 import { submit } from "../../convex/formSubmissions.js";
 import { register } from "../../convex/portal.js";
 
@@ -559,5 +559,82 @@ describe("portal.register — sendPortalWelcome integration", () => {
     const result = await handler(register)(ctx as never, VALID_ARGS);
     expect(result.success).toBe(false);
     expect(ctx._runActionCalls).toHaveLength(0);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 5. email.send — Resend REST API wrapper
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("email.send", () => {
+  const SEND_ARGS = {
+    to: "recipient@example.com",
+    subject: "Test subject",
+    html: "<p>Hello</p>",
+    fromName: "My Agency",
+    fromEmail: "noreply@myagency.com",
+  };
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("returns { success: false } without throwing when RESEND_API_KEY is absent", async () => {
+    vi.stubEnv("RESEND_API_KEY", "");
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    // Patch process.env directly too, since the handler reads process.env.RESEND_API_KEY
+    const origKey = process.env.RESEND_API_KEY;
+    delete process.env.RESEND_API_KEY;
+
+    try {
+      const result = await handler(send)({} as never, SEND_ARGS);
+      expect(result).toMatchObject({ success: false });
+      // fetch must NOT have been called — no real network request
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      if (origKey !== undefined) process.env.RESEND_API_KEY = origKey;
+    }
+  });
+
+  it("returns { success: false, error } without throwing when Resend returns non-200", async () => {
+    process.env.RESEND_API_KEY = "test-api-key";
+    const fetchMock = vi.fn(async () =>
+      new Response("rate limit exceeded", { status: 429 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await handler(send)({} as never, SEND_ARGS);
+
+    expect(result).toMatchObject({ success: false });
+    expect((result as { error?: string }).error).toBeTruthy();
+  });
+
+  it("calls fetch with correct Authorization header and body fields on success", async () => {
+    process.env.RESEND_API_KEY = "re_test_secret";
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ id: "msg_123" }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await handler(send)({} as never, SEND_ARGS);
+
+    expect(result).toMatchObject({ success: true });
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://api.resend.com/emails");
+    expect((init.headers as Record<string, string>)["Authorization"]).toBe(
+      "Bearer re_test_secret",
+    );
+
+    const body = JSON.parse(init.body as string) as Record<string, unknown>;
+    expect(body.to).toEqual(["recipient@example.com"]);
+    expect(body.subject).toBe("Test subject");
+    expect(body.html).toBe("<p>Hello</p>");
+    expect(String(body.from)).toContain("noreply@myagency.com");
+    expect(String(body.from)).toContain("My Agency");
   });
 });
