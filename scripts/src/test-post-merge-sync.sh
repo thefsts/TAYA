@@ -680,6 +680,130 @@ test_amended_first_commit_caught() {
   fi
 }
 
+# ── Test 7: force-push moves github/main backward → stale ref would miss the
+#            wrong-identity commit; live fetch must still catch it ───────────
+#
+# The bypass scenario this guards against:
+#   1. A wrong-identity commit W is made on the working repo and pushed to the
+#      fake remote so github/main points at W.
+#   2. The remote is then force-reset back to the initial commit A (simulating
+#      a history rewrite / force-push that removes W from remote history).
+#   3. A correct-identity commit C is added on top of W in the working repo.
+#
+# If post-merge.sh used a STALE github/main (still pointing at W), the range
+# would be W..HEAD = {C only} — the wrong-identity commit W would be silently
+# skipped and could reach GitHub on the next push.
+#
+# post-merge.sh must fetch github/main before computing the range. After the
+# fetch, github/main = A (the reset tip), so the range becomes A..HEAD = {W, C}
+# — W is in-range and the identity guard fires.
+#
+# This test confirms the guard catches W even after the remote has been force-
+# pushed to a state that no longer includes W, proving the range calculation
+# relies on the post-fetch boundary and not a stale ref.
+test_force_push_moves_boundary_wrong_identity_still_caught() {
+  echo ""
+  echo -e "${BOLD}Test 7: Force-push moves github/main backward — stale-ref bypass is not possible${RESET}"
+
+  local tmpdir
+  tmpdir="$(setup_repos)"
+  local fake_remote="$tmpdir/fake-remote.git"
+  local working="$tmpdir/working"
+  local bin_dir="$tmpdir/bin"
+  mkdir -p "$bin_dir"
+  create_git_stub "$bin_dir" "$fake_remote"
+  create_pnpm_stub "$bin_dir"
+
+  # Capture the initial remote tip (commit A) — the remote will be reset here
+  # after W is pushed, so this is also the "reset" tip we will restore.
+  local initial_tip
+  initial_tip="$(git -C "$working" ls-remote github HEAD | cut -f1)"
+
+  # ── Step 1: commit a wrong-identity commit W on the working repo ──────────
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --allow-empty -m "wrong-identity commit W (will be orphaned by remote rewrite)" \
+    >/dev/null 2>&1
+  local sha_W
+  sha_W="$(git -C "$working" rev-parse --short HEAD)"
+
+  # ── Step 2: push W to the fake remote so github/main now points at W ──────
+  # This simulates the state where W was already on GitHub before the history
+  # rewrite. (The git stub lets us push to the fake bare repo directly.)
+  PATH="$bin_dir:$PATH" git -C "$working" push github main >/dev/null 2>&1
+
+  # ── Step 3: force-reset the remote back to the initial commit A ───────────
+  # This simulates someone running `git push --force` on GitHub to rewrite the
+  # remote history, removing W from the remote's ancestry.
+  # We update the bare repo's ref directly (equivalent to a force-push).
+  git -C "$fake_remote" update-ref refs/heads/main "$initial_tip" >/dev/null 2>&1
+
+  # Sanity-check: remote must now be back at A, not at W.
+  local remote_tip_now
+  remote_tip_now="$(git -C "$fake_remote" rev-parse HEAD 2>/dev/null || \
+                    git -C "$fake_remote" rev-parse refs/heads/main)"
+  if [ "$remote_tip_now" = "$initial_tip" ]; then
+    : # expected
+  else
+    fail "Setup error: remote was not successfully reset to initial_tip ($initial_tip), got $remote_tip_now"
+    return
+  fi
+
+  # ── Step 4: add a correct-identity commit C on top of W in the working repo ─
+  # C becomes HEAD; post-merge.sh will amend it (no-op — author already OK).
+  # The wrong-identity commit W is now BENEATH HEAD.
+  git -C "$working" \
+    -c user.name="THEFSTS" \
+    -c user.email="amorebey@gmail.com" \
+    commit --allow-empty -m "correct-identity commit C (HEAD)" >/dev/null 2>&1
+
+  run_post_merge "$working" "$bin_dir"
+
+  # ── Assertion 1: script must exit non-zero — W is in the live range ────────
+  # With a stale github/main (= W), the range would be W..HEAD = {C} and W
+  # would be missed (exit 0). With the fetched github/main (= A), the range is
+  # A..HEAD = {W, C} and W is caught (exit non-zero).
+  if [ "$LAST_EXIT" -ne 0 ]; then
+    pass "Script exits non-zero — wrong-identity commit W caught against the post-fetch range boundary"
+  else
+    fail "Script exited 0 — wrong-identity commit W was NOT caught (stale-ref bypass may be in effect)"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+    return
+  fi
+
+  # ── Assertion 2: output must mention the identity failure clearly ──────────
+  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
+    pass "Output clearly reports the identity violation"
+  else
+    fail "Output should mention the identity failure (unauthorised author / ABORTED)"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # ── Assertion 3: W's short SHA must appear in the output ──────────────────
+  # This confirms the guard found W specifically, not just any other commit.
+  if echo "$LAST_OUTPUT" | grep -q "$sha_W"; then
+    pass "Wrong-identity commit SHA $sha_W (commit W) appears in the violation report"
+  else
+    fail "Commit W SHA $sha_W not found in output — guard may not have reached W in the range"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # ── Assertion 4: remote must still be at initial_tip — nothing was pushed ──
+  local remote_tip_after
+  remote_tip_after="$(git -C "$fake_remote" rev-parse refs/heads/main)"
+  if [ "$remote_tip_after" = "$initial_tip" ]; then
+    pass "Remote remains at the pre-rewrite tip — wrong-identity commit W was never pushed"
+  else
+    fail "Remote tip changed — wrong-identity commit W (or later commits) reached the remote despite the identity failure"
+    echo "    remote expected: $initial_tip"
+    echo "    remote got:      $remote_tip_after"
+  fi
+}
+
 # ── Test runner ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}=== post-merge.sh GitHub sync integration tests ===${RESET}"
@@ -691,6 +815,7 @@ test_wrong_identity_aborts_push
 test_multiple_wrong_identity_all_caught
 test_rebase_rewrite_wrong_identity_caught
 test_amended_first_commit_caught
+test_force_push_moves_boundary_wrong_identity_still_caught
 
 echo ""
 echo -e "${BOLD}=== Results: $PASS passed, $FAIL failed ===${RESET}"
