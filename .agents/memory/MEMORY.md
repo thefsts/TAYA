@@ -16,3 +16,4 @@
 - [Pull external repo over scaffold](pull-external-repo-over-scaffold.md) — set origin + gitPull (merge fails on unrelated history but fetch succeeds), then `git reset --hard origin/<branch>`.
 - [FSTS-WOS security model](fsts-security-model.md) — full guard vocabulary for audits; CONVEX_TEST_MODE is a backdoor if set on prod; convex-test seeding trap.
 - [Convex deployment fix](convex-deployment-fix.md) — CONVEX_DEPLOY_KEY→uncommon-cobra-336 now matches VITE_CONVEX_URL; test-mode provisioning pattern + Corsair tenant IDs.
+- [Corsair lock-file / Vercel npm compat](corsair-lockfile-vercel-compat.md) — never regenerate package-lock.json locally; Vercel's npm resolves @emnapi/* differently; restore green lock file instead.

@@ -2,7 +2,7 @@
 # ── Identity enforcement ───────────────────────────────────────────────────
 # Unconditionally write the approved identity to git config so git picks it
 # up when GIT_AUTHOR_* / GIT_COMMITTER_* are not injected by the platform.
-git config user.name  "THEFSTS"
+git config user.name  "thefsts"
 git config user.email "amorebey@gmail.com"
 
 # Read the effective author identity that git will actually use.
@@ -11,13 +11,13 @@ git config user.email "amorebey@gmail.com"
 AUTHOR_IDENT="$(git var GIT_AUTHOR_IDENT 2>/dev/null || true)"
 COMMITTER_IDENT="$(git var GIT_COMMITTER_IDENT 2>/dev/null || true)"
 
-APPROVED_NAME="THEFSTS"
+APPROVED_NAME="thefsts"
 APPROVED_EMAIL="amorebey@gmail.com"
 
 # ── Author check (hard failure) ────────────────────────────────────────────
 # Vercel and GitHub match commits by author email; a wrong author blocks CI.
 case "$AUTHOR_IDENT" in
-  "THEFSTS <amorebey@gmail.com>"*) ;;
+  "thefsts <amorebey@gmail.com>"*) ;;
   *)
     echo "✗ pre-commit: author identity is not approved." >&2
     echo "  effective author: $AUTHOR_IDENT" >&2
@@ -35,7 +35,7 @@ esac
 # that override git config; committer identity is outside task-agent control.
 # Vercel does not use committer email for account matching.
 case "$COMMITTER_IDENT" in
-  "THEFSTS <amorebey@gmail.com>"*) ;;
+  "thefsts <amorebey@gmail.com>"*) ;;
   *)
     echo "WARN: pre-commit: committer identity differs (platform sync — non-blocking)." >&2
     echo "  effective committer: $COMMITTER_IDENT" >&2

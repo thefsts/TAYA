@@ -27,12 +27,3 @@ description: Documents the resolved CONVEX_DEPLOY_KEY / VITE_CONVEX_URL mismatch
 4. Restore: `npx convex env remove CONVEX_TEST_MODE --prod` + `npx convex env set CONVEX_DEPLOYMENT_ENVIRONMENT production --prod`
 
 **Why:** Clerk FAPI at `clerk.fstsclientsystem.com` has no DNS CNAME set up, so no browser-based Clerk session is obtainable from the Replit environment. Test-mode mutations are the only available path for automation-driven provisioning.
-
-# Corsair Tenant Records (Production)
-
-All three records are live on `uncommon-cobra-336.convex.cloud`:
-- Agency: `j97d4ynvkqa4c2h6t9qvca7wns8bk84f` (slug: corsair-tactical)
-- Site: `qd7cpjk68m0z4rme5hw4sqgeys8bk1zc` (domain: corsairtacticalsolutions.com)
-- Admin: `rd75t0azccd9a815qvsm8dgb698bk5ky` (email: corsairtacticalsolutions@gmail.com, role: client_admin)
-
-Admin user has `clerkUserId: "pending:corsairtacticalsolutions@gmail.com"` — auto-promoted on first real Clerk login.

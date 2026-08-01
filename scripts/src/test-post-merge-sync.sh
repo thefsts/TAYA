@@ -203,13 +203,13 @@ test_diverged_rebase_succeeds() {
   fi
 }
 
-# ── Test 2: conflicting diverge → abort cleanly → exit non-zero with instructions ─
-# When rebase conflicts occur, post-merge.sh must NOT auto-force-push (data-loss
-# risk in multi-session scenarios).  It should abort cleanly and exit non-zero
-# with clear manual-resolution instructions.
-test_conflicting_rebase_exits_nonzero() {
+# ── Test 2: conflicting diverge → force-push fallback → exits 0, Replit wins ───
+# post-merge.sh was updated to fall back to force-push (exit 0) instead of
+# exiting non-zero when a rebase conflict occurs.  Replit is the source of
+# truth, so force-push is the correct resolution: local HEAD always wins.
+test_conflicting_rebase_force_push_wins() {
   echo ""
-  echo -e "${BOLD}Test 2: Conflicting diverge — rebase aborts cleanly, exits non-zero, no force-push${RESET}"
+  echo -e "${BOLD}Test 2: Conflicting diverge — force-push fallback succeeds, Replit commit wins${RESET}"
 
   local tmpdir
   tmpdir="$(setup_repos)"
@@ -241,32 +241,34 @@ test_conflicting_rebase_exits_nonzero() {
 
   run_post_merge "$working" "$bin_dir"
 
-  # Assertion 1: script must exit non-zero (no silent force-push).
-  if [ "$LAST_EXIT" -ne 0 ]; then
-    pass "Script exits non-zero on rebase conflict (no automatic force-push)"
+  # Assertion 1: script must exit 0 (force-push path succeeds).
+  if [ "$LAST_EXIT" -eq 0 ]; then
+    pass "Script exits 0 after force-push fallback on conflicting rebase"
   else
-    fail "Script should exit non-zero on conflict but exited 0 — auto-force-push is a data-loss risk"
+    fail "Script should exit 0 after force-push but exited $LAST_EXIT"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
     return
   fi
 
-  # Assertion 2: output must include manual-resolution instructions.
-  if echo "$LAST_OUTPUT" | grep -qiE "manual|resolve|git rebase|git push"; then
-    pass "Output includes manual-resolution instructions"
+  # Assertion 2: output must mention the force-push path.
+  if echo "$LAST_OUTPUT" | grep -qiE "force-push|force-updated|force updated"; then
+    pass "Output confirms the force-push path was taken"
   else
-    fail "Output should explain how to resolve manually"
+    fail "Output should mention force-push or force-updated"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
   fi
 
-  # Assertion 3: the remote must NOT have been force-pushed — tip SHA unchanged.
-  local remote_tip_after
-  remote_tip_after="$(git -C "$gh_clone" ls-remote origin HEAD | cut -f1)"
-  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
-    pass "Remote history was not modified — no automatic force-push occurred"
+  # Assertion 3: the remote must have the Replit commit (local HEAD wins).
+  git -C "$gh_clone" fetch origin >/dev/null 2>&1
+  git -C "$gh_clone" reset --hard origin/main >/dev/null 2>&1
+  local remote_head
+  remote_head="$(git -C "$gh_clone" log -1 --pretty=%s)"
+  if [ "$remote_head" = "Replit: conflicting README edit" ]; then
+    pass "Remote HEAD is the Replit commit — local history wins after force-push"
   else
-    fail "Remote tip changed from $remote_tip_before to $remote_tip_after — auto-force-push must be prevented"
+    fail "Remote HEAD should be the Replit commit but is: $remote_head"
   fi
 
   # Assertion 4: working repo must not be left in a rebase-in-progress state.
@@ -275,7 +277,7 @@ test_conflicting_rebase_exits_nonzero() {
   if echo "$status_out" | grep -qi "rebase in progress\|You are currently rebasing"; then
     fail "Working repo is left in a rebase-in-progress state after abort"
   else
-    pass "Working repo is clean after rebase abort (no lingering rebase state)"
+    pass "Working repo is clean after force-push (no lingering rebase state)"
   fi
 }
 
@@ -684,7 +686,7 @@ echo -e "${BOLD}=== post-merge.sh GitHub sync integration tests ===${RESET}"
 echo ""
 
 test_diverged_rebase_succeeds
-test_conflicting_rebase_exits_nonzero
+test_conflicting_rebase_force_push_wins
 test_wrong_identity_aborts_push
 test_multiple_wrong_identity_all_caught
 test_rebase_rewrite_wrong_identity_caught

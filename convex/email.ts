@@ -6,7 +6,16 @@ import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
 function toResponse(doc: any) {
-  return { ...doc, id: doc._id, siteId: doc.siteId, updatedAt: new Date(doc._creationTime).toISOString() };
+  // Never expose the raw resendApiKey — return only a presence flag so the UI
+  // can show "API key configured ✓" without leaking the credential.
+  const { resendApiKey, ...rest } = doc;
+  return {
+    ...rest,
+    id: doc._id,
+    siteId: doc.siteId,
+    updatedAt: new Date(doc._creationTime).toISOString(),
+    resendApiKeyConfigured: !!resendApiKey,
+  };
 }
 
 // ─── Internal query: fetch emailSettings for a site ───────────────────────────
@@ -33,12 +42,21 @@ export const send = internalAction({
     fromName: v.optional(v.string()),
     fromEmail: v.optional(v.string()),
     replyTo: v.optional(v.string()),
+    // Per-site Resend API key override. When provided, takes precedence over
+    // the platform-level RESEND_API_KEY environment variable. This allows each
+    // client site to send from its own Resend account/domain without sharing a
+    // single platform credential.
+    apiKey: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey = process.env.RESEND_API_KEY;
+    const apiKey = args.apiKey || process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.warn("[email.send] RESEND_API_KEY not set — email skipped");
-      return { success: false, error: "RESEND_API_KEY not configured" };
+      console.warn(
+        "[email.send] No Resend API key available — email skipped. " +
+        "Configure resendApiKey in the site's Email Config, or set RESEND_API_KEY " +
+        "on the platform as a fallback.",
+      );
+      return { success: false, error: "No Resend API key configured (per-site or platform)" };
     }
 
     const fromName = args.fromName ?? "FSTS Platform";
@@ -130,6 +148,9 @@ export const sendFormNotification = internalAction({
       fromName,
       fromEmail: senderEmail,
       replyTo: args.submitterEmail,
+      // Pass the per-site key so this site's emails route through its own
+      // Resend account; falls back to the platform RESEND_API_KEY in send().
+      apiKey: settings?.resendApiKey,
     });
     return { skipped: false };
   },
@@ -178,6 +199,9 @@ export const sendPortalWelcome = internalAction({
       html,
       fromName,
       fromEmail,
+      // Pass the per-site key so portal welcome emails route through the same
+      // Resend account as the site's other outbound mail.
+      apiKey: settings?.resendApiKey,
     });
     return { skipped: false };
   },
@@ -189,7 +213,7 @@ export const get = query({
     if (!await checkSiteAccess(ctx, siteId)) return null;
     if (!await checkModuleEnabled(ctx, siteId, "email")) return null;
     const doc = await ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
-    if (!doc) return { siteId, fromName: "", fromEmail: "", replyToEmail: "", notifyOnNewLead: true, notifyOnBooking: true, updatedAt: new Date().toISOString() };
+    if (!doc) return { siteId, fromName: "", fromEmail: "", replyToEmail: "", notifyOnNewLead: true, notifyOnBooking: true, updatedAt: new Date().toISOString(), resendApiKeyConfigured: false };
     return toResponse(doc);
   },
 });
@@ -203,8 +227,15 @@ export const update = mutation({
     notificationEmail: v.optional(v.string()),
     notifyOnNewLead: v.optional(v.boolean()),
     notifyOnBooking: v.optional(v.boolean()),
+    // Per-site Resend API key. Pass an empty string "" to clear an existing key.
+    // The raw value is never returned by `email.get` — only a boolean flag.
+    resendApiKey: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
+    // Treat an empty string as "remove the key" so the UI can clear it with ""
+    if ("resendApiKey" in fields && fields.resendApiKey === "") {
+      (fields as Record<string, unknown>).resendApiKey = undefined;
+    }
     const user = await requireDesignCapability(ctx, siteId);
     await requireModuleEnabled(ctx, siteId, "email");
     const existing = await ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
@@ -216,8 +247,12 @@ export const update = mutation({
       docId = await ctx.db.insert("emailSettings", { siteId, fromName: "", fromEmail: "", replyToEmail: "", notifyOnNewLead: true, notifyOnBooking: true, ...fields });
     }
     const doc = (await ctx.db.get(docId))!;
-    await logActivity(ctx, { siteId, actorName: user.name, action: existing ? "updated" : "created", entityType: "email_settings", page: "Email Config", previousValue: existing, newValue: doc });
-    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "email_settings", entityId: docId, snapshot: doc });
+    // Strip resendApiKey before logging — never persist the raw secret in
+    // activity logs or version history (accessible to any site-access user).
+    const { resendApiKey: _key, ...docSafe } = doc as any;
+    const existingSafe = existing ? (() => { const { resendApiKey: _k, ...s } = existing as any; return s; })() : existing;
+    await logActivity(ctx, { siteId, actorName: user.name, action: existing ? "updated" : "created", entityType: "email_settings", page: "Email Config", previousValue: existingSafe, newValue: docSafe });
+    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "email_settings", entityId: docId, snapshot: docSafe });
     return toResponse(doc);
   },
 });

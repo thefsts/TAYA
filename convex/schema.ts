@@ -227,6 +227,11 @@ export default defineSchema({
     notificationEmail: v.optional(v.string()),
     notifyOnNewLead: v.boolean(),
     notifyOnBooking: v.boolean(),
+    // Per-site Resend API key. When set, all email delivery for this site uses
+    // this key instead of the platform-level RESEND_API_KEY environment variable.
+    // Stored as plaintext in Convex (encrypted at rest). Never returned by the
+    // public `email.get` query — only a boolean presence flag is exposed there.
+    resendApiKey: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
   contentVersions: defineTable({

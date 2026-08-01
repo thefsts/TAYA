@@ -7,6 +7,7 @@
 
 ---
 
+
 ## Summary
 
 This report fulfils the Phase 2A requirement: a read-only comparison between the
@@ -102,6 +103,7 @@ These additions confirm the dedicated repo is **ahead** of the FSTS-WOS removal 
 
 ---
 
+
 ## Recommendation
 
 **The `thefsts/Corsair-Tactical-Solutions` repository is complete and ready for onboarding.**
@@ -128,6 +130,7 @@ the repository is actively maintained and ahead of the removal snapshot.
 **Corsair onboarding may proceed.**
 
 ---
+
 
 ## Files Found Only in corsair-source/ (not in FSTS-WOS™ platform)
 

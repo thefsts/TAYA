@@ -58,6 +58,7 @@ return JSON. All support CORS (`Access-Control-Allow-Origin: *`).
 | `GET /api/public/cta?slug=` | Call-to-action block content |
 | `GET /api/public/popup?slug=` | Modal/popup content and trigger config |
 | `GET /api/public/policies?slug=` | Privacy policy and terms of service |
+
 ### Content Collection Endpoints (GET)
 
 | Endpoint | Description |
@@ -74,6 +75,7 @@ return JSON. All support CORS (`Access-Control-Allow-Origin: *`).
 | `GET /api/public/careers?slug=` | Job listings / careers |
 | `GET /api/public/pricing?slug=` | Pricing plans and tiers |
 | `GET /api/public/reviews?slug=` | Reviews (also used by the embed widget) |
+
 ### Single-Article Endpoint
 
 ```

@@ -3,7 +3,7 @@ import { execSync, spawnSync } from "node:child_process";
 const OWNER = "thefsts";
 const REPO = "FSTS-client-Dashboard-for-sites-";
 const BRANCH = "main";
-const AUTHOR_NAME = "Thefsts";
+const AUTHOR_NAME = "THEFSTS";
 const AUTHOR_EMAIL = "amorebey@gmail.com";
 
 function redact(text: string, token: string): string {
@@ -145,6 +145,30 @@ async function sendAlerts(errorOutput: string, token: string): Promise<void> {
     execSync(`git remote set-url github "${remoteUrl}"`, { stdio: "ignore" });
   } catch {
     execSync(`git remote add github "${remoteUrl}"`, { stdio: "ignore" });
+  }
+
+  // ── Identity check gate ──────────────────────────────────────────────────
+  // Abort the push if any outgoing commit still has a bad author, so no
+  // unauthorized email can reach GitHub / Vercel.
+  console.log("→ Checking commit author identity for outgoing range…");
+  const identityCheck = spawnSync(
+    "bash",
+    [`${repoRoot}/scripts/check-commit-identity.sh`],
+    { encoding: "utf8", stdio: "pipe" },
+  );
+  const identityOut = [
+    identityCheck.stdout ?? "",
+    identityCheck.stderr ?? "",
+  ]
+    .join("")
+    .trim();
+  if (identityOut) console.log(identityOut);
+  if (identityCheck.status !== 0) {
+    console.error(
+      "✗ Push aborted: outgoing commits contain unauthorized author(s).\n" +
+        "  Run `bash scripts/post-merge.sh` to rewrite them, then retry.",
+    );
+    process.exit(identityCheck.status ?? 1);
   }
 
   console.log(`→ Pushing to github.com/${OWNER}/${REPO} (branch: ${BRANCH})…`);

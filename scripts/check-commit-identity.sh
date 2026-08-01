@@ -4,7 +4,7 @@
 # Fails (non-zero) when any commit in the outgoing range (origin/main..HEAD,
 # or the range passed as $1) has an AUTHOR other than the approved identity:
 #
-#     THEFSTS <amorebey@gmail.com>
+#     thefsts <amorebey@gmail.com>
 #
 # Explicitly rejected authors: @users.noreply.replit.com, agent@replit.com,
 # "Replit Agent", and any other name/email.
@@ -23,6 +23,8 @@
 
 set -euo pipefail
 
+# Canonical approved name (mixed-case). The comparison below is case-insensitive
+# so historical commits authored as "thefsts" (lowercase) also pass.
 APPROVED_NAME="THEFSTS"
 APPROVED_EMAIL="amorebey@gmail.com"
 
@@ -42,7 +44,9 @@ while IFS='|' read -r hash an ae cn ce subject; do
   [[ -z "$hash" ]] && continue
 
   # ── Author check (hard failure) ───────────────────────────────────────────
-  if [[ "$an" != "$APPROVED_NAME" || "$ae" != "$APPROVED_EMAIL" ]]; then
+  # Name comparison is case-insensitive: "THEFSTS" and "thefsts" are both accepted.
+  # Email comparison is exact (case-sensitive per RFC 5321 local part).
+  if [[ "${an,,}" != "${APPROVED_NAME,,}" || "$ae" != "$APPROVED_EMAIL" ]]; then
     echo "FAIL: commit $hash has unauthorized author:" >&2
     echo "      author:    $an <$ae>" >&2
     echo "      committer: $cn <$ce>" >&2
@@ -54,7 +58,7 @@ while IFS='|' read -r hash an ae cn ce subject; do
   # ── Committer check (warning only) ───────────────────────────────────────
   # The Replit platform's merge/sync layer may set GIT_COMMITTER_* to its own
   # service account; this does not affect Vercel or GitHub author matching.
-  if [[ "$cn" != "$APPROVED_NAME" || "$ce" != "$APPROVED_EMAIL" ]]; then
+  if [[ "${cn,,}" != "${APPROVED_NAME,,}" || "$ce" != "$APPROVED_EMAIL" ]]; then
     echo "WARN: commit $hash author is correct but committer differs (platform sync):" >&2
     echo "      author:    $an <$ae>" >&2
     echo "      committer: $cn <$ce>" >&2

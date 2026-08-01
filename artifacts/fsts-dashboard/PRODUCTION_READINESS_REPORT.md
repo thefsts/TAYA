@@ -229,7 +229,6 @@ All commands run against the current codebase at `6002a58`.
 **Fix (2 minutes, owner action):** See `WWW_DOMAIN_FIX.md` for exact steps. Short version: Vercel Dashboard → project → Settings → Domains → Add `www.fstsclientsystem.com` → redirect to `fstsclientsystem.com` (308). No DNS change needed — the DNS record already points at Vercel.
 
 **`api`, `status`, `docs`** are not required for Website #1. The dashboard is a Vite SPA served from the apex domain; there is no API subdomain in the current architecture. These should be reported as Reserved and addressed before any subdomain-dependent feature is launched.
-
 ### Vercel — Partially Verified
 
 | Item | Status | Evidence |
@@ -285,7 +284,7 @@ All commands run against the current codebase at `6002a58`.
 | 10 | Authorization (RBAC) | ✅ Complete | All roles enforced at Convex layer; 69/69 design-lock tests |
 | 11 | Tenant isolation | ✅ Complete | 18/18 tenant-isolation tests; site-list leak fixed; portal session cross-check confirmed |
 | 12 | Media Library (Base64 → File Storage) | ✅ Resolved | `generateUploadUrl` + `storageId` path; `migrateDeleteDataUrls` available for legacy cleanup |
-| 13 | Email delivery (Resend) | ✅ Code complete | `internal.email.send` wired; 28 email tests passing. **Requires RESEND_API_KEY in Convex prod** |
+| 13 | Email delivery (Resend) | ⚠️ DNS config required | Code complete (104 email tests passing). Per-site `resendApiKey` in `emailSettings`; platform `RESEND_API_KEY` confirmed set in Convex prod (verified 2026-08-01T02:20Z via `scripts/verify-email-delivery.sh`). **Blocking DNS gaps:** `fsts-platform.com` SPF record absent; DKIM CNAME absent — owner must add both records in DNS provider before live delivery. Live inbox E2E: submit form → check inbox (human step, requires DNS fix first). See `EMAIL_DELIVERY_RUNBOOK.md`. |
 | 14 | Portal rate limiting | ✅ Resolved | Atomic `_attemptLogin`/`_loginSuccess`; lockout fields in schema; UI countdown verified |
 | 15 | Form submission notifications | ✅ Complete | `sendFormNotification` scheduled on submit; `notificationEmail` override field; 4 scheduler tests passing |
 | 16 | Portal welcome email | ✅ Complete | `sendPortalWelcome` scheduled via `scheduler.runAfter` (fire-and-forget with try/catch); 6 tests passing |
@@ -296,11 +295,10 @@ All commands run against the current codebase at `6002a58`.
 | 21 | Git identity guard | ✅ Verified | Server-side pre-receive hook active and confirmed blocking violations |
 | 22 | Repository boundary guard | ✅ Verified | `check-boundary.sh` active; Corsair boundary enforced |
 | 23 | TypeScript typecheck | ✅ Clean | 0 errors across all 3 workspace packages |
-| 24 | Test suite health | ✅ 216/219 pass | 75 convex-unit + 69 design-lock + 3 visual = 147 automated; 3 health-monitor skipped (CLERK_TEST_TOKEN env required — not a regression) |
+| 24 | Test suite health | ✅ 222/225 pass | 81 convex-unit + 69 design-lock + 3 visual = 153 automated; 3 health-monitor skipped (CLERK_TEST_TOKEN env required — not a regression) |
 | 25 | Dashboard completion | ✅ 97% | 49/50 modules fully wired; Stripe is only incomplete item (marked Coming Soon; not required for Website #1) |
 
 ---
-
 ## Verdict
 
 ```

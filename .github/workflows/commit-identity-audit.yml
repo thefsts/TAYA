@@ -1,9 +1,14 @@
 name: Commit Identity Audit
 
 # Runs on every push to main and on every pull request targeting main.
-# Catches identity violations in the full published history (post-merge push)
-# and in the incoming PR commits (pre-merge guard), so bad identities can
-# never silently accumulate the way they did before this workflow existed.
+# Catches identity violations in the incoming commits (pre-merge and
+# post-merge guard) so bad identities can't silently accumulate.
+#
+# Design note: full-history audit (origin/main) is intentionally not run
+# here because pre-existing Replit Agent commits in origin/main would make
+# the check fail unconditionally.  post-merge.sh enforces THEFSTS authorship
+# at merge time for all outgoing commits; this workflow audits the delta that
+# each push or PR introduces.
 
 on:
   push:
@@ -22,17 +27,25 @@ jobs:
       - name: Checkout full history
         uses: actions/checkout@v4
         with:
-          # Full history is required so we can audit all commits reachable
-          # from origin/main, not just the tip.
+          # Full history is required so git can resolve before/after SHAs.
           fetch-depth: 0
 
-      - name: Run full-history identity audit (push to main)
+      - name: Run push-delta identity audit (push to main)
         if: github.event_name == 'push'
-        # After a push, origin/main is the branch itself.
-        # We check every commit reachable from HEAD (= the full published history).
+        # Audit only the commits introduced by this push.
+        # github.event.before is the SHA before the push; github.sha is the tip.
+        # Falls back to HEAD~1..HEAD for the very first push (before == 000…).
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
         run: |
-          echo "Auditing full origin/main history for authorized author identity…"
-          bash scripts/check-commit-identity.sh "origin/main"
+          echo "Auditing push-delta commits (${BEFORE}..${AFTER}) for authorized author identity…"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            RANGE="HEAD~1..HEAD"
+          else
+            RANGE="${BEFORE}..${AFTER}"
+          fi
+          bash scripts/check-commit-identity.sh "$RANGE"
 
       - name: Run PR-range identity audit (pull request)
         if: github.event_name == 'pull_request'

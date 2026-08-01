@@ -81,6 +81,8 @@ const SQUARE_MOCK_INIT_SCRIPT = `
 })();
 `;
 
+/* ── Fake API responses ───────────────────────────────────────────────────── */
+
 /**
  * Build a fake create-order success body that mirrors the real route response,
  * including the `groupRegistration` field the route derives from
@@ -99,6 +101,7 @@ function makeFakeOrderOk(attendeeCount: number): string {
     groupRegistration: attendeeCount >= 10,
   });
 }
+
 const FAKE_PAYMENT_OK = JSON.stringify({
   success: true,
   paymentId: "fake-payment-id-0001",
@@ -427,7 +430,6 @@ test.describe("BookingForm → group_registration flag propagation", () => {
         });
       });
 
-      // Intercept create-order: capture body → return fake success.
       let orderReqBody: Record<string, unknown> = {};
       await page.route("**/api/square/create-order", async (route) => {
         try {
@@ -449,7 +451,6 @@ test.describe("BookingForm → group_registration flag propagation", () => {
         });
       });
 
-      // Intercept create-payment: capture body → return fake success.
       let paymentReqBody: Record<string, unknown> = {};
       await page.route("**/api/square/create-payment", async (route) => {
         try {
@@ -496,9 +497,15 @@ test.describe("BookingForm → group_registration flag propagation", () => {
       // The banner renders: <p className="...">Group Registration</p>
       // when attendees.length >= GROUP_THRESHOLD (5).
       const groupBanner = page.getByText("Group Registration", { exact: true });
-      await expect(groupBanner).toBeVisible({ timeout: 3_000 });
+      await expect(groupBanner).toBeVisible({
+        timeout: 3_000,
+      });
 
       // ── Step 1d: Remove 2 attendees to drop below threshold ──────────────
+      // The "Remove" button is shown for every attendee with idx > 0.
+      // We click it twice, each time on the last visible Remove button so we
+      // always remove from the bottom of the list (safest, avoids index shift
+      // confusion mid-removal).
       const removeButtons = () =>
         page.getByRole("button", { name: /^Remove$/i });
 
@@ -514,6 +521,8 @@ test.describe("BookingForm → group_registration flag propagation", () => {
       ).toBeVisible({ timeout: 5_000 });
 
       // ── Step 1e: Confirm the group banner is gone ────────────────────────
+      // The banner element should no longer be in the DOM (or at minimum
+      // not visible) once attendees.length drops below GROUP_THRESHOLD.
       await expect(groupBanner).not.toBeVisible({ timeout: 3_000 });
 
       // ── Step 1f: Fill the 4 remaining attendees' required fields ─────────
@@ -554,22 +563,26 @@ test.describe("BookingForm → group_registration flag propagation", () => {
         .first();
       await ageLabel.click();
 
-      // Advance to step 3.
       await page
         .getByRole("button", { name: /Continue to Payment/i })
         .click();
       await page.waitForTimeout(500);
 
       // ── Step 3: Payment ──────────────────────────────────────────────────
+      // Give the step-3 useEffect time to run its Square init check before we
+      // inspect any state.
       await page.waitForTimeout(800);
 
+      // Square configuration guard (mirrors the guard in runGroupScenario).
+      // If NEXT_PUBLIC_SQUARE_APPLICATION_ID / NEXT_PUBLIC_SQUARE_LOCATION_ID
+      // were not compiled into the bundle the Pay button will never enable.
+      // Skip immediately with a clear message rather than timing out.
       const SQUARE_SKIP_MSG =
         "Square env vars (NEXT_PUBLIC_SQUARE_APPLICATION_ID / " +
         "NEXT_PUBLIC_SQUARE_LOCATION_ID) were not compiled into the " +
         "Corsair dev-server bundle. Start the dev server with those vars " +
         "set to run this test (see tests/corsair-e2e/README.md).";
 
-      // Signal 1 — data attribute (preferred)
       const step3Container = page.locator("[data-square-ready]");
       const squareReadyAttr = await step3Container
         .getAttribute("data-square-ready", { timeout: 3_000 })
@@ -578,7 +591,6 @@ test.describe("BookingForm → group_registration flag propagation", () => {
         test.skip(true, SQUARE_SKIP_MSG);
       }
 
-      // Signal 2 — visible error text (defensive fallback)
       const notConfiguredError = page.getByText(
         /Payment system is not configured/i,
       );

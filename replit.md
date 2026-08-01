@@ -56,7 +56,7 @@ This repository implements **FSTS Website Operating System™ (FSTS-WOS™)** �
 
 ## User preferences
 
-- All commits pushed to GitHub repos on this user's behalf (e.g. the `thefsts/*` GitHub org repos) must be authored as `Thefsts <amorebey@gmail.com>`.
+- All commits pushed to GitHub repos on this user's behalf (e.g. the `thefsts/*` GitHub org repos) must be authored as `thefsts <amorebey@gmail.com>` (lowercase, exactly matching the GitHub username). Never use any other name or email — Vercel blocks deployments if the commit author email doesn't match a GitHub account.
 
 ## Gotchas
 
