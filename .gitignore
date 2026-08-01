@@ -53,3 +53,6 @@ Thumbs.db
 
 # Corsair Tactical Solutions website source (tracked in thefsts/Corsair-Tactical-Solutions)
 corsair-source/
+
+# Playwright generated reports
+tests/corsair-e2e/playwright-report/
