@@ -19,13 +19,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Image as ImageIcon, Plus, Trash2, Sparkles, CheckCircle2, AlertTriangle, BarChart3 } from "lucide-react";
+import { Image as ImageIcon, Plus, Trash2, Sparkles, CheckCircle2, AlertTriangle, BarChart3, XCircle } from "lucide-react";
 import { SmartImageUploader } from "@/components/SmartImageUploader";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function isBroken(m: any): boolean {
+  return typeof m.url === "string" && m.url.startsWith("data:");
 }
 
 export default function MediaLibrary({ params }: { params: { siteId: string } }) {
@@ -215,17 +219,27 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
                   className={`group relative bg-white border rounded-xl overflow-hidden text-left transition-all ${selected?._id === m._id ? "border-primary ring-2 ring-primary/20" : "border-slate-200 hover:border-slate-300"}`}
                 >
                   <div className="aspect-square bg-slate-100 flex items-center justify-center overflow-hidden">
-                    {m.mimeType?.startsWith("image/") ? (
+                    {isBroken(m) ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-red-50">
+                        <XCircle className="h-8 w-8 text-red-400" />
+                        <span className="text-[10px] text-red-500 font-medium">Can't be served</span>
+                      </div>
+                    ) : m.mimeType?.startsWith("image/") ? (
                       <img src={m.thumbnailUrl ?? m.url} alt={m.altText ?? m.fileName} className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon className="h-8 w-8 text-slate-300" />
                     )}
-                    {!m.altText && m.mimeType?.startsWith("image/") && (
+                    {isBroken(m) && (
+                      <div className="absolute top-1.5 left-1.5">
+                        <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1.5">Broken</Badge>
+                      </div>
+                    )}
+                    {!isBroken(m) && !m.altText && m.mimeType?.startsWith("image/") && (
                       <div className="absolute top-1.5 left-1.5">
                         <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1.5">No alt</Badge>
                       </div>
                     )}
-                    {m.mimeType?.includes("webp") && (
+                    {!isBroken(m) && m.mimeType?.includes("webp") && (
                       <div className="absolute top-1.5 right-1.5">
                         <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] px-1.5">WebP</Badge>
                       </div>
@@ -253,12 +267,35 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
         {selected && (
           <div className="w-72 flex-shrink-0 bg-white border border-slate-200 rounded-2xl p-5 space-y-4 self-start sticky top-4">
             <div className="rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-              <img src={selected.thumbnailUrl ?? selected.url} alt={selected.altText ?? selected.fileName} className="w-full object-contain max-h-48" />
+              {isBroken(selected) ? (
+                <div className="w-full h-48 flex flex-col items-center justify-center gap-2 bg-red-50">
+                  <XCircle className="h-10 w-10 text-red-400" />
+                  <span className="text-xs text-red-500 font-medium">Cannot be previewed</span>
+                </div>
+              ) : (
+                <img src={selected.thumbnailUrl ?? selected.url} alt={selected.altText ?? selected.fileName} className="w-full object-contain max-h-48" />
+              )}
             </div>
             <div>
-              <p className="font-semibold text-slate-900 text-sm truncate">{selected.fileName}</p>
+              <p className="font-semibold text-slate-900 text-sm truncate flex items-center gap-1.5">
+                {isBroken(selected) && <XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
+                {selected.fileName}
+              </p>
               <p className="text-xs text-slate-500 mt-0.5">{selected.mimeType}</p>
             </div>
+            {isBroken(selected) && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3 space-y-1.5">
+                <p className="text-xs font-semibold text-red-800 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Broken record
+                </p>
+                <p className="text-xs text-red-700 leading-relaxed">
+                  This asset was stored as a raw base64 data URL, which cannot be served on your live site. It won't appear correctly for visitors.
+                </p>
+                <p className="text-xs text-red-600 font-medium">
+                  Use the "Clean Up" button above to remove all broken records, then re-upload the image.
+                </p>
+              </div>
+            )}
             <div className="space-y-2 text-xs text-slate-600">
               {selected.width && selected.height && (
                 <div className="flex justify-between"><span>Dimensions</span><span className="font-mono">{selected.width}×{selected.height}</span></div>
