@@ -219,15 +219,19 @@ export const register = action({
       status,
     });
 
-    // Schedule welcome email — decoupled so Resend latency/errors can't eat into
-    // the registration action's timeout budget or block the caller.
-    await ctx.scheduler.runAfter(0, internal.email.sendPortalWelcome, {
-      siteId: site._id,
-      siteName: site.name,
-      firstName: args.firstName.trim(),
-      email: normalEmail,
-      requiresApproval: status === "pending_approval",
-    });
+    // Schedule welcome email — fire-and-forget. Wrap in try/catch so that a
+    // transient scheduler failure does not abort a successful registration.
+    try {
+      await ctx.scheduler.runAfter(0, internal.email.sendPortalWelcome, {
+        siteId: site._id,
+        siteName: site.name,
+        firstName: args.firstName.trim(),
+        email: normalEmail,
+        requiresApproval: status === "pending_approval",
+      });
+    } catch (e) {
+      console.warn("[portal.register] Failed to schedule welcome email (registration still succeeds):", e);
+    }
 
     if (status === "active") {
       const token = randomHex(32);

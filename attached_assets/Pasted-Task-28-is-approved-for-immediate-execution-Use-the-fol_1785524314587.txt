@@ -1,0 +1,147 @@
+Task #28 is approved for immediate execution.
+
+Use the following clarifications while completing it:
+
+1. The canonical report location is:
+
+`artifacts/fsts-dashboard/PRODUCTION_READINESS_REPORT.md`
+
+Replace the existing report at that location. Do not create a conflicting duplicate report at the repository root.
+
+2. Use only current, direct evidence.
+
+Do not mark live Vercel, Clerk, Convex, DNS, SSL, environment, webhook, or deployment settings as verified based only on source code or environment-variable names.
+
+Use these status labels where appropriate:
+
+* Verified
+* Partially Verified
+* Unverified — Access Required
+* Blocked — Owner Action Required
+
+3. Infrastructure access limitations must be reported honestly.
+
+If the Vercel connector still returns `403`, verify what is possible through:
+
+* The authorized Vercel project dashboard
+* GitHub deployment checks
+* Public production URL checks
+* DNS and HTTPS requests
+
+Do not access another Vercel project.
+
+If Clerk account settings cannot be inspected directly, verify code integration and environment-variable presence separately, then clearly identify the remaining owner-side Clerk checks.
+
+4. Reserved subdomains are not automatic onboarding blockers.
+
+Audit:
+
+* `fstsclientsystem.com`
+* `www.fstsclientsystem.com`
+* `api.fstsclientsystem.com`
+* `status.fstsclientsystem.com`
+* `docs.fstsclientsystem.com`
+
+The apex dashboard domain and required authentication routes must work before Website #1 onboarding.
+
+The `api`, `status`, and `docs` subdomains should be reported as:
+
+* Active
+* Reserved
+* Unconfigured
+* Required Now
+* Not Required for Website #1
+
+Do not issue a NO-GO solely because a future reserved subdomain is not active unless the current production architecture depends on it.
+
+5. Separate platform blockers from client-onboarding tasks.
+
+A production blocker is something that prevents the dashboard from securely onboarding and managing a website.
+
+Do not classify these as platform blockers unless the current architecture requires them:
+
+* Corsair-specific content
+* Optional future integrations
+* Future monitoring enhancements
+* Reserved subdomain applications
+* Nonessential visual improvements
+* Scale optimizations not needed for Website #1
+
+6. Every module must be evaluated using actual implementation evidence.
+
+For each of the 50 modules, verify:
+
+* Route or UI exists
+* Backend query or mutation exists
+* Tenant scope is enforced where required
+* UI is wired to the backend
+* No blocking stub or placeholder remains
+* Required production configuration is present or clearly identified
+* Tests exist where the module is security- or payment-sensitive
+
+Do not mark a module complete merely because a file exists.
+
+7. Reassess the three previous NO-GO findings explicitly.
+
+The final report must state whether each is now resolved:
+
+* Base64 media storage
+* Missing email-send logic
+* Missing portal rate limiting or brute-force protection
+
+For each, include:
+
+* Previous issue
+* Current implementation
+* Test evidence
+* Production configuration dependency
+* Final status: Resolved / Partially Resolved / Still Blocking
+
+8. Fix safe production blockers during the audit.
+
+For each fix:
+
+* Implement only the necessary correction
+* Run targeted tests
+* Run relevant regression tests
+* Commit as `THEFSTS <amorebey@gmail.com>`
+* Push safely
+* Verify deployment where access permits
+* Include the commit SHA in the final report
+
+Do not add unrelated features or perform broad refactors.
+
+9. Do not allow the audit itself to alter production data.
+
+Do not:
+
+* Run destructive tests against production
+* Seed test users into production
+* Enable `CONVEX_TEST_MODE` in production
+* Trigger real payments
+* Send uncontrolled production emails
+* Expose secret values
+* Force-push Git history as part of this audit
+
+10. The final verdict must reflect genuine Website #1 readiness.
+
+Use exactly one:
+
+* `GO — READY`
+* `GO WITH CONDITIONS`
+* `NO-GO — BLOCKED`
+
+Include:
+
+* Confidence percentage
+* Dashboard completion percentage
+* Production-readiness percentage
+* Security confidence percentage
+* Earliest safe Website #1 onboarding date
+* Estimated development hours remaining
+* Exact blockers or conditions
+* Exact next action
+
+A `GO WITH CONDITIONS` verdict is appropriate when only owner-side configuration verification or non-security operational items remain and the platform can safely begin controlled onboarding.
+
+Proceed with Task #28 now. Do not stop at a draft. Execute the audit, fix safe blockers, write the final report, commit it with the approved identity, push it, and provide the complete evidence-based result.

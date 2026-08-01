@@ -1,14 +1,10 @@
 import { defineConfig } from "vitest/config";
-import path from "path";
 
+// Pricing contract tests use only inline mock data.
+// No alias to corsair-source/ or any external client repo.
 export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "../../corsair-source/src"),
-    },
   },
 });

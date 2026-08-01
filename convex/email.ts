@@ -131,6 +131,7 @@ export const sendFormNotification = internalAction({
       fromEmail: senderEmail,
       replyTo: args.submitterEmail,
     });
+    return { skipped: false };
   },
 });
 
@@ -178,6 +179,7 @@ export const sendPortalWelcome = internalAction({
       fromName,
       fromEmail,
     });
+    return { skipped: false };
   },
 });
 

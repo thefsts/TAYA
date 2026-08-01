@@ -1,3 +1,14 @@
+/**
+ * Playwright config — Client Website Integration E2E Suite
+ *
+ * This suite is reserved for end-to-end tests that run against an external
+ * client website served by its own dev server.  No client website is bundled
+ * inside the FSTS-WOS™ platform repo; tests are skipped gracefully when no
+ * baseURL is reachable.
+ *
+ * To run against a local client dev server:
+ *   CLIENT_E2E_BASE_URL=http://localhost:3000 pnpm run test:corsair-e2e
+ */
 import { defineConfig, devices } from "@playwright/test";
 import { execSync } from "child_process";
 
@@ -11,6 +22,8 @@ function resolveChromiumPath(): string {
   }
 }
 
+const baseURL = process.env.CLIENT_E2E_BASE_URL ?? "http://localhost:3000";
+
 export default defineConfig({
   testDir: "./tests",
   timeout: 120_000,
@@ -21,7 +34,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
     headless: true,
     viewport: { width: 1280, height: 900 },
     launchOptions: {
@@ -29,12 +42,9 @@ export default defineConfig({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     },
   },
-  webServer: {
-    command: "bash -c 'cd /home/runner/workspace/corsair-source && pnpm run dev'",
-    port: 3000,
-    timeout: 120_000,
-    reuseExistingServer: true,
-  },
+  // No webServer: client website must be running externally before tests start.
+  // The CI job for client-specific E2E testing starts the client dev server
+  // separately and passes its URL via CLIENT_E2E_BASE_URL.
   projects: [
     {
       name: "chromium",

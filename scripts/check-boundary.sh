@@ -258,6 +258,121 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 3. CLIENT APPLICATION DIRECTORY CHECK — Allowlist-based
+#
+# Detects any root-level directory that is NOT on the approved platform
+# allowlist AND contains markers of an embedded client application.
+#
+# This check scans the filesystem (not just git-tracked files) so it catches
+# directories that exist on disk but have been excluded from git — for example,
+# a client website directory that was added to .gitignore rather than deleted.
+#
+# Why filesystem and not only git: a directory present on disk can be
+# accidentally re-committed in a future PR.  Failing early prevents that.
+#
+# ALLOWLISTED root-level directories (approved platform-owned paths):
+#   artifacts/       — platform artifacts (fsts-dashboard, mockup-sandbox)
+#   convex/          — Convex backend functions and schema
+#   lib/             — shared platform libraries
+#   tests/           — platform test suites
+#   scripts/         — CI and build scripts
+#   docs/            — platform documentation
+#   node_modules/    — managed dependencies (pnpm)
+#   exports/         — generated exports
+#   attached_assets/ — agent task assets (read-only, never committed)
+#   .git/            — git internals
+#   .github/         — GitHub Actions CI configuration
+#   .githooks/       — git hooks
+#   .local/          — Replit local configuration
+#   .agents/         — agent workspace memory
+#   .cache/          — build cache
+#   .config/         — system configuration
+#   .convex-tmp/     — Convex CLI temporary files
+#
+# Application markers: a directory that is NOT allowlisted and contains any
+# of the following is flagged as an embedded client application:
+#   package.json                     any npm/node project root
+#   next.config.ts / .js / .mjs     Next.js application
+#   vite.config.ts / .js            Vite/React application
+#   src/app/                         Next.js App Router tree
+#   src/pages/                       Next.js Pages Router or plain React
+# ---------------------------------------------------------------------------
+echo ""
+echo "[boundary-check] Checking for embedded client application directories…"
+
+CLIENT_APP_FOUND=0
+
+ALLOWLISTED_DIRS=(
+  "artifacts"
+  "convex"
+  "lib"
+  "tests"
+  "scripts"
+  "docs"
+  "node_modules"
+  "exports"
+  "attached_assets"
+  ".git"
+  ".github"
+  ".githooks"
+  ".local"
+  ".agents"
+  ".cache"
+  ".config"
+  ".convex-tmp"
+)
+
+is_allowlisted() {
+  local dir="$1"
+  for allowed in "${ALLOWLISTED_DIRS[@]}"; do
+    if [ "$dir" = "$allowed" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+has_app_markers() {
+  local dir="$1"
+  # package.json at the directory root
+  [ -f "$dir/package.json" ] && return 0
+  # Next.js config variants
+  [ -f "$dir/next.config.ts" ]  && return 0
+  [ -f "$dir/next.config.js" ]  && return 0
+  [ -f "$dir/next.config.mjs" ] && return 0
+  # Vite config variants
+  [ -f "$dir/vite.config.ts" ] && return 0
+  [ -f "$dir/vite.config.js" ] && return 0
+  # Next.js App Router directory
+  [ -d "$dir/src/app" ] && return 0
+  # Next.js Pages Router directory
+  [ -d "$dir/src/pages" ] && return 0
+  return 1
+}
+
+# Enumerate all root-level directories
+while IFS= read -r -d '' entry; do
+  dir_name="$(basename "$entry")"
+  if is_allowlisted "$dir_name"; then
+    continue
+  fi
+  if has_app_markers "$entry"; then
+    echo "❌  EMBEDDED CLIENT APP: Unknown application directory detected: $entry"
+    echo "    This directory is not on the platform allowlist and contains"
+    echo "    application markers (package.json, Next.js/Vite config, src/app/, src/pages/)."
+    echo "    Client website code must live in its own dedicated repository."
+    echo "    Add the directory to ALLOWLISTED_DIRS in scripts/check-boundary.sh"
+    echo "    only if it is a legitimate platform-owned workspace."
+    echo ""
+    CLIENT_APP_FOUND=1
+  fi
+done < <(find "$REPO_ROOT" -maxdepth 1 -mindepth 1 -type d -print0 | sort -z)
+
+if [ "$CLIENT_APP_FOUND" -eq 0 ]; then
+  echo "[boundary-check] ✅  No embedded client application directories found."
+fi
+
+# ---------------------------------------------------------------------------
 # 3. COMMIT IDENTITY CHECK — every commit reachable from origin/main must be
 #    authored and committed by THEFSTS <amorebey@gmail.com>.
 #    Reference: docs/repo-governance.md
@@ -289,7 +404,7 @@ fi
 # Final result
 # ---------------------------------------------------------------------------
 echo ""
-if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ]; then
+if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$CLIENT_APP_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ]; then
   echo "[boundary-check] ✅  All checks passed. Repository boundary is clean."
   exit 0
 else
@@ -306,6 +421,14 @@ else
     echo "  Corsair website files must not be committed to this Dashboard repo."
     echo "  Move the flagged files to thefsts/Corsair-Tactical-Solutions."
     echo "  See docs/repo-governance.md for the two-repository rule."
+    echo ""
+  fi
+  if [ "$CLIENT_APP_FOUND" -ne 0 ]; then
+    echo "[boundary-check] ❌  Embedded client application directory detected."
+    echo ""
+    echo "  Client website source must not be stored inside this platform repo."
+    echo "  Move the flagged directory to its own dedicated repository."
+    echo "  See docs/repo-governance.md §1 for the two-repository rule."
     echo ""
   fi
   exit 1
