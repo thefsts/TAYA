@@ -455,6 +455,120 @@ test_multiple_wrong_identity_all_caught() {
   fi
 }
 
+# ── Test 5: rebase/amend rewrites correct-identity commits → still caught ──────
+# A developer who runs `git rebase` (or `git commit --amend`) while a wrong
+# GIT_AUTHOR_* identity is active in their shell will silently replace every
+# commit's author.  The identity guard must catch these rewritten commits just
+# as firmly as directly-authored wrong-identity commits.
+#
+# Scenario:
+#   1. Two commits are made with the approved identity.
+#   2. `git rebase` re-applies them using --exec to stamp each with the wrong
+#      author (simulating GIT_AUTHOR_* being set in the environment at rebase
+#      time, e.g. by the platform or a misconfigured shell profile).
+#   3. post-merge.sh must exit non-zero, report the offending SHA(s), and leave
+#      the remote unchanged.
+test_rebase_rewrite_wrong_identity_caught() {
+  echo ""
+  echo -e "${BOLD}Test 5: Rebase/amend rewrites commits with wrong identity — identity check still catches violations${RESET}"
+
+  local tmpdir
+  tmpdir="$(setup_repos)"
+  local fake_remote="$tmpdir/fake-remote.git"
+  local working="$tmpdir/working"
+  local bin_dir="$tmpdir/bin"
+  mkdir -p "$bin_dir"
+  create_git_stub "$bin_dir" "$fake_remote"
+  create_pnpm_stub "$bin_dir"
+
+  # Capture the remote tip SHA before the script runs — it must not change.
+  local remote_tip_before
+  remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
+
+  # Step 1: make two commits with the CORRECT approved identity.
+  git -C "$working" \
+    -c user.name="THEFSTS" \
+    -c user.email="amorebey@gmail.com" \
+    commit --allow-empty -m "correct-identity commit A" >/dev/null 2>&1
+
+  git -C "$working" \
+    -c user.name="THEFSTS" \
+    -c user.email="amorebey@gmail.com" \
+    commit --allow-empty -m "correct-identity commit B" >/dev/null 2>&1
+
+  # Step 2: simulate a developer running `git rebase` while GIT_AUTHOR_* is set
+  # to a wrong identity in their environment (e.g. injected by the platform, or
+  # a misconfigured shell profile).  --exec amends every replayed commit with
+  # the wrong author, just as `git commit --amend --reset-author` would do when
+  # those env vars are present.
+  # Note: the working repo uses "github" (not "origin") as its remote name, so
+  # we rebase onto github/main — the same ref post-merge.sh operates against.
+  #
+  # We write the exec command to a helper script to avoid shell-quoting issues
+  # with the author string when it is passed through git's --exec machinery.
+  local rewrite_script="$tmpdir/rewrite-author.sh"
+  cat > "$rewrite_script" <<'REWRITE_AUTHOR'
+#!/bin/bash
+git commit --amend --no-edit --allow-empty --author="Replit Agent <agent@replit.com>"
+REWRITE_AUTHOR
+  chmod +x "$rewrite_script"
+
+  git -C "$working" rebase github/main \
+    --exec "$rewrite_script" \
+    >/dev/null 2>&1
+
+  # After the rebase the two commits have been rewritten with the wrong author.
+  # post-merge.sh will amend HEAD to fix its author, so capture the SHA of the
+  # earlier (non-HEAD) commit — it must appear in the violation report.
+  local sha_penultimate
+  sha_penultimate="$(git -C "$working" rev-parse --short HEAD~1)"
+
+  run_post_merge "$working" "$bin_dir"
+
+  # Assertion 1: script must exit non-zero — rewritten commits have wrong identity.
+  if [ "$LAST_EXIT" -ne 0 ]; then
+    pass "Script exits non-zero after rebase rewrites commits with wrong identity"
+  else
+    fail "Script should exit non-zero but exited 0 — rebase-rewritten wrong-identity commits not caught"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+    return
+  fi
+
+  # Assertion 2: output must mention the identity failure clearly.
+  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
+    pass "Output clearly reports the identity violation"
+  else
+    fail "Output should mention the identity failure (unauthorised author / FAILED)"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # Assertion 3: the SHA of the non-HEAD rewritten commit must appear in the
+  # output.  post-merge.sh amends HEAD to fix its author before the check, so
+  # HEAD's SHA may not show up; the earlier rewritten commit must be caught.
+  if echo "$LAST_OUTPUT" | grep -q "$sha_penultimate"; then
+    pass "Offending commit SHA $sha_penultimate (rebase-rewritten) appears in output"
+  else
+    fail "Offending SHA $sha_penultimate not found in output — rebase-rewritten violation may have been missed"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # Assertion 4: the remote must NOT have been pushed — tip SHA unchanged.
+  local gh_clone="$tmpdir/gh-clone"
+  git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
+  local remote_tip_after
+  remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
+  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
+    pass "Remote history was not modified — rebase-rewritten wrong-identity commits were blocked"
+  else
+    fail "Remote tip changed — rebase-rewritten wrong-identity commits reached GitHub despite identity failures"
+    echo "    remote before: $remote_tip_before"
+    echo "    remote after:  $remote_tip_after"
+  fi
+}
+
 # ── Test runner ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}=== post-merge.sh GitHub sync integration tests ===${RESET}"
@@ -464,6 +578,7 @@ test_diverged_rebase_succeeds
 test_conflicting_rebase_exits_nonzero
 test_wrong_identity_aborts_push
 test_multiple_wrong_identity_all_caught
+test_rebase_rewrite_wrong_identity_caught
 
 echo ""
 echo -e "${BOLD}=== Results: $PASS passed, $FAIL failed ===${RESET}"
