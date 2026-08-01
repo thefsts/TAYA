@@ -25,23 +25,28 @@ GIT_COMMITTER_NAME="THEFSTS" \
 GIT_COMMITTER_EMAIL="amorebey@gmail.com" \
   git commit --amend --no-edit --reset-author --allow-empty --no-verify
 
-# Rewrite every commit in origin/main..HEAD, not just the tip.
-# A multi-commit merge can leave earlier commits with wrong author metadata;
-# this loop ensures the full outgoing range carries the approved identity.
+# Rewrite every commit in the outgoing range (merge-base..HEAD), not just the
+# tip.  A multi-commit merge can leave earlier commits with wrong author
+# metadata.  We use git filter-branch (not interactive rebase) because:
+#   • filter-branch is idempotent — re-running on already-correct commits is
+#     safe and does not create duplicate picks.
+#   • It never generates a rebase todo list, so parallel task-agent merges
+#     cannot produce the stuck duplicate-pick failure that interactive rebase
+#     suffers from.
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   _range_base=$(git merge-base origin/main HEAD 2>/dev/null || true)
   if [ -n "$_range_base" ]; then
     _commit_count=$(git rev-list --count "${_range_base}..HEAD")
     if [ "$_commit_count" -gt 1 ]; then
-      echo "→ Rewriting author/committer for all ${_commit_count} outgoing commits…"
-      GIT_AUTHOR_NAME="THEFSTS" \
-      GIT_AUTHOR_EMAIL="amorebey@gmail.com" \
-      GIT_COMMITTER_NAME="THEFSTS" \
-      GIT_COMMITTER_EMAIL="amorebey@gmail.com" \
-      git rebase "$_range_base" \
-        --exec 'GIT_AUTHOR_NAME="THEFSTS" GIT_AUTHOR_EMAIL="amorebey@gmail.com" GIT_COMMITTER_NAME="THEFSTS" GIT_COMMITTER_EMAIL="amorebey@gmail.com" git commit --amend --no-edit --reset-author --allow-empty --no-verify' \
-        --no-verify 2>&1 \
-        || { echo "✗ Author rewrite rebase failed — resolve conflicts manually"; exit 1; }
+      echo "→ Rewriting author/committer for all ${_commit_count} outgoing commits via filter-branch…"
+      FILTER_BRANCH_SQUELCH_WARNING=1 \
+      git filter-branch -f --env-filter '
+        export GIT_AUTHOR_NAME="THEFSTS"
+        export GIT_AUTHOR_EMAIL="amorebey@gmail.com"
+        export GIT_COMMITTER_NAME="THEFSTS"
+        export GIT_COMMITTER_EMAIL="amorebey@gmail.com"
+      ' "${_range_base}..HEAD" 2>&1 \
+        || { echo "✗ Author rewrite filter-branch failed"; exit 1; }
       echo "✓ All outgoing commits rewritten to THEFSTS <amorebey@gmail.com>"
     fi
   fi
