@@ -5,81 +5,84 @@ import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk, useUser } from 
 import { shadcn } from "@clerk/themes";
 import { ConvexProvider, ConvexReactClient, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
 import fstsLogo from "@assets/fsts_header_logo_1783377175328.PNG";
-
-import NotFound from "@/pages/not-found";
-import Landing from "@/pages/Landing";
-import SitesList from "@/pages/app/SitesList";
-import SiteDashboard from "@/pages/app/SiteDashboard";
-
-import AdminUsers from "@/pages/app/admin/AdminUsers";
-import AdminSites from "@/pages/app/admin/AdminSites";
-import AdminAccessControl from "@/pages/app/admin/AdminAccessControl";
-import AdminDesignLock from "@/pages/app/admin/AdminDesignLock";
 import DesignLockGuard from "@/components/DesignLockGuard";
-import AdminAgencies from "@/pages/app/admin/AdminAgencies";
-import AdminPlatformControls from "@/pages/app/admin/AdminPlatformControls";
-import AdminSiteOnboarding from "@/pages/app/admin/AdminSiteOnboarding";
-import AdminPlatformRunbook from "@/pages/app/admin/AdminPlatformRunbook";
-import HomepageEditor from "@/pages/app/sites/HomepageEditor";
-import CoursesList from "@/pages/app/sites/CoursesList";
-import EventsList from "@/pages/app/sites/EventsList";
-import ArticlesList from "@/pages/app/sites/ArticlesList";
-import SeoSettings from "@/pages/app/sites/SeoSettings";
-import MediaLibrary from "@/pages/app/sites/MediaLibrary";
-import FooterEditor from "@/pages/app/sites/FooterEditor";
-import ContactInfo from "@/pages/app/sites/ContactInfo";
-import PaymentsConfig from "@/pages/app/sites/PaymentsConfig";
-import Commerce from "@/pages/app/sites/Commerce";
-import EmailConfig from "@/pages/app/sites/EmailConfig";
-import CrmConnectionConfig from "@/pages/app/sites/CrmConnectionConfig";
-import VersionHistory from "@/pages/app/sites/VersionHistory";
-import ActivityLog from "@/pages/app/sites/ActivityLog";
-import BackupsList from "@/pages/app/sites/BackupsList";
-import HelpCenter from "@/pages/app/sites/HelpCenter";
-import FaqManager from "@/pages/app/sites/FaqManager";
-import TestimonialsManager from "@/pages/app/sites/TestimonialsManager";
-import FormSubmissions from "@/pages/app/sites/FormSubmissions";
-import HealthMonitor from "@/pages/app/sites/HealthMonitor";
-import PolicyEditor from "@/pages/app/sites/PolicyEditor";
-import NavigationManager from "@/pages/app/sites/NavigationManager";
-import AnnouncementBanner from "@/pages/app/sites/AnnouncementBanner";
-import CtaManager from "@/pages/app/sites/CtaManager";
-import DownloadsManager from "@/pages/app/sites/DownloadsManager";
-import TeamManager from "@/pages/app/sites/TeamManager";
-import CareersManager from "@/pages/app/sites/CareersManager";
-import PopupManager from "@/pages/app/sites/PopupManager";
+
+// Lazy-loaded pages — each route is its own chunk so clients only download
+// the code for the pages they actually visit.
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Landing = lazy(() => import("@/pages/Landing"));
+const SitesList = lazy(() => import("@/pages/app/SitesList"));
+const SiteDashboard = lazy(() => import("@/pages/app/SiteDashboard"));
+
+const AdminUsers = lazy(() => import("@/pages/app/admin/AdminUsers"));
+const AdminSites = lazy(() => import("@/pages/app/admin/AdminSites"));
+const AdminAccessControl = lazy(() => import("@/pages/app/admin/AdminAccessControl"));
+const AdminDesignLock = lazy(() => import("@/pages/app/admin/AdminDesignLock"));
+const AdminAgencies = lazy(() => import("@/pages/app/admin/AdminAgencies"));
+const AdminPlatformControls = lazy(() => import("@/pages/app/admin/AdminPlatformControls"));
+const AdminSiteOnboarding = lazy(() => import("@/pages/app/admin/AdminSiteOnboarding"));
+const AdminPlatformRunbook = lazy(() => import("@/pages/app/admin/AdminPlatformRunbook"));
+
+const HomepageEditor = lazy(() => import("@/pages/app/sites/HomepageEditor"));
+const CoursesList = lazy(() => import("@/pages/app/sites/CoursesList"));
+const EventsList = lazy(() => import("@/pages/app/sites/EventsList"));
+const ArticlesList = lazy(() => import("@/pages/app/sites/ArticlesList"));
+const SeoSettings = lazy(() => import("@/pages/app/sites/SeoSettings"));
+const MediaLibrary = lazy(() => import("@/pages/app/sites/MediaLibrary"));
+const FooterEditor = lazy(() => import("@/pages/app/sites/FooterEditor"));
+const ContactInfo = lazy(() => import("@/pages/app/sites/ContactInfo"));
+const PaymentsConfig = lazy(() => import("@/pages/app/sites/PaymentsConfig"));
+const Commerce = lazy(() => import("@/pages/app/sites/Commerce"));
+const EmailConfig = lazy(() => import("@/pages/app/sites/EmailConfig"));
+const CrmConnectionConfig = lazy(() => import("@/pages/app/sites/CrmConnectionConfig"));
+const VersionHistory = lazy(() => import("@/pages/app/sites/VersionHistory"));
+const ActivityLog = lazy(() => import("@/pages/app/sites/ActivityLog"));
+const BackupsList = lazy(() => import("@/pages/app/sites/BackupsList"));
+const HelpCenter = lazy(() => import("@/pages/app/sites/HelpCenter"));
+const FaqManager = lazy(() => import("@/pages/app/sites/FaqManager"));
+const TestimonialsManager = lazy(() => import("@/pages/app/sites/TestimonialsManager"));
+const FormSubmissions = lazy(() => import("@/pages/app/sites/FormSubmissions"));
+const HealthMonitor = lazy(() => import("@/pages/app/sites/HealthMonitor"));
+const PolicyEditor = lazy(() => import("@/pages/app/sites/PolicyEditor"));
+const NavigationManager = lazy(() => import("@/pages/app/sites/NavigationManager"));
+const AnnouncementBanner = lazy(() => import("@/pages/app/sites/AnnouncementBanner"));
+const CtaManager = lazy(() => import("@/pages/app/sites/CtaManager"));
+const DownloadsManager = lazy(() => import("@/pages/app/sites/DownloadsManager"));
+const TeamManager = lazy(() => import("@/pages/app/sites/TeamManager"));
+const CareersManager = lazy(() => import("@/pages/app/sites/CareersManager"));
+const PopupManager = lazy(() => import("@/pages/app/sites/PopupManager"));
 
 // WOS Phase 2 — Website Settings
-import WebsiteSettings from "@/pages/app/sites/WebsiteSettings";
+const WebsiteSettings = lazy(() => import("@/pages/app/sites/WebsiteSettings"));
 
 // Phase 3 — Form Builder
-import FormsList from "@/pages/app/sites/FormsList";
-import FormBuilder from "@/pages/app/sites/FormBuilder";
-import PublicForm from "@/pages/PublicForm";
+const FormsList = lazy(() => import("@/pages/app/sites/FormsList"));
+const FormBuilder = lazy(() => import("@/pages/app/sites/FormBuilder"));
+const PublicForm = lazy(() => import("@/pages/PublicForm"));
 
 // Phase 5 — Square Commerce
-import SquareCommerce from "@/pages/app/sites/SquareCommerce";
+const SquareCommerce = lazy(() => import("@/pages/app/sites/SquareCommerce"));
 
 // Phase 9 — Client Permissions™
-import MyPermissions from "@/pages/app/sites/MyPermissions";
+const MyPermissions = lazy(() => import("@/pages/app/sites/MyPermissions"));
 
 // WOS Phase 1 — Payment Connector Framework™
-import PaymentProviders from "@/pages/app/sites/PaymentProviders";
+const PaymentProviders = lazy(() => import("@/pages/app/sites/PaymentProviders"));
 
 // WOS Phase 8 — Automation Engine™
-import AutomationRules from "@/pages/app/sites/AutomationRules";
+const AutomationRules = lazy(() => import("@/pages/app/sites/AutomationRules"));
 
 // Website Reviews Module™
-import ReviewsManager from "@/pages/app/sites/ReviewsManager";
+const ReviewsManager = lazy(() => import("@/pages/app/sites/ReviewsManager"));
 
 // Phase 80 — Client Portal™ / Multi-Portal Authentication System™
-import PortalLogin from "@/pages/portal/PortalLogin";
-import PortalRegister from "@/pages/portal/PortalRegister";
-import PortalDashboard from "@/pages/portal/PortalDashboard";
-import PortalManager from "@/pages/app/sites/PortalManager";
+const PortalLogin = lazy(() => import("@/pages/portal/PortalLogin"));
+const PortalRegister = lazy(() => import("@/pages/portal/PortalRegister"));
+const PortalDashboard = lazy(() => import("@/pages/portal/PortalDashboard"));
+const PortalManager = lazy(() => import("@/pages/app/sites/PortalManager"));
 
 function withPortalConvex<P extends object>(Component: React.ComponentType<P>) {
   return function PortalPage(props: P) {
@@ -328,6 +331,7 @@ function AppRouter() {
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <AuthBootstrap />
         <DeactivationGuard />
+        <Suspense fallback={<div className="flex min-h-[100dvh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
         <Switch>
           <Route path="/" component={HomeRedirect} />
           <Route path="/forms/:siteSlug/:formSlug" component={PublicForm} />
@@ -398,6 +402,7 @@ function AppRouter() {
 
           <Route component={NotFound} />
         </Switch>
+        </Suspense>
       </ConvexProviderWithClerk>
     </ClerkProvider>
   );
@@ -465,15 +470,17 @@ function App() {
   return (
     <TooltipProvider>
       <WouterRouter base={basePath}>
-        <Switch>
-          {/* Phase 80 — Client Portal™ public routes (no Clerk auth) */}
-          <Route path="/portal/:siteSlug/login" component={PortalLoginPage} />
-          <Route path="/portal/:siteSlug/register" component={PortalRegisterPage} />
-          <Route path="/portal/:siteSlug/dashboard" component={PortalDashboardPage} />
-          <Route path="/portal/:siteSlug" component={PortalRootPage} />
-          {/* Dashboard routes (Clerk auth) */}
-          <Route component={AppRouter} />
-        </Switch>
+        <Suspense fallback={<div className="flex min-h-[100dvh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
+          <Switch>
+            {/* Phase 80 — Client Portal™ public routes (no Clerk auth) */}
+            <Route path="/portal/:siteSlug/login" component={PortalLoginPage} />
+            <Route path="/portal/:siteSlug/register" component={PortalRegisterPage} />
+            <Route path="/portal/:siteSlug/dashboard" component={PortalDashboardPage} />
+            <Route path="/portal/:siteSlug" component={PortalRootPage} />
+            {/* Dashboard routes (Clerk auth) */}
+            <Route component={AppRouter} />
+          </Switch>
+        </Suspense>
       </WouterRouter>
       <Toaster />
     </TooltipProvider>
