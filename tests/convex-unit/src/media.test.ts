@@ -424,3 +424,93 @@ describe("migrateDeleteDataUrls — edge case: 50+ mixed records, exact count", 
     expect(second.deleted).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Cross-site isolation — the critical regression guard
+// ---------------------------------------------------------------------------
+
+describe("migrateDeleteDataUrls — cross-site isolation", () => {
+  /**
+   * Runs the purge against Site A while Site B holds its own data: URL records.
+   * Site B's records must be 100% intact after the call — zero tolerance for
+   * cross-client data loss.
+   */
+  it("does not delete data: URL records belonging to a different site", async () => {
+    // Seed three data: URL records on Site B so we have something to protect.
+    const siteBIds = await t.run(async (ctx) => {
+      const ids: Id<"mediaAssets">[] = [];
+      for (let i = 0; i < 3; i++) {
+        ids.push(
+          await ctx.db.insert("mediaAssets", {
+            siteId: s.siteB,
+            url: `data:image/png;base64,SITE_B_DATA_${i}`,
+            fileName: `site-b-legacy-${i}.png`,
+            mimeType: "image/png",
+            sizeBytes: 512 + i,
+          }),
+        );
+      }
+      return ids;
+    });
+
+    // Purge only Site A (which already has one data: URL record from beforeEach).
+    const result = await t
+      .withIdentity({ subject: "superadmin" })
+      .mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
+
+    // Site A's single data: URL record should have been removed.
+    expect(result.deleted).toBe(1);
+
+    // Every Site B record must still exist and be unmodified.
+    for (const id of siteBIds) {
+      const doc = await t.run((ctx) => ctx.db.get(id));
+      expect(doc).not.toBeNull();
+      expect(doc?.siteId).toStrictEqual(s.siteB);
+      expect(doc?.url?.startsWith("data:")).toBe(true);
+    }
+
+    // Confirm the full Site B count via index query too.
+    const siteBDocs = await t.run((ctx) =>
+      ctx.db
+        .query("mediaAssets")
+        .withIndex("by_site", (q) => q.eq("siteId", s.siteB))
+        .collect(),
+    );
+    expect(siteBDocs).toHaveLength(3);
+  });
+
+  it("purging Site B does not touch Site A's surviving records", async () => {
+    // Seed one data: URL record on Site B.
+    await t.run((ctx) =>
+      ctx.db.insert("mediaAssets", {
+        siteId: s.siteB,
+        url: "data:image/png;base64,SITE_B_ONLY",
+        fileName: "site-b-only.png",
+        mimeType: "image/png",
+        sizeBytes: 256,
+      }),
+    );
+
+    // Purge Site B.
+    const result = await t
+      .withIdentity({ subject: "superadmin" })
+      .mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteB });
+
+    expect(result.deleted).toBe(1);
+
+    // Site A's real-URL and storageId records must be intact.
+    const realUrl = await t.run((ctx) => ctx.db.get(s.realUrlId));
+    expect(realUrl).not.toBeNull();
+    expect(realUrl?.url).toBe("https://cdn.example.com/photo.png");
+
+    const storage = await t.run((ctx) => ctx.db.get(s.storageAssetId));
+    expect(storage).not.toBeNull();
+    expect(storage?.storageId).toBeTruthy();
+
+    // Site A's data: URL record (seeded in beforeEach) must also still exist
+    // because we only purged Site B this time.
+    const dataUrl = await t.run((ctx) => ctx.db.get(s.dataUrlId));
+    expect(dataUrl).not.toBeNull();
+    expect(dataUrl?.url?.startsWith("data:")).toBe(true);
+  });
+});
