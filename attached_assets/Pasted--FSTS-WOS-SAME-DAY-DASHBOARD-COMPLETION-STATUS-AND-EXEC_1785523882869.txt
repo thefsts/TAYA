@@ -1,0 +1,449 @@
+# FSTS-WOS™ — SAME-DAY DASHBOARD COMPLETION STATUS AND EXECUTION TASK
+
+## OBJECTIVE
+
+Provide a complete, evidence-based update on the current state of the FSTS Website Operating System™ dashboard, then complete every remaining production blocker that can be safely finished today.
+
+The goal is to have the dashboard ready for onboarding Website #1 today, July 31, 2026.
+
+Do not provide a general summary based on memory.
+
+Inspect the current repository, current branch, current GitHub state, current production deployment, current domain, Convex, Clerk, tests, and environment configuration.
+
+---
+
+# AUTHORIZED REPOSITORY
+
+Work only in:
+
+`https://github.com/thefsts/FSTS-client-Dashboard-for-sites-`
+
+---
+
+# AUTHORIZED VERCEL PROJECT
+
+Work only with:
+
+`https://vercel.com/fullstacksolutions/fsts-client-dashboard-for-sites-api-server/deployments`
+
+Do not access or modify any other Vercel project.
+
+---
+
+# PRODUCTION DOMAIN
+
+Official dashboard URL:
+
+`https://fstsclientsystem.com`
+
+Also verify:
+
+* `https://www.fstsclientsystem.com`
+* `https://api.fstsclientsystem.com`
+* `https://status.fstsclientsystem.com`
+* `https://docs.fstsclientsystem.com`
+
+---
+
+# REQUIRED GIT IDENTITY
+
+Every commit must use:
+
+`THEFSTS <amorebey@gmail.com>`
+
+Verify both author and committer before every push.
+
+No commit may use:
+
+* Replit Agent
+* fstacktsolution
+* users.noreply.replit.com
+* [agent@replit.com](mailto:agent@replit.com)
+* Full Stack Teck Solutions
+* Thefsts
+* Any other name or email
+
+---
+
+# PART 1 — CURRENT DASHBOARD STATUS
+
+Inspect the live codebase and report the current status of every major area.
+
+For each item, report:
+
+* Complete
+* Partially Complete
+* Blocked
+* Not Started
+* Production Ready: Yes or No
+* Evidence
+* Remaining work
+* Estimated hours remaining
+
+Audit:
+
+1. Dashboard frontend
+2. Convex backend
+3. Clerk authentication
+4. Role-based access control
+5. Tenant isolation
+6. SuperAdmin
+7. Agency Admin
+8. Client Admin
+9. Staff permissions
+10. Client member portal
+11. Portal brute-force lockout
+12. User and site management
+13. Website onboarding wizard
+14. Homepage editor
+15. Courses
+16. Events
+17. Articles
+18. FAQ
+19. Testimonials
+20. Reviews
+21. Footer
+22. Contact information
+23. SEO
+24. Forms Builder™
+25. Media Library
+26. Smart Image Manager™
+27. Responsive Preview Studio™
+28. Website Health Command Center™
+29. AI Dashboard Assistant™
+30. Membership Portal™
+31. Automation Engine
+32. Operon CRM integration
+33. Payment framework
+34. Square integration
+35. Webhook security
+36. File upload security
+37. Rate limiting
+38. Backups
+39. Restore process
+40. Version history
+41. Activity logs
+42. Error monitoring
+43. Logging
+44. Staging environment
+45. Production environment
+46. Public website integration APIs
+47. Client-neutral repository boundaries
+48. External website onboarding contract
+49. Domain configuration
+50. Clerk production-domain configuration
+
+---
+
+# PART 2 — VERIFY ALL RECENT SECURITY WORK
+
+Confirm the current code includes and tests:
+
+* Protected `promoteToSuperAdminByClerkId`
+* Test-only `upsertTestSuperAdmin`
+* Secured `squareOrders.syncCatalog`
+* Site-scoped `generateUploadUrl`
+* Authenticated `getFileUrl`
+* Tenant-isolation test suite
+* Production protection for `CONVEX_TEST_MODE`
+* Portal failed-login counter
+* Portal temporary lockout
+* Atomic `_attemptLogin`
+* Atomic `_loginSuccess`
+* Locked portal UI countdown
+* `users.me` targeted database reads
+* Prevention of unrelated site metadata leakage
+* Commit-identity guard
+* Repository boundary guard
+
+Report any regression immediately.
+
+---
+
+# PART 3 — GIT AND GITHUB STATUS
+
+Report:
+
+* Current branch
+* Local HEAD SHA
+* Remote `origin/main` SHA
+* Whether local and remote match
+* Working-tree status
+* Untracked files
+* Unpushed commits
+* Commit count
+* Unique author identities in current `main`
+* Unique committer identities in current `main`
+* Git remote URL
+* Whether the full history rewrite was successfully pushed
+* Whether any unauthorized identities remain
+* Whether the backup reference still exists
+* Whether another Replit session is still pushing to `main`
+
+Do not rewrite or force-push history again unless the previously authorized rewrite is still incomplete and all safety conditions are satisfied.
+
+---
+
+# PART 4 — TEST AND BUILD STATUS
+
+Run the actual current test commands and report exact totals.
+
+Required:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run typecheck
+pnpm run test:convex-unit
+pnpm run test:design-lock
+pnpm run test:visual
+pnpm run test:health-monitor
+pnpm --filter @workspace/fsts-dashboard run build
+```
+
+Also run:
+
+* Tenant-isolation tests
+* Portal authentication security tests
+* Concurrent login-attempt tests
+* Account-lockout tests
+* `CONVEX_TEST_MODE` guard tests
+* Commit-identity guard
+* Repository boundary check
+* Payment tests, if present
+* Webhook verification tests, if present
+* Any E2E tests that can safely run without production writes
+
+Report:
+
+* Passed
+* Failed
+* Skipped
+* Total
+* Exact reason for every skip
+
+Do not describe skipped tests as passing.
+
+---
+
+# PART 5 — PRODUCTION INFRASTRUCTURE STATUS
+
+Verify and report:
+
+## Vercel
+
+* Latest deployment
+* Deployment SHA
+* Deployment status
+* Build result
+* Production promotion status
+* Whether commit attribution is accepted
+* Whether any deployment is blocked
+* Whether the connector still returns 403
+* Whether GitHub auto-deploy is working
+
+## Domain
+
+* `fstsclientsystem.com`
+* `www.fstsclientsystem.com`
+* `api.fstsclientsystem.com`
+* `status.fstsclientsystem.com`
+* `docs.fstsclientsystem.com`
+
+For each report:
+
+* DNS
+* SSL
+* HTTP response
+* Redirect
+* Vercel assignment
+* Current destination
+* Remaining manual action
+
+## Clerk
+
+Verify production configuration for:
+
+* `https://fstsclientsystem.com`
+* `https://www.fstsclientsystem.com`
+
+Report:
+
+* Production instance
+* Authorized origins
+* Sign-in URL
+* Sign-up URL
+* Post-sign-in redirect
+* Post-sign-up redirect
+* Sign-out redirect
+* Password-reset URL
+* Email-verification URL
+* OAuth callbacks
+* JWT template for Convex
+* Session cookie behavior
+* Webhook configuration
+* Production key mapping
+
+Do not expose secret values.
+
+## Convex
+
+Verify:
+
+* Correct production deployment
+* Clerk integration
+* JWT verification
+* Production environment variables
+* `CONVEX_TEST_MODE` status
+* Payment encryption key status
+* Storage
+* Webhooks
+* Cron jobs
+* Backups
+* Restore readiness
+
+Do not expose secret values.
+
+---
+
+# PART 6 — COMPLETE TODAY’S BLOCKERS
+
+After completing the audit, immediately fix every remaining blocker that can safely be completed today.
+
+Priority order:
+
+1. Broken production authentication
+2. Tenant-isolation regression
+3. Portal security regression
+4. Failed production build
+5. Blocked GitHub push
+6. Blocked Vercel deployment
+7. Clerk domain misconfiguration
+8. Missing production environment variables
+9. Missing DNS or SSL configuration
+10. Broken onboarding wizard
+11. Broken public website APIs
+12. Broken CMS modules
+13. Webhook verification gaps
+14. Upload security gaps
+15. Rate limiting
+16. Missing production monitoring
+17. Documentation required for Website #1 onboarding
+
+Do not stop after identifying a fixable issue.
+
+Implement it, test it, commit it, push it, and verify deployment.
+
+Only stop for:
+
+* Owner credentials
+* Required account-level access
+* Destructive action requiring approval
+* External service limitation
+* A blocker that cannot be resolved safely from the current workspace
+
+---
+
+# PART 7 — SAME-DAY EXECUTION RULES
+
+We need this completed today.
+
+Work continuously through the production blockers in priority order.
+
+Do not:
+
+* Add unrelated features
+* Redesign completed modules
+* Begin Corsair-specific customization
+* Create duplicate CRM functionality
+* Run destructive tests against production data
+* Expose secrets
+* Access another Vercel project
+* Push with an unauthorized identity
+* Mark unverified work complete
+
+For each completed fix:
+
+1. Run targeted tests.
+2. Run affected regression tests.
+3. Use a focused commit.
+4. Confirm author and committer identity.
+5. Push safely.
+6. Confirm deployment.
+7. Continue to the next blocker.
+
+Do not pause after every small task to ask for approval unless approval is genuinely required.
+
+---
+
+# PART 8 — WEBSITE #1 ONBOARDING DECISION
+
+At the end, answer clearly:
+
+## Can Website #1 be added to the dashboard today?
+
+Choose one:
+
+* YES — READY
+* YES — READY WITH MINOR NON-BLOCKING ITEMS
+* NO — BLOCKED
+
+If YES, provide the exact onboarding sequence.
+
+If NO, list only the genuine remaining blockers.
+
+For each blocker include:
+
+* Severity
+* Exact issue
+* Owner
+* Required action
+* Estimated development hours
+* Whether it can be completed today
+* Dependency
+
+Also provide:
+
+* Dashboard completion percentage
+* Production-readiness percentage
+* Security confidence percentage
+* Website #1 onboarding confidence percentage
+* Estimated hours remaining
+* Earliest safe onboarding point
+
+---
+
+# PART 9 — REQUIRED FINAL REPORT
+
+Provide one consolidated report with:
+
+1. Executive summary
+2. Current branch and SHAs
+3. Git identity status
+4. Test results
+5. Build result
+6. Security status
+7. Dashboard module matrix
+8. Domain status
+9. Subdomain status
+10. Clerk status
+11. Convex status
+12. Vercel status
+13. Environment-variable status
+14. Repository-boundary status
+15. Portal-security status
+16. Payment status
+17. Monitoring and logging status
+18. Remaining blockers
+19. Fixes completed today
+20. Commit hashes created today
+21. Deployment results
+22. Production-readiness percentage
+23. Website #1 onboarding decision
+24. Exact next action
+25. Final GO / GO WITH CONDITIONS / NO-GO recommendation
+
+Use evidence from the current repository and live services.
+
+Do not reuse stale findings where the code or infrastructure has changed.
+
+The final report must tell us exactly where the dashboard stands and whether we can begin adding Website #1 today.
