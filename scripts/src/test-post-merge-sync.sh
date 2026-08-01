@@ -569,6 +569,115 @@ REWRITE_AUTHOR
   fi
 }
 
+# ── Test 6: amended first (boundary) commit in range → identity guard fires ────
+# The range spec `origin/main..HEAD` is exclusive of origin/main and inclusive
+# of every commit on top of it, including the first one.  An off-by-one (e.g.
+# accidentally using `HEAD~1..HEAD`, or iterating from HEAD backwards and
+# stopping one commit early) would silently exclude the boundary commit.
+#
+# Scenario:
+#   1. One correct-identity commit is made directly on top of origin/main
+#      (the boundary commit — first and oldest in the outgoing range).
+#   2. That commit is amended with a wrong author — simulating a developer who
+#      runs `git commit --amend` while a bad GIT_AUTHOR_* is active.
+#   3. A second correct-identity commit is then added on top, becoming HEAD.
+#      post-merge.sh will amend HEAD (correct already) but the boundary commit
+#      beneath it still has wrong identity.
+#   4. post-merge.sh must exit non-zero, report the boundary commit's SHA, and
+#      leave the remote unchanged.
+#
+# This is distinct from Tests 3–5: the violating commit is the OLDEST outgoing
+# commit (the range boundary), not a middle or head commit.
+test_amended_first_commit_caught() {
+  echo ""
+  echo -e "${BOLD}Test 6: Amended first (boundary) commit in range — identity guard still fires${RESET}"
+
+  local tmpdir
+  tmpdir="$(setup_repos)"
+  local fake_remote="$tmpdir/fake-remote.git"
+  local working="$tmpdir/working"
+  local bin_dir="$tmpdir/bin"
+  mkdir -p "$bin_dir"
+  create_git_stub "$bin_dir" "$fake_remote"
+  create_pnpm_stub "$bin_dir"
+
+  # Capture the remote tip SHA before the script runs — it must not change.
+  local remote_tip_before
+  remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
+
+  # Step 1: make one correct-identity commit directly on top of origin/main.
+  git -C "$working" \
+    -c user.name="THEFSTS" \
+    -c user.email="amorebey@gmail.com" \
+    commit --allow-empty -m "correct-identity: boundary commit" >/dev/null 2>&1
+
+  # Step 2: amend that boundary commit with a wrong author — simulating a
+  # developer who runs `git commit --amend` while a wrong identity is active.
+  # This produces the wrong-identity boundary commit under test.
+  git -C "$working" \
+    -c user.name="Replit Agent" \
+    -c user.email="agent@replit.com" \
+    commit --amend --no-edit --allow-empty \
+    --author="Replit Agent <agent@replit.com>" >/dev/null 2>&1
+
+  # Capture the SHA of this boundary commit so we can assert it appears in the
+  # violation report.
+  local sha_boundary
+  sha_boundary="$(git -C "$working" rev-parse --short HEAD)"
+
+  # Step 3: add a second commit with the correct identity on top.  This becomes
+  # HEAD; post-merge.sh will amend it (no-op because author is already correct).
+  # The boundary commit underneath still has wrong identity and must be caught.
+  git -C "$working" \
+    -c user.name="THEFSTS" \
+    -c user.email="amorebey@gmail.com" \
+    commit --allow-empty -m "correct-identity: second commit (HEAD)" >/dev/null 2>&1
+
+  run_post_merge "$working" "$bin_dir"
+
+  # Assertion 1: script must exit non-zero — boundary commit has wrong identity.
+  if [ "$LAST_EXIT" -ne 0 ]; then
+    pass "Script exits non-zero when the first (boundary) commit in the range is wrong-identity"
+  else
+    fail "Script should exit non-zero but exited 0 — boundary commit wrong-identity not caught"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+    return
+  fi
+
+  # Assertion 2: output must mention the identity failure clearly.
+  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
+    pass "Output clearly reports the identity violation"
+  else
+    fail "Output should mention the identity failure (unauthorised author / FAILED)"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # Assertion 3: the boundary commit's SHA must appear in the output so the
+  # developer can identify the bad commit.
+  if echo "$LAST_OUTPUT" | grep -q "$sha_boundary"; then
+    pass "Boundary commit SHA $sha_boundary appears in output"
+  else
+    fail "Boundary commit SHA $sha_boundary not found in output — range check may have excluded the boundary"
+    echo "    --- output ---"
+    echo "$LAST_OUTPUT" | sed 's/^/    /'
+  fi
+
+  # Assertion 4: the remote must NOT have been pushed — tip SHA unchanged.
+  local gh_clone="$tmpdir/gh-clone"
+  git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
+  local remote_tip_after
+  remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
+  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
+    pass "Remote history was not modified — wrong-identity boundary commit was blocked"
+  else
+    fail "Remote tip changed — wrong-identity boundary commit reached GitHub despite identity failure"
+    echo "    remote before: $remote_tip_before"
+    echo "    remote after:  $remote_tip_after"
+  fi
+}
+
 # ── Test runner ────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}=== post-merge.sh GitHub sync integration tests ===${RESET}"
@@ -579,6 +688,7 @@ test_conflicting_rebase_exits_nonzero
 test_wrong_identity_aborts_push
 test_multiple_wrong_identity_all_caught
 test_rebase_rewrite_wrong_identity_caught
+test_amended_first_commit_caught
 
 echo ""
 echo -e "${BOLD}=== Results: $PASS passed, $FAIL failed ===${RESET}"
