@@ -11,7 +11,8 @@
 - [Route path drift from OpenAPI spec](corsair-push.md) — backend route registered at wrong path vs spec/generated client caused silent empty UI despite confirmed DB writes; diff route path against spec, not just the write logic
 - [Corsair Vercel root directory](corsair-vercel-root.md) — Vercel builds repo ROOT (not corsair-source/); changes to root src/app/globals.css go live, corsair-source/ changes do not
 - [FSTS E2E Clerk auth pattern](fsts-e2e-clerk-auth.md) — use sign_in_tokens + post-sign-in Convex promotion; Clerk Users API returns plain array not {data:[]}; JWT may lack email claim so promote by clerkUserId not email
-- [FSTS GitHub mirror push pattern](fsts-github-mirror.md) — GITHUB_PERSONAL_ACCESS_TOKEN is injected by Replit's GitHub OAuth integration; use it for git push in post-merge hooks
+- [FSTS GitHub mirror push pattern](fsts-github-mirror.md) — GITHUB_PAT is the active secret (added Aug 2026); post-merge.sh accepts both GITHUB_PAT and legacy GITHUB_PERSONAL_ACCESS_TOKEN; gitPush(force:true) callback may be rejected by remote — shell git push via token is more reliable for force pushes
+- [Task-agent rebase stuck duplicate pick](task-agent-rebase-duplicate-pick.md) — parallel task-agent merges can leave an interactive rebase stuck on a commit that appears in both done and todo lists; fix with `git rebase --skip` (not --continue or --abort)
 - [Vercel alias & protection fix via Replit connector](vercel-connector-alias.md) — VERCEL_TOKEN is SAML-locked; use Replit's built-in Vercel connector (proposeIntegration + connectors.proxy) to assign aliases and patch project settings
 - [Pull external repo over scaffold](pull-external-repo-over-scaffold.md) — set origin + gitPull (merge fails on unrelated history but fetch succeeds), then `git reset --hard origin/<branch>`.
 - [FSTS-WOS security model](fsts-security-model.md) — full guard vocabulary for audits; CONVEX_TEST_MODE is a backdoor if set on prod; convex-test seeding trap.
