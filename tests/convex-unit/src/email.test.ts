@@ -143,7 +143,8 @@ describe("email.sendFormNotification", () => {
     };
   }
 
-  it("calls email.send with correct to, subject, and html for a contact form", async () => {
+  it("falls back to fromEmail as recipient when notificationEmail is not set", async () => {
+    // Default settings have no notificationEmail — recipient should be fromEmail
     const ctx = makeCtx();
     await handler(sendFormNotification)(ctx as never, {
       siteId: SITE_ID,
@@ -164,6 +165,25 @@ describe("email.sendFormNotification", () => {
     expect(String(call.args.html)).toContain("jane@example.com");
     expect(String(call.args.html)).toContain("Hello there");
     expect(call.args.replyTo).toBe("jane@example.com");
+  });
+
+  it("sends to notificationEmail (not fromEmail) when notificationEmail is set", async () => {
+    const ctx = makeCtx({ notificationEmail: "alerts@myagency.com" });
+    await handler(sendFormNotification)(ctx as never, {
+      siteId: SITE_ID,
+      formType: "contact_form",
+      submitterName: "Jane Doe",
+      submitterEmail: "jane@example.com",
+    });
+
+    expect(ctx._runActionCalls).toHaveLength(1);
+    const call = ctx._runActionCalls[0];
+    expect(isEmailSendCall(call.args)).toBe(true);
+    // Recipient must be the dedicated notification address, not the sender address
+    expect(call.args.to).toBe("alerts@myagency.com");
+    expect(call.args.to).not.toBe("owner@myagency.com");
+    // Sender identity (fromEmail) stays as the site's fromEmail regardless of recipient
+    expect(call.args.fromEmail).toBe("owner@myagency.com");
   });
 
   it("uses the notifyOnNewLead flag — skips when false for a lead form", async () => {
@@ -202,15 +222,16 @@ describe("email.sendFormNotification", () => {
     expect(ctx._runActionCalls).toHaveLength(0);
   });
 
-  it("skips gracefully when fromEmail is absent — returns skipped reason", async () => {
-    const ctx = makeCtx({ fromEmail: undefined });
+  it("skips gracefully when neither notificationEmail nor fromEmail is set — returns skipped reason", async () => {
+    // When both are absent there is no recipient — must bail out without sending
+    const ctx = makeCtx({ fromEmail: undefined, notificationEmail: undefined });
     const result = await handler(sendFormNotification)(ctx as never, {
       siteId: SITE_ID,
       formType: "contact_form",
       submitterEmail: "someone@example.com",
     });
 
-    expect(result).toMatchObject({ skipped: true, reason: "no fromEmail configured" });
+    expect(result).toMatchObject({ skipped: true, reason: "no notification email configured" });
     expect(ctx._runActionCalls).toHaveLength(0);
   });
 
