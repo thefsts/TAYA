@@ -1,0 +1,73 @@
+I need a complete status report on the Corsair integration for the FSTS Website Operating System™ dashboard.
+
+Please provide a detailed implementation audit covering:
+
+1. Current Completion
+
+- What percentage is complete?
+- What has already been built?
+- What is partially built?
+- What has not been started?
+
+2. Architecture
+
+- Where does Corsair live within the dashboard?
+- Which modules, services, APIs, and database tables does it use?
+- How does it integrate with Convex, Clerk, and the multi-tenant architecture?
+
+3. Features
+   For each feature, indicate:
+
+- ✅ Complete
+- 🟡 In Progress
+- ❌ Not Started
+
+Include:
+
+- AI Dashboard Assistant
+- Conversational chat interface
+- Context awareness
+- Tenant awareness
+- Website knowledge
+- Dashboard knowledge
+- Content editing
+- Forms assistance
+- SEO assistance
+- Marketing recommendations
+- Analytics insights
+- Automation capabilities
+- Workflow execution
+- File and media awareness
+- User permission awareness (RBAC)
+- Website Health Command Center integration
+- Smart Image Manager integration
+- Forms Builder™ integration
+- Membership Portal integration
+- CMS integration
+- Future CRM integration
+
+4. Training & Knowledge
+   What information does Corsair currently understand?
+   What project context is loaded?
+   What documentation or indexing still needs to be completed?
+
+5. Missing Capabilities
+   List every remaining task required before Corsair is production-ready.
+
+6. Dependencies
+   Identify any blockers, missing APIs, unfinished dashboard modules, or infrastructure preventing completion.
+
+7. Demonstration
+   Describe exactly what a superAdmin can do with Corsair today, and what a client user can do today.
+
+8. Production Readiness
+   Classify each remaining task as:
+
+- Critical before beta
+- Required before public launch
+- Post-launch enhancement
+
+9. Recommended Roadmap
+   Provide the recommended implementation order for the remaining work, with estimated effort for each phase.
+
+Please be specific and reference the actual codebase and current implementation rather than planned features. If something has not been built yet, state that clearly instead of describing the intended design.
