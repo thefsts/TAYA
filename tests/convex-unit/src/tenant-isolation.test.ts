@@ -441,3 +441,72 @@ describe("Corsair Owner — role resolution and site access", () => {
     expect(await as().query(api.sites.get, { siteId: s.corsairSite })).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Corsair Owner — content queries return non-empty results
+//
+// Verifies that api.courses.list, api.services.list, and api.products.list
+// each return at least one record for the Corsair owner on the Corsair site.
+// Seeds one record per collection when the collection is empty so the test
+// is self-healing even if the global seed function was not called.
+// ---------------------------------------------------------------------------
+describe("Corsair Owner — content queries return non-empty results", () => {
+  const as = () => t.withIdentity({ subject: "corsair_owner_clerk" });
+
+  it("api.courses.list returns at least one course for the Corsair site", async () => {
+    // Initial state: clean in-memory DB, courses table is empty.
+    let courses = await as().query(api.courses.list, { siteId: s.corsairSite });
+    if (courses.length === 0) {
+      await t.run(async (ctx) => {
+        await ctx.db.insert("courses", {
+          siteId: s.corsairSite,
+          title: "Texas License to Carry (LTC)",
+          slug: "texas-ltc-certification-basic-handgun",
+          status: "published",
+          description:
+            "Texas DPS-certified License to Carry course covering laws, safe storage, and shooting proficiency.",
+        });
+      });
+      courses = await as().query(api.courses.list, { siteId: s.corsairSite });
+    }
+    expect(courses.length).toBeGreaterThan(0);
+  });
+
+  it("api.services.list returns at least one service for the Corsair site", async () => {
+    let services = await as().query(api.services.list, { siteId: s.corsairSite });
+    if (services.length === 0) {
+      await t.run(async (ctx) => {
+        await ctx.db.insert("siteServices", {
+          siteId: s.corsairSite,
+          title: "Firearms Training",
+          slug: "firearms-training",
+          description: "Professional firearms training for civilians and security personnel.",
+          order: 0,
+          isVisible: true,
+        });
+      });
+      services = await as().query(api.services.list, { siteId: s.corsairSite });
+    }
+    expect(services.length).toBeGreaterThan(0);
+  });
+
+  it("api.products.list returns at least one product for the Corsair site", async () => {
+    let products = await as().query(api.products.list, { siteId: s.corsairSite });
+    // products.list returns null on access-denied, or an array otherwise
+    if (!products || products.length === 0) {
+      await t.run(async (ctx) => {
+        await ctx.db.insert("siteProducts", {
+          siteId: s.corsairSite,
+          title: "LTC Course Bundle",
+          slug: "ltc-course-bundle",
+          description: "Complete LTC course package for Texas residents.",
+          order: 0,
+          isVisible: true,
+        });
+      });
+      products = await as().query(api.products.list, { siteId: s.corsairSite });
+    }
+    expect(products).not.toBeNull();
+    expect(products!.length).toBeGreaterThan(0);
+  });
+});
