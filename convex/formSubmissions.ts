@@ -114,5 +114,13 @@ const submitArgs = {
   data: v.optional(v.any()),
 };
 
+/**
+ * PUBLIC — no dashboard auth required.
+ * Called by website visitors submitting contact/lead forms embedded in a
+ * client's public site.  Authentication would block unauthenticated visitors,
+ * so this is intentionally unauthenticated.  The handler guards against abuse
+ * by requiring the site slug to resolve to an existing site before inserting
+ * any data.
+ */
 export const submit = mutation({ args: submitArgs, handler: submitHandler });
 export const submitInternal = internalMutation({ args: submitArgs, handler: submitHandler });

@@ -154,6 +154,14 @@ export const duplicate = mutation({
   },
 });
 
+/**
+ * PUBLIC — no dashboard auth required.
+ * This mutation is called by website visitors submitting a published form on a
+ * client's site.  Authentication would prevent unauthenticated visitors from
+ * completing forms, so it is intentionally unauthenticated.  The handler
+ * guards against abuse by requiring the form to exist, belong to the supplied
+ * siteId, and have status "published" before accepting any data.
+ */
 export const submitToForm = mutation({
   args: {
     siteId: v.id("sites"),

@@ -11,6 +11,22 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAuth, provisionUser } from "./lib/getCurrentUser";
 
+/**
+ * PRODUCTION SAFETY GATE
+ * seedCatalog is a dev/ops utility that must never run against the production
+ * deployment unless explicitly unlocked.  Set SEED_ALLOWED=true as a Convex
+ * environment variable to enable it, and unset it before going to production.
+ */
+function assertSeedAllowed() {
+  if (process.env.SEED_ALLOWED !== "true") {
+    throw new Error(
+      "Seed mutations are disabled on this deployment. " +
+        "Set the SEED_ALLOWED=true Convex environment variable to enable them. " +
+        "This variable must NOT be set on the production deployment."
+    );
+  }
+}
+
 // ── Catalog seed data ──────────────────────────────────────────────────────
 
 const CATALOG_SEED = [
@@ -378,13 +394,16 @@ export const requestAddOn = mutation({
 
 /**
  * Idempotent catalog seed — safe to run multiple times.
- * No auth required because this only inserts known static pricing data and
- * the check-by-slug prevents duplicate rows. Call via:
+ * No dashboard auth required because this only inserts known static pricing
+ * data and the check-by-slug prevents duplicate rows.  The SEED_ALLOWED gate
+ * prevents it from running against the production deployment.  Call via:
+ *   npx convex env set SEED_ALLOWED true   # dev deployment only
  *   npx convex run addons:seedCatalog
  */
 export const seedCatalog = mutation({
   args: {},
   handler: async (ctx) => {
+    assertSeedAllowed();
     let created = 0;
     let skipped = 0;
     for (const item of CATALOG_SEED) {

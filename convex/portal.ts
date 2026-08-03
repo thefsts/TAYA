@@ -381,6 +381,14 @@ export const validateSession = query({
   },
 });
 
+/**
+ * PUBLIC — no dashboard auth required.
+ * Called by the client portal front-end to invalidate a portal session token.
+ * The caller supplies the opaque session token they received on login; no
+ * dashboard/Clerk identity is involved.  Requiring Clerk auth would prevent
+ * portal users (who have no Clerk account) from logging out of their own
+ * portal sessions.
+ */
 export const logout = mutation({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
