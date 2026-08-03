@@ -84,6 +84,14 @@ export const CAPABILITIES: Capability[] = [
     category: "Content",
   },
   {
+    id: "manage_flyers",
+    label: "Flyer Manager",
+    description: "Create, publish, schedule, and archive promotional flyers.",
+    tier: "content",
+    category: "Content",
+    permission: PERMISSIONS.FLYERS_CREATE,
+  },
+  {
     id: "edit_announcement",
     label: "Announcement Banner",
     description: "Update the site-wide announcement banner text and link.",

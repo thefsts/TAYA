@@ -5,6 +5,7 @@ import { requirePermission } from "./lib/requirePermission";
 import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
+import { internal } from "./_generated/api";
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString(), updatedAt: new Date(doc._creationTime).toISOString(), startAt: new Date(doc.startAt).toISOString(), endAt: doc.endAt ? new Date(doc.endAt).toISOString() : null };
@@ -99,6 +100,19 @@ export const update = mutation({
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "event", entityId: eventId, page: "Events", previousValue: existing, newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "event", entityId: eventId, snapshot: doc });
     if ("squareItemId" in fields) await syncEventMapping(ctx, siteId, eventId, fields.squareItemId);
+    // Archive any linked flyers when the event is cancelled or completed.
+    if (
+      fields.status &&
+      (fields.status === "cancelled" || fields.status === "completed") &&
+      existing.status !== fields.status
+    ) {
+      await ctx.scheduler.runAfter(0, internal.flyers.archiveByEntity, {
+        siteId,
+        associatedEntityType: "event",
+        associatedEntityId: eventId,
+        archivedReason: "associated_entity_ended",
+      });
+    }
     return toResponse(doc);
   },
 });

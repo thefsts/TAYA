@@ -812,6 +812,36 @@ export default defineSchema({
     .index("by_site", ["siteId"])
     .index("by_site_slug", ["siteId", "slug"]),
 
+  // ── Flyer Manager ────────────────────────────────────────────────────
+  flyers: defineTable({
+    siteId: v.id("sites"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    buttonLabel: v.optional(v.string()),
+    buttonDestination: v.optional(v.string()),
+    startDate: v.optional(v.number()),       // epoch ms; null = no start restriction
+    expirationDate: v.optional(v.number()),  // epoch ms; null = never expires
+    associatedEntityType: v.optional(v.union(
+      v.literal("class"),
+      v.literal("event"),
+      v.literal("service"),
+      v.literal("general"),
+    )),
+    associatedEntityId: v.optional(v.string()),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("scheduled"),
+      v.literal("published"),
+      v.literal("archived"),
+    ),
+    publishedAt: v.optional(v.number()),
+    archivedAt: v.optional(v.number()),
+    archivedReason: v.optional(v.string()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_status", ["siteId", "status"]),
+
   // ── Add-on Catalog ────────────────────────────────────────────────────
   // Master list of available premium add-ons managed by FSTS staff.
   // Seeded once via addons:seedCatalog; pricing is backend-managed.

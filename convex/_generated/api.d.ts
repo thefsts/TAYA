@@ -27,6 +27,7 @@ import type * as cta from "../cta.js";
 import type * as downloads from "../downloads.js";
 import type * as email from "../email.js";
 import type * as events from "../events.js";
+import type * as flyers from "../flyers.js";
 import type * as faq from "../faq.js";
 import type * as footer from "../footer.js";
 import type * as formSubmissions from "../formSubmissions.js";
@@ -97,6 +98,7 @@ declare const fullApi: ApiFromModules<{
   downloads: typeof downloads;
   email: typeof email;
   events: typeof events;
+  flyers: typeof flyers;
   faq: typeof faq;
   footer: typeof footer;
   formSubmissions: typeof formSubmissions;

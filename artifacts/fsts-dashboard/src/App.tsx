@@ -78,6 +78,9 @@ const PaymentProviders = lazy(() => import("@/pages/app/sites/PaymentProviders")
 // WOS Phase 8 — Automation Engine™
 const AutomationRules = lazy(() => import("@/pages/app/sites/AutomationRules"));
 
+// Flyer Manager
+const FlyerManager = lazy(() => import("@/pages/app/sites/FlyerManager"));
+
 // Website Reviews Module™
 const ReviewsManager = lazy(() => import("@/pages/app/sites/ReviewsManager"));
 
@@ -411,6 +414,9 @@ function AppRouter() {
 
           {/* Products / Offerings Manager */}
           <Route path="/app/sites/:siteId/products" component={ProductsManager} />
+
+          {/* Flyer Manager */}
+          <Route path="/app/sites/:siteId/flyers" component={FlyerManager} />
 
           <Route component={NotFound} />
         </Switch>

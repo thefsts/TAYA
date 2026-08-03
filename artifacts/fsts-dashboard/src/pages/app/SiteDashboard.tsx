@@ -42,6 +42,7 @@ import {
   Star,
   UserCog,
   Package,
+  Newspaper,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -224,6 +225,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} isSuperAdmin={isSuperAdmin} />
           <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} isSuperAdmin={isSuperAdmin} />
           {isEnabled("products") && <NavItem icon={Package} label="Products" href={`/app/sites/${siteId}/products`} isSuperAdmin={isSuperAdmin} />}
+          <NavItem icon={Newspaper} label="Flyers" href={`/app/sites/${siteId}/flyers`} isSuperAdmin={isSuperAdmin} />
           {isEnabled("forms") && <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />}
           {isEnabled("contact") && <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} isSuperAdmin={isSuperAdmin} />}
 

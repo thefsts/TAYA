@@ -5,6 +5,7 @@ import { requirePermission } from "./lib/requirePermission";
 import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
+import { internal } from "./_generated/api";
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString(), updatedAt: new Date(doc._creationTime).toISOString() };
@@ -94,6 +95,19 @@ export const update = mutation({
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "course", entityId: courseId, page: "Courses", previousValue: existing, newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "course", entityId: courseId, snapshot: doc });
     if ("squareItemId" in fields) await syncCourseMapping(ctx, siteId, courseId, fields.squareItemId);
+    // Archive any linked flyers when the course is cancelled or completed.
+    if (
+      fields.status &&
+      (fields.status === "cancelled" || fields.status === "completed") &&
+      existing.status !== fields.status
+    ) {
+      await ctx.scheduler.runAfter(0, internal.flyers.archiveByEntity, {
+        siteId,
+        associatedEntityType: "class",
+        associatedEntityId: courseId,
+        archivedReason: "associated_entity_ended",
+      });
+    }
     return toResponse(doc);
   },
 });
