@@ -275,6 +275,35 @@ describe("Security regressions — superadmin bootstrap lockdown", () => {
   });
 });
 
+describe("Security regressions — superadmin + site role conflict guard", () => {
+  const as = () => t.withIdentity({ subject: "superadmin" });
+
+  it("users:create throws when isSuperAdmin:true is combined with roleAssignments", async () => {
+    await expect(
+      as().mutation(api.users.create, {
+        name: "Bad Actor",
+        email: "badactor@test.local",
+        isSuperAdmin: true,
+        roleAssignments: [{ siteId: s.siteA, role: "owner" }],
+      }),
+    ).rejects.toThrow(/Cannot combine isSuperAdmin/);
+  });
+
+  it("users:update throws when the resulting state would be superadmin + site roles", async () => {
+    // Create a client user that already has a site role
+    const clientUserId = await t.run(async (ctx) =>
+      ctx.db.insert("users", userDoc("client_with_role", { roles: [{ siteId: s.siteA, role: "owner" }] })),
+    );
+    await expect(
+      as().mutation(api.users.update, {
+        userId: clientUserId,
+        isSuperAdmin: true,
+        // roleAssignments not passed — existing roles on the user make this invalid
+      }),
+    ).rejects.toThrow(/Cannot combine isSuperAdmin/);
+  });
+});
+
 describe("Security regressions — Square catalog sync action", () => {
   it("rejects anonymous, non-member, and read-only callers", async () => {
     await expect(t.action(api.squareOrders.syncCatalog, { siteId: s.siteA })).rejects.toThrow(/Unauthenticated/);
