@@ -1,0 +1,948 @@
+FSTS Website Operating System™ — Full Dashboard Completion and Website Onboarding Directive
+
+Project
+
+FSTS Website Operating System™
+Repository: "https://github.com/thefsts/FSTS-client-Dashboard-for-sites-"
+
+You are the Lead Developer responsible for completing the full dashboard platform.
+
+The FSTS Website Operating System™ must function like a modern, multi-tenant WordPress-style platform that can power and manage many different client websites from one shared SaaS dashboard.
+
+This is not a CRM.
+
+Do not recreate functionality that belongs to Operon CRM.
+
+---
+
+1. Product Definition
+
+The FSTS Website Operating System™ is the central website management platform used by FSTS and its clients to:
+
+- Create websites
+- Provision websites
+- Connect existing websites
+- Manage website content
+- Manage pages
+- Manage media
+- Manage SEO
+- Manage forms
+- Monitor website health
+- Manage website users
+- Install premium website add-ons
+- Publish website content to connected social media accounts
+- Manage multiple websites from one account
+
+It should feel similar to WordPress, but easier, more modern, multi-tenant, AI-assisted, and designed for businesses that do not want to manage plugins or technical hosting.
+
+---
+
+2. Platform Separation
+
+FSTS Website Operating System™ Owns
+
+- Website creation
+- Website provisioning
+- Website onboarding
+- Multi-tenant website management
+- Page management
+- Homepage management
+- Blog management
+- Event management
+- Product or offering display management
+- Website media
+- Website menus
+- Website headers and footers
+- Website themes and branding
+- Website forms
+- Website SEO
+- Website analytics
+- Website accessibility
+- Website health
+- Website backups
+- Website version history
+- Website publishing
+- Social publishing of website content
+- Website add-ons
+- Website integrations
+- Website users and permissions
+- AI website assistance
+
+Operon CRM Owns
+
+Do not duplicate the following inside this dashboard:
+
+- CRM contact management
+- Lead pipelines
+- Sales pipelines
+- Quotes
+- Estimates
+- Proposals
+- Invoices
+- Payment processing
+- Recurring billing for the client’s customers
+- Email marketing campaigns
+- SMS marketing
+- Customer follow-up
+- Sales automation
+- Appointment follow-up
+- Reputation management
+- Review request campaigns
+- Customer communication history
+- Geofencing campaign operations
+- Full social media marketing management
+- Business workflow automation
+
+The dashboard may send website-generated leads, form submissions, registrations, bookings, purchases, and other activity into Operon CRM through integrations.
+
+---
+
+3. Core Dashboard Requirements
+
+Audit the existing application and complete every unfinished area.
+
+The core dashboard should include:
+
+Dashboard Home
+
+- Website overview
+- Website health score
+- Recent activity
+- Recent form submissions
+- Content status
+- Website traffic summary
+- SEO status
+- Accessibility status
+- Connected services
+- Installed add-ons
+- Quick actions
+- AI recommendations
+
+Website Management
+
+- Website switcher
+- Multi-website support
+- Website status
+- Domain status
+- Deployment status
+- Website settings
+- Website preview
+- Open live website
+- Publish changes
+- Staging and production distinction
+
+Content Management
+
+- Homepage Editor
+- Page Manager
+- Blog Manager
+- Article Manager
+- Events Manager
+- FAQ Manager
+- Testimonials Manager
+- Team Member Manager
+- Services Manager
+- Products or Offerings Manager
+- Calls-to-action Manager
+- Announcement Manager
+- Resource Library
+- Navigation Manager
+- Header Manager
+- Footer Manager
+
+Media
+
+- Media Library
+- Smart Image Manager™
+- Image compression
+- Image resizing
+- Image cropping
+- Alt-text management
+- Duplicate detection
+- File usage tracking
+- Folder or collection organization
+- Upload limits by subscription tier
+
+Forms
+
+- Forms Builder™
+- Contact forms
+- Registration forms
+- Quote request forms
+- Event registration forms
+- File uploads
+- Conditional logic
+- Multi-step forms
+- Form notifications
+- Spam protection
+- Submission history
+- CRM handoff
+- Webhook support
+
+The client website should handle website-triggered email delivery where appropriate.
+
+The dashboard should display and manage settings but should not become an email marketing platform.
+
+SEO
+
+- SEO Manager
+- Page title and meta description editor
+- Open Graph settings
+- Social sharing images
+- Canonical URLs
+- Schema settings
+- Sitemap management
+- Robots.txt management
+- Redirect manager
+- Broken-link detection
+- Keyword suggestions
+- SEO scoring
+
+Users and Permissions
+
+- Multi-tenant RBAC
+- FSTS super administrator
+- Agency administrator
+- Client owner
+- Website administrator
+- Website editor
+- Content editor
+- Analyst
+- Read-only user
+- Custom permission support
+- Website-specific access
+- Audit history
+
+---
+
+4. Complete Website Onboarding
+
+The onboarding system must be completed now.
+
+Create a full guided onboarding wizard for adding and launching websites.
+
+Onboarding Entry Options
+
+Users should be able to choose:
+
+1. Create a new website
+2. Connect an existing FSTS-built website
+3. Import an existing website
+4. Start from a template
+5. Duplicate an existing website
+6. Create a blank website
+
+Required Onboarding Steps
+
+Step 1 — Business Information
+
+Collect:
+
+- Business name
+- Website name
+- Industry
+- Business description
+- Phone number
+- Email address
+- Business address
+- Service area
+- Time zone
+- Preferred language
+- Business hours
+
+Step 2 — Website Purpose
+
+Allow users to select:
+
+- Generate leads
+- Sell products
+- Promote services
+- Publish articles
+- Promote events
+- Accept bookings
+- Provide member content
+- Display a portfolio
+- Provide business information
+- Collect applications
+- Accept donations
+- Other
+
+Step 3 — Website Structure
+
+Allow selection of required pages:
+
+- Home
+- About
+- Services
+- Products
+- Blog
+- Events
+- FAQ
+- Testimonials
+- Team
+- Contact
+- Portfolio
+- Resources
+- Booking
+- Membership
+- Privacy Policy
+- Terms and Conditions
+- Accessibility Statement
+
+Step 4 — Branding
+
+Collect or generate:
+
+- Logo
+- Favicon
+- Brand colors
+- Fonts
+- Button style
+- Design personality
+- Image style
+- Light or dark preference
+
+Step 5 — Template
+
+Allow:
+
+- Industry template selection
+- Live template preview
+- Mobile preview
+- Desktop preview
+- Start blank
+- AI-recommended template
+
+Step 6 — Content Setup
+
+Allow users to:
+
+- Enter their own content
+- Import content
+- Use AI-generated starter content
+- Upload documents for content extraction
+- Skip and complete later
+
+Step 7 — Domain
+
+Support:
+
+- Use an existing domain
+- Purchase or connect a domain later
+- Use a temporary FSTS subdomain
+- Display DNS connection instructions
+- Verify domain connection
+- Show SSL status
+
+Step 8 — Integrations
+
+Allow optional connection to:
+
+- Operon CRM
+- Google Analytics
+- Google Search Console
+- Google Business Profile
+- Facebook
+- Instagram
+- LinkedIn
+- X
+- Pinterest
+- Calendly
+- External booking providers
+- Maps
+- Other approved integrations
+
+Step 9 — Add-ons
+
+Show available premium dashboard add-ons.
+
+Do not force installation.
+
+Explain the value, price, trial eligibility, and required subscription level.
+
+Step 10 — Review and Launch
+
+Show:
+
+- Website information
+- Selected template
+- Selected pages
+- Branding
+- Domain status
+- Integrations
+- Add-ons
+- Missing requirements
+- Readiness score
+- Preview link
+- Launch button
+
+Onboarding Technical Requirements
+
+- Save progress after every step
+- Allow users to exit and resume
+- Show completion percentage
+- Prevent duplicate website records
+- Support failed-step recovery
+- Use tenant-safe database operations
+- Record onboarding activity
+- Support administrator-assisted onboarding
+- Allow FSTS staff to complete onboarding on behalf of clients
+- Seed starter content
+- Create required database records
+- Create default roles and permissions
+- Create website settings
+- Create starter navigation
+- Create required legal-page placeholders
+- Generate a temporary preview URL
+- Display launch readiness status
+
+---
+
+5. Premium Dashboard Add-on System
+
+Build a modular add-on architecture.
+
+Each add-on must support:
+
+- Add-on ID
+- Name
+- Description
+- Category
+- Monthly price
+- Annual price
+- Trial availability
+- Subscription tier requirements
+- Installation status
+- Activation status
+- Tenant assignment
+- Website assignment
+- Usage limits
+- Usage tracking
+- Configuration screen
+- Feature flags
+- Upgrade prompt
+- Cancellation behavior
+- Permission requirements
+- Audit history
+
+Add-ons must be installable per website unless explicitly designed for the full tenant account.
+
+---
+
+6. Priority Paid Add-ons
+
+Social Publisher Pro
+
+This is a dashboard website-publishing add-on, not a full CRM marketing system.
+
+Allow users to push website content to connected social channels.
+
+Supported content:
+
+- Blog posts
+- Events
+- Products
+- Services
+- Promotions
+- Announcements
+- New pages
+- Website updates
+
+Supported destinations:
+
+- Facebook
+- Instagram
+- LinkedIn
+- X
+- Google Business Profile
+- Pinterest
+
+Required features:
+
+- Social account connection
+- Content preview
+- Caption editing
+- Image selection
+- Hashtag suggestions
+- Immediate publishing
+- Scheduled publishing
+- Publishing history
+- Success and failure status
+- Retry failed posts
+- Link back to the website
+- Platform-specific formatting
+- AI-generated captions
+- Permissions
+- Usage limits by plan
+
+Do not build social inboxes, customer messaging, lead pipelines, or full social campaign management here. Those belong to Operon CRM.
+
+AI Blog Writer
+
+- Topic generation
+- Blog outline generation
+- Full blog drafting
+- SEO keyword suggestions
+- Meta description generation
+- Internal link suggestions
+- Featured image prompt
+- Tone selection
+- Industry selection
+- Draft saving
+- Human approval before publishing
+
+AI Website Content Assistant
+
+- Rewrite website content
+- Shorten or expand copy
+- Improve calls to action
+- Generate service descriptions
+- Generate FAQs
+- Generate homepage sections
+- Generate event descriptions
+- Generate product descriptions
+- Generate SEO metadata
+
+Smart SEO Pro
+
+- Advanced SEO scoring
+- Keyword recommendations
+- Schema generation
+- Redirect management
+- Broken-link scanning
+- Search appearance preview
+- Internal linking recommendations
+- Duplicate-title detection
+- Missing-description detection
+
+Website Health Pro
+
+- Uptime status
+- SSL status
+- Domain status
+- Broken links
+- Mobile readiness
+- Performance checks
+- Core Web Vitals
+- Large-image detection
+- Missing-alt-text detection
+- Website health history
+- Alert configuration
+
+Accessibility Pro
+
+- Accessibility scans
+- Contrast checks
+- Heading-order checks
+- Missing-label detection
+- Missing-alt-text detection
+- Keyboard navigation checks
+- Accessibility issue list
+- Suggested fixes
+- Downloadable reports
+
+Do not claim automatic legal compliance.
+
+Backup and Restore Pro
+
+- Scheduled backups
+- Manual backups
+- Backup history
+- Restore point selection
+- Page-level restore
+- Full-site restore
+- Restore confirmation
+- Audit history
+
+Version History Pro
+
+- Page revision history
+- Compare versions
+- Restore versions
+- User attribution
+- Date and time history
+- Draft and published states
+
+AI Translation
+
+- Translate pages
+- Translate blog posts
+- Translate menus
+- Translate metadata
+- Manage languages
+- Language switcher
+- Human editing after translation
+- Translation status
+
+Forms Pro
+
+- Multi-step forms
+- Conditional logic
+- Advanced validation
+- File uploads
+- Signatures
+- PDF output
+- Advanced confirmation pages
+- CRM routing
+- Form analytics
+
+Member Portal Pro
+
+- Protected website pages
+- Member roles
+- Content permissions
+- Downloads
+- Courses
+- Member resources
+- Membership status display
+- CRM integration where appropriate
+
+Popup and Banner Builder
+
+- Announcement bars
+- Promotional popups
+- Exit-intent popups
+- Timed popups
+- Page targeting
+- Device targeting
+- Start and end dates
+- Analytics
+
+Dynamic Content Engine
+
+Allow website content to change based on:
+
+- Location
+- City
+- Device
+- Date
+- Time
+- Referral source
+- Campaign source
+- Language
+- Logged-in status
+
+Website Search Pro
+
+- Search indexing
+- Typo tolerance
+- Suggested results
+- Search analytics
+- Content filters
+- AI-assisted answers using approved website content
+
+Resource Library Pro
+
+- Documents
+- Videos
+- Guides
+- Downloads
+- Categories
+- Tags
+- Search
+- Protected resources
+- Download tracking
+
+Template Marketplace
+
+Support:
+
+- Free templates
+- Premium templates
+- Industry templates
+- Template previews
+- Template installation
+- Template licensing
+- Template updates
+- One-time purchases
+- Templates included in higher plans
+
+---
+
+7. Additional Revenue Add-on Ideas
+
+Prepare the add-on architecture for these future modules:
+
+- Landing Page Builder Pro
+- A/B Testing
+- Conversion Analytics
+- Heatmaps
+- Cookie Consent Manager
+- Advanced Analytics
+- Portfolio Pro
+- Job Board
+- Directory Builder
+- Restaurant Menu Manager
+- Real Estate Listing Manager
+- Donation Page Builder
+- Online Course Builder
+- Digital Downloads
+- Event Ticket Display Integration
+- Multi-location Website Manager
+- Franchise Website Manager
+- White-label Website Reports
+- Advanced Custom Code Manager
+- Staging Environment
+- Developer Tools
+- API Access
+- Webhook Manager
+- Custom Data Collections
+- Industry Content Packs
+- Premium Section Packs
+- Premium Icon Packs
+- Premium Design Blocks
+
+These should remain website-management products and should not duplicate CRM operations.
+
+---
+
+8. Add-on Revenue Controls
+
+Prepare the system for monetization.
+
+Required:
+
+- Free features
+- Tier-included features
+- Paid monthly add-ons
+- Paid annual add-ons
+- One-time template purchases
+- Usage-based AI credits
+- Usage-based storage
+- Usage-based website limits
+- Trial periods
+- Promotional pricing
+- Coupon support
+- Grandfathered pricing
+- Admin-granted access
+- Beta tester access
+- Feature flags
+- Upgrade and downgrade paths
+
+FSTS platform subscription billing may control access to dashboard plans and add-ons.
+
+Do not process the client business’s customer payments inside this dashboard. Those belong to the website’s payment provider or Operon CRM, depending on the service.
+
+---
+
+9. Dashboard Navigation
+
+Review and organize the navigation so it is simple and scalable.
+
+Recommended structure:
+
+Overview
+
+- Dashboard
+- Activity
+- Notifications
+
+Website
+
+- Pages
+- Homepage
+- Blog
+- Events
+- Services
+- Products
+- FAQs
+- Testimonials
+- Team
+- Resources
+- Menus
+- Header
+- Footer
+
+Design
+
+- Theme
+- Branding
+- Templates
+- Responsive Preview
+- Custom Code
+
+Media
+
+- Media Library
+- Smart Image Manager™
+
+Engagement
+
+- Forms
+- Popups and Banners
+- Members
+- Website Search
+
+Growth
+
+- SEO
+- Analytics
+- Social Publisher
+- AI Content
+- Dynamic Content
+
+Website Health
+
+- Health Overview
+- Performance
+- Accessibility
+- Backups
+- Version History
+
+Add-ons
+
+- Marketplace
+- Installed Add-ons
+- Usage
+- Plans
+
+Settings
+
+- General
+- Domain
+- Integrations
+- Users
+- Permissions
+- Notifications
+- Developer
+- Audit Log
+
+Only show navigation items the current user has permission to access.
+
+---
+
+10. Completion Audit
+
+Before adding duplicate functionality, inspect the current repository and identify:
+
+- Fully complete features
+- Partially complete features
+- Placeholder screens
+- Mock data
+- Dead navigation links
+- Missing Convex functions
+- Missing schemas
+- Missing tenant protections
+- Missing permissions
+- Incomplete onboarding steps
+- Incomplete add-on infrastructure
+- Build errors
+- TypeScript errors
+- Broken tests
+- Missing production environment variables
+- Missing integrations
+- Security risks
+- Accessibility issues
+- Mobile layout issues
+- Features incorrectly assigned to the dashboard that belong to Operon CRM
+
+Do not report a feature as complete merely because a screen exists.
+
+A feature is complete only when:
+
+- The interface works
+- Data is persisted
+- Tenant isolation is enforced
+- Permissions are enforced
+- Loading states exist
+- Empty states exist
+- Errors are handled
+- Mobile layouts work
+- Tests pass
+- The production build passes
+- The feature is connected to the correct backend
+- No placeholder or mock data remains unless intentionally marked as demo data
+
+---
+
+11. Required Execution Order
+
+Complete the work in this order:
+
+1. Audit the repository
+2. Fix build, type, schema, and tenant-isolation problems
+3. Confirm the dashboard and CRM feature boundaries
+4. Complete multi-website management
+5. Complete website onboarding
+6. Complete website provisioning and starter data
+7. Complete core CMS modules
+8. Complete permissions and roles
+9. Complete add-on infrastructure
+10. Add Social Publisher Pro foundation
+11. Complete website health and monitoring
+12. Complete AI content tools
+13. Complete plan and usage controls
+14. Complete mobile and responsive QA
+15. Complete tests
+16. Complete production-readiness documentation
+
+Do not start several large unfinished feature shells at the same time.
+
+Finish and verify each foundation before moving to the next dependency.
+
+---
+
+12. Required Deliverables
+
+Provide:
+
+- Current repository audit
+- Accurate percentage complete
+- Feature-by-feature status
+- List of missing features
+- List of broken features
+- List of placeholder features
+- CRM duplication findings
+- Security findings
+- Tenant-isolation findings
+- Onboarding status
+- Add-on architecture status
+- Exact files changed
+- Tests added
+- Tests passed
+- Build result
+- Remaining blockers
+- Recommended next development task
+- Updated production-readiness report
+
+Create or update:
+
+- "PRODUCTION_READINESS_REPORT.md"
+- "DASHBOARD_FEATURE_MATRIX.md"
+- "WEBSITE_ONBOARDING_STATUS.md"
+- "ADD_ON_ARCHITECTURE.md"
+- "CRM_PLATFORM_BOUNDARIES.md"
+- "RELEASE_CHECKLIST.md"
+
+---
+
+13. Git Requirements
+
+All commits must use:
+
+Git Name: "THEFSTS"
+Git Email: "AMOREBEY@GMAIL.COM"
+
+Verify the repository remote before pushing.
+
+Do not commit secrets.
+
+Do not replace working production code with mock code.
+
+Do not delete existing completed functionality without documenting why.
+
+Use clear, task-specific commit messages.
+
+---
+
+Final Objective
+
+Complete the FSTS Website Operating System™ as a scalable, secure, multi-tenant, WordPress-style website management dashboard.
+
+The platform must allow FSTS and its customers to onboard, provision, manage, update, monitor, and grow multiple websites from one system.
+
+Premium add-ons should create recurring dashboard revenue while remaining focused on website management.
+
+Operon CRM should handle business operations, customer relationships, payments, email marketing, sales, and automation.
+
+Begin with a full repository audit, then implement the remaining work according to the execution order above.
