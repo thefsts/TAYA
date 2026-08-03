@@ -20,9 +20,14 @@ import {
   userHasPermission,
 } from "@/lib/permissions";
 import {
+  ROLES,
   ROLE_PERMISSIONS,
   roleHasPermission,
 } from "@/lib/roleCapabilities";
+import {
+  PERMISSION_LABELS,
+  PERMISSION_CATEGORIES,
+} from "@/components/RolePermissionsPanel";
 
 // ── 1. Design-tier permissions are superAdmin-only ──────────────────────────
 
@@ -151,7 +156,107 @@ describe("userHasPermission", () => {
   });
 });
 
-// ── 6. PERMISSIONS constants are stable string literals ────────────────────
+// ── 6. PERMISSION_LABELS covers every Permission value ─────────────────────
+
+describe("PERMISSION_LABELS completeness", () => {
+  it("has a label for every Permission constant", () => {
+    const allPermissions = Object.values(PERMISSIONS);
+    for (const perm of allPermissions) {
+      expect(
+        Object.prototype.hasOwnProperty.call(PERMISSION_LABELS, perm),
+        `PERMISSION_LABELS is missing an entry for '${perm}'`,
+      ).toBe(true);
+      expect(
+        PERMISSION_LABELS[perm as keyof typeof PERMISSION_LABELS],
+        `PERMISSION_LABELS['${perm}'] must be a non-empty string`,
+      ).toBeTruthy();
+    }
+  });
+
+  it("does not contain labels for permissions that no longer exist", () => {
+    const allPermissions = new Set(Object.values(PERMISSIONS));
+    for (const key of Object.keys(PERMISSION_LABELS)) {
+      expect(
+        allPermissions.has(key as (typeof PERMISSIONS)[keyof typeof PERMISSIONS]),
+        `PERMISSION_LABELS has a stale key '${key}' not in PERMISSIONS`,
+      ).toBe(true);
+    }
+  });
+});
+
+// ── 7. Every Role appears in ROLE_PERMISSIONS ──────────────────────────────
+
+describe("ROLE_PERMISSIONS completeness", () => {
+  it("has an entry for every role in ROLES", () => {
+    for (const role of ROLES) {
+      expect(
+        Object.prototype.hasOwnProperty.call(ROLE_PERMISSIONS, role),
+        `ROLE_PERMISSIONS is missing an entry for role '${role}'`,
+      ).toBe(true);
+      expect(
+        Array.isArray(ROLE_PERMISSIONS[role]),
+        `ROLE_PERMISSIONS['${role}'] must be an array`,
+      ).toBe(true);
+    }
+  });
+
+  it("does not contain entries for roles that no longer exist in ROLES", () => {
+    const rolesSet = new Set<string>(ROLES);
+    for (const key of Object.keys(ROLE_PERMISSIONS)) {
+      expect(
+        rolesSet.has(key),
+        `ROLE_PERMISSIONS has a stale key '${key}' not in ROLES`,
+      ).toBe(true);
+    }
+  });
+});
+
+// ── 8. PERMISSION_CATEGORIES union covers every non-superAdmin permission ──
+
+describe("PERMISSION_CATEGORIES completeness", () => {
+  it("union of all category permissions equals the full non-superAdmin PERMISSIONS set", () => {
+    const nonAdminPermissions = new Set(
+      Object.values(PERMISSIONS).filter((p) => !SUPERADMIN_ONLY_PERMISSIONS.has(p)),
+    );
+
+    const categorisedPermissions = new Set(
+      PERMISSION_CATEGORIES.flatMap((cat) => cat.permissions),
+    );
+
+    // Every non-superAdmin permission must appear in at least one category
+    for (const perm of nonAdminPermissions) {
+      expect(
+        categorisedPermissions.has(perm),
+        `PERMISSION_CATEGORIES does not include '${perm}'`,
+      ).toBe(true);
+    }
+
+    // Every categorised permission must be a real non-superAdmin permission
+    for (const perm of categorisedPermissions) {
+      if (!SUPERADMIN_ONLY_PERMISSIONS.has(perm)) {
+        expect(
+          nonAdminPermissions.has(perm),
+          `PERMISSION_CATEGORIES contains unknown permission '${perm}'`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("superAdmin-only permissions appear only in adminOnly categories", () => {
+    for (const cat of PERMISSION_CATEGORIES) {
+      for (const perm of cat.permissions) {
+        if (SUPERADMIN_ONLY_PERMISSIONS.has(perm)) {
+          expect(
+            cat.adminOnly,
+            `Permission '${perm}' is superAdmin-only but placed in a non-adminOnly category '${cat.label}'`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+});
+
+// ── 9. PERMISSIONS constants are stable string literals ────────────────────
 
 describe("PERMISSIONS string values", () => {
   it("matches the expected dot-notation strings", () => {
