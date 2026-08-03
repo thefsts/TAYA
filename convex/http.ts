@@ -48,6 +48,8 @@ const preflightPaths = [
   "/api/agency/branding",
   // Website Reviews Module™
   "/api/public/reviews",
+  // Products / Offerings
+  "/api/public/products",
 ];
 for (const path of preflightPaths) {
   http.route({ path, method: "OPTIONS", handler: preflight });
@@ -626,6 +628,18 @@ http.route({
     } catch (err: any) {
       return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
     }
+  }),
+});
+
+/* ── GET /api/public/products?slug= ─────────────────────────────────────── */
+http.route({
+  path: "/api/public/products",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getProductsBySlug, { slug });
+    return ok(data);
   }),
 });
 
