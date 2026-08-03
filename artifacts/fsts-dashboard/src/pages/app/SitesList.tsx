@@ -127,7 +127,7 @@ export default function SitesList() {
                 <BookOpen className="h-4 w-4 mr-2 text-slate-500" />
                 Runbook
               </Button>
-              <Button variant="outline" onClick={() => setLocation("/app/admin/onboarding")}>
+              <Button variant="outline" onClick={() => setLocation("/app/onboard")}>
                 <Rocket className="h-4 w-4 mr-2 text-slate-500" />
                 Onboard New Site
               </Button>

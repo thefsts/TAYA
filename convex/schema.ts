@@ -756,4 +756,59 @@ export default defineSchema({
   })
     .index("by_token", ["token"])
     .index("by_user", ["portalUserId"]),
+
+  // ── Website Onboarding Wizard ──────────────────────────────────────────
+  // Persists step-by-step wizard progress so sessions can be resumed after
+  // a page refresh or across browser tabs.
+  onboardingProgress: defineTable({
+    sessionKey: v.string(),          // UUID, stored in localStorage
+    createdBy: v.optional(v.string()), // Clerk userId of initiating admin
+    agencyId: v.optional(v.id("agencies")),
+    siteId: v.optional(v.id("sites")), // set after successful launch
+    currentStep: v.number(),         // 0-9
+    stepData: v.any(),               // JSON blob keyed by step index
+    status: v.string(),              // "in_progress" | "completed" | "abandoned"
+  })
+    .index("by_session", ["sessionKey"])
+    .index("by_creator", ["createdBy"])
+    .index("by_site", ["siteId"]),
+
+  // ── Services Manager ──────────────────────────────────────────────────
+  siteServices: defineTable({
+    siteId: v.id("sites"),
+    title: v.string(),
+    slug: v.string(),
+    description: v.string(),
+    shortDescription: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    price: v.optional(v.string()),
+    duration: v.optional(v.string()),
+    category: v.optional(v.string()),
+    order: v.number(),
+    isVisible: v.boolean(),
+    ctaLabel: v.optional(v.string()),
+    ctaUrl: v.optional(v.string()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_slug", ["siteId", "slug"]),
+
+  // ── Products / Offerings Manager ─────────────────────────────────────
+  siteProducts: defineTable({
+    siteId: v.id("sites"),
+    title: v.string(),
+    slug: v.string(),
+    description: v.string(),
+    shortDescription: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    priceCents: v.optional(v.number()),
+    priceLabel: v.optional(v.string()),  // e.g. "Starting at $99/mo"
+    category: v.optional(v.string()),
+    order: v.number(),
+    isVisible: v.boolean(),
+    isFeatured: v.optional(v.boolean()),
+    ctaLabel: v.optional(v.string()),
+    ctaUrl: v.optional(v.string()),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_slug", ["siteId", "slug"]),
 });
