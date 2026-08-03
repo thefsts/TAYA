@@ -5,7 +5,9 @@ import { useLocation } from "wouter";
 import {
   Building2, Globe, Palette, Layout, FileText, Server,
   Plug, Package, Rocket, CheckCircle2, ChevronLeft,
-  ChevronRight, ArrowLeft, ShieldX,
+  ChevronRight, ArrowLeft, ShieldX, Share2, PenLine,
+  SearchCode, Activity, ShieldCheck, ClipboardList,
+  Clock, Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,6 +142,8 @@ interface StepData {
   customDomain: string;
   // Step 7
   integrations: string[];
+  // Step 8
+  addOnSelections: string[];
 }
 
 const DEFAULT_DATA: StepData = {
@@ -152,6 +156,7 @@ const DEFAULT_DATA: StepData = {
   priceRange: [],
   domainChoice: "later", customDomain: "",
   integrations: [],
+  addOnSelections: [],
 };
 
 function generateSessionKey(): string {
@@ -616,25 +621,175 @@ function Step7({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
   );
 }
 
-function Step8() {
+// ── Add-on catalog (static; also seeded into Convex via addons:seedCatalog) ──
+
+const ADDON_CATALOG = [
+  {
+    slug: "social-publisher-pro",
+    name: "Social Publisher Pro",
+    category: "Marketing",
+    Icon: Share2,
+    monthlyPrice: 49,
+    pricingTier: "professional",
+    features: ["Multi-platform scheduling (FB, IG, LinkedIn, X)", "Visual content calendar", "AI caption suggestions"],
+    isBeta: false,
+  },
+  {
+    slug: "ai-blog-writer",
+    name: "AI Blog Writer",
+    category: "Content",
+    Icon: PenLine,
+    monthlyPrice: 39,
+    pricingTier: "professional",
+    features: ["AI drafts from a topic prompt", "Brand-voice calibration", "One-click publish to your blog"],
+    isBeta: false,
+  },
+  {
+    slug: "smart-seo-pro",
+    name: "Smart SEO Pro",
+    category: "SEO",
+    Icon: SearchCode,
+    monthlyPrice: 29,
+    pricingTier: "starter",
+    features: ["Automated weekly SEO audits", "Page-by-page score with fix list", "Schema markup generator"],
+    isBeta: false,
+  },
+  {
+    slug: "website-health-pro",
+    name: "Website Health Pro",
+    category: "Health",
+    Icon: Activity,
+    monthlyPrice: 19,
+    pricingTier: "starter",
+    features: ["Real-time uptime monitoring", "Broken-link scanner", "Core Web Vitals dashboard"],
+    isBeta: false,
+  },
+  {
+    slug: "accessibility-pro",
+    name: "Accessibility Pro",
+    category: "Accessibility",
+    Icon: ShieldCheck,
+    monthlyPrice: 19,
+    pricingTier: "starter",
+    features: ["WCAG 2.1 AA automated scan", "Prioritised fix list with code hints", "Accessibility widget"],
+    isBeta: true,
+  },
+  {
+    slug: "forms-pro",
+    name: "Forms Pro",
+    category: "Forms",
+    Icon: ClipboardList,
+    monthlyPrice: 24,
+    pricingTier: "starter",
+    features: ["Multi-step forms with conditional logic", "File upload & e-signature fields", "Zapier / webhook output"],
+    isBeta: false,
+  },
+];
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Marketing: "bg-purple-100 text-purple-700",
+  Content: "bg-blue-100 text-blue-700",
+  SEO: "bg-green-100 text-green-700",
+  Health: "bg-red-100 text-red-700",
+  Accessibility: "bg-amber-100 text-amber-700",
+  Forms: "bg-sky-100 text-sky-700",
+};
+
+function Step8({ data, set }: { data: StepData; set: (p: Partial<StepData>) => void }) {
+  const toggle = (slug: string) => {
+    const current = data.addOnSelections ?? [];
+    const next = current.includes(slug)
+      ? current.filter((s) => s !== slug)
+      : [...current, slug];
+    set({ addOnSelections: next });
+  };
+
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-semibold text-slate-900">Premium Add-ons</h2>
-        <p className="text-sm text-slate-500 mt-1">Extend your website with powerful premium modules.</p>
-      </div>
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center space-y-3">
-        <Package className="mx-auto h-10 w-10 text-slate-400" />
-        <div className="font-medium text-slate-700">Add-on Marketplace Coming Soon</div>
-        <p className="text-sm text-slate-500 max-w-sm mx-auto">
-          Social Publisher Pro, AI Blog Writer, Smart SEO Pro, Website Health Pro, and more will be available in the marketplace after launch. You can activate add-ons anytime from your site dashboard.
+        <p className="text-sm text-slate-500 mt-1">
+          Select add-ons to activate as a <span className="font-medium text-blue-600">14-day free trial</span> when this site launches. You can change these anytime from the site dashboard.
         </p>
-        <div className="flex flex-wrap justify-center gap-2 pt-2">
-          {["Social Publisher Pro", "AI Blog Writer", "Smart SEO Pro", "Health Pro", "Accessibility Pro", "Forms Pro"].map((a) => (
-            <Badge key={a} variant="secondary" className="text-xs">{a}</Badge>
-          ))}
-        </div>
       </div>
+
+      <div className="grid gap-3">
+        {ADDON_CATALOG.map((addon) => {
+          const selected = (data.addOnSelections ?? []).includes(addon.slug);
+          return (
+            <button
+              key={addon.slug}
+              type="button"
+              onClick={() => toggle(addon.slug)}
+              className={`w-full text-left rounded-lg border p-4 transition-all ${
+                selected
+                  ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                {/* Icon */}
+                <div className={`mt-0.5 flex-shrink-0 h-9 w-9 rounded-lg flex items-center justify-center ${
+                  selected ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
+                }`}>
+                  <addon.Icon className="h-4 w-4" />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-slate-900 text-sm">{addon.name}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[addon.category] ?? "bg-slate-100 text-slate-600"}`}>
+                      {addon.category}
+                    </span>
+                    {addon.isBeta && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Beta</span>
+                    )}
+                  </div>
+                  <ul className="mt-1.5 space-y-0.5">
+                    {addon.features.map((f) => (
+                      <li key={f} className="text-xs text-slate-500 flex items-center gap-1.5">
+                        <span className="h-1 w-1 rounded-full bg-slate-400 flex-shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Price + checkbox */}
+                <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    ${addon.monthlyPrice}<span className="text-xs font-normal text-slate-400">/mo</span>
+                  </span>
+                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    selected ? "border-blue-500 bg-blue-500" : "border-slate-300"
+                  }`}>
+                    {selected && (
+                      <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {selected && (
+                <div className="mt-2 ml-12 flex items-center gap-1.5 text-xs text-blue-600">
+                  <Clock className="h-3 w-3" />
+                  <span>14-day free trial will start at launch</span>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {(data.addOnSelections ?? []).length === 0 && (
+        <p className="text-center text-xs text-slate-400 pt-1">
+          <Lock className="inline h-3 w-3 mr-1" />
+          No add-ons selected — you can activate them anytime from the site dashboard.
+        </p>
+      )}
     </div>
   );
 }
@@ -702,6 +857,7 @@ function Step9({
           ["Template",   TEMPLATES.find((t) => t.value === data.templateId)?.label ?? "—"],
           ["Domain",     data.domainChoice === "existing" ? (data.customDomain || "Not entered") : data.domainChoice === "temp" ? genSubdomain : "Configure later"],
           ["Integrations", data.integrations.length ? data.integrations.map((i) => INTEGRATIONS.find((x) => x.value === i)?.label ?? i).join(", ") : "None selected"],
+          ["Add-ons", (data.addOnSelections ?? []).length ? (data.addOnSelections ?? []).map((s) => ADDON_CATALOG.find((a) => a.slug === s)?.name ?? s).join(", ") : "None selected"],
         ].map(([k, v]) => (
           <div key={k} className="flex items-baseline px-4 py-2.5 gap-3">
             <span className="text-slate-500 w-28 flex-shrink-0">{k}</span>
@@ -907,7 +1063,7 @@ export default function OnboardingWizard() {
           {currentStep === 5 && <Step5 data={stepData} set={update} />}
           {currentStep === 6 && <Step6 data={stepData} set={update} />}
           {currentStep === 7 && <Step7 data={stepData} set={update} />}
-          {currentStep === 8 && <Step8 />}
+          {currentStep === 8 && <Step8 data={stepData} set={update} />}
           {currentStep === 9 && (
             <Step9 data={stepData} onLaunch={handleLaunch} isLaunching={isLaunching} />
           )}

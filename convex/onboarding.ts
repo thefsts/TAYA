@@ -409,6 +409,39 @@ export const launch = mutation({
       }
     }
 
+    // ── Provision selected add-ons as trials ─────────────────────────
+    const addOnSelections: string[] = Array.isArray(d.addOnSelections)
+      ? (d.addOnSelections as unknown[]).filter((s): s is string => typeof s === "string")
+      : [];
+    if (addOnSelections.length > 0) {
+      const catalog = await ctx.db.query("addOnCatalog").collect();
+      const now = Date.now();
+      for (const slug of addOnSelections) {
+        const addOn = catalog.find((c) => c.slug === slug);
+        if (!addOn) continue; // catalog not seeded yet — skip gracefully
+        const existing = await ctx.db
+          .query("siteAddOns")
+          .withIndex("by_site_addon", (q) =>
+            q.eq("siteId", siteId).eq("addOnId", addOn._id)
+          )
+          .first();
+        if (!existing) {
+          const trialDays = addOn.trialDays ?? 14;
+          await ctx.db.insert("siteAddOns", {
+            siteId,
+            addOnId: addOn._id,
+            status: "trial",
+            enabledAt: now,
+            trialEndsAt: now + trialDays * 24 * 60 * 60 * 1000,
+            enabledByUserId: user._id,
+            notes: "Activated via onboarding wizard",
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
+    }
+
     // ── CRM connection record ─────────────────────────────────────────
     await ctx.db.insert("crmConnections", {
       siteId,

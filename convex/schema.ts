@@ -811,4 +811,48 @@ export default defineSchema({
   })
     .index("by_site", ["siteId"])
     .index("by_site_slug", ["siteId", "slug"]),
+
+  // ── Add-on Catalog ────────────────────────────────────────────────────
+  // Master list of available premium add-ons managed by FSTS staff.
+  // Seeded once via addons:seedCatalog; pricing is backend-managed.
+  addOnCatalog: defineTable({
+    slug: v.string(),               // e.g. "social-publisher-pro"
+    name: v.string(),
+    description: v.string(),
+    category: v.string(),           // "marketing" | "content" | "seo" | "health" | "accessibility" | "forms"
+    iconName: v.optional(v.string()), // lucide icon name for UI
+    pricingTier: v.string(),        // "starter" | "professional" | "enterprise"
+    monthlyPriceUsd: v.optional(v.number()),  // null = contact for pricing
+    annualPriceUsd: v.optional(v.number()),
+    billingProviderId: v.optional(v.string()), // future: Stripe price ID
+    isActive: v.boolean(),
+    isBeta: v.boolean(),
+    features: v.array(v.string()), // 3–5 bullet points shown in wizard/dashboard
+    eligiblePlans: v.array(v.string()), // site plan tiers that can activate this
+    trialDays: v.number(),          // default trial length
+    sortOrder: v.number(),
+  }).index("by_slug", ["slug"]),
+
+  // ── Site Add-on Assignments ───────────────────────────────────────────
+  // Per-site activation records for each add-on.
+  siteAddOns: defineTable({
+    siteId: v.id("sites"),
+    addOnId: v.id("addOnCatalog"),
+    status: v.union(
+      v.literal("enabled"),
+      v.literal("disabled"),
+      v.literal("trial"),
+      v.literal("pending"),   // client requested, awaiting superAdmin approval
+    ),
+    enabledAt: v.optional(v.number()),
+    trialEndsAt: v.optional(v.number()),
+    enabledByUserId: v.optional(v.id("users")),
+    billingSubscriptionId: v.optional(v.string()), // future billing reference
+    overriddenPriceUsd: v.optional(v.number()),    // superAdmin price override
+    notes: v.optional(v.string()),                  // superAdmin notes
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_addon", ["siteId", "addOnId"]),
 });

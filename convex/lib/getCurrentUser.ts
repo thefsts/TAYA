@@ -39,8 +39,18 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
     return (await ctx.db.get(pendingUser._id))!;
   }
 
-  const allUsers = await ctx.db.query("users").collect();
-  const isFirstUser = allUsers.length === 0;
+  // ── SuperAdmin allowlist ──────────────────────────────────────────────────
+  // Set SUPERADMIN_EMAILS in the Convex dashboard (comma-separated list of
+  // email addresses that receive isSuperAdmin: true on first sign-up).
+  // The old "first user = superAdmin" bootstrap has been removed — a public
+  // first signup must never claim platform-wide admin access automatically.
+  const allowlist = (process.env.SUPERADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isSuperAdmin = allowlist.length > 0
+    ? allowlist.includes(email.toLowerCase())
+    : false;
 
   const name =
     identity.name ||
@@ -52,7 +62,7 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
     clerkUserId: identity.subject,
     name,
     email,
-    isSuperAdmin: isFirstUser,
+    isSuperAdmin,
     isActive: true,
     roles: [],
   });

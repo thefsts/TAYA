@@ -10,6 +10,7 @@
 
 import type * as accessControl from "../accessControl.js";
 import type * as activityLog from "../activityLog.js";
+import type * as addons from "../addons.js";
 import type * as agencies from "../agencies.js";
 import type * as ai from "../ai.js";
 import type * as announcement from "../announcement.js";
@@ -56,10 +57,11 @@ import type * as products from "../products.js";
 import type * as provision from "../provision.js";
 import type * as public_ from "../public.js";
 import type * as reviews from "../reviews.js";
-import type * as services from "../services.js";
+import type * as seed from "../seed.js";
 import type * as seedClient from "../seedClient.js";
 import type * as seedCorsair from "../seedCorsair.js";
 import type * as seo from "../seo.js";
+import type * as services from "../services.js";
 import type * as siteSettings from "../siteSettings.js";
 import type * as sites from "../sites.js";
 import type * as square from "../square.js";
@@ -78,6 +80,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   accessControl: typeof accessControl;
   activityLog: typeof activityLog;
+  addons: typeof addons;
   agencies: typeof agencies;
   ai: typeof ai;
   announcement: typeof announcement;
@@ -124,10 +127,11 @@ declare const fullApi: ApiFromModules<{
   provision: typeof provision;
   public: typeof public_;
   reviews: typeof reviews;
-  services: typeof services;
+  seed: typeof seed;
   seedClient: typeof seedClient;
   seedCorsair: typeof seedCorsair;
   seo: typeof seo;
+  services: typeof services;
   siteSettings: typeof siteSettings;
   sites: typeof sites;
   square: typeof square;
