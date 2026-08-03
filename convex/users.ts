@@ -224,6 +224,13 @@ export const addSiteRole = mutation({
     const user = await ctx.db.get(userId);
     if (!user) throw new Error("User not found");
 
+    if (user.isSuperAdmin) {
+      throw new Error(
+        "Cannot combine isSuperAdmin: true with site role assignments. " +
+          "Remove superadmin status before assigning a site role.",
+      );
+    }
+
     const existingRoles: Array<{ siteId: any; role: string }> = (user.roles as any[]) ?? [];
     const filtered = existingRoles.filter((r) => String(r.siteId) !== String(siteId));
     await ctx.db.patch(userId, { roles: [...filtered, { siteId, role }] } as any);

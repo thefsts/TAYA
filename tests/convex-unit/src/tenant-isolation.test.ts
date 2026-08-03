@@ -312,6 +312,20 @@ describe("Security regressions — superadmin + site role conflict guard", () =>
       }),
     ).rejects.toThrow(/Cannot combine isSuperAdmin/);
   });
+
+  it("users:addSiteRole throws when the target user is already a superadmin", async () => {
+    // Insert a second superadmin directly so we can attempt to assign them a site role
+    const superAdminId = await t.run(async (ctx) =>
+      ctx.db.insert("users", userDoc("second_superadmin", { isSuperAdmin: true })),
+    );
+    await expect(
+      as().mutation(api.users.addSiteRole, {
+        userId: superAdminId,
+        siteId: s.siteA,
+        role: "owner",
+      }),
+    ).rejects.toThrow(/Cannot combine isSuperAdmin/);
+  });
 });
 
 describe("Security regressions — Square catalog sync action", () => {
