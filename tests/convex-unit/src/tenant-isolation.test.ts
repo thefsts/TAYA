@@ -524,3 +524,83 @@ describe("Corsair Owner — content queries return non-empty results", () => {
     expect(products!.length).toBeGreaterThan(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Module guard — courses hidden when module is disabled
+//
+// Verifies that api.courses.list respects the checkModuleEnabled guard:
+//   - Returns [] for an authorised site owner when enabledModules.courses is
+//     explicitly set to false, even when course records exist in the DB.
+//   - Returns non-empty results once the flag is cleared (module re-enabled).
+// ---------------------------------------------------------------------------
+describe("Module guard — courses hidden when module is disabled", () => {
+  const as = () => t.withIdentity({ subject: "corsair_owner_clerk" });
+
+  it("api.courses.list returns [] when enabledModules.courses is false, even with records present", async () => {
+    // Seed a course so there is at least one record in the DB.
+    await t.run(async (ctx) => {
+      await ctx.db.insert("courses", {
+        siteId: s.corsairSite,
+        title: "Texas License to Carry (LTC)",
+        slug: "texas-ltc-module-guard-test",
+        status: "published",
+        description: "Guard test course record.",
+      });
+    });
+
+    // Confirm the record is visible while the module is still enabled (default).
+    const before = await as().query(api.courses.list, { siteId: s.corsairSite });
+    expect(before.length).toBeGreaterThan(0);
+
+    // Disable the courses module on the Corsair site.
+    await t.run(async (ctx) => {
+      const site = await ctx.db.get(s.corsairSite);
+      await ctx.db.patch(s.corsairSite, {
+        enabledModules: { ...(site?.enabledModules ?? {}), courses: false },
+      });
+    });
+
+    // The guard must now return an empty list — not the DB rows.
+    const hidden = await as().query(api.courses.list, { siteId: s.corsairSite });
+    expect(hidden).toEqual([]);
+  });
+
+  it("api.courses.list returns non-empty results after re-enabling the module", async () => {
+    // Start with the module disabled.
+    await t.run(async (ctx) => {
+      const site = await ctx.db.get(s.corsairSite);
+      await ctx.db.patch(s.corsairSite, {
+        enabledModules: { ...(site?.enabledModules ?? {}), courses: false },
+      });
+      // Ensure at least one course record exists.
+      const existing = await ctx.db
+        .query("courses")
+        .withIndex("by_site", (q) => q.eq("siteId", s.corsairSite))
+        .first();
+      if (!existing) {
+        await ctx.db.insert("courses", {
+          siteId: s.corsairSite,
+          title: "Re-enable guard test course",
+          slug: "re-enable-guard-test",
+          status: "published",
+          description: "Seeded for module re-enable assertion.",
+        });
+      }
+    });
+
+    // Verify the guard is active.
+    expect(await as().query(api.courses.list, { siteId: s.corsairSite })).toEqual([]);
+
+    // Re-enable the module.
+    await t.run(async (ctx) => {
+      const site = await ctx.db.get(s.corsairSite);
+      await ctx.db.patch(s.corsairSite, {
+        enabledModules: { ...(site?.enabledModules ?? {}), courses: true },
+      });
+    });
+
+    // Courses must now be visible again.
+    const restored = await as().query(api.courses.list, { siteId: s.corsairSite });
+    expect(restored.length).toBeGreaterThan(0);
+  });
+});
