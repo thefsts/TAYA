@@ -6,6 +6,7 @@ import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 import { internal } from "./_generated/api";
+import { calculateLifecycleStatus } from "./lib/lifecycleStatus";
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString(), updatedAt: new Date(doc._creationTime).toISOString() };
@@ -48,6 +49,21 @@ async function syncCourseMapping(ctx: any, siteId: any, entityId: string, square
   }
 }
 
+const capacityArgs = {
+  capacity: v.optional(v.number()),
+  waitlistCapacity: v.optional(v.number()),
+  registrationOpenAt: v.optional(v.number()),
+  registrationCloseAt: v.optional(v.number()),
+  startDateTime: v.optional(v.number()),
+  endDateTime: v.optional(v.number()),
+  timezone: v.optional(v.string()),
+  registrationStatus: v.optional(v.string()),
+  isPublished: v.optional(v.boolean()),
+  autoCloseRegistration: v.optional(v.boolean()),
+  autoArchive: v.optional(v.boolean()),
+  cancelledAt: v.optional(v.number()),
+  completedAt: v.optional(v.number()),
+};
 export const create = mutation({
   args: {
     siteId: v.id("sites"),
@@ -59,16 +75,20 @@ export const create = mutation({
     priceCents: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
+    ...capacityArgs,
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requirePermission(ctx, siteId, PERMISSIONS.CLASSES_MANAGE);
     await requireModuleEnabled(ctx, siteId, "courses");
     const id = await ctx.db.insert("courses", { siteId, status: "draft", ...fields });
     const doc = (await ctx.db.get(id))!;
-    await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "course", entityId: id, page: "Courses", newValue: doc });
-    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "course", entityId: id, snapshot: doc });
+    const lifecycleStatus = calculateLifecycleStatus(doc, 0, Date.now());
+    await ctx.db.patch(id, { lifecycleStatus });
+    const finalDoc = (await ctx.db.get(id))!;
+    await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "course", entityId: id, page: "Courses", newValue: finalDoc });
+    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "course", entityId: id, snapshot: finalDoc });
     if (fields.squareItemId) await syncCourseMapping(ctx, siteId, id, fields.squareItemId);
-    return toResponse(doc);
+    return toResponse(finalDoc);
   },
 });
 
@@ -84,6 +104,7 @@ export const update = mutation({
     priceCents: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
+    ...capacityArgs,
   },
   handler: async (ctx, { siteId, courseId, ...fields }) => {
     const user = await requirePermission(ctx, siteId, PERMISSIONS.CLASSES_MANAGE);
@@ -91,9 +112,18 @@ export const update = mutation({
     const existing = await ctx.db.get(courseId);
     if (!existing || existing.siteId !== siteId) throw new Error("Course not found");
     await ctx.db.patch(courseId, fields as any);
+    // Recalculate lifecycle status — requires confirmed count from registrations
+    const confirmed = await ctx.db
+      .query("registrations")
+      .withIndex("by_entity", (q) => q.eq("entityType", "course").eq("entityId", courseId))
+      .filter((q) => q.eq(q.field("status"), "confirmed"))
+      .collect();
     const doc = (await ctx.db.get(courseId))!;
-    await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "course", entityId: courseId, page: "Courses", previousValue: existing, newValue: doc });
-    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "course", entityId: courseId, snapshot: doc });
+    const lifecycleStatus = calculateLifecycleStatus(doc, confirmed.length, Date.now());
+    await ctx.db.patch(courseId, { lifecycleStatus });
+    const finalDoc = (await ctx.db.get(courseId))!;
+    await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "course", entityId: courseId, page: "Courses", previousValue: existing, newValue: finalDoc });
+    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "course", entityId: courseId, snapshot: finalDoc });
     if ("squareItemId" in fields) await syncCourseMapping(ctx, siteId, courseId, fields.squareItemId);
     // Archive any linked flyers when the course is cancelled or completed.
     if (
@@ -108,10 +138,36 @@ export const update = mutation({
         archivedReason: "associated_entity_ended",
       });
     }
-    return toResponse(doc);
+    return toResponse(finalDoc);
   },
 });
 
+/** Update only capacity and scheduling fields, then recalculate lifecycle. */
+export const updateCapacity = mutation({
+  args: {
+    siteId: v.id("sites"),
+    courseId: v.id("courses"),
+    ...capacityArgs,
+  },
+  handler: async (ctx, { siteId, courseId, ...fields }) => {
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CLASSES_MANAGE);
+    await requireModuleEnabled(ctx, siteId, "courses");
+    const existing = await ctx.db.get(courseId);
+    if (!existing || existing.siteId !== siteId) throw new Error("Course not found");
+    await ctx.db.patch(courseId, fields as any);
+    const confirmed = await ctx.db
+      .query("registrations")
+      .withIndex("by_entity", (q) => q.eq("entityType", "course").eq("entityId", courseId))
+      .filter((q) => q.eq(q.field("status"), "confirmed"))
+      .collect();
+    const doc = (await ctx.db.get(courseId))!;
+    const lifecycleStatus = calculateLifecycleStatus(doc, confirmed.length, Date.now());
+    await ctx.db.patch(courseId, { lifecycleStatus });
+    const finalDoc = (await ctx.db.get(courseId))!;
+    await logActivity(ctx, { siteId, actorName: user.name, action: "updated_capacity", entityType: "course", entityId: courseId, page: "Courses", newValue: { capacity: finalDoc.capacity, waitlistCapacity: finalDoc.waitlistCapacity, lifecycleStatus } });
+    return toResponse(finalDoc);
+  },
+});
 export const remove = mutation({
   args: { siteId: v.id("sites"), courseId: v.id("courses") },
   handler: async (ctx, { siteId, courseId }) => {

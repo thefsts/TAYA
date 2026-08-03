@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -35,11 +36,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
+
+// Course/Event Thumb preset (16:9, 800×450)
+const EVENT_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
+import { NEARLY_FULL_THRESHOLD, LIFECYCLE_STATUS_LABELS } from "@/lib/constants";
+
+// Common IANA timezones for the picker
+const COMMON_TIMEZONES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Phoenix",
+  "America/Anchorage",
+  "Pacific/Honolulu",
+  "America/Toronto",
+  "America/Vancouver",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "Australia/Sydney",
+  "UTC",
+];
 
 type EventStatus = "draft" | "published" | "archived";
 
@@ -53,6 +78,16 @@ type EventFormState = {
   location: string;
   imageUrl: string;
   squareItemId: string;
+  // Capacity & scheduling
+  capacity: string;
+  waitlistCapacity: string;
+  startDateTime: string;
+  endDateTime: string;
+  registrationOpenAt: string;
+  registrationCloseAt: string;
+  timezone: string;
+  autoCloseRegistration: boolean;
+  autoArchive: boolean;
 };
 
 function toLocalInput(iso?: string | null): string {
@@ -60,6 +95,30 @@ function toLocalInput(iso?: string | null): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function toDatetimeLocal(ts?: number | null): string {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromDatetimeLocal(s: string): number | undefined {
+  if (!s) return undefined;
+  return new Date(s).getTime();
+}
+
+/**
+ * Convert a datetime-local string to a UTC ISO-8601 string.
+ * The browser interprets an unzoned datetime-local value as *local* time, so
+ * `new Date(s)` here (in the browser) produces the correct UTC epoch.
+ * Sending the ISO string ensures the Convex server (which also calls
+ * `new Date(str)`) gets an unambiguous UTC timestamp regardless of server TZ.
+ */
+function toIso(s: string): string | undefined {
+  if (!s) return undefined;
+  return new Date(s).toISOString();
 }
 
 const emptyForm: EventFormState = {
@@ -72,12 +131,98 @@ const emptyForm: EventFormState = {
   location: "",
   imageUrl: "",
   squareItemId: "",
+  capacity: "",
+  waitlistCapacity: "",
+  startDateTime: "",
+  endDateTime: "",
+  registrationOpenAt: "",
+  registrationCloseAt: "",
+  timezone: "America/New_York",
+  autoCloseRegistration: false,
+  autoArchive: false,
 };
+
+function lifecycleBadgeVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
+  switch (status) {
+    case "RegistrationOpen": return "default";
+    case "NearlyFull": return "default";
+    case "Full": return "destructive";
+    case "WaitlistOpen": return "secondary";
+    case "Cancelled":
+    case "RegistrationClosed": return "destructive";
+    case "Completed":
+    case "Archived": return "secondary";
+    default: return "outline";
+  }
+}
 
 function statusVariant(status: string) {
   if (status === "published") return "default";
   if (status === "archived") return "secondary";
   return "outline";
+}
+
+function CapacityBar({ entityId, siteId }: { entityId: string; siteId: Id<"sites"> }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const counts = useQuery((api as any).registrations.getCount, {
+    siteId,
+    entityType: "event",
+    entityId,
+  });
+  return counts ? (
+    <span className="text-xs text-slate-500 flex items-center gap-1">
+      <Users className="h-3 w-3" />
+      {counts.confirmedCount}
+      {counts.waitlistCount > 0 && <span className="text-amber-600">+{counts.waitlistCount}w</span>}
+    </span>
+  ) : null;
+}
+
+function CapacityPanel({
+  entityId,
+  siteId,
+  capacity,
+  waitlistCapacity,
+}: {
+  entityId: string;
+  siteId: Id<"sites">;
+  capacity?: number;
+  waitlistCapacity?: number;
+}) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const counts = useQuery((api as any).registrations.getCount, {
+    siteId,
+    entityType: "event",
+    entityId,
+  });
+
+  if (!capacity) return null;
+  if (!counts) return <Skeleton className="h-6 w-full" />;
+
+  const { confirmedCount, waitlistCount } = counts;
+  const pct = Math.min(100, (confirmedCount / capacity) * 100);
+  const isNearlyFull = confirmedCount / capacity >= NEARLY_FULL_THRESHOLD;
+  const isFull = confirmedCount >= capacity;
+
+  return (
+    <div className="space-y-1.5 p-3 bg-slate-50 rounded-md border border-slate-200">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium text-slate-700">Registrations</span>
+        <span className={`font-semibold ${isFull ? "text-red-600" : isNearlyFull ? "text-amber-600" : "text-slate-700"}`}>
+          {confirmedCount} / {capacity}
+        </span>
+      </div>
+      <Progress
+        value={pct}
+        className={`h-2 ${isFull ? "[&>div]:bg-red-500" : isNearlyFull ? "[&>div]:bg-amber-500" : "[&>div]:bg-emerald-500"}`}
+      />
+      {waitlistCapacity && waitlistCapacity > 0 && (
+        <p className="text-xs text-slate-500">
+          Waitlist: {waitlistCount} / {waitlistCapacity}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function EventsList({ params }: { params: { siteId: string } }) {
@@ -115,6 +260,15 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
       location: ev.location ?? "",
       imageUrl: ev.imageUrl ?? "",
       squareItemId: ev.squareItemId ?? "",
+      capacity: ev.capacity != null ? String(ev.capacity) : "",
+      waitlistCapacity: ev.waitlistCapacity != null ? String(ev.waitlistCapacity) : "",
+      startDateTime: toDatetimeLocal(ev.startDateTime),
+      endDateTime: toDatetimeLocal(ev.endDateTime),
+      registrationOpenAt: toDatetimeLocal(ev.registrationOpenAt),
+      registrationCloseAt: toDatetimeLocal(ev.registrationCloseAt),
+      timezone: ev.timezone ?? "America/New_York",
+      autoCloseRegistration: ev.autoCloseRegistration ?? false,
+      autoArchive: ev.autoArchive ?? false,
     });
     setDialogOpen(true);
   }
@@ -122,6 +276,24 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
   async function doSave() {
     setIsPending(true);
     try {
+      const capacityFields = {
+        capacity: form.capacity ? parseInt(form.capacity, 10) : undefined,
+        waitlistCapacity: form.waitlistCapacity ? parseInt(form.waitlistCapacity, 10) : undefined,
+        startDateTime: fromDatetimeLocal(form.startDateTime),
+        endDateTime: fromDatetimeLocal(form.endDateTime),
+        registrationOpenAt: fromDatetimeLocal(form.registrationOpenAt),
+        registrationCloseAt: fromDatetimeLocal(form.registrationCloseAt),
+        timezone: form.timezone || undefined,
+        autoCloseRegistration: form.autoCloseRegistration,
+        autoArchive: form.autoArchive,
+      };
+
+      // Convert datetime-local strings to UTC ISO before sending to the backend.
+      // new Date(datetimeLocalStr) in the browser interprets the value as local
+      // time; .toISOString() produces unambiguous UTC for the Convex server.
+      const startAtIso = toIso(form.startAt);
+      const endAtIso = toIso(form.endAt);
+
       if (editing) {
         await updateEvent({
           siteId,
@@ -130,11 +302,12 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           slug: form.slug,
           status: form.status,
           description: form.description,
-          startAt: new Date(form.startAt).toISOString(),
-          endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
+          startAt: startAtIso,
+          endAt: endAtIso,
           location: form.location || undefined,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
+          ...capacityFields,
         });
         toast({ title: "Event updated" });
       } else {
@@ -144,11 +317,12 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           slug: form.slug,
           status: form.status,
           description: form.description,
-          startAt: new Date(form.startAt).toISOString(),
-          endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
+          startAt: startAtIso ?? form.startAt,
+          endAt: endAtIso,
           location: form.location || undefined,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
+          ...capacityFields,
         });
         toast({ title: "Event created" });
       }
@@ -231,6 +405,8 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Title</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Lifecycle</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Registrations</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Starts</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
                 <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
@@ -240,7 +416,25 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
               {data.map((ev: any) => (
                 <tr key={ev._id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-900">{ev.title}</td>
-                  <td className="px-4 py-3"><Badge variant={statusVariant(ev.status)}>{ev.status}</Badge></td>
+                  <td className="px-4 py-3">
+                    <Badge variant={statusVariant(ev.status)}>{ev.status}</Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    {ev.lifecycleStatus ? (
+                      <Badge variant={lifecycleBadgeVariant(ev.lifecycleStatus)}>
+                        {LIFECYCLE_STATUS_LABELS[ev.lifecycleStatus] ?? ev.lifecycleStatus}
+                      </Badge>
+                    ) : (
+                      <span className="text-slate-400 text-xs">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {ev.capacity ? (
+                      <CapacityBar entityId={ev._id} siteId={siteId} />
+                    ) : (
+                      <span className="text-slate-400 text-xs">Unlimited</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-slate-500">{new Date(ev.startAt).toLocaleString()}</td>
                   <td className="px-4 py-3 text-slate-500">{ev.location || "—"}</td>
                   <td className="px-4 py-3 text-right space-x-1">
@@ -260,11 +454,23 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
       </LivePreviewPanel>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Event" : "New Event"}</DialogTitle>
           </DialogHeader>
+
+          {/* Live capacity panel when editing */}
+          {editing && editing.capacity && (
+            <CapacityPanel
+              entityId={editing._id}
+              siteId={siteId}
+              capacity={editing.capacity}
+              waitlistCapacity={editing.waitlistCapacity}
+            />
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* ── Basic Info ── */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Title</Label>
@@ -277,17 +483,12 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
-              <Textarea required rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Starts At</Label>
-                <Input required type="datetime-local" value={form.startAt} onChange={(e) => setForm({ ...form, startAt: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Ends At</Label>
-                <Input type="datetime-local" value={form.endAt} onChange={(e) => setForm({ ...form, endAt: e.target.value })} />
-              </div>
+              <Textarea
+                required
+                rows={3}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -302,37 +503,122 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Location</Label>
-                <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                <Label>Timezone</Label>
+                <Select value={form.timezone} onValueChange={(v) => setForm({ ...form, timezone: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {COMMON_TIMEZONES.map((tz) => (
+                      <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <ImagePickerField
-              siteId={params.siteId}
-              label="Event Image"
-              value={form.imageUrl}
-              onChange={(url) => setForm({ ...form, imageUrl: url })}
-              initialPreset={SITE_PRESETS.find((p) => p.label === "Course/Event Thumb")}
-              hint="Recommended: 800×450 px (16:9)."
-            />
-            <div className="space-y-1.5">
-              <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for paid registration)</span></Label>
-              <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Free / not linked" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Free / not linked</SelectItem>
-                  {(catalogItems ?? []).map((item: any) => (
-                    <SelectItem key={item.squareItemId} value={item.squareItemId}>
-                      {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {(catalogItems ?? []).length === 0 && (
-                <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Location</Label>
+                <Input placeholder="e.g. Main Studio" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              </div>
             </div>
+
+            {/* ── Event Date/Time ── */}
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Event Date &amp; Time</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Start</Label>
+                  <Input required type="datetime-local" value={form.startAt} onChange={(e) => setForm({ ...form, startAt: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>End</Label>
+                  <Input type="datetime-local" value={form.endAt} onChange={(e) => setForm({ ...form, endAt: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Registration Window ── */}
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Registration Window</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Registration Opens</Label>
+                  <Input type="datetime-local" value={form.registrationOpenAt} onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Registration Closes</Label>
+                  <Input type="datetime-local" value={form.registrationCloseAt} onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Capacity ── */}
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Capacity</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Max Capacity <span className="text-slate-400 font-normal">(leave blank for unlimited)</span></Label>
+                  <Input type="number" min={1} placeholder="e.g. 50" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Waitlist Capacity <span className="text-slate-400 font-normal">(0 = no waitlist)</span></Label>
+                  <Input type="number" min={0} placeholder="e.g. 10" value={form.waitlistCapacity} onChange={(e) => setForm({ ...form, waitlistCapacity: e.target.value })} />
+                </div>
+              </div>
+              <div className="flex gap-6 mt-3">
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.autoCloseRegistration}
+                    onChange={(e) => setForm({ ...form, autoCloseRegistration: e.target.checked })}
+                    className="rounded border-slate-300"
+                  />
+                  Auto-close registration at capacity
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.autoArchive}
+                    onChange={(e) => setForm({ ...form, autoArchive: e.target.checked })}
+                    className="rounded border-slate-300"
+                  />
+                  Auto-archive when completed
+                </label>
+              </div>
+            </div>
+
+            {/* ── Media ── */}
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Media &amp; Integrations</h3>
+              <div className="space-y-4">
+                <ImagePickerField
+                  siteId={siteId}
+                  value={form.imageUrl}
+                  onChange={(url) => setForm({ ...form, imageUrl: url })}
+                  initialPreset={EVENT_IMAGE_PRESET}
+                  label="Event Image"
+                />
+                <div className="space-y-1.5">
+                  <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for paid registration)</span></Label>
+                  <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Free / not linked" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Free / not linked</SelectItem>
+                      {(catalogItems ?? []).map((item: any) => (
+                        <SelectItem key={item.squareItemId} value={item.squareItemId}>
+                          {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {(catalogItems ?? []).length === 0 && (
+                    <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save"}</Button>

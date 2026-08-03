@@ -89,6 +89,21 @@ export default defineSchema({
     priceCents: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
+    // ── Capacity & Registration fields ───────────────────────────────────
+    capacity: v.optional(v.number()),
+    waitlistCapacity: v.optional(v.number()),
+    registrationOpenAt: v.optional(v.number()),
+    registrationCloseAt: v.optional(v.number()),
+    startDateTime: v.optional(v.number()),
+    endDateTime: v.optional(v.number()),
+    timezone: v.optional(v.string()),
+    lifecycleStatus: v.optional(v.string()),
+    registrationStatus: v.optional(v.string()),
+    isPublished: v.optional(v.boolean()),
+    autoCloseRegistration: v.optional(v.boolean()),
+    autoArchive: v.optional(v.boolean()),
+    cancelledAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
 
   events: defineTable({
@@ -102,7 +117,40 @@ export default defineSchema({
     location: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
+    // ── Capacity & Registration fields ───────────────────────────────────
+    capacity: v.optional(v.number()),
+    waitlistCapacity: v.optional(v.number()),
+    registrationOpenAt: v.optional(v.number()),
+    registrationCloseAt: v.optional(v.number()),
+    startDateTime: v.optional(v.number()),
+    endDateTime: v.optional(v.number()),
+    timezone: v.optional(v.string()),
+    lifecycleStatus: v.optional(v.string()),
+    registrationStatus: v.optional(v.string()),
+    isPublished: v.optional(v.boolean()),
+    autoCloseRegistration: v.optional(v.boolean()),
+    autoArchive: v.optional(v.boolean()),
+    cancelledAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
+
+  // ── Registrations ─────────────────────────────────────────────────────
+  registrations: defineTable({
+    siteId: v.id("sites"),
+    entityType: v.union(v.literal("course"), v.literal("event")),
+    entityId: v.string(),
+    userId: v.string(),
+    status: v.union(
+      v.literal("confirmed"),
+      v.literal("waitlisted"),
+      v.literal("cancelled"),
+    ),
+    registeredAt: v.number(),
+    cancelledAt: v.optional(v.number()),
+    promotedFromWaitlistAt: v.optional(v.number()),
+  })
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_user", ["userId", "entityType"]),
 
   articles: defineTable({
     siteId: v.id("sites"),

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -35,11 +36,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
+
+// Course/Event Thumb preset (16:9, 800×450)
+const COURSE_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
+import { NEARLY_FULL_THRESHOLD, LIFECYCLE_STATUS_LABELS } from "@/lib/constants";
+
+// Common IANA timezones for the picker
+const COMMON_TIMEZONES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Phoenix",
+  "America/Anchorage",
+  "Pacific/Honolulu",
+  "America/Toronto",
+  "America/Vancouver",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "Australia/Sydney",
+  "UTC",
+];
 
 type CourseStatus = "draft" | "published" | "archived";
 
@@ -52,6 +77,16 @@ type CourseFormState = {
   priceCents: string;
   imageUrl: string;
   squareItemId: string;
+  // Capacity & scheduling
+  capacity: string;
+  waitlistCapacity: string;
+  startDateTime: string;
+  endDateTime: string;
+  registrationOpenAt: string;
+  registrationCloseAt: string;
+  timezone: string;
+  autoCloseRegistration: boolean;
+  autoArchive: boolean;
 };
 
 const emptyForm: CourseFormState = {
@@ -63,12 +98,110 @@ const emptyForm: CourseFormState = {
   priceCents: "",
   imageUrl: "",
   squareItemId: "",
+  capacity: "",
+  waitlistCapacity: "",
+  startDateTime: "",
+  endDateTime: "",
+  registrationOpenAt: "",
+  registrationCloseAt: "",
+  timezone: "America/New_York",
+  autoCloseRegistration: false,
+  autoArchive: false,
 };
+
+function toDatetimeLocal(ts?: number | null): string {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromDatetimeLocal(s: string): number | undefined {
+  if (!s) return undefined;
+  return new Date(s).getTime();
+}
+
+function lifecycleBadgeVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
+  switch (status) {
+    case "RegistrationOpen": return "default";
+    case "NearlyFull": return "default";
+    case "Full": return "destructive";
+    case "WaitlistOpen": return "secondary";
+    case "Cancelled":
+    case "RegistrationClosed": return "destructive";
+    case "Completed":
+    case "Archived": return "secondary";
+    default: return "outline";
+  }
+}
 
 function statusVariant(status: string) {
   if (status === "published") return "default";
   if (status === "archived") return "secondary";
   return "outline";
+}
+
+function CapacityBar({ entityId, siteId }: { entityId: string; siteId: Id<"sites"> }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const counts = useQuery((api as any).registrations.getCount, {
+    siteId,
+    entityType: "course",
+    entityId,
+  });
+  return counts ? (
+    <span className="text-xs text-slate-500 flex items-center gap-1">
+      <Users className="h-3 w-3" />
+      {counts.confirmedCount}
+      {counts.waitlistCount > 0 && <span className="text-amber-600">+{counts.waitlistCount}w</span>}
+    </span>
+  ) : null;
+}
+
+function CapacityPanel({
+  entityId,
+  siteId,
+  capacity,
+  waitlistCapacity,
+}: {
+  entityId: string;
+  siteId: Id<"sites">;
+  capacity?: number;
+  waitlistCapacity?: number;
+}) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const counts = useQuery((api as any).registrations.getCount, {
+    siteId,
+    entityType: "course",
+    entityId,
+  });
+
+  if (!capacity) return null;
+  if (!counts) return <Skeleton className="h-6 w-full" />;
+
+  const { confirmedCount, waitlistCount } = counts;
+  const pct = Math.min(100, (confirmedCount / capacity) * 100);
+  const isNearlyFull = confirmedCount / capacity >= NEARLY_FULL_THRESHOLD;
+  const isFull = confirmedCount >= capacity;
+
+  return (
+    <div className="space-y-1.5 p-3 bg-slate-50 rounded-md border border-slate-200">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium text-slate-700">Registrations</span>
+        <span className={`font-semibold ${isFull ? "text-red-600" : isNearlyFull ? "text-amber-600" : "text-slate-700"}`}>
+          {confirmedCount} / {capacity}
+        </span>
+      </div>
+      <Progress
+        value={pct}
+        className={`h-2 ${isFull ? "[&>div]:bg-red-500" : isNearlyFull ? "[&>div]:bg-amber-500" : "[&>div]:bg-emerald-500"}`}
+      />
+      {waitlistCapacity && waitlistCapacity > 0 && (
+        <p className="text-xs text-slate-500">
+          Waitlist: {waitlistCount} / {waitlistCapacity}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function CoursesList({ params }: { params: { siteId: string } }) {
@@ -105,6 +238,15 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
       priceCents: course.priceCents != null ? String(course.priceCents) : "",
       imageUrl: course.imageUrl ?? "",
       squareItemId: course.squareItemId ?? "",
+      capacity: course.capacity != null ? String(course.capacity) : "",
+      waitlistCapacity: course.waitlistCapacity != null ? String(course.waitlistCapacity) : "",
+      startDateTime: toDatetimeLocal(course.startDateTime),
+      endDateTime: toDatetimeLocal(course.endDateTime),
+      registrationOpenAt: toDatetimeLocal(course.registrationOpenAt),
+      registrationCloseAt: toDatetimeLocal(course.registrationCloseAt),
+      timezone: course.timezone ?? "America/New_York",
+      autoCloseRegistration: course.autoCloseRegistration ?? false,
+      autoArchive: course.autoArchive ?? false,
     });
     setDialogOpen(true);
   }
@@ -112,6 +254,18 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
   async function doSave() {
     setIsPending(true);
     try {
+      const capacityFields = {
+        capacity: form.capacity ? parseInt(form.capacity, 10) : undefined,
+        waitlistCapacity: form.waitlistCapacity ? parseInt(form.waitlistCapacity, 10) : undefined,
+        startDateTime: fromDatetimeLocal(form.startDateTime),
+        endDateTime: fromDatetimeLocal(form.endDateTime),
+        registrationOpenAt: fromDatetimeLocal(form.registrationOpenAt),
+        registrationCloseAt: fromDatetimeLocal(form.registrationCloseAt),
+        timezone: form.timezone || undefined,
+        autoCloseRegistration: form.autoCloseRegistration,
+        autoArchive: form.autoArchive,
+      };
+
       if (editing) {
         await updateCourse({
           siteId,
@@ -124,6 +278,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
+          ...capacityFields,
         });
         toast({ title: "Course updated" });
       } else {
@@ -137,6 +292,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
+          ...capacityFields,
         });
         toast({ title: "Course created" });
       }
@@ -219,9 +375,10 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Title</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Lifecycle</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Registrations</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Duration</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Price</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Updated</th>
                 <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
               </tr>
             </thead>
@@ -232,11 +389,26 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                   <td className="px-4 py-3">
                     <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
                   </td>
+                  <td className="px-4 py-3">
+                    {c.lifecycleStatus ? (
+                      <Badge variant={lifecycleBadgeVariant(c.lifecycleStatus)}>
+                        {LIFECYCLE_STATUS_LABELS[c.lifecycleStatus] ?? c.lifecycleStatus}
+                      </Badge>
+                    ) : (
+                      <span className="text-slate-400 text-xs">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {c.capacity ? (
+                      <CapacityBar entityId={c._id} siteId={siteId} />
+                    ) : (
+                      <span className="text-slate-400 text-xs">Unlimited</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-slate-500">{c.durationLabel || "—"}</td>
                   <td className="px-4 py-3 text-slate-500">
                     {c.priceCents != null ? `$${(c.priceCents / 100).toFixed(2)}` : "—"}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{new Date(c._creationTime).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>
                       <Pencil className="h-4 w-4" />
@@ -254,11 +426,23 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
       </LivePreviewPanel>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Course" : "New Course"}</DialogTitle>
           </DialogHeader>
+
+          {/* Live capacity panel when editing */}
+          {editing && editing.capacity && (
+            <CapacityPanel
+              entityId={editing._id}
+              siteId={siteId}
+              capacity={editing.capacity}
+              waitlistCapacity={editing.waitlistCapacity}
+            />
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* ── Basic Info ── */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Title</Label>
@@ -271,9 +455,14 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
-              <Textarea required rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <Textarea
+                required
+                rows={3}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as CourseStatus })}>
@@ -286,41 +475,119 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Duration</Label>
-                <Input placeholder="e.g. 3 weeks" value={form.durationLabel} onChange={(e) => setForm({ ...form, durationLabel: e.target.value })} />
+                <Label>Duration Label</Label>
+                <Input placeholder="e.g. 6 weeks" value={form.durationLabel} onChange={(e) => setForm({ ...form, durationLabel: e.target.value })} />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Price (cents)</Label>
-                <Input type="number" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} />
+                <Input type="number" placeholder="e.g. 9900 for $99" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Timezone</Label>
+                <Select value={form.timezone} onValueChange={(v) => setForm({ ...form, timezone: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {COMMON_TIMEZONES.map((tz) => (
+                      <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <ImagePickerField
-              siteId={params.siteId}
-              label="Course Image"
-              value={form.imageUrl}
-              onChange={(url) => setForm({ ...form, imageUrl: url })}
-              initialPreset={SITE_PRESETS.find((p) => p.label === "Course/Event Thumb")}
-              hint="Recommended: 800×450 px (16:9)."
-            />
-            <div className="space-y-1.5">
-              <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for checkout pricing)</span></Label>
-              <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Not linked" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Not linked</SelectItem>
-                  {(catalogItems ?? []).map((item: any) => (
-                    <SelectItem key={item.squareItemId} value={item.squareItemId}>
-                      {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {(catalogItems ?? []).length === 0 && (
-                <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
-              )}
+
+            {/* ── Scheduling ── */}
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Schedule</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Start Date &amp; Time</Label>
+                  <Input type="datetime-local" value={form.startDateTime} onChange={(e) => setForm({ ...form, startDateTime: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>End Date &amp; Time</Label>
+                  <Input type="datetime-local" value={form.endDateTime} onChange={(e) => setForm({ ...form, endDateTime: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Registration Opens</Label>
+                  <Input type="datetime-local" value={form.registrationOpenAt} onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Registration Closes</Label>
+                  <Input type="datetime-local" value={form.registrationCloseAt} onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })} />
+                </div>
+              </div>
             </div>
+
+            {/* ── Capacity ── */}
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Capacity</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Max Capacity <span className="text-slate-400 font-normal">(leave blank for unlimited)</span></Label>
+                  <Input type="number" min={1} placeholder="e.g. 20" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Waitlist Capacity <span className="text-slate-400 font-normal">(0 = no waitlist)</span></Label>
+                  <Input type="number" min={0} placeholder="e.g. 5" value={form.waitlistCapacity} onChange={(e) => setForm({ ...form, waitlistCapacity: e.target.value })} />
+                </div>
+              </div>
+              <div className="flex gap-6 mt-3">
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.autoCloseRegistration}
+                    onChange={(e) => setForm({ ...form, autoCloseRegistration: e.target.checked })}
+                    className="rounded border-slate-300"
+                  />
+                  Auto-close registration at capacity
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.autoArchive}
+                    onChange={(e) => setForm({ ...form, autoArchive: e.target.checked })}
+                    className="rounded border-slate-300"
+                  />
+                  Auto-archive when completed
+                </label>
+              </div>
+            </div>
+
+            {/* ── Media ── */}
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Media &amp; Integrations</h3>
+              <div className="space-y-4">
+                <ImagePickerField
+                  siteId={siteId}
+                  value={form.imageUrl}
+                  onChange={(url) => setForm({ ...form, imageUrl: url })}
+                  initialPreset={COURSE_IMAGE_PRESET}
+                  label="Course Image"
+                />
+                <div className="space-y-1.5">
+                  <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for checkout pricing)</span></Label>
+                  <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Not linked" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Not linked</SelectItem>
+                      {(catalogItems ?? []).map((item: any) => (
+                        <SelectItem key={item.squareItemId} value={item.squareItemId}>
+                          {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {(catalogItems ?? []).length === 0 && (
+                    <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save"}</Button>
