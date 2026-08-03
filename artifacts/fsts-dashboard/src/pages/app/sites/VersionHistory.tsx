@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -59,6 +60,8 @@ export default function VersionHistory({ params }: { params: { siteId: string } 
 
       {data === undefined ? (
         <Skeleton className="h-64" />
+      ) : data === null ? (
+        <ModuleAccessDenied message="Unable to load Version History — you may not have access to this site." />
       ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <History className="mx-auto h-10 w-10 text-slate-300 mb-3" />

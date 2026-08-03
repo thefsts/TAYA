@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -201,6 +202,8 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
+      ) : data === null ? (
+        <ModuleAccessDenied message="Unable to load Courses — you may not have access to this site or the courses module is disabled." />
       ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <BookOpen className="mx-auto h-10 w-10 text-slate-300 mb-3" />

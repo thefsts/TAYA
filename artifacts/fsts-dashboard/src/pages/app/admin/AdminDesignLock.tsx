@@ -3,6 +3,7 @@ import { api } from "@convex/_generated/api";
 import { Redirect } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Lock, Unlock, ShieldCheck } from "lucide-react";
 import {
   CAPABILITIES,
@@ -176,6 +177,8 @@ export default function AdminDesignLock() {
           <div className="space-y-2">
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
           </div>
+        ) : sites === null ? (
+          <ModuleAccessDenied message="Unable to load sites list — you may not have sufficient access." />
         ) : (
           <div className="bg-white border border-slate-200 rounded-md shadow-sm">
             <table className="w-full">

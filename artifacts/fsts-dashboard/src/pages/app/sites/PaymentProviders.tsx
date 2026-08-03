@@ -4,6 +4,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -383,6 +384,7 @@ function ProvidersTab({ siteId }: { siteId: Id<"sites"> }) {
   const [activating, setActivating] = useState<Provider | null>(null);
 
   if (connectors === undefined) return <Skeleton className="h-64 mt-4" />;
+  if (connectors === null) return <ModuleAccessDenied message="Unable to load payment providers — you may not have access to this site or the payments module is disabled." />;
 
   const recordMap = new Map<string, any>((connectors as any[]).map((r: any) => [r.provider, r]));
 
@@ -491,6 +493,7 @@ function HealthTab({ siteId }: { siteId: Id<"sites"> }) {
   const [results, setResults] = useState<Record<string, { ok: boolean; message?: string; latencyMs?: number }>>({});
 
   if (connectors === undefined) return <Skeleton className="h-40 mt-4" />;
+  if (connectors === null) return <ModuleAccessDenied message="Unable to load provider health — you may not have access to this site or the payments module is disabled." />;
 
   const configured = (connectors as any[]).filter((c: any) => c.status === "connected");
 
@@ -582,6 +585,7 @@ function TransactionLogTab({ siteId }: { siteId: Id<"sites"> }) {
   const events = useQuery(api.paymentConnectors.listPaymentEvents, { siteId, limit: 100 });
 
   if (events === undefined) return <Skeleton className="h-48 mt-4" />;
+  if (events === null) return <ModuleAccessDenied message="Unable to load payment events — you may not have access to this site or the payments module is disabled." />;
 
   const statusBadge: Record<string, string> = {
     success: "bg-green-100 text-green-700",

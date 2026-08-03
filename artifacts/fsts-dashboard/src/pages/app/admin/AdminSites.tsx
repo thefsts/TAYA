@@ -10,6 +10,7 @@ import {
 } from "@/lib/siteModules";
 import { Redirect, Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -187,6 +188,8 @@ export default function AdminSites() {
         <div className="space-y-4">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
         </div>
+      ) : sites === null ? (
+        <ModuleAccessDenied message="Unable to load sites list — you may not have sufficient access." />
       ) : (
         <div className="bg-white border border-slate-200 rounded-md shadow-sm">
           <table className="w-full">

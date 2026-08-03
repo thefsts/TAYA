@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -115,6 +116,8 @@ export default function FormSubmissions({ params }: { params: { siteId: string }
 
       {submissions === undefined ? (
         <Skeleton className="h-64" />
+      ) : submissions === null ? (
+        <ModuleAccessDenied message="Unable to load Form Submissions — you may not have access to this site." />
       ) : submissions.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-xl">
           <Inbox className="w-10 h-10 text-slate-300 mx-auto mb-3" />

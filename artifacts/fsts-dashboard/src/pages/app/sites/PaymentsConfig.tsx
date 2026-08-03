@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -242,6 +243,8 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
 
       {mappings === undefined ? (
         <Skeleton className="h-40" />
+      ) : mappings === null ? (
+        <ModuleAccessDenied message="Unable to load catalog mappings — you may not have access to this site or the payments module is disabled." />
       ) : mappings.length === 0 ? (
         <p className="text-sm text-slate-500 bg-white border border-slate-200 rounded-md p-6 text-center">
           No catalog mappings yet. Link a course or event to a Square item.

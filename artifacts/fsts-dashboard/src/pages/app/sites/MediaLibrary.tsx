@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -204,6 +205,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
             <div className="grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
             </div>
+          ) : data === null ? (
+            <ModuleAccessDenied message="Unable to load Media Library — you may not have access to this site or the media module is disabled." />
           ) : data.length === 0 ? (
             <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl">
               <ImageIcon className="mx-auto h-12 w-12 text-slate-300 mb-3" />

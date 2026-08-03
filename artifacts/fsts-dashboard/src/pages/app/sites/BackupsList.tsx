@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -82,6 +83,8 @@ export default function BackupsList({ params }: { params: { siteId: string } }) 
       </div>
       {data === undefined ? (
         <Skeleton className="h-64" />
+      ) : data === null ? (
+        <ModuleAccessDenied message="Unable to load Backups — you may not have access to this site or the backups module is disabled." />
       ) : data.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <Archive className="mx-auto h-10 w-10 text-slate-300 mb-3" />

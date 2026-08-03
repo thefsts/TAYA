@@ -4,6 +4,7 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 
 export default function ActivityLog({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
@@ -27,6 +28,10 @@ export default function ActivityLog({ params }: { params: { siteId: string } }) 
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
+            </div>
+          ) : data === null ? (
+            <div className="p-6">
+              <ModuleAccessDenied message="Unable to load the Activity Log — you may not have access to this site." />
             </div>
           ) : (
             <div className="overflow-x-auto">

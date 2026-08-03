@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -310,6 +311,8 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
 
         {entitySettings === undefined ? (
           <Skeleton className="h-64" />
+        ) : entitySettings === null ? (
+          <ModuleAccessDenied message="Unable to load entity sync settings — you may not have access to this site or the CRM module is disabled." />
         ) : (
           <div className="space-y-3 max-w-2xl">
             {/* Outbound group */}
@@ -444,6 +447,8 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
 
         {syncLogs === undefined ? (
           <Skeleton className="h-40" />
+        ) : syncLogs === null ? (
+          <ModuleAccessDenied message="Unable to load sync logs — you may not have access to this site or the CRM module is disabled." />
         ) : syncLogs.length === 0 ? (
           <p className="text-sm text-slate-500 bg-white border border-slate-200 rounded-md p-6 text-center">
             No sync activity{logEntityFilter !== "all" || logStatusFilter !== "all" ? " matching the current filters" : " yet"}.
