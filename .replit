@@ -110,4 +110,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 NEXT_PUBLIC_GA_ID = "G-MG8N46B3BS"
-VITE_CONVEX_URL = "https://clean-marlin-94.convex.cloud"
+VITE_CONVEX_URL = "https://uncommon-cobra-336.convex.cloud"
