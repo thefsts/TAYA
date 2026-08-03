@@ -159,6 +159,15 @@ export default defineSchema({
     focalX: v.optional(v.number()),
     /** Normalized focal point Y coordinate (0–1). Used as CSS object-position. */
     focalY: v.optional(v.number()),
+    // ── Enhanced Media Library fields ──────────────────────────────────────────
+    /** Free-form tag strings for filtering and organisation */
+    tags: v.optional(v.array(v.string())),
+    /** Free-form category string for grouping */
+    category: v.optional(v.string()),
+    /** When true, asset is hidden from pickers but URL remains live */
+    archived: v.optional(v.boolean()),
+    /** Cached count of content records referencing this asset */
+    usageCount: v.optional(v.number()),
     // ── Derivative variants generated server-side by media.generateDerivatives ──
     /** 150px wide WebP thumbnail for UI grids and thumbnails */
     thumbStorageId: v.optional(v.id("_storage")),
@@ -170,7 +179,10 @@ export default defineSchema({
     largeStorageId: v.optional(v.id("_storage")),
     /** 2400px wide WebP for hero / full-bleed slots */
     heroStorageId: v.optional(v.id("_storage")),
-  }).index("by_site", ["siteId"]),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_archived", ["siteId", "archived"])
+    .index("by_site_category", ["siteId", "category"]),
 
   squareConfig: defineTable({
     siteId: v.id("sites"),
