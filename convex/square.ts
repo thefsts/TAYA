@@ -677,6 +677,7 @@ export const webhookUpsertOrder = internalMutation({
     siteId: v.id("sites"),
     squareOrderId: v.string(),
     squarePaymentId: v.optional(v.string()),
+    squareEventId: v.optional(v.string()),
     customerName: v.optional(v.string()),
     customerEmail: v.optional(v.string()),
     itemName: v.optional(v.string()),
@@ -684,10 +685,30 @@ export const webhookUpsertOrder = internalMutation({
     status: v.string(),
     refundStatus: v.optional(v.string()),
     createdAt: v.number(),
+    webhookReceivedAt: v.optional(v.number()),
   },
-  handler: async (ctx, { siteId, squareOrderId, ...fields }) => {
+  handler: async (ctx, { siteId, squareOrderId, squareEventId, webhookReceivedAt, ...fields }) => {
+    const now = Date.now();
     const existing = await ctx.db.query("squareOrders").withIndex("by_site_squareOrderId", (q) => q.eq("siteId", siteId).eq("squareOrderId", squareOrderId)).first();
-    if (existing) { await ctx.db.patch(existing._id, fields); return existing._id; }
-    return ctx.db.insert("squareOrders", { siteId, squareOrderId, ...fields });
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        ...fields,
+        squareEventId: squareEventId ?? existing.squareEventId,
+        webhookReceivedAt: webhookReceivedAt ?? existing.webhookReceivedAt,
+        webhookProcessedAt: now,
+      });
+      return existing._id;
+    }
+    return ctx.db.insert("squareOrders", {
+      siteId,
+      squareOrderId,
+      squareEventId,
+      webhookReceivedAt: webhookReceivedAt ?? now,
+      webhookProcessedAt: now,
+      customerEmailStatus: "pending",
+      businessEmailStatus: "pending",
+      emailAttemptCount: 0,
+      ...fields,
+    });
   },
 });

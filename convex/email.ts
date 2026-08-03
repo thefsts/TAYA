@@ -331,6 +331,149 @@ export const previewDashboardWelcome = action({
   },
 });
 
+// ─── Payment confirmation email ───────────────────────────────────────────────
+
+/**
+ * Send a payment confirmation email to the customer after a successful Square
+ * payment. Called by `squareOrders.sendPaymentEmails` via the scheduler.
+ *
+ * Returns { success: true } on delivery or { success: false, error } on failure.
+ * Never throws — callers use the return value to update delivery state.
+ */
+export const sendPaymentConfirmation = internalAction({
+  args: {
+    siteId: v.id("sites"),
+    customerEmail: v.string(),
+    customerName: v.optional(v.string()),
+    itemName: v.optional(v.string()),
+    amountCents: v.number(),
+    orderId: v.string(),
+  },
+  handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
+    const settings = await ctx.runQuery(internal.email._getEmailSettings, { siteId: args.siteId });
+    if (!settings?.fromEmail) {
+      // No email config — record skip as success so we don't loop retries
+      console.warn("[email.sendPaymentConfirmation] No fromEmail configured for site", args.siteId);
+      return { success: true };
+    }
+
+    const apiKey = settings.resendApiKey || process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      const errMsg = "No Resend API key configured (per-site or platform)";
+      console.warn("[email.sendPaymentConfirmation]", errMsg, "siteId:", args.siteId);
+      return { success: false, error: errMsg };
+    }
+
+    const firstName = args.customerName?.split(" ")[0] ?? args.customerName ?? "there";
+    const amountFormatted = `$${(args.amountCents / 100).toFixed(2)}`;
+    const itemLabel = args.itemName ?? "your purchase";
+
+    const html = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;color:#1a1a2e">
+        <div style="background:#1a1a2e;padding:24px 32px;border-radius:8px 8px 0 0">
+          <h1 style="margin:0;font-size:20px;color:#ffffff">Payment Confirmation</h1>
+        </div>
+        <div style="background:#ffffff;padding:32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">
+          <h2 style="margin:0 0 16px;font-size:18px;color:#1a1a2e">Thank you, ${firstName}!</h2>
+          <p style="color:#475569;line-height:1.7;margin:0 0 20px">
+            Your payment for <strong>${itemLabel}</strong> has been received and processed successfully.
+          </p>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+            <tr style="border-bottom:1px solid #e2e8f0">
+              <td style="padding:10px 0;color:#64748b;width:140px">Item</td>
+              <td style="padding:10px 0;font-weight:600;color:#0f172a">${itemLabel}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #e2e8f0">
+              <td style="padding:10px 0;color:#64748b">Amount paid</td>
+              <td style="padding:10px 0;font-weight:700;color:#16a34a;font-size:18px">${amountFormatted}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 0;color:#64748b">Order reference</td>
+              <td style="padding:10px 0;font-family:monospace;font-size:12px;color:#64748b">${args.orderId}</td>
+            </tr>
+          </table>
+          <p style="color:#94a3b8;font-size:13px;margin:0">
+            If you have any questions about your payment, please reply to this email.
+          </p>
+          <p style="color:#cbd5e1;font-size:12px;margin-top:24px">
+            Sent by FSTS Platform on behalf of ${settings.fromName ?? "the business"}.
+          </p>
+        </div>
+      </div>
+    `;
+
+    const result = await ctx.runAction(internal.email.send, {
+      to: args.customerEmail,
+      subject: `Payment confirmed – ${itemLabel}`,
+      html,
+      fromName: settings.fromName,
+      fromEmail: settings.fromEmail,
+      apiKey: settings.resendApiKey,
+    });
+    return result as { success: boolean; error?: string };
+  },
+});
+
+/**
+ * Send a business notification email when a customer completes a payment.
+ * Sent to the site's notificationEmail (or fromEmail as fallback).
+ *
+ * Returns { success: true } on delivery or { success: false, error } on failure.
+ * Never throws.
+ */
+export const sendBusinessNotification = internalAction({
+  args: {
+    siteId: v.id("sites"),
+    customerName: v.optional(v.string()),
+    customerEmail: v.optional(v.string()),
+    itemName: v.optional(v.string()),
+    amountCents: v.number(),
+    orderId: v.string(),
+  },
+  handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
+    const settings = await ctx.runQuery(internal.email._getEmailSettings, { siteId: args.siteId });
+    const recipientEmail = settings?.notificationEmail || settings?.fromEmail;
+    if (!recipientEmail) {
+      console.warn("[email.sendBusinessNotification] No notification email configured for site", args.siteId);
+      return { success: true }; // No address → skip without penalizing retry count
+    }
+
+    const apiKey = settings?.resendApiKey || process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      const errMsg = "No Resend API key configured (per-site or platform)";
+      console.warn("[email.sendBusinessNotification]", errMsg, "siteId:", args.siteId);
+      return { success: false, error: errMsg };
+    }
+
+    const amountFormatted = `$${(args.amountCents / 100).toFixed(2)}`;
+    const itemLabel = args.itemName ?? "Unknown item";
+
+    const html = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;color:#1a1a2e">
+        <h2 style="color:#1a1a2e">New payment received — ${amountFormatted}</h2>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:6px 0;color:#555;width:140px">Customer</td><td style="padding:6px 0;font-weight:600">${args.customerName ?? "—"}</td></tr>
+          ${args.customerEmail ? `<tr><td style="padding:6px 0;color:#555">Email</td><td style="padding:6px 0"><a href="mailto:${args.customerEmail}">${args.customerEmail}</a></td></tr>` : ""}
+          <tr><td style="padding:6px 0;color:#555">Item</td><td style="padding:6px 0">${itemLabel}</td></tr>
+          <tr><td style="padding:6px 0;color:#555">Amount</td><td style="padding:6px 0;font-weight:700;color:#16a34a">${amountFormatted}</td></tr>
+          <tr><td style="padding:6px 0;color:#555">Order ref</td><td style="padding:6px 0;font-family:monospace;font-size:12px">${args.orderId}</td></tr>
+        </table>
+        <p style="color:#888;font-size:12px;margin-top:24px">Sent by FSTS Platform</p>
+      </div>
+    `;
+
+    const result = await ctx.runAction(internal.email.send, {
+      to: recipientEmail,
+      subject: `New payment – ${itemLabel} (${amountFormatted})`,
+      html,
+      fromName: settings?.fromName,
+      fromEmail: settings?.fromEmail,
+      apiKey: settings?.resendApiKey,
+    });
+    return result as { success: boolean; error?: string };
+  },
+});
+
 export const get = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {

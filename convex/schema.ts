@@ -273,9 +273,30 @@ export default defineSchema({
     status: v.string(),
     refundStatus: v.optional(v.string()),
     createdAt: v.number(),
+    // ── Payment Pipeline Hardening fields ────────────────────────────────
+    /** Square webhook event_id — used for idempotency dedup */
+    squareEventId: v.optional(v.string()),
+    /** When the webhook was first received (ms epoch) */
+    webhookReceivedAt: v.optional(v.number()),
+    /** When the webhook was fully processed — set atomically with order write */
+    webhookProcessedAt: v.optional(v.number()),
+    /** Email delivery state machine for customer confirmation email.
+     *  pending → processing → sent | failed → retryScheduled → permanentlyFailed */
+    customerEmailStatus: v.optional(v.string()),
+    /** Email delivery state machine for business notification email */
+    businessEmailStatus: v.optional(v.string()),
+    /** Total number of email send attempts (customer + business combined) */
+    emailAttemptCount: v.optional(v.number()),
+    /** Timestamp of the most recent email send attempt */
+    lastEmailAttemptAt: v.optional(v.number()),
+    /** Last error message from a failed email send */
+    lastEmailError: v.optional(v.string()),
+    /** When the next retry should be attempted */
+    nextRetryAt: v.optional(v.number()),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_squareOrderId", ["siteId", "squareOrderId"]),
+    .index("by_site_squareOrderId", ["siteId", "squareOrderId"])
+    .index("by_squareEventId", ["siteId", "squareEventId"]),
 
   squareDiscounts: defineTable({
     siteId: v.id("sites"),

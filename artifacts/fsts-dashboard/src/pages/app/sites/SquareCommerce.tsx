@@ -13,10 +13,31 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, RefreshCw, DollarSign, Tag, Package, TrendingUp, Plus, Trash2, Clock } from "lucide-react";
+import { ShoppingCart, RefreshCw, DollarSign, Tag, Package, TrendingUp, Plus, Trash2, Clock, Mail, RotateCcw } from "lucide-react";
 
 function fmt(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
+}
+
+// ── Email status badge ─────────────────────────────────────────────────────────
+const EMAIL_STATUS_STYLES: Record<string, { bg: string; label: string }> = {
+  pending:           { bg: "bg-slate-100 text-slate-500",   label: "Pending" },
+  processing:        { bg: "bg-blue-100 text-blue-600",     label: "Sending…" },
+  sent:              { bg: "bg-green-100 text-green-700",   label: "Sent" },
+  failed:            { bg: "bg-red-100 text-red-700",       label: "Failed" },
+  retryScheduled:    { bg: "bg-amber-100 text-amber-700",   label: "Retrying" },
+  permanentlyFailed: { bg: "bg-red-200 text-red-800",       label: "Perm. Failed" },
+};
+
+function EmailStatusBadge({ status }: { status?: string }) {
+  if (!status) return <span className="text-slate-300 text-xs">—</span>;
+  const s = EMAIL_STATUS_STYLES[status] ?? { bg: "bg-slate-100 text-slate-500", label: status };
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${s.bg}`}>
+      <Mail className="w-3 h-3" />
+      {s.label}
+    </span>
+  );
 }
 
 // ── Overview Tab ──────────────────────────────────────────────────────────────
@@ -147,15 +168,40 @@ function CatalogTab({ siteId }: { siteId: Id<"sites"> }) {
 
 // ── Orders Tab ────────────────────────────────────────────────────────────────
 function OrdersTab({ siteId }: { siteId: Id<"sites"> }) {
+  const { toast } = useToast();
   const orders = useQuery(api.squareOrders.listOrders, { siteId, limit: 100 });
+  const resend = useMutation(api.squareOrders.resendConfirmationEmail);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   if (orders === undefined) return <Skeleton className="h-48 mt-4" />;
 
   const statusColor: Record<string, string> = {
     COMPLETED: "bg-green-100 text-green-700",
-    CANCELED: "bg-red-100 text-red-700",
-    OPEN: "bg-blue-100 text-blue-700",
+    CANCELED:  "bg-red-100 text-red-700",
+    OPEN:      "bg-blue-100 text-blue-700",
   };
+
+  async function handleResend(orderId: string) {
+    setResendingId(orderId);
+    try {
+      await resend({ siteId, orderId: orderId as Id<"squareOrders"> });
+      toast({ title: "Resend scheduled", description: "Confirmation emails have been queued for re-delivery." });
+    } catch (err) {
+      toast({ title: "Resend failed", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
+    } finally {
+      setResendingId(null);
+    }
+  }
+
+  /** Show resend button only when delivery has failed or is permanently failed */
+  function canResend(o: any): boolean {
+    return (
+      o.customerEmailStatus === "failed" ||
+      o.customerEmailStatus === "permanentlyFailed" ||
+      o.businessEmailStatus === "failed" ||
+      o.businessEmailStatus === "permanentlyFailed"
+    );
+  }
 
   return (
     <div className="mt-4">
@@ -175,7 +221,10 @@ function OrdersTab({ siteId }: { siteId: Id<"sites"> }) {
                 <th className="px-4 py-3 font-medium">Item</th>
                 <th className="px-4 py-3 font-medium">Amount</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Customer Email</th>
+                <th className="px-4 py-3 font-medium">Biz Email</th>
                 <th className="px-4 py-3 font-medium">Refund</th>
+                <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -192,7 +241,28 @@ function OrdersTab({ siteId }: { siteId: Id<"sites"> }) {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[o.status] ?? "bg-slate-100 text-slate-600"}`}>{o.status}</span>
                   </td>
                   <td className="px-4 py-3">
+                    <EmailStatusBadge status={o.customerEmailStatus} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <EmailStatusBadge status={o.businessEmailStatus} />
+                  </td>
+                  <td className="px-4 py-3">
                     {o.refundStatus ? <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">{o.refundStatus}</span> : <span className="text-slate-300 text-xs">—</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    {canResend(o) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7 px-2 gap-1"
+                        disabled={resendingId === o._id}
+                        onClick={() => handleResend(o._id)}
+                        title="Resend confirmation emails"
+                      >
+                        <RotateCcw className={`w-3 h-3 ${resendingId === o._id ? "animate-spin" : ""}`} />
+                        Resend
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -600,17 +600,36 @@ http.route({
 
       const event = JSON.parse(rawBody) as any;
       const eventType = event.type as string;
+      const squareEventId: string | undefined = event.event_id ?? event.id ?? undefined;
+      const webhookReceivedAt = Date.now();
+
+      // ── Idempotency guard — reject duplicate webhooks atomically ──────────
+      // If we have already written webhookProcessedAt for this event_id, return
+      // 200 immediately without executing any business logic.
+      if (squareEventId) {
+        const existing = await ctx.runQuery(internal.squareOrders.getByEventId, { siteId: site._id, squareEventId });
+        if (existing?.webhookProcessedAt) {
+          return ok({ received: true, duplicate: true });
+        }
+      }
 
       if (eventType === "payment.created" || eventType === "payment.updated") {
         const payment = event.data?.object?.payment;
         if (payment) {
-          await ctx.runMutation(internal.square.webhookUpsertOrder, {
+          await ctx.runMutation(internal.squareOrders.upsertOrderFromWebhook, {
             siteId: site._id,
             squareOrderId: payment.order_id ?? payment.id,
             squarePaymentId: payment.id,
+            squareEventId,
+            webhookReceivedAt,
             amountCents: payment.amount_money?.amount ?? 0,
             status: payment.status ?? "COMPLETED",
             createdAt: new Date(payment.created_at ?? Date.now()).getTime(),
+            customerEmail: payment.buyer_email_address,
+            customerName: payment.shipping_address?.first_name
+              ? `${payment.shipping_address.first_name} ${payment.shipping_address.last_name ?? ""}`.trim()
+              : undefined,
+            itemName: payment.note,
           });
         }
       }

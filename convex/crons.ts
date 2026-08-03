@@ -70,4 +70,14 @@ crons.daily(
   internal.reviews.syncAllSitesReviews,
 );
 
+/* ── Payment email retry sweep — every 10 minutes ─────────────────────────── */
+// Finds squareOrders with failed email delivery and nextRetryAt in the past,
+// then re-attempts delivery up to MAX_EMAIL_ATTEMPTS (5). After that,
+// status is permanently set to "permanentlyFailed".
+crons.interval(
+  "payment-email-retry",
+  { minutes: 10 },
+  internal.squareOrders.retryFailedPaymentEmails,
+);
+
 export default crons;
