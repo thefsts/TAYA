@@ -82,6 +82,18 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const me = await provisionUser(ctx);
     if (!me.isSuperAdmin) throw new Error("Forbidden");
+
+    // SECURITY: a superadmin has platform-wide access and must never also hold
+    // site-specific role assignments — that combination is always a mistake.
+    // If the caller accidentally passes both, reject early so the provisioning
+    // flow cannot accidentally turn a client user into a superadmin (or vice versa).
+    if (args.isSuperAdmin && (args.roleAssignments ?? []).length > 0) {
+      throw new Error(
+        "Cannot combine isSuperAdmin: true with site role assignments. " +
+        "Superadmins have platform-wide access — site roles are redundant and indicate a misconfiguration."
+      );
+    }
+
     const userId = await ctx.db.insert("users", {
       clerkUserId: `pending:${args.email}`,
       name: args.name,
@@ -128,6 +140,17 @@ export const update = mutation({
 
     const existing = await ctx.db.get(userId);
     if (!existing) throw new Error("User not found");
+
+    // SECURITY: block any update that would leave the user as both superadmin
+    // and the holder of site-specific roles — that combination is always wrong.
+    const effectiveIsSuperAdmin = fields.isSuperAdmin ?? existing.isSuperAdmin;
+    const effectiveRoles = roleAssignments ?? (existing.roles as any[]);
+    if (effectiveIsSuperAdmin && effectiveRoles.length > 0) {
+      throw new Error(
+        "Cannot combine isSuperAdmin: true with site role assignments. " +
+        "Remove all site roles before granting superadmin, or leave isSuperAdmin false."
+      );
+    }
 
     const patch: Record<string, unknown> = { ...fields };
     if (roleAssignments !== undefined) {
@@ -263,6 +286,61 @@ export const promoteToSuperAdminByClerkId = mutation({
     if (!user) throw new Error(`User with clerkUserId ${targetClerkUserId} not found`);
     await ctx.db.patch(user._id, { isSuperAdmin: true, isActive: true });
     return user._id;
+  },
+});
+
+/**
+ * One-time internal provisioning: create (or verify) the Corsair Tactical
+ * Solutions owner user with site-scoped "owner" role.
+ *
+ * Run via:
+ *   CONVEX_DEPLOY_KEY=... npx convex run users:provisionCorsairOwner --prod
+ *
+ * SECURITY: isSuperAdmin is hard-coded false — this function can never elevate
+ * a client user to platform-wide superadmin regardless of arguments.
+ * Idempotent — safe to re-run; will only patch the role if it is missing.
+ */
+export const provisionCorsairOwner = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const CORSAIR_SITE_ID = "qd7cpjk68m0z4rme5hw4sqgeys8bk1zc" as Id<"sites">;
+    const OWNER_EMAIL     = "corsairtacticalsolutions@gmail.com";
+    const OWNER_NAME      = "Corsair Tactical Solutions";
+    const OWNER_ROLE      = "owner";
+
+    // Verify the site exists
+    const site = await ctx.db.get(CORSAIR_SITE_ID);
+    if (!site) throw new Error(`Site ${CORSAIR_SITE_ID} not found — run the Corsair seed first`);
+
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", OWNER_EMAIL))
+      .first();
+
+    if (existing) {
+      const alreadyHasRole = (existing.roles as any[]).some(
+        (r: any) => String(r.siteId) === CORSAIR_SITE_ID,
+      );
+      if (alreadyHasRole) {
+        return { action: "noop", userId: existing._id, message: "Owner role already present" };
+      }
+      // Append the owner role without touching other roles
+      const roles = [...(existing.roles as any[]), { siteId: CORSAIR_SITE_ID, role: OWNER_ROLE }];
+      await ctx.db.patch(existing._id, { roles } as any);
+      return { action: "patched", userId: existing._id, message: "Owner role added to existing user" };
+    }
+
+    // Create pending user — isSuperAdmin is explicitly false (enforced here, not caller-controlled)
+    const userId = await ctx.db.insert("users", {
+      clerkUserId: `pending:${OWNER_EMAIL}`,
+      name:         OWNER_NAME,
+      email:        OWNER_EMAIL,
+      isSuperAdmin: false,
+      isActive:     true,
+      roles:        [{ siteId: CORSAIR_SITE_ID, role: OWNER_ROLE }],
+    });
+
+    return { action: "created", userId, message: `Pending user created with ${OWNER_ROLE} role on ${CORSAIR_SITE_ID}` };
   },
 });
 
