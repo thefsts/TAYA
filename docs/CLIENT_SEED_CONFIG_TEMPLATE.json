@@ -1,0 +1,350 @@
+{
+  "_instructions": {
+    "about": "FSTS-WOS™ Client Seed Config Template — Corsair Tactical Solutions (Website #1)",
+    "usage": [
+      "1. Copy this file to docs/<client-slug>-seed-config.json",
+      "2. Replace every value with the new client's data",
+      "3. Remove this _instructions block",
+      "4. Run:",
+      "     npx convex run seedClient:seedClientSite '{",
+      "       \"siteId\": \"<convex-site-id>\",",
+      "       \"config\": <paste JSON contents here>",
+      "     }'"
+    ],
+    "see_also": [
+      "convex/seedClient.ts          — parameterized seeder (full TypeScript type docs)",
+      "convex/seedCorsair.ts         — original Corsair-specific reference implementation",
+      "docs/WEBSITE_ONBOARDING_CHECKLIST.md — the 14-step SOP this config maps to"
+    ],
+    "notes": {
+      "navigation_portal_link": "Update /portal/<siteSlug>/login to use the new client's siteSlug",
+      "events_dates": "startAtDaysFromNow is relative to when the seeder runs — events always land in the future",
+      "articles_dates": "publishedAtOffsetMs is ms from now — use negative values for past publish dates (e.g. -604800000 = 1 week ago)",
+      "email_key": "The Resend API key is NOT stored here — client enters it via Dashboard → Email Config after launch",
+      "reviews_placeId": "Use PENDING_<slug> if the real Google Place ID is not yet available; update after Google Business is verified"
+    }
+  },
+
+  "branding": {
+    "businessName": "Corsair Tactical Solutions",
+    "tagline": "Elite Training. Tactical Excellence.",
+    "logoUrl": "https://storage.googleapis.com/corsair-tactical/logo-white.png",
+    "faviconUrl": "https://storage.googleapis.com/corsair-tactical/favicon.ico",
+    "websiteType": "training_academy",
+    "timezone": "America/New_York",
+    "brandColorPrimary": "#1A3A52",
+    "brandColorSecondary": "#0f172a",
+    "brandColorAccent": "#C41E3A",
+    "fontHeading": "Inter",
+    "fontBody": "Inter",
+    "phone": "+1 (555) 847-2200",
+    "email": "corsairtacticalsolutions@gmail.com",
+    "address": "1247 Tactical Way, Suite 100, Quantico, VA 22134"
+  },
+
+  "homepage": {
+    "heroHeadline": "Elite Tactical Training for Professionals",
+    "heroSubheadline": "Corsair Tactical Solutions provides world-class firearms instruction, close-quarters combat training, and tactical leadership courses for law enforcement, military, and civilian professionals.",
+    "heroImageUrl": "https://storage.googleapis.com/corsair-tactical/hero-range.jpg",
+    "sections": [
+      {
+        "type": "features",
+        "headline": "Why Choose Corsair Tactical",
+        "items": [
+          {
+            "icon": "shield",
+            "title": "Expert Instructors",
+            "body": "All instructors are active or retired military and law enforcement with 15+ years of operational experience."
+          },
+          {
+            "icon": "target",
+            "title": "Certified Programs",
+            "body": "NRA-certified and state-approved courses from beginner fundamentals to advanced tactical operations."
+          },
+          {
+            "icon": "users",
+            "title": "Small Class Sizes",
+            "body": "Maximum 8 students per instructor ensures personalized attention and maximum skill development."
+          }
+        ]
+      }
+    ]
+  },
+
+  "navigation": [
+    { "label": "Home",          "href": "/",                               "order": 0 },
+    { "label": "About",         "href": "/about",                          "order": 1 },
+    { "label": "Courses",       "href": "/courses",                        "order": 2 },
+    { "label": "Events",        "href": "/events",                         "order": 3 },
+    { "label": "Blog",          "href": "/blog",                           "order": 4 },
+    { "label": "Contact",       "href": "/contact",                        "order": 5 },
+    { "label": "Member Portal", "href": "/portal/corsair-tactical/login",  "order": 6 }
+  ],
+
+  "footer": {
+    "columns": [
+      {
+        "heading": "Training",
+        "links": [
+          { "label": "Firearms Fundamentals", "href": "/courses/firearms-fundamentals" },
+          { "label": "CQB Course",            "href": "/courses/cqb" },
+          { "label": "Leadership & Tactics",  "href": "/courses/leadership-tactics" },
+          { "label": "Upcoming Events",       "href": "/events" }
+        ]
+      },
+      {
+        "heading": "Company",
+        "links": [
+          { "label": "About Us",    "href": "/about" },
+          { "label": "Instructors", "href": "/team" },
+          { "label": "Blog",        "href": "/blog" },
+          { "label": "Contact",     "href": "/contact" }
+        ]
+      },
+      {
+        "heading": "Legal",
+        "links": [
+          { "label": "Privacy Policy",   "href": "/privacy" },
+          { "label": "Terms of Service", "href": "/terms" },
+          { "label": "Refund Policy",    "href": "/refund-policy" }
+        ]
+      }
+    ],
+    "socialLinks": [
+      { "platform": "facebook",  "url": "https://facebook.com/corsairtactical" },
+      { "platform": "instagram", "url": "https://instagram.com/corsairtactical" },
+      { "platform": "youtube",   "url": "https://youtube.com/@corsairtactical" }
+    ],
+    "copyrightText": "© 2026 Corsair Tactical Solutions. All rights reserved."
+  },
+
+  "contact": {
+    "email": "corsairtacticalsolutions@gmail.com",
+    "phone": "+1 (555) 847-2200",
+    "address": "1247 Tactical Way, Suite 100, Quantico, VA 22134",
+    "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3111.5!2d-77.34!3d38.52!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzjCsDMxJzA5LjIiTiA3N8KwMjAnMDguNCJX!5e0!3m2!1sen!2sus!4v1234567890",
+    "hours": [
+      { "day": "Monday",    "open": "08:00", "close": "17:00" },
+      { "day": "Tuesday",   "open": "08:00", "close": "17:00" },
+      { "day": "Wednesday", "open": "08:00", "close": "17:00" },
+      { "day": "Thursday",  "open": "08:00", "close": "17:00" },
+      { "day": "Friday",    "open": "08:00", "close": "17:00" },
+      { "day": "Saturday",  "open": "09:00", "close": "14:00" },
+      { "day": "Sunday",    "open": null,    "close": null }
+    ]
+  },
+
+  "seo": [
+    {
+      "pagePath": "/",
+      "title": "Corsair Tactical Solutions — Elite Tactical Training in Quantico, VA",
+      "description": "Professional firearms instruction, close-quarters combat, and tactical leadership training. NRA-certified instructors. Small class sizes. Serving law enforcement, military, and civilians.",
+      "ogImageUrl": "https://storage.googleapis.com/corsair-tactical/og-home.jpg",
+      "canonicalUrl": "https://corsairtacticalsolutions.com/"
+    },
+    {
+      "pagePath": "/courses",
+      "title": "Tactical Training Courses — Corsair Tactical Solutions",
+      "description": "Browse our full catalog of tactical training courses: firearms fundamentals, CQB, leadership & tactics, and more.",
+      "ogImageUrl": "https://storage.googleapis.com/corsair-tactical/og-courses.jpg",
+      "canonicalUrl": "https://corsairtacticalsolutions.com/courses"
+    },
+    {
+      "pagePath": "/about",
+      "title": "About Corsair Tactical Solutions — Our Instructors & Mission",
+      "description": "Learn about Corsair Tactical Solutions, our experienced instructors, and our mission to provide elite tactical training to professionals and civilians.",
+      "ogImageUrl": "https://storage.googleapis.com/corsair-tactical/og-about.jpg",
+      "canonicalUrl": "https://corsairtacticalsolutions.com/about"
+    }
+  ],
+
+  "articles": [
+    {
+      "title": "Tactical Defense Fundamentals: Building Your Foundation",
+      "slug": "tactical-defense-fundamentals",
+      "status": "published",
+      "excerpt": "Whether you're a first-time shooter or an experienced professional, mastering the fundamentals is the non-negotiable foundation of tactical proficiency.",
+      "body": "## Why Fundamentals Matter\n\nIn tactical training, there are no shortcuts. Every advanced skill—from room-clearing to vehicle extraction—is built on a foundation of mastered fundamentals.\n\n## The Four Pillars\n\n**1. Stance and Platform** — Your platform is your base of stability under recoil and stress.\n\n**2. Grip** — A proper high-grip, thumbs-forward grip reduces muzzle flip.\n\n**3. Sight Alignment and Picture** — The front sight is your truth.\n\n**4. Trigger Control** — Trigger reset is the secret most shooters don't learn until years in. We teach it on Day 1.",
+      "coverImageUrl": "https://storage.googleapis.com/corsair-tactical/blog-fundamentals.jpg",
+      "publishedAtOffsetMs": -604800000,
+      "category": "Training",
+      "author": "Sgt. Marcus Webb (Ret.)",
+      "readingTime": "6 min read",
+      "tags": ["fundamentals", "firearms", "training", "beginners"],
+      "featured": true,
+      "seoTitle": "Tactical Defense Fundamentals — Corsair Tactical Solutions",
+      "metaDescription": "Learn why mastering the fundamentals of stance, grip, sight alignment, and trigger control is the non-negotiable foundation of every tactical skill."
+    },
+    {
+      "title": "Choosing Your First Defensive Firearm: A Practical Guide",
+      "slug": "choosing-first-defensive-firearm",
+      "status": "published",
+      "excerpt": "With thousands of handguns on the market, first-time buyers are overwhelmed. Here's the framework our instructors use when advising new students.",
+      "body": "## The Wrong Way to Choose\n\nMost people buy their first defensive firearm based on what a friend owns, what looked cool at the gun store, or what was on sale. None of these are good criteria.\n\n## Our Selection Framework\n\n1. **Ergonomic fit** — Can you reach the trigger with a proper grip?\n2. **Reliability** — Has the model been proven reliable with a wide variety of ammunition?\n3. **Caliber** — For defensive use, the 9mm offers the best balance of capacity, recoil, and terminal performance.\n4. **Concealability** — Full-size pistols are easier to shoot accurately but harder to carry all day.\n5. **Maintenance** — You should be able to field-strip, clean, and reassemble without a manual.",
+      "coverImageUrl": "https://storage.googleapis.com/corsair-tactical/blog-first-handgun.jpg",
+      "publishedAtOffsetMs": -1209600000,
+      "category": "Gear",
+      "author": "Lt. Dana Hargrove (Ret.)",
+      "readingTime": "8 min read",
+      "tags": ["gear", "handguns", "beginners", "buying-guide"],
+      "featured": false
+    }
+  ],
+
+  "courses": [
+    {
+      "title": "Firearms Fundamentals",
+      "slug": "firearms-fundamentals",
+      "status": "published",
+      "description": "The essential foundation course for new and returning shooters. Covers safe handling, stance, grip, sight alignment, trigger control, and basic malfunction clearing. NRA Basic Pistol certified.",
+      "durationLabel": "8 hours (1 day)",
+      "priceCents": 24900,
+      "imageUrl": "https://storage.googleapis.com/corsair-tactical/course-fundamentals.jpg"
+    },
+    {
+      "title": "Close-Quarters Battle (CQB) Foundations",
+      "slug": "cqb-foundations",
+      "status": "published",
+      "description": "Builds on the fundamentals course. Introduces room-clearing concepts, hallway tactics, angle shooting, and team movement. Requires completion of Firearms Fundamentals or equivalent demonstrated proficiency.",
+      "durationLabel": "16 hours (2 days)",
+      "priceCents": 49900,
+      "imageUrl": "https://storage.googleapis.com/corsair-tactical/course-cqb.jpg"
+    },
+    {
+      "title": "Tactical Leadership & Decision-Making",
+      "slug": "leadership-tactics",
+      "status": "published",
+      "description": "Designed for team leaders, supervisors, and professionals who must make high-stakes decisions under stress. Combines scenario-based tactical exercises with leadership frameworks.",
+      "durationLabel": "24 hours (3 days)",
+      "priceCents": 89900,
+      "imageUrl": "https://storage.googleapis.com/corsair-tactical/course-leadership.jpg"
+    },
+    {
+      "title": "Defensive Driving for Professionals",
+      "slug": "defensive-driving",
+      "status": "draft",
+      "description": "Coming Spring 2027 — advanced vehicle operations including evasive maneuvers, counter-ambush driving, and protective detail techniques.",
+      "durationLabel": "8 hours (1 day)",
+      "priceCents": 34900,
+      "imageUrl": "https://storage.googleapis.com/corsair-tactical/course-driving.jpg"
+    }
+  ],
+
+  "events": [
+    {
+      "title": "Firearms Fundamentals — Next Session",
+      "slug": "firearms-fundamentals-next",
+      "status": "published",
+      "description": "Monthly Firearms Fundamentals course. Limited to 8 students. All skill levels welcome. Loaner firearms available for first-time students.",
+      "startAtDaysFromNow": 14,
+      "durationHours": 8,
+      "location": "Corsair Range Facility, 1247 Tactical Way, Quantico VA",
+      "imageUrl": "https://storage.googleapis.com/corsair-tactical/event-fundamentals.jpg"
+    },
+    {
+      "title": "CQB Foundations — Weekend Intensive",
+      "slug": "cqb-foundations-weekend",
+      "status": "published",
+      "description": "Two-day close-quarters battle foundations course. Prerequisite: Firearms Fundamentals or demonstrated proficiency screening. Gear list provided upon registration.",
+      "startAtDaysFromNow": 21,
+      "durationHours": 48,
+      "location": "Corsair Range Facility, 1247 Tactical Way, Quantico VA",
+      "imageUrl": "https://storage.googleapis.com/corsair-tactical/event-cqb.jpg"
+    },
+    {
+      "title": "Tactical Leadership Intensive",
+      "slug": "leadership-intensive",
+      "status": "published",
+      "description": "Three-day leadership and decision-making course for team leaders, supervisors, and security professionals. Includes scenario-based exercises and after-action reviews.",
+      "startAtDaysFromNow": 45,
+      "durationHours": 72,
+      "location": "Corsair Training Campus, 1247 Tactical Way, Quantico VA",
+      "imageUrl": "https://storage.googleapis.com/corsair-tactical/event-leadership.jpg"
+    }
+  ],
+
+  "testimonials": [
+    {
+      "name": "Officer James Whitfield",
+      "role": "Patrol Supervisor",
+      "company": "Fairfax County Police Department",
+      "rating": 5,
+      "text": "Corsair's CQB Foundations course is the most realistic, practical training I've taken outside of SWAT pre-qualification. Sgt. Webb's instruction style is direct, high-rep, and zero filler.",
+      "isActive": true,
+      "order": 0
+    },
+    {
+      "name": "Cassandra Torres",
+      "role": "Private Security Contractor",
+      "company": "SecureStrike LLC",
+      "rating": 5,
+      "text": "The instructors actually teach you to think, not just shoot. The Leadership & Tactics course changed how I approach every job.",
+      "isActive": true,
+      "order": 1
+    },
+    {
+      "name": "Marcus Delgado",
+      "role": "Veteran / Civilian Student",
+      "company": "",
+      "rating": 5,
+      "text": "The Firearms Fundamentals course was a perfect reset — rigorous enough to challenge a vet but thorough enough that I relearned things I thought I already knew.",
+      "isActive": true,
+      "order": 2
+    },
+    {
+      "name": "Lt. Sarah Okonkwo (Ret.)",
+      "role": "Retired Navy EOD / Security Consultant",
+      "company": "Independent",
+      "rating": 5,
+      "text": "As a retired EOD officer, I was skeptical there was much new I could learn in a civilian course. I was wrong. The scenario design at Corsair reflects current threat environments.",
+      "isActive": true,
+      "order": 3
+    }
+  ],
+
+  "emailConfig": {
+    "fromName": "Corsair Tactical Solutions",
+    "fromEmail": "noreply@corsairtacticalsolutions.com",
+    "replyToEmail": "corsairtacticalsolutions@gmail.com",
+    "notificationEmail": "corsairtacticalsolutions@gmail.com",
+    "notifyOnNewLead": true,
+    "notifyOnBooking": true
+  },
+
+  "portalConfig": {
+    "enabled": true,
+    "registrationOpen": true,
+    "requireApproval": false,
+    "logoUrl": "https://storage.googleapis.com/corsair-tactical/logo-dark.png",
+    "primaryColor": "#1A3A52",
+    "welcomeMessage": "Welcome to the Corsair Tactical Solutions Client Portal. Access your course materials, training certificates, and booking history here. Questions? Contact us at corsairtacticalsolutions@gmail.com.",
+    "enabledFeatures": {
+      "courseMaterials": true,
+      "certificates": true,
+      "bookingHistory": true,
+      "messaging": false
+    }
+  },
+
+  "reviews": {
+    "provider": "google",
+    "placeId": "ChIJ_pending_corsair_tactical_solutions",
+    "businessName": "Corsair Tactical Solutions",
+    "sampleReviews": [
+      {
+        "reviewerName": "Michael Brennan",
+        "rating": 5,
+        "text": "Best tactical training I've found outside of military service. Instructors are professional, curriculum is current, and the facility is first-rate.",
+        "daysAgo": 30,
+        "pinned": true
+      },
+      {
+        "reviewerName": "Priya Nair",
+        "rating": 5,
+        "text": "Completed Firearms Fundamentals as a complete beginner. Dana Hargrove is an exceptional instructor — patient, knowledgeable, and safety-first without being condescending.",
+        "daysAgo": 10,
+        "pinned": false
+      }
+    ]
+  }
+}

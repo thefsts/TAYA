@@ -1,7 +1,27 @@
 /**
  * Corsair Tactical Solutions — Onboarding Data Seeder
  *
- * Internal-only mutations called via `npx convex run` during the Task #37
+ * ─── REFERENCE EXAMPLE — DO NOT MODIFY ──────────────────────────────────────
+ * This file is the original Corsair-specific seeder written during the
+ * Website #1 onboarding walkthrough. It is preserved as a concrete reference
+ * so you can see what real seeded data looks like.
+ *
+ * For NEW client onboardings, do NOT copy-paste and edit this file.
+ * Instead, use the parameterized seeder:
+ *
+ *   convex/seedClient.ts        ← generic seeder that accepts any config
+ *   docs/CLIENT_SEED_CONFIG_TEMPLATE.json  ← Corsair's data as a copyable template
+ *
+ * Usage for a new client:
+ *   1. Copy docs/CLIENT_SEED_CONFIG_TEMPLATE.json → docs/<client-slug>-seed-config.json
+ *   2. Replace all values with the new client's data.
+ *   3. Run:  npx convex run seedClient:seedClientSite '{
+ *              "siteId": "<convex-site-id>",
+ *              "config": <paste JSON here>
+ *            }'
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * Internal-only mutations called via `npx convex run` during the Website #1
  * onboarding walkthrough. These bypass the user-auth wrapper so the admin
  * can seed realistic content without needing a live Clerk session in the
  * automation context.
