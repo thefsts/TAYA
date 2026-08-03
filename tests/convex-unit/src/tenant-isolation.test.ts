@@ -64,6 +64,7 @@ function userDoc(
 type Seeded = {
   siteA: Id<"sites">;
   siteB: Id<"sites">;
+  corsairSite: Id<"sites">;
   agency1: Id<"agencies">;
   agency2: Id<"agencies">;
   articleB: Id<"articles">;
@@ -83,6 +84,7 @@ async function seed(t: ReturnType<typeof convexTest>): Promise<Seeded> {
     const agency2 = await ctx.db.insert("agencies", { name: "Agency Two", slug: "agency-two", ...agencyBase });
     const siteA = await ctx.db.insert("sites", siteDoc("Site A", "site-a", agency1));
     const siteB = await ctx.db.insert("sites", siteDoc("Site B", "site-b", agency2));
+    const corsairSite = await ctx.db.insert("sites", siteDoc("Corsair Tactical Solutions", "corsair-tactical-solutions"));
 
     // Users — seeded BEFORE any function call so provisionUser never
     // accidentally bootstraps a first-user superadmin.
@@ -90,6 +92,14 @@ async function seed(t: ReturnType<typeof convexTest>): Promise<Seeded> {
     await ctx.db.insert("users", userDoc("owner_a", { roles: [{ siteId: siteA, role: "owner" }] }));
     await ctx.db.insert("users", userDoc("staff_a", { roles: [{ siteId: siteA, role: "read_only" }] }));
     await ctx.db.insert("users", userDoc("agency1_admin", { agencyId: agency1, isAgencyAdmin: true }));
+    await ctx.db.insert("users", {
+      clerkUserId: "corsair_owner_clerk",
+      name: "Corsair Tactical Solutions",
+      email: "corsairtacticalsolutions@gmail.com",
+      isSuperAdmin: false,
+      isActive: true,
+      roles: [{ siteId: corsairSite, role: "owner" }],
+    });
 
     const articleB = await ctx.db.insert("articles", {
       siteId: siteB,
@@ -98,7 +108,7 @@ async function seed(t: ReturnType<typeof convexTest>): Promise<Seeded> {
       status: "draft",
       body: "Confidential tenant-B content",
     });
-    return { siteA, siteB, agency1, agency2, articleB };
+    return { siteA, siteB, corsairSite, agency1, agency2, articleB };
   });
 }
 
@@ -314,5 +324,62 @@ describe("Security regressions — Square catalog sync action", () => {
     await expect(
       t.withIdentity({ subject: "staff_a" }).action(api.squareOrders.syncCatalog, { siteId: s.siteA }),
     ).rejects.toThrow(/Forbidden/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Corsair Owner — role-resolution regression guard
+//
+// Verifies that corsairtacticalsolutions@gmail.com's "owner" assignment on the
+// Corsair site is correctly resolved by users:me and that checkSiteAccess
+// grants access only to their own site.
+// ---------------------------------------------------------------------------
+describe("Corsair Owner — role resolution and site access", () => {
+  const as = () => t.withIdentity({ subject: "corsair_owner_clerk" });
+
+  it("users:me returns roleAssignments with the Corsair siteId and role owner", async () => {
+    const me = await as().query(api.users.me, {});
+    expect(me).not.toBeNull();
+    expect(me.roleAssignments).toBeDefined();
+    const corsairAssignment = me.roleAssignments.find(
+      (ra: { siteId: string; role: string }) => ra.siteId === s.corsairSite,
+    );
+    expect(corsairAssignment).toBeDefined();
+    expect(corsairAssignment?.role).toBe("owner");
+  });
+
+  it("checkSiteAccess: CAN access their own Corsair site (sites.get returns the record)", async () => {
+    const site = await as().query(api.sites.get, { siteId: s.corsairSite });
+    expect(site).not.toBeNull();
+    expect(site?.name).toBe("Corsair Tactical Solutions");
+  });
+
+  it("checkSiteAccess: CANNOT access an unrelated site (sites.get returns null)", async () => {
+    expect(await as().query(api.sites.get, { siteId: s.siteA })).toBeNull();
+    expect(await as().query(api.sites.get, { siteId: s.siteB })).toBeNull();
+  });
+
+  it("CAN write content on their own Corsair site", async () => {
+    const article = await as().mutation(api.articles.create, {
+      siteId: s.corsairSite,
+      title: "Corsair article",
+      slug: "corsair-article",
+      body: "Corsair content",
+    });
+    expect(article.siteId).toBe(s.corsairSite);
+  });
+
+  it("CANNOT write content on an unrelated site", async () => {
+    await expect(
+      as().mutation(api.articles.create, { siteId: s.siteA, title: "x", slug: "x", body: "x" }),
+    ).rejects.toThrow(/Forbidden/);
+    await expect(
+      as().mutation(api.articles.create, { siteId: s.siteB, title: "x", slug: "x", body: "x" }),
+    ).rejects.toThrow(/Forbidden/);
+  });
+
+  it("isSuperAdmin is false — no platform-wide privilege escalation", async () => {
+    const me = await as().query(api.users.me, {});
+    expect(me?.isSuperAdmin).toBe(false);
   });
 });
