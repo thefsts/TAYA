@@ -1,0 +1,258 @@
+Proceed with Tasks #446, #447, and #448, but use the following priority and acceptance requirements.
+
+## Priority 1 — Task #448: Payment Pipeline Silent-Drop Audit
+
+Complete this first.
+
+Audit the entire production payment flow:
+
+1. Registration form submission
+2. Customer creation
+3. Order creation
+4. Square payment
+5. Square webhook receipt
+6. Signature verification
+7. Webhook deduplication
+8. Registration confirmation
+9. Customer confirmation email
+10. Business notification email
+11. Failure handling and retry behavior
+
+The goal is to ensure that a successful customer payment can never be silently lost or left without a corresponding registration record and notification trail.
+
+### Required behavior
+
+Do not simply change every email failure to a non-200 webhook response without considering duplicate processing.
+
+The webhook must separate:
+
+* Payment processing state
+* Registration creation state
+* Customer confirmation delivery state
+* Business notification delivery state
+
+Once the payment event has been securely verified and the registration/order has been recorded, repeated Square webhook attempts must not:
+
+* Create duplicate registrations
+* Create duplicate orders
+* Increment class counts twice
+* Send duplicate confirmations
+* Send duplicate business notifications
+
+Use idempotency and persistent delivery status fields.
+
+Recommended delivery states:
+
+* `pending`
+* `processing`
+* `sent`
+* `failed`
+* `retryScheduled`
+* `permanentlyFailed`
+
+Recommended record fields:
+
+* Square event ID
+* Square payment ID
+* Order ID
+* Registration ID
+* Webhook received timestamp
+* Webhook processed timestamp
+* Customer email status
+* Business email status
+* Email attempt count
+* Last email attempt timestamp
+* Last email error
+* Next retry timestamp
+
+If `RESEND_API_KEY` is missing or email delivery fails:
+
+* The payment and registration must remain recorded.
+* The webhook must not create duplicate business records on retry.
+* The email failure must be visible in logs and administration.
+* A retry mechanism must attempt delivery later.
+* The owner must have a manual resend action.
+* The system must clearly distinguish “payment processed” from “confirmation delivered.”
+
+Confirm the actual retry behavior supported by Square before relying on a non-200 response as the only retry mechanism.
+
+Create `docs/PAYMENT_FLOW_AUDIT.md` documenting:
+
+* The complete flow
+* Failure points
+* Retry behavior
+* Idempotency controls
+* Deduplication strategy
+* Email retry strategy
+* Manual recovery procedure
+* Production configuration requirements
+* Tests performed
+* Remaining risks
+
+### Required Task #448 tests
+
+* Valid payment webhook processes once
+* Duplicate webhook does not duplicate registration
+* Duplicate webhook does not duplicate emails
+* Missing Square signature key fails securely in production
+* Invalid signature fails securely
+* Missing Resend API key records an email failure
+* Temporary Resend failure schedules or permits a retry
+* Customer email can be resent manually
+* Business notification can be resent manually
+* Registration persists even when email fails
+* Class capacity increments only once
+* Webhook dedup works with production KV
+* KV outage does not cause uncontrolled duplicate processing
+* Tenant and customer data cannot cross site boundaries
+
+## Priority 2 — Task #447: Course and Event Catalog Audit
+
+Audit every course and event rendering path.
+
+Include:
+
+* Homepage course carousel
+* All-courses grid
+* Course detail pages
+* Event cards
+* Event detail pages
+* Registration forms
+* Checkout/order creation
+* Confirmation pages
+* Structured data
+* Open Graph metadata
+* Sitemap data where applicable
+
+Standardize the price model rather than adding isolated display guards only.
+
+Determine and document whether prices are stored as:
+
+* Integer cents
+* Decimal currency values
+* Formatted strings
+
+Use one canonical backend representation. Prefer integer minor units for calculations and a shared formatting function for display.
+
+The system must correctly support:
+
+* Free courses
+* Paid courses
+* Zero-dollar promotional pricing
+* Missing prices
+* Sale prices
+* Group prices
+* Deposits, if supported
+* Currency codes
+* Sold-out classes
+* Closed registration
+* Past events
+* Cancelled events
+
+No public or dashboard view may render:
+
+* `$NaN`
+* `$undefined`
+* `$null`
+* Empty price labels
+* Invalid dates
+* Broken `courseSlug` links
+
+Verify every event-to-course relationship and report orphaned or invalid references.
+
+Also verify the lifecycle behavior previously requested:
+
+* Full classes show “Class Full”
+* Past events leave Upcoming Events automatically
+* Past events move to Past Events
+* Registration closes at capacity or closing time
+* Flyers linked to expired events are archived or hidden
+* Cancelled events are handled intentionally
+
+### Required Task #447 tests
+
+* Numeric price renders correctly
+* Legacy string price is migrated or normalized
+* Missing price falls back safely
+* Free course displays “Free”
+* Invalid price never reaches checkout
+* Event with invalid `courseSlug` is flagged
+* Sold-out state matches registration capacity
+* Past event is excluded from upcoming queries
+* Cancelled event is not shown as active
+* All 14 courses render correctly across every supported view
+
+## Priority 3 — Task #446: Production Startup Guard
+
+Extend `src/instrumentation.ts` to check all production-critical environment variables at cold start.
+
+At minimum, check:
+
+* `SQUARE_WEBHOOK_SIGNATURE_KEY`
+* `RESEND_WEBHOOK_SECRET`
+* `RESEND_API_KEY`
+* `KV_REST_API_URL`
+* `KV_REST_API_TOKEN`
+* `NEXT_PUBLIC_SITE_URL`
+
+Classify each variable as:
+
+* Required
+* Recommended
+* Optional
+
+Do not log secret values.
+
+The startup output should identify:
+
+* Missing variable name
+* Why it is required
+* Which feature will fail
+* Whether deployment should continue
+* The owner action required
+
+Critical production secrets should not merely produce an easy-to-miss generic warning. Use clearly labelled structured logs.
+
+Also add a protected production-readiness check that reports configuration status without exposing values.
+
+Recommended output:
+
+* Square webhook verification: Configured / Missing
+* Resend webhook verification: Configured / Missing
+* Outbound email: Configured / Missing
+* Webhook deduplication: Persistent / In-memory fallback
+* Canonical site URL: Configured / Using fallback
+
+Do not expose this status publicly. Restrict it to authorized platform administrators or deployment logs.
+
+### Deployment requirement
+
+After the owner adds the six production variables in Vercel:
+
+1. Redeploy production.
+2. Capture the startup configuration report.
+3. Confirm no required variables are missing.
+4. Submit a real test registration and payment.
+5. Confirm the webhook processes once.
+6. Confirm the registration record is created.
+7. Confirm the customer receives an email.
+8. Confirm the business receives an email.
+9. Replay the webhook and prove no duplication occurs.
+10. Document the evidence.
+
+## Reporting Requirements
+
+For each task, return:
+
+* Status
+* Commit hash
+* Files changed
+* Schema or migration changes
+* Environment variables involved
+* Tests added
+* Full test results
+* Production evidence
+* Known limitations
+* Remaining owner actions
+
+Do not mark the payment pipeline production-ready based only on unit tests. It requires one controlled live Square transaction, webhook verification, deduplication proof, and confirmation of both customer and business email delivery.
