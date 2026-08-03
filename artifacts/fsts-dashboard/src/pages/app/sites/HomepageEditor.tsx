@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 
 type Section = { heading: string; body: string };
 
@@ -131,10 +133,14 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
                 <Label>Subheadline</Label>
                 <Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} />
               </div>
-              <div className="space-y-1.5">
-                <Label>Hero Image URL</Label>
-                <Input value={heroImageUrl} onChange={(e) => setHeroImageUrl(e.target.value)} />
-              </div>
+              <ImagePickerField
+                siteId={params.siteId}
+                label="Hero Image"
+                value={heroImageUrl}
+                onChange={setHeroImageUrl}
+                initialPreset={SITE_PRESETS.find((p) => p.label === "Hero Banner")}
+                hint="Recommended: 1920×600 px, wide landscape format."
+              />
             </div>
           </div>
 

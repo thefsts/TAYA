@@ -50,6 +50,8 @@ import {
 } from "lucide-react";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 
 type ArticleStatus = "draft" | "published" | "archived";
 
@@ -505,14 +507,14 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label>Cover Image URL</Label>
-                  <Input
-                    value={form.coverImageUrl}
-                    onChange={(e) => setField("coverImageUrl", e.target.value)}
-                    placeholder="https://…"
-                  />
-                </div>
+                <ImagePickerField
+                  siteId={params.siteId}
+                  label="Cover Image"
+                  value={form.coverImageUrl}
+                  onChange={(url) => setField("coverImageUrl", url)}
+                  initialPreset={SITE_PRESETS.find((p) => p.label === "Article Thumbnail")}
+                  hint="Recommended: 1200×675 px (16:9)."
+                />
               </TabsContent>
 
               {/* ── SETTINGS TAB ── */}
@@ -639,14 +641,14 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   <p className="text-xs text-slate-400">{form.metaDescription.length}/160 chars recommended</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label>OG Image URL</Label>
-                  <Input
-                    value={form.ogImageUrl}
-                    onChange={(e) => setField("ogImageUrl", e.target.value)}
-                    placeholder={form.coverImageUrl || "https://… (1200×630 recommended)"}
-                  />
-                </div>
+                <ImagePickerField
+                  siteId={params.siteId}
+                  label="OG Image"
+                  value={form.ogImageUrl}
+                  onChange={(url) => setField("ogImageUrl", url)}
+                  initialPreset={SITE_PRESETS.find((p) => p.label === "Article Thumbnail")}
+                  hint="Recommended: 1200×630 px (Open Graph)."
+                />
 
                 <div className="space-y-1.5">
                   <Label>Canonical URL</Label>
@@ -683,14 +685,14 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label>Social Image URL</Label>
-                  <Input
-                    value={form.socialImageUrl}
-                    onChange={(e) => setField("socialImageUrl", e.target.value)}
-                    placeholder={form.ogImageUrl || form.coverImageUrl || "https://… (square or 1.91:1)"}
-                  />
-                </div>
+                <ImagePickerField
+                  siteId={params.siteId}
+                  label="Social Image"
+                  value={form.socialImageUrl}
+                  onChange={(url) => setField("socialImageUrl", url)}
+                  initialPreset={SITE_PRESETS.find((p) => p.label === "Article Thumbnail")}
+                  hint="Recommended: 1200×630 px or square."
+                />
 
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Operon CRM API Preview</p>

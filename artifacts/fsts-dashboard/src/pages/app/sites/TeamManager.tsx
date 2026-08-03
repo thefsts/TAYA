@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Pencil, Plus, Trash2 } from "lucide-react";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 
 type MemberForm = {
   name: string;
@@ -209,10 +211,14 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
               <Label>Bio</Label>
               <Textarea className="mt-1" rows={3} value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} placeholder="Brief biography…" />
             </div>
-            <div>
-              <Label>Photo URL</Label>
-              <Input className="mt-1" value={form.photoUrl} onChange={(e) => setForm((f) => ({ ...f, photoUrl: e.target.value }))} placeholder="https://…" />
-            </div>
+            <ImagePickerField
+              siteId={params.siteId}
+              label="Photo"
+              value={form.photoUrl}
+              onChange={(url) => setForm((f) => ({ ...f, photoUrl: url }))}
+              initialPreset={SITE_PRESETS.find((p) => p.label === "Team Photo")}
+              hint="Recommended: 600×800 px (portrait 3:4)."
+            />
             <div className="flex items-center gap-3">
               <Switch checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} />
               <Label>Visible on website</Label>

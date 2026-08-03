@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
-import { useQuery, useMutation, useConvex } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,10 +19,10 @@ import {
   Search,
   Plug,
   ScrollText,
-  Upload,
   CheckCircle2,
-  Clock,
 } from "lucide-react";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 import { WEBSITE_TYPE_OPTIONS } from "@/lib/siteModules";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -158,94 +158,6 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
   );
 }
 
-function ImageUploadField({
-  label,
-  value,
-  onChange,
-  accept,
-  hint,
-  siteId,
-}: {
-  label: string;
-  value: string;
-  onChange: (url: string) => void;
-  accept?: string;
-  hint?: string;
-  siteId: Id<"sites">;
-}) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const convex = useConvex();
-  const generateUploadUrl = useMutation(api.siteSettings.generateUploadUrl);
-  const [uploading, setUploading] = useState(false);
-  const { toast } = useToast();
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const uploadUrl = await generateUploadUrl({ siteId });
-      const res = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      const { storageId } = await res.json();
-      // Resolve the storage URL through the authenticated Convex query so
-      // access control is enforced server-side.
-      const url = await convex
-        .query(api.siteSettings.getFileUrl, { storageId })
-        .catch(() => null);
-      if (url) {
-        onChange(url);
-      } else {
-        toast({ title: "Upload succeeded — paste the URL manually or use the URL field below", description: "Storage ID: " + storageId });
-      }
-    } catch (err) {
-      toast({ title: "Upload failed", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
-
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      <div className="flex gap-2 items-center">
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="https://example.com/logo.png"
-          className="flex-1"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="flex-shrink-0"
-        >
-          <Upload className="h-3.5 w-3.5 mr-1.5" />
-          {uploading ? "Uploading…" : "Upload"}
-        </Button>
-        <input ref={fileRef} type="file" accept={accept ?? "image/*"} className="hidden" onChange={handleFile} />
-      </div>
-      {value && (
-        <div className="mt-2">
-          <img
-            src={value}
-            alt={label}
-            className="h-12 w-auto rounded border border-slate-200 object-contain bg-slate-50 p-1"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        </div>
-      )}
-      {hint && <p className="text-xs text-slate-400">{hint}</p>}
-    </div>
-  );
-}
 
 export default function WebsiteSettings({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
@@ -490,22 +402,22 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 </div>
               </div>
 
-              <ImageUploadField
-                siteId={siteId}
+              <ImagePickerField
+                siteId={params.siteId}
                 label="Logo"
                 value={logoUrl}
                 onChange={setLogoUrl}
-                accept="image/*"
-                hint="Recommended: SVG or PNG with transparent background, max 512×512."
+                initialPreset={SITE_PRESETS.find((p) => p.label === "Logo")}
+                hint="Recommended: SVG or PNG with transparent background, 300×100."
               />
 
-              <ImageUploadField
-                siteId={siteId}
+              <ImagePickerField
+                siteId={params.siteId}
                 label="Favicon"
                 value={faviconUrl}
                 onChange={setFaviconUrl}
-                accept="image/png,image/x-icon,image/svg+xml,image/webp"
-                hint="Recommended: 32×32 or 64×64 PNG/ICO."
+                initialPreset={SITE_PRESETS.find((p) => p.label === "Favicon")}
+                hint="Recommended: 64×64 PNG — square crop enforced."
               />
             </div>
           </div>
@@ -755,12 +667,13 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 />
                 <p className="text-xs text-slate-400">{seoGlobalDescription.length}/160 characters</p>
               </div>
-              <ImageUploadField
-                siteId={siteId}
+              <ImagePickerField
+                siteId={params.siteId}
                 label="Default OG / Social Share Image"
                 value={seoOgImageUrl}
                 onChange={setSeoOgImageUrl}
-                hint="Recommended: 1200×630 PNG or JPG for best social sharing results."
+                initialPreset={SITE_PRESETS.find((p) => p.label === "Article Thumbnail")}
+                hint="Recommended: 1200×630 px for best social sharing results."
               />
             </div>
           </div>

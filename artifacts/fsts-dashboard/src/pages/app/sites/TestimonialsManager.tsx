@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquareQuote, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 
 type TestimonialFormState = {
   name: string;
@@ -213,10 +215,14 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
               <Label>Testimonial Text *</Label>
               <Textarea className="mt-1" rows={4} value={form.text} onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))} placeholder="What did this client say?" />
             </div>
-            <div>
-              <Label>Avatar URL</Label>
-              <Input className="mt-1" value={form.avatarUrl} onChange={(e) => setForm((f) => ({ ...f, avatarUrl: e.target.value }))} placeholder="https://…" />
-            </div>
+            <ImagePickerField
+              siteId={params.siteId}
+              label="Avatar"
+              value={form.avatarUrl}
+              onChange={(url) => setForm((f) => ({ ...f, avatarUrl: url }))}
+              initialPreset={SITE_PRESETS.find((p) => p.label === "Testimonial Photo")}
+              hint="Recommended: 200×200 px square."
+            />
             <div className="flex items-center gap-3">
               <Switch checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} />
               <Label>Visible on website</Label>

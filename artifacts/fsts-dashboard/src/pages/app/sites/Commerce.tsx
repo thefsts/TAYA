@@ -16,6 +16,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 import {
   RefreshCw,
   Plus,
@@ -281,8 +283,14 @@ function CatalogTab({ siteId }: { siteId: Id<"sites"> }) {
               <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Optional — creates category in Square if new" />
             </div>
             <div className="space-y-1.5">
-              <Label>Photo URL <span className="text-slate-400 font-normal">(stored in dashboard)</span></Label>
-              <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://…" />
+              <ImagePickerField
+                siteId={siteId}
+                label="Product Photo"
+                value={form.imageUrl}
+                onChange={(url) => setForm({ ...form, imageUrl: url })}
+                initialPreset={SITE_PRESETS.find((p) => p.label === "Course/Event Thumb")}
+                hint="Recommended: 800×450 px (16:9)."
+              />
               <p className="text-xs text-slate-400">Displayed in the dashboard. To upload photos to Square, use your <a href="https://squareup.com/dashboard" target="_blank" rel="noreferrer" className="underline">Square Dashboard</a> and then sync.</p>
             </div>
             <DialogFooter>

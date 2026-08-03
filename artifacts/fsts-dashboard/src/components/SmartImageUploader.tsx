@@ -485,6 +485,8 @@ type Props = {
   }) => Promise<void>;
   context?: string;
   title?: string;
+  /** Pre-select an aspect-ratio preset when the editor opens */
+  initialPreset?: AspectPreset;
   /** AI assist hook — currently a stub; will be wired in a future task */
   onAIAssist?: () => void;
 };
@@ -494,7 +496,7 @@ type Props = {
 // ---------------------------------------------------------------------------
 
 export function SmartImageEditor({
-  siteId, open, onClose, onSave, context, title = "Smart Image Manager™", onAIAssist,
+  siteId, open, onClose, onSave, context, title = "Smart Image Manager™", initialPreset, onAIAssist,
 }: Props) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -526,7 +528,7 @@ export function SmartImageEditor({
   const [focalY, setFocalY] = useState(0.5);
 
   // Aspect ratio
-  const [activePreset, setActivePreset] = useState<AspectPreset>(ASPECT_PRESETS[0]);
+  const [activePreset, setActivePreset] = useState<AspectPreset>(initialPreset ?? ASPECT_PRESETS[0]);
 
   // Quality report
   const [report, setReport] = useState<ImageQualityReport | null>(null);
@@ -538,7 +540,7 @@ export function SmartImageEditor({
     setRotation(0); setFlipH(false); setFlipV(false);
     setBrightness(100); setContrast(100); setSaturation(100);
     setCropDescriptor(null); setFocalX(0.5); setFocalY(0.5);
-    setActivePreset(ASPECT_PRESETS[0]);
+    setActivePreset(initialPreset ?? ASPECT_PRESETS[0]);
   };
 
   const handleFileSelect = useCallback(async (f: File) => {

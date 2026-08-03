@@ -38,6 +38,8 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Pencil, Plus, Trash2 } from "lucide-react";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 
 type EventStatus = "draft" | "published" | "archived";
 
@@ -304,10 +306,14 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
                 <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Image URL</Label>
-              <Input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
-            </div>
+            <ImagePickerField
+              siteId={params.siteId}
+              label="Event Image"
+              value={form.imageUrl}
+              onChange={(url) => setForm({ ...form, imageUrl: url })}
+              initialPreset={SITE_PRESETS.find((p) => p.label === "Course/Event Thumb")}
+              hint="Recommended: 800×450 px (16:9)."
+            />
             <div className="space-y-1.5">
               <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for paid registration)</span></Label>
               <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>

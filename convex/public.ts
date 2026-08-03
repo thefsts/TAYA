@@ -188,6 +188,9 @@ export const getMediaBySlug = internalQuery({
           altText: d.altText,
           width: d.width,
           height: d.height,
+          /** Normalized focal point (0–1). Use as CSS object-position: {focalX*100}% {focalY*100}% */
+          focalX: d.focalX ?? null,
+          focalY: d.focalY ?? null,
         };
       })
     );

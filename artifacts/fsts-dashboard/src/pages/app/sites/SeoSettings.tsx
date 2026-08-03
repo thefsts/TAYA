@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ImagePickerField } from "@/components/ImagePickerField";
+import { SITE_PRESETS } from "@/config/imagePresets";
 
 type SeoFormState = {
   pagePath: string;
@@ -228,8 +230,14 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>OG Image URL</Label>
-                <Input value={form.ogImageUrl} onChange={(e) => setForm({ ...form, ogImageUrl: e.target.value })} />
+                <ImagePickerField
+                  siteId={params.siteId}
+                  label="OG Image"
+                  value={form.ogImageUrl}
+                  onChange={(url) => setForm({ ...form, ogImageUrl: url })}
+                  initialPreset={SITE_PRESETS.find((p) => p.label === "Article Thumbnail")}
+                  hint="Recommended: 1200×630 px (Open Graph)."
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Canonical URL</Label>
