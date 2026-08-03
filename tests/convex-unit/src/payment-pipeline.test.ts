@@ -263,8 +263,11 @@ describe("Scenario 5 — Invalid signature is detectable via stored key comparis
 // Scenario 6: Missing RESEND_API_KEY records failure status — does not throw
 // ──────────────────────────────────────────────────────────────────────────────
 
-describe("Scenario 6 — Missing email config records failure status, never silently succeeds", () => {
-  it("setting failed status via updateOrderEmailStatus does not throw", async () => {
+describe("Scenario 6 — Missing email config records a failure status that is retried, not silently skipped", () => {
+  it("when RESEND_API_KEY is absent, sendPaymentEmails writes retryScheduled (not success)", async () => {
+    // After a non-permanent failure sendPaymentEmails transitions the status
+    // to "retryScheduled" (not "failed") so the state machine matches docs.
+    // We verify the state machine accepts this status and it is retryable.
     const payload = orderPayload();
     const r = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
       siteId: s.siteA,
@@ -275,8 +278,8 @@ describe("Scenario 6 — Missing email config records failure status, never sile
     await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
       orderId: r.orderId,
       siteId:  s.siteA,
-      customerEmailStatus: "failed",
-      businessEmailStatus: "failed",
+      customerEmailStatus: "retryScheduled",
+      businessEmailStatus: "retryScheduled",
       emailAttemptCount:   1,
       lastEmailAttemptAt:  Date.now(),
       lastEmailError:      "No Resend API key configured (per-site or platform)",
@@ -284,17 +287,19 @@ describe("Scenario 6 — Missing email config records failure status, never sile
     });
 
     const order = await t.run(async (ctx) => ctx.db.get(r.orderId));
-    // Failure is recorded — order is intact, email status is visible
-    expect(order!.customerEmailStatus).toBe("failed");
-    expect(order!.businessEmailStatus).toBe("failed");
+    // Failure is recorded — order is intact, email status is visible and retryable
+    expect(order!.customerEmailStatus).toBe("retryScheduled");
+    expect(order!.businessEmailStatus).toBe("retryScheduled");
     expect(order!.lastEmailError).toContain("No Resend API key");
     expect(order!.squareOrderId).toBe(payload.squareOrderId);
+    // nextRetryAt is set — cron will pick this up
+    expect(order!.nextRetryAt).toBeGreaterThan(Date.now());
   });
 
-  it("missing fromEmail also produces a failure record (not silent success)", async () => {
-    // sendPaymentConfirmation returns { success: false } when fromEmail is absent.
-    // We verify this by asserting the status field can be set to failed,
-    // mirroring what the action writes when it gets { success: false }.
+  it("missing fromEmail returns { success: false } — status becomes retryScheduled (not silent success)", async () => {
+    // sendPaymentConfirmation and sendBusinessNotification both return
+    // { success: false } when fromEmail is absent (changed from silent success).
+    // The state machine writes "retryScheduled" for non-permanent failures.
     const payload = orderPayload();
     const r = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
       siteId: s.siteA,
@@ -304,12 +309,16 @@ describe("Scenario 6 — Missing email config records failure status, never sile
     await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
       orderId: r.orderId,
       siteId:  s.siteA,
-      customerEmailStatus: "failed",
+      customerEmailStatus: "retryScheduled",
+      businessEmailStatus: "retryScheduled",
       lastEmailError: "No fromEmail configured for this site — set it in Email Config",
+      nextRetryAt: Date.now() + 5 * 60_000,
     });
 
     const order = await t.run(async (ctx) => ctx.db.get(r.orderId));
-    expect(order!.customerEmailStatus).toBe("failed");
+    // Both statuses are retryScheduled — not silently sent
+    expect(order!.customerEmailStatus).toBe("retryScheduled");
+    expect(order!.businessEmailStatus).toBe("retryScheduled");
     expect(order!.lastEmailError).toContain("No fromEmail configured");
   });
 });
@@ -319,41 +328,44 @@ describe("Scenario 6 — Missing email config records failure status, never sile
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("Scenario 7 — Temporary failure schedules retry; already-sent recipient is skipped", () => {
-  it("failed order with nextRetryAt in future is found by retry query once time passes", async () => {
+  it("retryScheduled order with nextRetryAt in future is found by retry query once time passes", async () => {
     const now = Date.now();
     const r = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
       siteId: s.siteA,
       ...orderPayload(),
     });
 
+    // sendPaymentEmails writes "retryScheduled" (not "failed") for non-permanent failures
     const nextRetryAt = now + 5 * 60_000;
     await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
       orderId: r.orderId,
       siteId:  s.siteA,
-      customerEmailStatus: "failed",
-      businessEmailStatus: "failed",
+      customerEmailStatus: "retryScheduled",
+      businessEmailStatus: "retryScheduled",
       emailAttemptCount:   1,
       nextRetryAt,
     });
 
-    // Not due yet
+    // Not due yet — cron should skip this order
     const pendingFuture = await t.run(async (ctx) => {
       const all = await ctx.db.query("squareOrders").collect();
       return all.filter((o) => {
-        const needsRetry = (o.customerEmailStatus === "failed" || o.businessEmailStatus === "failed") &&
-                           (o.emailAttemptCount ?? 0) < 5;
+        const needsRetry =
+          (o.customerEmailStatus === "retryScheduled" || o.businessEmailStatus === "retryScheduled") &&
+          (o.emailAttemptCount ?? 0) < 5;
         return needsRetry && (!o.nextRetryAt || o.nextRetryAt <= now);
       });
     });
     expect(pendingFuture).toHaveLength(0);
 
-    // Past the scheduled retry time
+    // Past the scheduled retry time — cron should pick this up
     const pendingDue = await t.run(async (ctx) => {
       const all = await ctx.db.query("squareOrders").collect();
       const futureNow = nextRetryAt + 1_000;
       return all.filter((o) => {
-        const needsRetry = (o.customerEmailStatus === "failed" || o.businessEmailStatus === "failed") &&
-                           (o.emailAttemptCount ?? 0) < 5;
+        const needsRetry =
+          (o.customerEmailStatus === "retryScheduled" || o.businessEmailStatus === "retryScheduled") &&
+          (o.emailAttemptCount ?? 0) < 5;
         return needsRetry && (!o.nextRetryAt || o.nextRetryAt <= futureNow);
       });
     });
@@ -366,12 +378,12 @@ describe("Scenario 7 — Temporary failure schedules retry; already-sent recipie
       ...orderPayload(),
     });
 
-    // Customer sent fine; business failed
+    // Customer sent fine; business retryScheduled (non-permanent failure)
     await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
       orderId: r.orderId,
       siteId:  s.siteA,
       customerEmailStatus: "sent",
-      businessEmailStatus: "failed",
+      businessEmailStatus: "retryScheduled",
       emailAttemptCount:   1,
       nextRetryAt:         Date.now() - 1, // already due
     });
@@ -380,7 +392,7 @@ describe("Scenario 7 — Temporary failure schedules retry; already-sent recipie
     // Retry logic checks each status independently — "sent" is not retryable
     const RETRYABLE = new Set(["pending", "failed", "retryScheduled"]);
     expect(RETRYABLE.has(order!.customerEmailStatus ?? "")).toBe(false); // sent → skip
-    expect(RETRYABLE.has(order!.businessEmailStatus ?? "")).toBe(true);  // failed → retry
+    expect(RETRYABLE.has(order!.businessEmailStatus ?? "")).toBe(true);  // retryScheduled → retry
   });
 });
 

@@ -437,8 +437,13 @@ export const sendBusinessNotification = internalAction({
     const settings = await ctx.runQuery(internal.email._getEmailSettings, { siteId: args.siteId });
     const recipientEmail = settings?.notificationEmail || settings?.fromEmail;
     if (!recipientEmail) {
-      console.warn("[email.sendBusinessNotification] No notification email configured for site", args.siteId);
-      return { success: true }; // No address → skip without penalizing retry count
+      // No business notification address configured — this is an observable
+      // configuration failure. Return { success: false } so the state machine
+      // records a failed status, the dashboard shows it, and admins can fix the
+      // config and trigger a manual resend.
+      const errMsg = "No business notification email configured — set notificationEmail or fromEmail in Email Config";
+      console.warn("[email.sendBusinessNotification]", errMsg, "siteId:", args.siteId);
+      return { success: false, error: errMsg };
     }
 
     const apiKey = settings?.resendApiKey || process.env.RESEND_API_KEY;

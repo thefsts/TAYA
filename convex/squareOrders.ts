@@ -312,7 +312,11 @@ export const sendPaymentEmails = internalAction({
       });
     } else {
       const isPermanent = attempt >= MAX_EMAIL_ATTEMPTS;
-      const failStatus = isPermanent ? "permanentlyFailed" : "failed";
+      // Non-permanent failures transition to "retryScheduled" (a retry is being
+      // scheduled via nextRetryAt). Permanent failures go to "permanentlyFailed".
+      // This keeps the state machine consistent with the documented cycle:
+      //   pending → processing → sent | retryScheduled → permanentlyFailed
+      const failStatus = isPermanent ? "permanentlyFailed" : "retryScheduled";
       const err = (needsCustomer && !customerOk
         ? customerResult.error
         : needsBusiness && !businessOk
@@ -341,7 +345,12 @@ export const getOrderById = internalQuery({
   },
 });
 
-/** Find orders due for email retry (customerEmail or businessEmail is failed/retryScheduled). */
+/** Find orders due for email retry.
+ * Looks for orders where at least one recipient is in `retryScheduled` state
+ * (written by sendPaymentEmails after a non-permanent failure) and whose
+ * `nextRetryAt` timestamp has elapsed. Also picks up legacy `failed` status
+ * written before this convention was established, for backward compatibility.
+ */
 export const findOrdersPendingEmailRetry = internalQuery({
   args: { now: v.number() },
   handler: async (ctx, { now }) => {
@@ -349,7 +358,11 @@ export const findOrdersPendingEmailRetry = internalQuery({
     const allOrders = await ctx.db.query("squareOrders").collect();
     return allOrders.filter((o) => {
       const needsRetry =
-        (o.customerEmailStatus === "failed" || o.businessEmailStatus === "failed") &&
+        (o.customerEmailStatus === "retryScheduled" ||
+          o.businessEmailStatus === "retryScheduled" ||
+          // backward compat: older records may still carry "failed"
+          o.customerEmailStatus === "failed" ||
+          o.businessEmailStatus === "failed") &&
         (o.emailAttemptCount ?? 0) < MAX_EMAIL_ATTEMPTS;
       const isDue = !o.nextRetryAt || o.nextRetryAt <= now;
       return needsRetry && isDue;

@@ -193,14 +193,10 @@ function OrdersTab({ siteId }: { siteId: Id<"sites"> }) {
     }
   }
 
-  /** Show resend button only when delivery has failed or is permanently failed */
+  /** Show resend button when delivery has failed, is retrying, or permanently failed */
   function canResend(o: any): boolean {
-    return (
-      o.customerEmailStatus === "failed" ||
-      o.customerEmailStatus === "permanentlyFailed" ||
-      o.businessEmailStatus === "failed" ||
-      o.businessEmailStatus === "permanentlyFailed"
-    );
+    const actionable = new Set(["failed", "retryScheduled", "permanentlyFailed"]);
+    return actionable.has(o.customerEmailStatus) || actionable.has(o.businessEmailStatus);
   }
 
   return (
