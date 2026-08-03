@@ -382,4 +382,62 @@ describe("Corsair Owner — role resolution and site access", () => {
     const me = await as().query(api.users.me, {});
     expect(me?.isSuperAdmin).toBe(false);
   });
+
+  // ------------------------------------------------------------------
+  // Regression: users.update replaces the entire roles array.  A partial
+  // update that omits roleAssignments must NOT wipe existing role entries.
+  // ------------------------------------------------------------------
+  it("partial update (name only, no roleAssignments) preserves the Corsair owner role", async () => {
+    const superadminAs = () => t.withIdentity({ subject: "superadmin" });
+
+    // Resolve the Corsair owner's Convex userId via their clerkUserId.
+    const corsairUserId = await t.run(async (ctx) =>
+      ctx.db
+        .query("users")
+        .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", "corsair_owner_clerk"))
+        .first()
+        .then((u) => u!._id),
+    );
+
+    // Perform a partial update that touches only the name field.
+    await superadminAs().mutation(api.users.update, {
+      userId: corsairUserId,
+      name: "Corsair Tactical Solutions (updated)",
+    });
+
+    // The Corsair owner role must still be present after the name-only update.
+    const me = await as().query(api.users.me, {});
+    expect(me).not.toBeNull();
+    const corsairAssignment = me.roleAssignments.find(
+      (ra: { siteId: string; role: string }) => ra.siteId === s.corsairSite,
+    );
+    expect(corsairAssignment).toBeDefined();
+    expect(corsairAssignment?.role).toBe("owner");
+  });
+
+  it("explicit roleAssignments: [] correctly removes the Corsair owner role (intended behaviour)", async () => {
+    const superadminAs = () => t.withIdentity({ subject: "superadmin" });
+
+    const corsairUserId = await t.run(async (ctx) =>
+      ctx.db
+        .query("users")
+        .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", "corsair_owner_clerk"))
+        .first()
+        .then((u) => u!._id),
+    );
+
+    // Explicitly pass an empty roleAssignments — this is the intentional
+    // "revoke all roles" path and must succeed (not be silently ignored).
+    await superadminAs().mutation(api.users.update, {
+      userId: corsairUserId,
+      roleAssignments: [],
+    });
+
+    const me = await as().query(api.users.me, {});
+    expect(me).not.toBeNull();
+    // After an explicit empty-array update, no role assignments should remain.
+    expect(me.roleAssignments).toHaveLength(0);
+    // And the user loses access to the Corsair site.
+    expect(await as().query(api.sites.get, { siteId: s.corsairSite })).toBeNull();
+  });
 });
