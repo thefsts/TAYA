@@ -344,6 +344,80 @@ describe("onboarding.launch — access control", () => {
   });
 });
 
+describe("onboarding.launch — placeholder products personalisation", () => {
+  it("seeds product descriptions containing the businessName when products page is selected", async () => {
+    const as = t.withIdentity({ subject: "superadmin" });
+    await as.mutation(api.onboarding.createSession, { sessionKey: SESSION_KEY });
+    const { siteId } = await as.mutation(api.onboarding.launch, {
+      sessionKey: SESSION_KEY,
+      stepData: {
+        ...STEP_DATA,
+        pages: [...STEP_DATA.pages, "products"],
+      },
+    });
+
+    const products = await t.run(async (ctx) =>
+      ctx.db
+        .query("siteProducts")
+        .withIndex("by_site", (q) => q.eq("siteId", siteId))
+        .collect(),
+    );
+
+    expect(products.length).toBeGreaterThan(0);
+
+    // At least one product description must contain the businessName
+    const hasBusinessName = products.some(
+      (p: any) =>
+        p.description.includes(STEP_DATA.businessName) ||
+        p.shortDescription?.includes(STEP_DATA.businessName),
+    );
+    expect(hasBusinessName).toBe(true);
+  });
+
+  it("uses custom tier labels from priceRange in product titles", async () => {
+    const as = t.withIdentity({ subject: "superadmin" });
+    await as.mutation(api.onboarding.createSession, { sessionKey: SESSION_KEY });
+    const { siteId } = await as.mutation(api.onboarding.launch, {
+      sessionKey: SESSION_KEY,
+      stepData: {
+        ...STEP_DATA,
+        pages: [...STEP_DATA.pages, "products"],
+        priceRange: ["Basic", "Pro", "Elite"],
+      },
+    });
+
+    const products = await t.run(async (ctx) =>
+      ctx.db
+        .query("siteProducts")
+        .withIndex("by_site", (q) => q.eq("siteId", siteId))
+        .collect(),
+    );
+
+    const titles = products.map((p: any) => p.title);
+    expect(titles).toContain("Basic Package");
+    expect(titles).toContain("Pro Package");
+    expect(titles).toContain("Elite Package");
+  });
+
+  it("does NOT seed products when products page is not selected", async () => {
+    const as = t.withIdentity({ subject: "superadmin" });
+    await as.mutation(api.onboarding.createSession, { sessionKey: SESSION_KEY });
+    const { siteId } = await as.mutation(api.onboarding.launch, {
+      sessionKey: SESSION_KEY,
+      stepData: STEP_DATA, // pages does NOT include "products"
+    });
+
+    const products = await t.run(async (ctx) =>
+      ctx.db
+        .query("siteProducts")
+        .withIndex("by_site", (q) => q.eq("siteId", siteId))
+        .collect(),
+    );
+
+    expect(products).toHaveLength(0);
+  });
+});
+
 describe("onboarding.launch — slug collision handling", () => {
   it("generates a unique slug when a site with that slug already exists", async () => {
     const as = t.withIdentity({ subject: "superadmin" });
