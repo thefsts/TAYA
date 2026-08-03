@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearch, useLocation } from "wouter";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -41,6 +42,8 @@ import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
+import { LifecycleAlertList } from "@/components/LifecycleAlert";
+import type { LifecycleAlertType } from "@/components/LifecycleAlert";
 
 // Course/Event Thumb preset (16:9, 800×450)
 const COURSE_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
@@ -65,6 +68,61 @@ const COMMON_TIMEZONES = [
   "Australia/Sydney",
   "UTC",
 ];
+
+// ── Filter tabs ──────────────────────────────────────────────────────────────
+
+const FILTER_TABS = [
+  { value: "upcoming", label: "Upcoming" },
+  { value: "all", label: "All" },
+  { value: "open-registration", label: "Open Registration" },
+  { value: "nearly-full", label: "Nearly Full" },
+  { value: "full", label: "Full" },
+  { value: "waitlist", label: "Waitlist" },
+  { value: "in-progress", label: "In Progress" },
+  { value: "past", label: "Past" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "draft", label: "Draft" },
+  { value: "archived", label: "Archived" },
+] as const;
+
+type FilterValue = (typeof FILTER_TABS)[number]["value"];
+
+function filterCourses(data: any[], filter: FilterValue): any[] {
+  switch (filter) {
+    case "all":
+      return data;
+    case "upcoming":
+      return data.filter(
+        (c) =>
+          c.status !== "archived" &&
+          !["Completed", "Cancelled", "Archived"].includes(c.lifecycleStatus ?? ""),
+      );
+    case "open-registration":
+      return data.filter((c) => c.lifecycleStatus === "RegistrationOpen");
+    case "nearly-full":
+      return data.filter((c) => c.lifecycleStatus === "NearlyFull");
+    case "full":
+      return data.filter((c) => c.lifecycleStatus === "Full");
+    case "waitlist":
+      return data.filter((c) => c.lifecycleStatus === "WaitlistOpen");
+    case "in-progress":
+      return data.filter((c) => c.lifecycleStatus === "InProgress");
+    case "past":
+      return data.filter((c) => c.lifecycleStatus === "Completed");
+    case "cancelled":
+      return data.filter((c) => c.lifecycleStatus === "Cancelled");
+    case "draft":
+      return data.filter((c) => c.status === "draft");
+    case "archived":
+      return data.filter(
+        (c) => c.status === "archived" || c.lifecycleStatus === "Archived",
+      );
+    default:
+      return data;
+  }
+}
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 type CourseStatus = "draft" | "published" | "archived";
 
@@ -141,6 +199,8 @@ function statusVariant(status: string) {
   return "outline";
 }
 
+// ── Capacity components ───────────────────────────────────────────────────────
+
 function CapacityBar({ entityId, siteId }: { entityId: string; siteId: Id<"sites"> }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const counts = useQuery((api as any).registrations.getCount, {
@@ -204,6 +264,38 @@ function CapacityPanel({
   );
 }
 
+// ── Lifecycle alerts for the edit dialog ─────────────────────────────────────
+
+function CourseAlerts({ entity, siteId }: { entity: any; siteId: Id<"sites"> }) {
+  const now = Date.now();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const counts = useQuery((api as any).registrations.getCount, {
+    siteId,
+    entityType: "course",
+    entityId: entity._id,
+  });
+
+  const closingSoon =
+    entity.registrationCloseAt != null &&
+    entity.registrationCloseAt > now &&
+    entity.registrationCloseAt <= now + 24 * 60 * 60 * 1000;
+
+  const alerts: Array<{ type: LifecycleAlertType; count?: number } | null> = [
+    entity.lifecycleStatus === "Full" ? { type: "at_capacity" } : null,
+    entity.lifecycleStatus === "NearlyFull" ? { type: "nearly_full" } : null,
+    entity.lifecycleStatus === "RegistrationClosed" ? { type: "registration_closed" } : null,
+    entity.lifecycleStatus === "Completed" ? { type: "event_passed" } : null,
+    closingSoon ? { type: "registration_closing_soon" } : null,
+    counts && counts.waitlistCount > 0
+      ? { type: "waitlist", count: counts.waitlistCount }
+      : null,
+  ];
+
+  return <LifecycleAlertList alerts={alerts} />;
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function CoursesList({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
@@ -212,6 +304,22 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
   const createCourse = useMutation(api.courses.create);
   const updateCourse = useMutation(api.courses.update);
   const deleteCourse = useMutation(api.courses.remove);
+
+  // ── Filter state (URL-persisted) ─────────────────────────────────────────
+  const search = useSearch();
+  const [location, navigate] = useLocation();
+  const activeFilter = (new URLSearchParams(search).get("filter") ?? "upcoming") as FilterValue;
+
+  function setFilter(f: FilterValue) {
+    const sp = new URLSearchParams(search);
+    if (f === "upcoming") {
+      sp.delete("filter");
+    } else {
+      sp.set("filter", f);
+    }
+    const qs = sp.toString();
+    navigate(location + (qs ? `?${qs}` : ""), { replace: true } as any);
+  }
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
@@ -342,6 +450,8 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
     slug: form.slug,
   };
 
+  const filteredData = Array.isArray(data) ? filterCourses(data, activeFilter) : data;
+
   return (
     <AppLayout siteId={params.siteId}>
       <LivePreviewPanel siteId={siteId} section="courses">
@@ -356,17 +466,45 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
         </Button>
       </div>
 
+      {/* ── Filter tabs ── */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {FILTER_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setFilter(tab.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+              activeFilter === tab.value
+                ? "bg-primary text-white border-primary shadow-sm"
+                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {data === undefined ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
       ) : data === null ? (
         <ModuleAccessDenied message="Unable to load Courses — you may not have access to this site or the courses module is disabled." />
-      ) : data.length === 0 ? (
+      ) : filteredData!.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <BookOpen className="mx-auto h-10 w-10 text-slate-300 mb-3" />
-          <h3 className="text-lg font-medium text-slate-900">No courses yet</h3>
-          <p className="text-slate-500 mt-1">Add your first course to get started.</p>
+          {data.length === 0 ? (
+            <>
+              <h3 className="text-lg font-medium text-slate-900">No courses yet</h3>
+              <p className="text-slate-500 mt-1">Add your first course to get started.</p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-medium text-slate-900">No courses match this filter</h3>
+              <p className="text-slate-500 mt-1">
+                <button onClick={() => setFilter("all")} className="text-primary underline">View all courses</button>
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
@@ -383,7 +521,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data.map((c: any) => (
+              {filteredData!.map((c: any) => (
                 <tr key={c._id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-900">{c.title}</td>
                   <td className="px-4 py-3">
@@ -430,6 +568,9 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Course" : "New Course"}</DialogTitle>
           </DialogHeader>
+
+          {/* Lifecycle alerts when editing an existing course */}
+          {editing && <CourseAlerts entity={editing} siteId={siteId} />}
 
           {/* Live capacity panel when editing */}
           {editing && editing.capacity && (

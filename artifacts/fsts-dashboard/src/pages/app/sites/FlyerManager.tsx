@@ -55,6 +55,8 @@ import {
   CalendarDays,
   Link as LinkIcon,
   Clock,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { PERMISSIONS } from "@/lib/permissions";
@@ -471,6 +473,34 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                       <Badge variant={statusVariant(flyer.status as FlyerStatus)}>
                         {statusLabel(flyer.status as FlyerStatus)}
                       </Badge>
+                      {/* Expiry-warning badge — flyers expiring within 7 days */}
+                      {flyer.status !== "archived" &&
+                        flyer.expirationDate != null &&
+                        flyer.expirationDate > Date.now() &&
+                        flyer.expirationDate <= Date.now() + 7 * 24 * 60 * 60 * 1000 && (() => {
+                          const daysLeft = Math.ceil(
+                            (flyer.expirationDate - Date.now()) / (24 * 60 * 60 * 1000),
+                          );
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                              <AlertTriangle className="h-3 w-3" />
+                              Expires in {daysLeft} {daysLeft === 1 ? "day" : "days"}
+                            </span>
+                          );
+                        })()}
+                      {/* Archived-reason labels */}
+                      {flyer.status === "archived" && flyer.archivedReason === "expired" && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                          <Info className="h-3 w-3" />
+                          Expired — archived automatically.
+                        </span>
+                      )}
+                      {flyer.status === "archived" && flyer.archivedReason === "associated_entity_ended" && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                          <Info className="h-3 w-3" />
+                          Associated event was cancelled.
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400 flex-wrap">
                       {flyer.startDate && (

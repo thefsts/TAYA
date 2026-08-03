@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearch, useLocation } from "wouter";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -41,6 +42,8 @@ import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
+import { LifecycleAlertList } from "@/components/LifecycleAlert";
+import type { LifecycleAlertType } from "@/components/LifecycleAlert";
 
 // Course/Event Thumb preset (16:9, 800×450)
 const EVENT_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
@@ -65,6 +68,61 @@ const COMMON_TIMEZONES = [
   "Australia/Sydney",
   "UTC",
 ];
+
+// ── Filter tabs ──────────────────────────────────────────────────────────────
+
+const FILTER_TABS = [
+  { value: "upcoming", label: "Upcoming" },
+  { value: "all", label: "All" },
+  { value: "open-registration", label: "Open Registration" },
+  { value: "nearly-full", label: "Nearly Full" },
+  { value: "full", label: "Full" },
+  { value: "waitlist", label: "Waitlist" },
+  { value: "in-progress", label: "In Progress" },
+  { value: "past", label: "Past" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "draft", label: "Draft" },
+  { value: "archived", label: "Archived" },
+] as const;
+
+type FilterValue = (typeof FILTER_TABS)[number]["value"];
+
+function filterEvents(data: any[], filter: FilterValue): any[] {
+  switch (filter) {
+    case "all":
+      return data;
+    case "upcoming":
+      return data.filter(
+        (e) =>
+          e.status !== "archived" &&
+          !["Completed", "Cancelled", "Archived"].includes(e.lifecycleStatus ?? ""),
+      );
+    case "open-registration":
+      return data.filter((e) => e.lifecycleStatus === "RegistrationOpen");
+    case "nearly-full":
+      return data.filter((e) => e.lifecycleStatus === "NearlyFull");
+    case "full":
+      return data.filter((e) => e.lifecycleStatus === "Full");
+    case "waitlist":
+      return data.filter((e) => e.lifecycleStatus === "WaitlistOpen");
+    case "in-progress":
+      return data.filter((e) => e.lifecycleStatus === "InProgress");
+    case "past":
+      return data.filter((e) => e.lifecycleStatus === "Completed");
+    case "cancelled":
+      return data.filter((e) => e.lifecycleStatus === "Cancelled");
+    case "draft":
+      return data.filter((e) => e.status === "draft");
+    case "archived":
+      return data.filter(
+        (e) => e.status === "archived" || e.lifecycleStatus === "Archived",
+      );
+    default:
+      return data;
+  }
+}
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 type EventStatus = "draft" | "published" | "archived";
 
@@ -162,6 +220,8 @@ function statusVariant(status: string) {
   return "outline";
 }
 
+// ── Capacity components ───────────────────────────────────────────────────────
+
 function CapacityBar({ entityId, siteId }: { entityId: string; siteId: Id<"sites"> }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const counts = useQuery((api as any).registrations.getCount, {
@@ -225,6 +285,39 @@ function CapacityPanel({
   );
 }
 
+// ── Lifecycle alerts for the edit dialog ─────────────────────────────────────
+
+function EventAlerts({ entity, siteId }: { entity: any; siteId: Id<"sites"> }) {
+  const now = Date.now();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const counts = useQuery((api as any).registrations.getCount, {
+    siteId,
+    entityType: "event",
+    entityId: entity._id,
+  });
+
+  const closingSoon =
+    entity.registrationCloseAt != null &&
+    entity.registrationCloseAt > now &&
+    entity.registrationCloseAt <= now + 24 * 60 * 60 * 1000;
+
+  const alerts: Array<{ type: LifecycleAlertType; count?: number } | null> = [
+    entity.lifecycleStatus === "Full" ? { type: "at_capacity" } : null,
+    entity.lifecycleStatus === "NearlyFull" ? { type: "nearly_full" } : null,
+    entity.lifecycleStatus === "RegistrationClosed" ? { type: "registration_closed" } : null,
+    entity.lifecycleStatus === "Completed" ? { type: "event_passed" } : null,
+    !entity.endDateTime ? { type: "missing_end_time" } : null,
+    closingSoon ? { type: "registration_closing_soon" } : null,
+    counts && counts.waitlistCount > 0
+      ? { type: "waitlist", count: counts.waitlistCount }
+      : null,
+  ];
+
+  return <LifecycleAlertList alerts={alerts} />;
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function EventsList({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
@@ -233,6 +326,22 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
   const createEvent = useMutation(api.events.create);
   const updateEvent = useMutation(api.events.update);
   const deleteEvent = useMutation(api.events.remove);
+
+  // ── Filter state (URL-persisted) ─────────────────────────────────────────
+  const search = useSearch();
+  const [location, navigate] = useLocation();
+  const activeFilter = (new URLSearchParams(search).get("filter") ?? "upcoming") as FilterValue;
+
+  function setFilter(f: FilterValue) {
+    const sp = new URLSearchParams(search);
+    if (f === "upcoming") {
+      sp.delete("filter");
+    } else {
+      sp.set("filter", f);
+    }
+    const qs = sp.toString();
+    navigate(location + (qs ? `?${qs}` : ""), { replace: true } as any);
+  }
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
@@ -372,6 +481,8 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
     slug: form.slug,
   };
 
+  const filteredData = Array.isArray(data) ? filterEvents(data, activeFilter) : data;
+
   return (
     <AppLayout siteId={params.siteId}>
       <LivePreviewPanel siteId={siteId} section="events">
@@ -386,17 +497,45 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
         </Button>
       </div>
 
+      {/* ── Filter tabs ── */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {FILTER_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setFilter(tab.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+              activeFilter === tab.value
+                ? "bg-primary text-white border-primary shadow-sm"
+                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {data === undefined ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
       ) : data === null ? (
         <ModuleAccessDenied message="Unable to load Events — you may not have access to this site or the events module is disabled." />
-      ) : data.length === 0 ? (
+      ) : filteredData!.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <CalendarDays className="mx-auto h-10 w-10 text-slate-300 mb-3" />
-          <h3 className="text-lg font-medium text-slate-900">No events yet</h3>
-          <p className="text-slate-500 mt-1">Add your first event to get started.</p>
+          {data.length === 0 ? (
+            <>
+              <h3 className="text-lg font-medium text-slate-900">No events yet</h3>
+              <p className="text-slate-500 mt-1">Add your first event to get started.</p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-medium text-slate-900">No events match this filter</h3>
+              <p className="text-slate-500 mt-1">
+                <button onClick={() => setFilter("all")} className="text-primary underline">View all events</button>
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
@@ -413,7 +552,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data.map((ev: any) => (
+              {filteredData!.map((ev: any) => (
                 <tr key={ev._id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-900">{ev.title}</td>
                   <td className="px-4 py-3">
@@ -458,6 +597,9 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Event" : "New Event"}</DialogTitle>
           </DialogHeader>
+
+          {/* Lifecycle alerts when editing an existing event */}
+          {editing && <EventAlerts entity={editing} siteId={siteId} />}
 
           {/* Live capacity panel when editing */}
           {editing && editing.capacity && (

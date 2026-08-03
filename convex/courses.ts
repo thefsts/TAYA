@@ -180,6 +180,42 @@ export const updateCapacity = mutation({
     return toResponse(finalDoc);
   },
 });
+/**
+ * Returns a lightweight list of courses that need attention:
+ * nearly full, registration closing within 24 hours.
+ */
+export const listActionRequired = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "courses")) return [];
+    const now = Date.now();
+    const in24h = now + 24 * 60 * 60 * 1000;
+    const courses = await ctx.db
+      .query("courses")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .collect();
+    return courses
+      .filter((c) => {
+        const nearlyFull = c.lifecycleStatus === "NearlyFull" || c.lifecycleStatus === "Full";
+        const regClosingSoon =
+          c.registrationCloseAt != null &&
+          c.registrationCloseAt > now &&
+          c.registrationCloseAt <= in24h;
+        return nearlyFull || regClosingSoon;
+      })
+      .map((c) => ({
+        _id: c._id,
+        title: c.title,
+        nearlyFull: c.lifecycleStatus === "NearlyFull" || c.lifecycleStatus === "Full",
+        registrationClosingSoon:
+          c.registrationCloseAt != null &&
+          c.registrationCloseAt > now &&
+          c.registrationCloseAt <= in24h,
+      }));
+  },
+});
+
 export const remove = mutation({
   args: { siteId: v.id("sites"), courseId: v.id("courses") },
   handler: async (ctx, { siteId, courseId }) => {

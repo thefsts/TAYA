@@ -209,6 +209,44 @@ export const updateCapacity = mutation({
     return toResponse(finalDoc);
   },
 });
+/**
+ * Returns a lightweight list of events that need attention:
+ * nearly full, registration closing within 24 hours, or missing end time.
+ */
+export const listActionRequired = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "events")) return [];
+    const now = Date.now();
+    const in24h = now + 24 * 60 * 60 * 1000;
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .collect();
+    return events
+      .filter((e) => {
+        const nearlyFull = e.lifecycleStatus === "NearlyFull" || e.lifecycleStatus === "Full";
+        const regClosingSoon =
+          e.registrationCloseAt != null &&
+          e.registrationCloseAt > now &&
+          e.registrationCloseAt <= in24h;
+        const missingEndTime = !e.endDateTime;
+        return nearlyFull || regClosingSoon || missingEndTime;
+      })
+      .map((e) => ({
+        _id: e._id,
+        title: e.title,
+        nearlyFull: e.lifecycleStatus === "NearlyFull" || e.lifecycleStatus === "Full",
+        registrationClosingSoon:
+          e.registrationCloseAt != null &&
+          e.registrationCloseAt > now &&
+          e.registrationCloseAt <= in24h,
+        missingEndTime: !e.endDateTime,
+      }));
+  },
+});
+
 export const remove = mutation({
   args: { siteId: v.id("sites"), eventId: v.id("events") },
   handler: async (ctx, { siteId, eventId }) => {

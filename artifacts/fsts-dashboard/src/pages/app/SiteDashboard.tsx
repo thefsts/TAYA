@@ -3,7 +3,7 @@ import { useLocation, useParams, Link } from "wouter";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit, Lock } from "lucide-react";
+import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit, Lock, AlertTriangle } from "lucide-react";
 import {
   ArrowLeft,
   ChevronsUpDown,
@@ -358,6 +358,12 @@ export default function SiteDashboard() {
   const site = useQuery(api.sites.get, { siteId });
   const latestScan = useQuery(api.healthScans.getLatestScan, { siteId });
   const notifications = useQuery(api.healthScans.getNotifications, { siteId });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actionCourses = useQuery((api as any).courses.listActionRequired, { siteId });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actionEvents = useQuery((api as any).events.listActionRequired, { siteId });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const expiringFlyers = useQuery((api as any).flyers.listExpiringSoon, { siteId });
 
   const healthScore = latestScan?.overallScore;
   const healthColor = healthScore == null ? "text-slate-400"
@@ -457,6 +463,63 @@ export default function SiteDashboard() {
             <StatCard title="Articles" value={summary.articleCount} label="Published posts" />
             <StatCard title="Media Assets" value={summary.mediaCount} label="Files in library" />
           </div>
+
+          {/* ── Action Required widget ── */}
+          {(() => {
+            const items: Array<{ key: string; label: string; href: string; reason: string }> = [];
+            (actionCourses ?? []).forEach((c: any) => {
+              if (c.nearlyFull) {
+                items.push({ key: `c-full-${c._id}`, label: c.title, href: `/app/sites/${siteId}/courses`, reason: "Nearly full" });
+              } else if (c.registrationClosingSoon) {
+                items.push({ key: `c-reg-${c._id}`, label: c.title, href: `/app/sites/${siteId}/courses`, reason: "Registration closes in 24h" });
+              }
+            });
+            (actionEvents ?? []).forEach((e: any) => {
+              if (e.nearlyFull) {
+                items.push({ key: `e-full-${e._id}`, label: e.title, href: `/app/sites/${siteId}/events`, reason: "Nearly full" });
+              } else if (e.registrationClosingSoon) {
+                items.push({ key: `e-reg-${e._id}`, label: e.title, href: `/app/sites/${siteId}/events`, reason: "Registration closes in 24h" });
+              } else if (e.missingEndTime) {
+                items.push({ key: `e-end-${e._id}`, label: e.title, href: `/app/sites/${siteId}/events`, reason: "Missing end time" });
+              }
+            });
+            (expiringFlyers ?? []).forEach((f: any) => {
+              items.push({
+                key: `f-exp-${f._id}`,
+                label: f.title,
+                href: `/app/sites/${siteId}/flyers`,
+                reason: `Flyer expires in ${f.daysLeft} ${f.daysLeft === 1 ? "day" : "days"}`,
+              });
+            });
+
+            if (items.length === 0) return null;
+
+            return (
+              <Card className="shadow-sm border-amber-200 bg-amber-50 mb-8">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    Action Required
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {items.map((item) => (
+                      <li key={item.key} className="flex items-center justify-between text-sm">
+                        <span className="text-slate-700 font-medium truncate flex-1 mr-3">{item.label}</span>
+                        <span className="text-xs text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2 py-0.5 mr-2 whitespace-nowrap">{item.reason}</span>
+                        <Link href={item.href}>
+                          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-primary whitespace-nowrap">
+                            View →
+                          </Button>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">

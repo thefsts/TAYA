@@ -50,6 +50,38 @@ export const list = query({
 });
 
 /** Single flyer by ID — dashboard only. */
+/**
+ * Returns published/scheduled flyers expiring within the next 7 days.
+ */
+export const listExpiringSoon = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    // Requires full flyer-management access — same gate as the dashboard list.
+    if (!(await checkFlyerReadAccess(ctx, siteId))) return [];
+    const now = Date.now();
+    const in7days = now + 7 * 24 * 60 * 60 * 1000;
+    const flyers = await ctx.db
+      .query("flyers")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .collect();
+    return flyers
+      .filter(
+        (f) =>
+          // Only published or scheduled flyers are shown in the Action Required widget.
+          (f.status === "published" || f.status === "scheduled") &&
+          f.expirationDate != null &&
+          f.expirationDate > now &&
+          f.expirationDate <= in7days,
+      )
+      .map((f) => ({
+        _id: f._id,
+        title: f.title,
+        expirationDate: f.expirationDate as number,
+        daysLeft: Math.ceil(((f.expirationDate as number) - now) / (24 * 60 * 60 * 1000)),
+      }));
+  },
+});
+
 export const get = query({
   args: { siteId: v.id("sites"), flyerId: v.id("flyers") },
   handler: async (ctx, { siteId, flyerId }) => {
