@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 export const POLICY_TYPES = ["privacy", "terms", "cookie", "accessibility"] as const;
@@ -47,7 +49,7 @@ export const upsert = mutation({
     content: v.string(),
   },
   handler: async (ctx, { siteId, policyType, content }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db
       .query("policyPages")
       .withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", policyType))

@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 function toResponse(doc: any) {
@@ -20,7 +22,7 @@ export const list = query({
 export const restore = mutation({
   args: { siteId: v.id("sites"), versionId: v.id("contentVersions") },
   handler: async (ctx, { siteId, versionId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.DEPLOYMENT_MANAGE);
     await requireModuleEnabled(ctx, siteId, "history");
     const version = await ctx.db.get(versionId);
     if (!version) throw new Error("Version not found");

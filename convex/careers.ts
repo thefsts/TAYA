@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 function toResponse(doc: any) {
@@ -30,7 +32,7 @@ export const create = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, { siteId, isActive, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     const id = await ctx.db.insert("jobPostings", {
       siteId,
       isActive: isActive ?? true,
@@ -54,7 +56,7 @@ export const update = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, { siteId, jobId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(jobId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.patch(jobId, fields);
@@ -65,7 +67,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), jobId: v.id("jobPostings") },
   handler: async (ctx, { siteId, jobId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(jobId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.delete(jobId);

@@ -1,7 +1,9 @@
 import { query, mutation } from "./_generated/server";
 import { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 import { provisionUser } from "./lib/getCurrentUser";
@@ -131,7 +133,7 @@ export const create = mutation({
     ctaUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     // Enforce slug uniqueness within this site
     const slugConflict = await ctx.db
       .query("siteProducts")
@@ -191,7 +193,7 @@ export const update = mutation({
     ctaUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, productId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(productId);
     if (!existing || existing.siteId !== siteId) throw new Error("Product not found");
     // Enforce slug uniqueness within this site (excluding the current product)
@@ -230,7 +232,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), productId: v.id("siteProducts") },
   handler: async (ctx, { siteId, productId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(productId);
     if (!existing || existing.siteId !== siteId) throw new Error("Product not found");
     await ctx.db.delete(productId);
@@ -282,7 +284,7 @@ export const reorder = mutation({
     orderedIds: v.array(v.id("siteProducts")),
   },
   handler: async (ctx, { siteId, orderedIds }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     // Fetch and validate every product belongs to this site before patching
     const docs = await Promise.all(orderedIds.map((id) => ctx.db.get(id)));
     for (const doc of docs) {

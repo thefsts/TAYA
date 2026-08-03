@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 export const get = query({
@@ -24,7 +26,7 @@ export const upsert = mutation({
     isEnabled: v.boolean(),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db
       .query("announcementBanner")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))

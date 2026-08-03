@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, checkModuleEnabled, requireDesignCapability, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -27,7 +29,7 @@ export const update = mutation({
     copyrightText: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireDesignCapability(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE);
     await requireModuleEnabled(ctx, siteId, "footer");
     const existing = await ctx.db.query("footerContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     let docId;

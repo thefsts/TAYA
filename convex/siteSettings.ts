@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
@@ -67,7 +69,7 @@ export const updateIdentity = mutation({
     timezone: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.DESIGN_MANAGE);
     const existing = await ctx.db
       .query("siteSettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -97,7 +99,7 @@ export const updateBranding = mutation({
     fontBody: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.DESIGN_MANAGE);
     const existing = await ctx.db
       .query("siteSettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -127,7 +129,7 @@ export const updateContact = mutation({
     socialLinks: v.optional(v.any()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db
       .query("siteSettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -173,7 +175,7 @@ export const updateSeo = mutation({
     seoOgImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db
       .query("siteSettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -203,7 +205,7 @@ export const updateIntegrations = mutation({
     cookiePolicyUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     const existing = await ctx.db
       .query("siteSettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -231,7 +233,7 @@ export const updateLegal = mutation({
     cookiePolicyUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db
       .query("siteSettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -254,8 +256,8 @@ export const updateLegal = mutation({
 export const generateUploadUrl = mutation({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
-    // SECURITY: uploads must be requested by a user with write access to the site.
-    await requireSiteAccessMutation(ctx, siteId);
+    // SECURITY: uploads must be requested by a user with media upload permission.
+    await requirePermission(ctx, siteId, PERMISSIONS.MEDIA_UPLOAD);
     return await ctx.storage.generateUploadUrl();
   },
 });

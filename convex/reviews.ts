@@ -19,7 +19,9 @@ import {
 } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 import { encryptField, decryptField } from "./lib/encrypt";
 
@@ -133,7 +135,7 @@ export const addSource = mutation({
     refreshIntervalHours: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, provider, config, autoRefresh = false, refreshIntervalHours = 24 }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     const existing = await ctx.db
       .query("reviewSources")
       .withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider))
@@ -182,7 +184,7 @@ export const addSource = mutation({
 export const removeSource = mutation({
   args: { siteId: v.id("sites"), sourceId: v.id("reviewSources") },
   handler: async (ctx, { siteId, sourceId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     const doc = await ctx.db.get(sourceId);
     if (!doc || doc.siteId !== siteId) throw new Error("Source not found");
     await ctx.db.delete(sourceId);
@@ -211,7 +213,7 @@ export const updateSourceConfig = mutation({
     refreshIntervalHours: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, sourceId, ...patch }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     const doc = await ctx.db.get(sourceId);
     if (!doc || doc.siteId !== siteId) throw new Error("Source not found");
     const update: Record<string, unknown> = {};
@@ -227,7 +229,7 @@ export const updateSourceConfig = mutation({
 export const approveReview = mutation({
   args: { siteId: v.id("sites"), reviewId: v.id("importedReviews") },
   handler: async (ctx, { siteId, reviewId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
     await ctx.db.patch(reviewId, { status: "approved", updatedAt: Date.now() });
@@ -237,7 +239,7 @@ export const approveReview = mutation({
 export const hideReview = mutation({
   args: { siteId: v.id("sites"), reviewId: v.id("importedReviews") },
   handler: async (ctx, { siteId, reviewId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
     await ctx.db.patch(reviewId, { status: "hidden", updatedAt: Date.now() });
@@ -247,7 +249,7 @@ export const hideReview = mutation({
 export const pinReview = mutation({
   args: { siteId: v.id("sites"), reviewId: v.id("importedReviews"), pinned: v.boolean() },
   handler: async (ctx, { siteId, reviewId, pinned }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
     await ctx.db.patch(reviewId, { pinned, updatedAt: Date.now() });
@@ -257,7 +259,7 @@ export const pinReview = mutation({
 export const setCategory = mutation({
   args: { siteId: v.id("sites"), reviewId: v.id("importedReviews"), category: v.optional(v.string()) },
   handler: async (ctx, { siteId, reviewId, category }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const doc = await ctx.db.get(reviewId);
     if (!doc || doc.siteId !== siteId) throw new Error("Review not found");
     await ctx.db.patch(reviewId, { category, updatedAt: Date.now() });
@@ -277,7 +279,7 @@ export const updateDisplaySettings = mutation({
     categoryFilter: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...patch }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db
       .query("reviewDisplaySettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -342,7 +344,7 @@ export const backfillDisplaySettingsUpdatedAt = internalMutation({
 export const triggerSync = mutation({
   args: { siteId: v.id("sites"), sourceId: v.optional(v.id("reviewSources")) },
   handler: async (ctx, { siteId, sourceId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await ctx.scheduler.runAfter(0, internal.reviews.syncSiteReviews, {
       siteId,
       sourceId,

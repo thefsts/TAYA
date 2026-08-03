@@ -3,6 +3,8 @@
  * Keep in sync with convex/lib/roleCapabilities.ts.
  */
 
+import { PERMISSIONS, type Permission, SUPERADMIN_ONLY_PERMISSIONS } from "./permissions";
+
 export const ROLES = [
   "owner",
   "manager",
@@ -246,6 +248,154 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
 export function permissionAtLeast(a: PermissionLevel, b: PermissionLevel): boolean {
   return PERMISSION_LEVELS.indexOf(a) >= PERMISSION_LEVELS.indexOf(b);
 }
+
+/**
+ * Maps each site role to the named RBAC permission strings it holds.
+ * Mirrors convex/lib/rolePermissions.ts so the UI and backend use the same vocabulary.
+ * SuperAdmin permissions (design.manage etc.) are not listed here — they are always
+ * granted to isSuperAdmin users, never to site roles.
+ */
+/**
+ * IMPORTANT: Keep this map byte-for-byte identical to convex/lib/rolePermissions.ts.
+ * The backend is the enforcement source of truth; this map drives UI visibility only.
+ * Any divergence creates a split-brain where the UI allows actions the server rejects.
+ */
+export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  /** Owner — full content, media, flyers, events, and courses. No design-tier. */
+  owner: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.CONTENT_CREATE,
+    PERMISSIONS.CONTENT_UPDATE,
+    PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW,
+    PERMISSIONS.MEDIA_UPLOAD,
+    PERMISSIONS.MEDIA_DELETE,
+    PERMISSIONS.FLYERS_CREATE,
+    PERMISSIONS.FLYERS_UPDATE,
+    PERMISSIONS.FLYERS_PUBLISH,
+    PERMISSIONS.FLYERS_ARCHIVE,
+    PERMISSIONS.EVENTS_MANAGE,
+    PERMISSIONS.CLASSES_MANAGE,
+  ],
+  /** Manager — same as owner for content purposes. */
+  manager: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.CONTENT_CREATE,
+    PERMISSIONS.CONTENT_UPDATE,
+    PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW,
+    PERMISSIONS.MEDIA_UPLOAD,
+    PERMISSIONS.MEDIA_DELETE,
+    PERMISSIONS.FLYERS_CREATE,
+    PERMISSIONS.FLYERS_UPDATE,
+    PERMISSIONS.FLYERS_PUBLISH,
+    PERMISSIONS.FLYERS_ARCHIVE,
+    PERMISSIONS.EVENTS_MANAGE,
+    PERMISSIONS.CLASSES_MANAGE,
+  ],
+  /** Marketing — create/update content and upload media; all flyer operations; no delete, no scheduling. */
+  marketing: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.CONTENT_CREATE,
+    PERMISSIONS.CONTENT_UPDATE,
+    PERMISSIONS.MEDIA_VIEW,
+    PERMISSIONS.MEDIA_UPLOAD,
+    PERMISSIONS.FLYERS_CREATE,
+    PERMISSIONS.FLYERS_UPDATE,
+    PERMISSIONS.FLYERS_PUBLISH,
+    PERMISSIONS.FLYERS_ARCHIVE,
+  ],
+  /** Content Editor — full content and media CRUD; no scheduling. */
+  content_editor: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.CONTENT_CREATE,
+    PERMISSIONS.CONTENT_UPDATE,
+    PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW,
+    PERMISSIONS.MEDIA_UPLOAD,
+    PERMISSIONS.MEDIA_DELETE,
+  ],
+  /** Course Manager — manages courses/classes and can view media (no upload). */
+  course_manager: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.MEDIA_VIEW,
+    PERMISSIONS.CLASSES_MANAGE,
+  ],
+  /** Events Manager — manages events and can view media (no upload). */
+  events_manager: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.MEDIA_VIEW,
+    PERMISSIONS.EVENTS_MANAGE,
+  ],
+  /** Finance — read-only across content and media; no writes. */
+  finance: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.MEDIA_VIEW,
+  ],
+  /** Support — read-only across content and media; no writes. */
+  support: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.MEDIA_VIEW,
+  ],
+  /** Read Only — view everything, change nothing. */
+  read_only: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.MEDIA_VIEW,
+  ],
+};
+
+/**
+ * Legacy role → permission grants (backward-compat with pre-Phase-9 assignments).
+ * Mirrors convex/lib/rolePermissions.ts LEGACY_ROLE_PERMISSIONS exactly.
+ */
+const LEGACY_ROLE_PERMISSIONS: Record<string, Permission[]> = {
+  client_admin: [
+    PERMISSIONS.CONTENT_VIEW, PERMISSIONS.CONTENT_CREATE, PERMISSIONS.CONTENT_UPDATE, PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW, PERMISSIONS.MEDIA_UPLOAD, PERMISSIONS.MEDIA_DELETE,
+    PERMISSIONS.FLYERS_CREATE, PERMISSIONS.FLYERS_UPDATE, PERMISSIONS.FLYERS_PUBLISH, PERMISSIONS.FLYERS_ARCHIVE,
+    PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE,
+  ],
+  site_admin: [
+    PERMISSIONS.CONTENT_VIEW, PERMISSIONS.CONTENT_CREATE, PERMISSIONS.CONTENT_UPDATE, PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW, PERMISSIONS.MEDIA_UPLOAD, PERMISSIONS.MEDIA_DELETE,
+    PERMISSIONS.FLYERS_CREATE, PERMISSIONS.FLYERS_UPDATE, PERMISSIONS.FLYERS_PUBLISH, PERMISSIONS.FLYERS_ARCHIVE,
+    PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE,
+  ],
+  admin: [
+    PERMISSIONS.CONTENT_VIEW, PERMISSIONS.CONTENT_CREATE, PERMISSIONS.CONTENT_UPDATE, PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW, PERMISSIONS.MEDIA_UPLOAD, PERMISSIONS.MEDIA_DELETE,
+    PERMISSIONS.FLYERS_CREATE, PERMISSIONS.FLYERS_UPDATE, PERMISSIONS.FLYERS_PUBLISH, PERMISSIONS.FLYERS_ARCHIVE,
+    PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE,
+  ],
+  editor: [
+    PERMISSIONS.CONTENT_VIEW, PERMISSIONS.CONTENT_CREATE, PERMISSIONS.CONTENT_UPDATE, PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW, PERMISSIONS.MEDIA_UPLOAD, PERMISSIONS.MEDIA_DELETE,
+  ],
+  marketing_manager: [
+    PERMISSIONS.CONTENT_VIEW, PERMISSIONS.CONTENT_CREATE, PERMISSIONS.CONTENT_UPDATE,
+    PERMISSIONS.MEDIA_VIEW, PERMISSIONS.MEDIA_UPLOAD,
+    PERMISSIONS.FLYERS_CREATE, PERMISSIONS.FLYERS_UPDATE, PERMISSIONS.FLYERS_PUBLISH, PERMISSIONS.FLYERS_ARCHIVE,
+  ],
+  training_manager: [
+    PERMISSIONS.CONTENT_VIEW, PERMISSIONS.MEDIA_VIEW, PERMISSIONS.CLASSES_MANAGE,
+  ],
+};
+
+/**
+ * Returns true if the given site role holds the named permission.
+ * SuperAdmin-only permissions always return false for site roles (superAdmin
+ * bypasses the role check entirely in requirePermission on the backend).
+ * Falls back to legacy role grants for pre-Phase-9 role strings.
+ */
+export function roleHasPermission(role: string, permission: Permission): boolean {
+  if (SUPERADMIN_ONLY_PERMISSIONS.has(permission)) return false;
+  const granted: Permission[] | undefined =
+    ROLE_PERMISSIONS[role as Role] ?? LEGACY_ROLE_PERMISSIONS[role];
+  return granted?.includes(permission) ?? false;
+}
+
+// Re-export permission constants so callers only need one import
+export { PERMISSIONS, type Permission, SUPERADMIN_ONLY_PERMISSIONS } from "./permissions";
 
 // Phase 10 — Agency Edition™: platform-level feature flags available per agency
 export const AGENCY_FEATURE_FLAGS = [

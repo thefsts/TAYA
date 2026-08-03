@@ -1,7 +1,9 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -62,7 +64,7 @@ export const create = mutation({
     socialImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, publishedAt, scheduledAt, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     await requireModuleEnabled(ctx, siteId, "articles");
     const id = await ctx.db.insert("articles", {
       siteId,
@@ -104,7 +106,7 @@ export const update = mutation({
     socialImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, articleId, publishedAt, scheduledAt, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     await requireModuleEnabled(ctx, siteId, "articles");
     const existing = await ctx.db.get(articleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Article not found");
@@ -129,7 +131,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), articleId: v.id("articles") },
   handler: async (ctx, { siteId, articleId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     await requireModuleEnabled(ctx, siteId, "articles");
     const existing = await ctx.db.get(articleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Article not found");

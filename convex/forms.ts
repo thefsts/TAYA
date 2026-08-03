@@ -1,7 +1,9 @@
 import { query, mutation, internalQuery, internalMutation, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id };
@@ -83,7 +85,7 @@ export const create = mutation({
     settings: v.optional(v.any()),
   },
   handler: async (ctx, { siteId, name, templateType, fields, settings }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     await requireModuleEnabled(ctx, siteId, "forms");
     const slug = generateSlug(name);
     const id = await ctx.db.insert("forms", {
@@ -109,7 +111,7 @@ export const update = mutation({
     settings: v.optional(v.any()),
   },
   handler: async (ctx, { siteId, formId, ...patch }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     await requireModuleEnabled(ctx, siteId, "forms");
     const doc = await ctx.db.get(formId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");
@@ -126,7 +128,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), formId: v.id("forms") },
   handler: async (ctx, { siteId, formId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     await requireModuleEnabled(ctx, siteId, "forms");
     const doc = await ctx.db.get(formId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");
@@ -137,7 +139,7 @@ export const remove = mutation({
 export const duplicate = mutation({
   args: { siteId: v.id("sites"), formId: v.id("forms") },
   handler: async (ctx, { siteId, formId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     await requireModuleEnabled(ctx, siteId, "forms");
     const doc = await ctx.db.get(formId);
     if (!doc || doc.siteId !== siteId) throw new Error("Not found");

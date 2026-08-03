@@ -1,3 +1,5 @@
+import { PERMISSIONS, type Permission } from "./permissions";
+
 export type CapabilityTier = "content" | "design";
 export type CapabilityCategory =
   | "Content"
@@ -12,6 +14,8 @@ export interface Capability {
   description: string;
   tier: CapabilityTier;
   category: CapabilityCategory;
+  /** Named RBAC permission enforced server-side for this capability. */
+  permission?: Permission;
 }
 
 export const CAPABILITIES: Capability[] = [
@@ -157,6 +161,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Add, remove, reorder, or rename top-level navigation items.",
     tier: "design",
     category: "Configuration",
+    permission: PERMISSIONS.LAYOUT_MANAGE,
   },
   {
     id: "edit_footer",
@@ -164,6 +169,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Edit footer columns, social links, and copyright text.",
     tier: "design",
     category: "Configuration",
+    permission: PERMISSIONS.LAYOUT_MANAGE,
   },
   {
     id: "configure_email",
@@ -171,6 +177,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Set the sending email address, display name, and notification triggers.",
     tier: "design",
     category: "Configuration",
+    permission: PERMISSIONS.INTEGRATIONS_MANAGE,
   },
   {
     id: "configure_crm",
@@ -178,6 +185,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Connect or disconnect the Operon CRM integration and manage API keys.",
     tier: "design",
     category: "Integrations",
+    permission: PERMISSIONS.INTEGRATIONS_MANAGE,
   },
   {
     id: "configure_square",
@@ -185,6 +193,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Set the Square application ID, access token, and location ID.",
     tier: "design",
     category: "Integrations",
+    permission: PERMISSIONS.INTEGRATIONS_MANAGE,
   },
   {
     id: "update_site_branding",
@@ -192,6 +201,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Update brand colors, logo, favicon, and white-label settings.",
     tier: "design",
     category: "Configuration",
+    permission: PERMISSIONS.DESIGN_MANAGE,
   },
   {
     id: "manage_enabled_modules",
@@ -199,6 +209,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Enable or disable site modules (courses, events, careers, etc.).",
     tier: "design",
     category: "Configuration",
+    permission: PERMISSIONS.DESIGN_MANAGE,
   },
   {
     id: "manage_routes",
@@ -206,6 +217,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Configure URL routes and path-level settings.",
     tier: "design",
     category: "System",
+    permission: PERMISSIONS.CODE_MANAGE,
   },
   {
     id: "view_health_monitor",
@@ -213,6 +225,7 @@ export const CAPABILITIES: Capability[] = [
     description: "View uptime and health check logs for this site.",
     tier: "design",
     category: "System",
+    permission: PERMISSIONS.DEPLOYMENT_MANAGE,
   },
   {
     id: "view_version_history",
@@ -220,6 +233,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Browse and restore previous content snapshots.",
     tier: "design",
     category: "System",
+    permission: PERMISSIONS.DEPLOYMENT_MANAGE,
   },
   {
     id: "view_activity_log",
@@ -227,6 +241,7 @@ export const CAPABILITIES: Capability[] = [
     description: "View the audit trail of all changes made to this site.",
     tier: "design",
     category: "System",
+    permission: PERMISSIONS.DEPLOYMENT_MANAGE,
   },
   {
     id: "manage_backups",
@@ -234,6 +249,7 @@ export const CAPABILITIES: Capability[] = [
     description: "Create, download, and restore site backups.",
     tier: "design",
     category: "System",
+    permission: PERMISSIONS.DEPLOYMENT_MANAGE,
   },
 ];
 

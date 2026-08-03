@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -59,7 +61,7 @@ export const create = mutation({
     squareItemId: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, startAt, endAt, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.EVENTS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "events");
     const id = await ctx.db.insert("events", { siteId, status: "draft", startAt: new Date(startAt).getTime(), endAt: endAt ? new Date(endAt).getTime() : undefined, ...fields });
     const doc = (await ctx.db.get(id))!;
@@ -85,7 +87,7 @@ export const update = mutation({
     squareItemId: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, eventId, startAt, endAt, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.EVENTS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "events");
     const existing = await ctx.db.get(eventId);
     if (!existing || existing.siteId !== siteId) throw new Error("Event not found");
@@ -104,7 +106,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), eventId: v.id("events") },
   handler: async (ctx, { siteId, eventId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.EVENTS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "events");
     const existing = await ctx.db.get(eventId);
     if (!existing || existing.siteId !== siteId) throw new Error("Event not found");

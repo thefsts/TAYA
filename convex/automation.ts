@@ -15,7 +15,9 @@ import {
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
@@ -147,7 +149,7 @@ export const create = mutation({
     enabled: v.optional(v.boolean()),
   },
   handler: async (ctx, { siteId, enabled, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     const id = await ctx.db.insert("automationRules", {
       siteId,
       enabled: enabled ?? true,
@@ -182,7 +184,7 @@ export const update = mutation({
     enabled: v.optional(v.boolean()),
   },
   handler: async (ctx, { siteId, ruleId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(ruleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Rule not found");
     const patch: any = {};
@@ -206,7 +208,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), ruleId: v.id("automationRules") },
   handler: async (ctx, { siteId, ruleId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(ruleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Rule not found");
     await ctx.db.delete(ruleId);
@@ -225,7 +227,7 @@ export const remove = mutation({
 export const setEnabled = mutation({
   args: { siteId: v.id("sites"), ruleId: v.id("automationRules"), enabled: v.boolean() },
   handler: async (ctx, { siteId, ruleId, enabled }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(ruleId);
     if (!existing || existing.siteId !== siteId) throw new Error("Rule not found");
     await ctx.db.patch(ruleId, { enabled });
@@ -244,7 +246,7 @@ export const setEnabled = mutation({
 export const retryRun = mutation({
   args: { siteId: v.id("sites"), runLogId: v.id("automationRunLog") },
   handler: async (ctx, { siteId, runLogId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const log = await ctx.db.get(runLogId);
     if (!log || log.siteId !== siteId) throw new Error("Run log not found");
     await ctx.scheduler.runAfter(0, internal.automation.runAutomationRules, {

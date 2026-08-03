@@ -1,7 +1,9 @@
 import { query, mutation, internalAction, internalQuery, action } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, checkModuleEnabled, requireDesignCapability, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
@@ -358,7 +360,7 @@ export const update = mutation({
     if ("resendApiKey" in fields && fields.resendApiKey === "") {
       (fields as Record<string, unknown>).resendApiKey = undefined;
     }
-    const user = await requireDesignCapability(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "email");
     const existing = await ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     let docId;

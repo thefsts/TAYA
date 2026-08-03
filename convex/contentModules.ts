@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 // ── Policy Pages ─────────────────────────────────────────────────────────────
@@ -28,7 +30,7 @@ export const upsertPolicy = mutation({
     content: v.string(),
   },
   handler: async (ctx, { siteId, policyType, content }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.query("policyPages").withIndex("by_site_type", (q) => q.eq("siteId", siteId).eq("policyType", policyType)).first();
     const updatedAt = Date.now();
     if (existing) {
@@ -57,7 +59,7 @@ export const listNavItems = query({
 export const createNavItem = mutation({
   args: { siteId: v.id("sites"), label: v.string(), href: v.string(), openInNewTab: v.optional(v.boolean()), isVisible: v.boolean() },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE);
     const count = (await ctx.db.query("navigationItems").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
     const id = await ctx.db.insert("navigationItems", { siteId, ...fields, order: count });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "nav_item", entityId: id, page: "Navigation Manager", details: fields.label });
@@ -68,7 +70,7 @@ export const createNavItem = mutation({
 export const updateNavItem = mutation({
   args: { siteId: v.id("sites"), itemId: v.id("navigationItems"), label: v.optional(v.string()), href: v.optional(v.string()), openInNewTab: v.optional(v.boolean()), isVisible: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, itemId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE);
     const existing = await ctx.db.get(itemId);
     if (!existing || existing.siteId !== siteId) throw new Error("Item not found");
     await ctx.db.patch(itemId, fields as any);
@@ -80,7 +82,7 @@ export const updateNavItem = mutation({
 export const removeNavItem = mutation({
   args: { siteId: v.id("sites"), itemId: v.id("navigationItems") },
   handler: async (ctx, { siteId, itemId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE);
     const existing = await ctx.db.get(itemId);
     if (!existing || existing.siteId !== siteId) throw new Error("Item not found");
     await ctx.db.delete(itemId);
@@ -91,7 +93,7 @@ export const removeNavItem = mutation({
 export const reorderNavItems = mutation({
   args: { siteId: v.id("sites"), orderedIds: v.array(v.id("navigationItems")) },
   handler: async (ctx, { siteId, orderedIds }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE);
     for (let i = 0; i < orderedIds.length; i++) {
       const doc = await ctx.db.get(orderedIds[i]);
       if (doc?.siteId === siteId) await ctx.db.patch(orderedIds[i], { order: i });
@@ -118,7 +120,7 @@ export const upsertAnnouncement = mutation({
     isEnabled: v.boolean(),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.query("announcementBanner").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     if (existing) {
       await ctx.db.patch(existing._id, fields);
@@ -151,7 +153,7 @@ export const upsertCta = mutation({
     secondaryUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.query("siteCtaConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     if (existing) {
       await ctx.db.patch(existing._id, fields);
@@ -179,7 +181,7 @@ export const listDownloads = query({
 export const createDownload = mutation({
   args: { siteId: v.id("sites"), title: v.string(), description: v.optional(v.string()), url: v.string(), format: v.optional(v.string()), sizeLabel: v.optional(v.string()), category: v.optional(v.string()), isActive: v.boolean() },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     const count = (await ctx.db.query("downloadableResources").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
     const id = await ctx.db.insert("downloadableResources", { siteId, ...fields, order: count });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "download", entityId: id, page: "Downloads Manager", details: fields.title });
@@ -190,7 +192,7 @@ export const createDownload = mutation({
 export const updateDownload = mutation({
   args: { siteId: v.id("sites"), downloadId: v.id("downloadableResources"), title: v.optional(v.string()), description: v.optional(v.string()), url: v.optional(v.string()), format: v.optional(v.string()), sizeLabel: v.optional(v.string()), category: v.optional(v.string()), isActive: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, downloadId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(downloadId);
     if (!existing || existing.siteId !== siteId) throw new Error("Resource not found");
     await ctx.db.patch(downloadId, fields as any);
@@ -202,7 +204,7 @@ export const updateDownload = mutation({
 export const removeDownload = mutation({
   args: { siteId: v.id("sites"), downloadId: v.id("downloadableResources") },
   handler: async (ctx, { siteId, downloadId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(downloadId);
     if (!existing || existing.siteId !== siteId) throw new Error("Resource not found");
     await ctx.db.delete(downloadId);
@@ -213,7 +215,7 @@ export const removeDownload = mutation({
 export const reorderDownloads = mutation({
   args: { siteId: v.id("sites"), orderedIds: v.array(v.id("downloadableResources")) },
   handler: async (ctx, { siteId, orderedIds }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     for (let i = 0; i < orderedIds.length; i++) {
       const doc = await ctx.db.get(orderedIds[i]);
       if (doc?.siteId === siteId) await ctx.db.patch(orderedIds[i], { order: i });
@@ -235,7 +237,7 @@ export const listTeamMembers = query({
 export const createTeamMember = mutation({
   args: { siteId: v.id("sites"), name: v.string(), role: v.optional(v.string()), bio: v.optional(v.string()), photoUrl: v.optional(v.string()), credentials: v.optional(v.string()), isActive: v.boolean() },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     const count = (await ctx.db.query("teamMembers").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
     const id = await ctx.db.insert("teamMembers", { siteId, ...fields, order: count });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "team_member", entityId: id, page: "Team Manager", details: fields.name });
@@ -246,7 +248,7 @@ export const createTeamMember = mutation({
 export const updateTeamMember = mutation({
   args: { siteId: v.id("sites"), memberId: v.id("teamMembers"), name: v.optional(v.string()), role: v.optional(v.string()), bio: v.optional(v.string()), photoUrl: v.optional(v.string()), credentials: v.optional(v.string()), isActive: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, memberId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(memberId);
     if (!existing || existing.siteId !== siteId) throw new Error("Member not found");
     await ctx.db.patch(memberId, fields as any);
@@ -258,7 +260,7 @@ export const updateTeamMember = mutation({
 export const removeTeamMember = mutation({
   args: { siteId: v.id("sites"), memberId: v.id("teamMembers") },
   handler: async (ctx, { siteId, memberId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(memberId);
     if (!existing || existing.siteId !== siteId) throw new Error("Member not found");
     await ctx.db.delete(memberId);
@@ -269,7 +271,7 @@ export const removeTeamMember = mutation({
 export const reorderTeamMembers = mutation({
   args: { siteId: v.id("sites"), orderedIds: v.array(v.id("teamMembers")) },
   handler: async (ctx, { siteId, orderedIds }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     for (let i = 0; i < orderedIds.length; i++) {
       const doc = await ctx.db.get(orderedIds[i]);
       if (doc?.siteId === siteId) await ctx.db.patch(orderedIds[i], { order: i });
@@ -291,7 +293,7 @@ export const listJobs = query({
 export const createJob = mutation({
   args: { siteId: v.id("sites"), title: v.string(), jobType: v.string(), location: v.optional(v.string()), description: v.string(), applyUrl: v.optional(v.string()), isActive: v.boolean() },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     const id = await ctx.db.insert("jobPostings", { siteId, ...fields });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "job_posting", entityId: id, page: "Careers Manager", details: fields.title });
     return id;
@@ -301,7 +303,7 @@ export const createJob = mutation({
 export const updateJob = mutation({
   args: { siteId: v.id("sites"), jobId: v.id("jobPostings"), title: v.optional(v.string()), jobType: v.optional(v.string()), location: v.optional(v.string()), description: v.optional(v.string()), applyUrl: v.optional(v.string()), isActive: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, jobId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(jobId);
     if (!existing || existing.siteId !== siteId) throw new Error("Job not found");
     await ctx.db.patch(jobId, fields as any);
@@ -313,7 +315,7 @@ export const updateJob = mutation({
 export const removeJob = mutation({
   args: { siteId: v.id("sites"), jobId: v.id("jobPostings") },
   handler: async (ctx, { siteId, jobId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(jobId);
     if (!existing || existing.siteId !== siteId) throw new Error("Job not found");
     await ctx.db.delete(jobId);
@@ -343,7 +345,7 @@ export const upsertPopup = mutation({
     isEnabled: v.boolean(),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.query("popupConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     if (existing) {
       await ctx.db.patch(existing._id, fields);

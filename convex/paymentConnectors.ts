@@ -10,6 +10,8 @@ import { query, mutation, action, internalQuery, internalMutation, internalActio
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
 
@@ -229,7 +231,7 @@ export const provisionConnector = mutation({
 export const setActiveConnector = mutation({
   args: { siteId: v.id("sites"), provider: v.string() },
   handler: async (ctx, { siteId, provider }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     const allDocs = await ctx.db.query("paymentConnectors").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect();
     for (const doc of allDocs) {
       await ctx.db.patch(doc._id, { isActive: doc.provider === provider });
@@ -242,7 +244,7 @@ export const setActiveConnector = mutation({
 export const disconnectConnector = mutation({
   args: { siteId: v.id("sites"), provider: v.string() },
   handler: async (ctx, { siteId, provider }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     const doc = await ctx.db.query("paymentConnectors").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     if (doc) {
       await ctx.db.patch(doc._id, {

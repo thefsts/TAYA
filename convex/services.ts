@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 function toResponse(doc: any) {
@@ -35,7 +37,7 @@ export const create = mutation({
     ctaUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, isVisible, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     const count = (await ctx.db.query("siteServices").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
     const id = await ctx.db.insert("siteServices", {
       siteId,
@@ -67,7 +69,7 @@ export const update = mutation({
     order: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, serviceId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(serviceId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.patch(serviceId, fields);
@@ -78,7 +80,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), serviceId: v.id("siteServices") },
   handler: async (ctx, { siteId, serviceId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(serviceId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.delete(serviceId);
@@ -92,7 +94,7 @@ export const reorder = mutation({
     orderedIds: v.array(v.id("siteServices")),
   },
   handler: async (ctx, { siteId, orderedIds }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     for (let i = 0; i < orderedIds.length; i++) {
       const doc = await ctx.db.get(orderedIds[i]);
       if (doc && doc.siteId === siteId) {

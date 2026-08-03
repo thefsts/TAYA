@@ -2,6 +2,8 @@ import { query, mutation, internalQuery, internalMutation } from "./_generated/s
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 // ---------------------------------------------------------------------------
@@ -186,7 +188,7 @@ export const generateUploadUrl = mutation({
     mimeType: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, mimeType }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.MEDIA_UPLOAD);
     await requireModuleEnabled(ctx, siteId, "media");
 
     if (mimeType) {
@@ -377,7 +379,7 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, storageId, url, ...fields }) => {
     if (!storageId && !url) throw new Error("Either storageId or url is required");
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.MEDIA_UPLOAD);
     await requireModuleEnabled(ctx, siteId, "media");
 
     const id = await ctx.db.insert("mediaAssets", {
@@ -428,7 +430,7 @@ export const updateAsset = mutation({
     category: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, mediaAssetId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.MEDIA_UPLOAD);
     await requireModuleEnabled(ctx, siteId, "media");
     const existing = await ctx.db.get(mediaAssetId);
     if (!existing || existing.siteId !== siteId) throw new Error("Asset not found");
@@ -471,7 +473,7 @@ export const replace = mutation({
     focalY: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, mediaAssetId, storageId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.MEDIA_UPLOAD);
     await requireModuleEnabled(ctx, siteId, "media");
     const existing = await ctx.db.get(mediaAssetId);
     if (!existing || existing.siteId !== siteId) throw new Error("Asset not found");
@@ -543,7 +545,7 @@ export const archive = mutation({
     archived: v.boolean(),
   },
   handler: async (ctx, { siteId, mediaAssetId, archived }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.MEDIA_UPLOAD);
     await requireModuleEnabled(ctx, siteId, "media");
     const existing = await ctx.db.get(mediaAssetId);
     if (!existing || existing.siteId !== siteId) throw new Error("Asset not found");
@@ -569,7 +571,7 @@ export const archive = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), mediaAssetId: v.id("mediaAssets"), force: v.optional(v.boolean()) },
   handler: async (ctx, { siteId, mediaAssetId, force }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.MEDIA_DELETE);
     await requireModuleEnabled(ctx, siteId, "media");
     const existing = await ctx.db.get(mediaAssetId);
     if (!existing || existing.siteId !== siteId) throw new Error("Asset not found");

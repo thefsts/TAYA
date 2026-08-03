@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
@@ -33,7 +35,7 @@ export const create = mutation({
     order: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, order, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     const count = (await ctx.db.query("testimonials").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect()).length;
     const id = await ctx.db.insert("testimonials", {
       siteId,
@@ -62,7 +64,7 @@ export const update = mutation({
     order: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, testimonialId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     const existing = await ctx.db.get(testimonialId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.patch(testimonialId, fields);
@@ -76,7 +78,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), testimonialId: v.id("testimonials") },
   handler: async (ctx, { siteId, testimonialId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     const existing = await ctx.db.get(testimonialId);
     if (!existing || existing.siteId !== siteId) throw new Error("Not found");
     await ctx.db.delete(testimonialId);

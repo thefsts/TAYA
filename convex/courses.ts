@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 
@@ -58,7 +60,7 @@ export const create = mutation({
     squareItemId: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CLASSES_MANAGE);
     await requireModuleEnabled(ctx, siteId, "courses");
     const id = await ctx.db.insert("courses", { siteId, status: "draft", ...fields });
     const doc = (await ctx.db.get(id))!;
@@ -83,7 +85,7 @@ export const update = mutation({
     squareItemId: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, courseId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CLASSES_MANAGE);
     await requireModuleEnabled(ctx, siteId, "courses");
     const existing = await ctx.db.get(courseId);
     if (!existing || existing.siteId !== siteId) throw new Error("Course not found");
@@ -99,7 +101,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), courseId: v.id("courses") },
   handler: async (ctx, { siteId, courseId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CLASSES_MANAGE);
     await requireModuleEnabled(ctx, siteId, "courses");
     const existing = await ctx.db.get(courseId);
     if (!existing || existing.siteId !== siteId) throw new Error("Course not found");

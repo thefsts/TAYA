@@ -1,7 +1,9 @@
 import { query, mutation, internalMutation, internalAction, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireDesignCapability, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { encryptField } from "./lib/encrypt";
 import { getProvider } from "./lib/crmProviders";
 
@@ -72,7 +74,7 @@ export const updateConnection = mutation({
     lastSyncAt: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, provider = "operon", apiKey, ...rest }) => {
-    await requireDesignCapability(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
 
@@ -104,7 +106,7 @@ export const updateConnection = mutation({
 export const disconnectConnection = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
-    await requireDesignCapability(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     if (existing) {
@@ -117,7 +119,7 @@ export const disconnectConnection = mutation({
 export const testConnection = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
-    await requireDesignCapability(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     const isConnected = existing?.status === "connected";
@@ -133,7 +135,7 @@ export const testConnection = mutation({
 export const launchSso = mutation({
   args: { siteId: v.id("sites"), provider: v.optional(v.string()) },
   handler: async (ctx, { siteId, provider = "operon" }) => {
-    await requireDesignCapability(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmConnections").withIndex("by_site_provider", (q) => q.eq("siteId", siteId).eq("provider", provider)).first();
     const ssoEnabled = existing?.ssoEnabled ?? false;
@@ -182,7 +184,7 @@ export const updateEntitySetting = mutation({
     enabled: v.boolean(),
   },
   handler: async (ctx, { siteId, provider = "operon", entityType, direction, enabled }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.query("crmEntitySyncSettings").withIndex("by_site_provider_entity", (q) => q.eq("siteId", siteId).eq("provider", provider).eq("entityType", entityType).eq("direction", direction)).first();
     let docId;
@@ -230,7 +232,7 @@ export const listSyncLogs = query({
 export const retrySyncLog = mutation({
   args: { siteId: v.id("sites"), syncLogId: v.id("crmSyncLogs") },
   handler: async (ctx, { siteId, syncLogId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "crm");
     const existing = await ctx.db.get(syncLogId);
     if (!existing) throw new Error("Sync log not found");

@@ -1,6 +1,8 @@
 import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString() };
@@ -19,7 +21,7 @@ export const list = query({
 export const create = mutation({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.DEPLOYMENT_MANAGE);
     await requireModuleEnabled(ctx, siteId, "backups");
 
     const [homepage, footer, contact, courses, events, articles, seo, media, square, email, crm] = await Promise.all([
@@ -49,7 +51,7 @@ export const create = mutation({
 export const restore = mutation({
   args: { siteId: v.id("sites"), backupId: v.id("backups") },
   handler: async (ctx, { siteId, backupId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.DEPLOYMENT_MANAGE);
     await requireModuleEnabled(ctx, siteId, "backups");
     const backup = await ctx.db.get(backupId);
     if (!backup) throw new Error("Backup not found");

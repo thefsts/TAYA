@@ -2,6 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { PERMISSIONS, userHasPermission } from "@/lib/permissions";
 
 interface DesignLockGuardProps {
   children: React.ReactNode;
@@ -19,7 +20,8 @@ export default function DesignLockGuard({ children }: DesignLockGuardProps) {
   const [, setLocation] = useLocation();
 
   const isLoading = me === undefined;
-  const isLocked = me !== undefined && me !== null && !me.isSuperAdmin;
+  // Uses PERMISSIONS.DESIGN_MANAGE as the canonical lock — mirrors backend requirePermission check.
+  const isLocked = me !== undefined && me !== null && !userHasPermission(me.isSuperAdmin, PERMISSIONS.DESIGN_MANAGE);
 
   useEffect(() => {
     if (isLocked) {

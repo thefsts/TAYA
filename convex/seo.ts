@@ -1,6 +1,8 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 
@@ -27,7 +29,7 @@ export const create = mutation({
     canonicalUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
     await requireModuleEnabled(ctx, siteId, "seo");
     const id = await ctx.db.insert("seoSettings", { siteId, ...fields });
     const doc = (await ctx.db.get(id))!;
@@ -48,7 +50,7 @@ export const update = mutation({
     canonicalUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, seoSettingId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     await requireModuleEnabled(ctx, siteId, "seo");
     const existing = await ctx.db.get(seoSettingId);
     if (!existing || existing.siteId !== siteId) throw new Error("SEO setting not found");
@@ -63,7 +65,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { siteId: v.id("sites"), seoSettingId: v.id("seoSettings") },
   handler: async (ctx, { siteId, seoSettingId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     await requireModuleEnabled(ctx, siteId, "seo");
     const existing = await ctx.db.get(seoSettingId);
     if (!existing || existing.siteId !== siteId) throw new Error("SEO setting not found");

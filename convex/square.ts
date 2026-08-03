@@ -1,7 +1,9 @@
 import { query, mutation, action, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireDesignCapability, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
@@ -88,7 +90,7 @@ export const updateConfig = mutation({
     webhookSignatureKey: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireDesignCapability(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "payments");
     const existing = await ctx.db.query("squareConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     const connected = Boolean((fields.applicationId ?? existing?.applicationId) && (fields.locationId ?? existing?.locationId) && (fields.accessToken ?? existing?.accessToken));
@@ -125,7 +127,7 @@ export const createMapping = mutation({
     squareVariationId: v.string(),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     await requireModuleEnabled(ctx, siteId, "payments");
     const id = await ctx.db.insert("squareCatalogMappings", { siteId, ...fields });
     const doc = (await ctx.db.get(id))!;
@@ -142,7 +144,7 @@ export const updateMapping = mutation({
     squareVariationId: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, mappingId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     await requireModuleEnabled(ctx, siteId, "payments");
     const existing = await ctx.db.get(mappingId);
     if (!existing || existing.siteId !== siteId) throw new Error("Mapping not found");
@@ -156,7 +158,7 @@ export const updateMapping = mutation({
 export const removeMapping = mutation({
   args: { siteId: v.id("sites"), mappingId: v.id("squareCatalogMappings") },
   handler: async (ctx, { siteId, mappingId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_DELETE);
     await requireModuleEnabled(ctx, siteId, "payments");
     const existing = await ctx.db.get(mappingId);
     if (!existing || existing.siteId !== siteId) throw new Error("Mapping not found");
