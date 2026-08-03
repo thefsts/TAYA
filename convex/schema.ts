@@ -159,6 +159,17 @@ export default defineSchema({
     focalX: v.optional(v.number()),
     /** Normalized focal point Y coordinate (0–1). Used as CSS object-position. */
     focalY: v.optional(v.number()),
+    // ── Derivative variants generated server-side by media.generateDerivatives ──
+    /** 150px wide WebP thumbnail for UI grids and thumbnails */
+    thumbStorageId: v.optional(v.id("_storage")),
+    /** 400px wide WebP for small display contexts */
+    smallStorageId: v.optional(v.id("_storage")),
+    /** 800px wide WebP for standard content areas */
+    mediumStorageId: v.optional(v.id("_storage")),
+    /** 1400px wide WebP for large display contexts */
+    largeStorageId: v.optional(v.id("_storage")),
+    /** 2400px wide WebP for hero / full-bleed slots */
+    heroStorageId: v.optional(v.id("_storage")),
   }).index("by_site", ["siteId"]),
 
   squareConfig: defineTable({

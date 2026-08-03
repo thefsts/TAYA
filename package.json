@@ -25,8 +25,16 @@
   "packageManager": "pnpm@10.26.1",
   "private": true,
   "devDependencies": {
+    "@types/sharp": "^0.32.0",
     "convex": "^1.25.4",
     "prettier": "^3.8.3",
     "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "jimp": "^1.6.1",
+    "sharp": "^0.35.3"
+  },
+  "optionalDependencies": {
+    "@img/sharp-linux-arm64": "^0.35.3"
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -20,8 +20,80 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Image as ImageIcon, Plus, Trash2, Sparkles, CheckCircle2, AlertTriangle, BarChart3, XCircle } from "lucide-react";
+import {
+  Image as ImageIcon, Plus, Trash2, Sparkles,
+  CheckCircle2, AlertTriangle, BarChart3, XCircle, Upload,
+} from "lucide-react";
 import { SmartImageUploader } from "@/components/SmartImageUploader";
+import { UploadQueue } from "@/components/UploadQueue";
+import { useUploadQueue } from "@/hooks/useUploadQueue";
+import type { UploadItem } from "@/hooks/useUploadQueue";
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const MAX_SIZE_MB = 5;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+// ---------------------------------------------------------------------------
+// Accepted types
+// ---------------------------------------------------------------------------
+
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+
+// ---------------------------------------------------------------------------
+// Background compression using requestIdleCallback
+// ---------------------------------------------------------------------------
+
+/**
+ * Compresses a raster image to WebP using canvas, scheduled via
+ * requestIdleCallback so the main thread stays responsive while processing
+ * multiple large images in parallel.
+ */
+function compressToWebP(
+  file: File,
+  quality = 0.82,
+): Promise<{ blob: Blob; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const doWork = () => {
+      const img = new Image();
+      const objUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objUrl);
+        const maxW = 2400;
+        const scale = Math.min(1, maxW / img.naturalWidth);
+        const w = Math.round(img.naturalWidth * scale);
+        const h = Math.round(img.naturalHeight * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { reject(new Error("Canvas compression failed")); return; }
+            resolve({ blob, width: w, height: h });
+          },
+          "image/webp",
+          quality,
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error("Image load failed")); };
+      img.src = objUrl;
+    };
+
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(() => doWork(), { timeout: 10_000 });
+    } else {
+      setTimeout(doWork, 0);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -33,6 +105,10 @@ function isBroken(m: any): boolean {
   return typeof m.url === "string" && m.url.startsWith("data:");
 }
 
+// ---------------------------------------------------------------------------
+// MediaLibrary
+// ---------------------------------------------------------------------------
+
 export default function MediaLibrary({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
@@ -41,12 +117,146 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
   const createMediaAsset = useMutation(api.media.create);
   const deleteMediaAsset = useMutation(api.media.remove);
   const purgeDataUrls = useMutation(api.media.migrateDeleteDataUrls);
+  const generateUploadUrl = useMutation(api.media.generateUploadUrl);
 
   const [uploaderOpen, setUploaderOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPurging, setIsPurging] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Upload queue
+  const [queueItems, queueActions] = useUploadQueue();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Queue executor: process pending items ──────────────────────────────────
+  const processingIds = useRef<Set<string>>(new Set());
+
+  const processItem = useCallback(async (item: UploadItem) => {
+    if (processingIds.current.has(item.id)) return;
+    processingIds.current.add(item.id);
+
+    try {
+      const isSvg = item.file.type === "image/svg+xml";
+
+      // Step 1: Compress (skip for SVG)
+      let uploadBlob: Blob;
+      let uploadWidth: number | undefined;
+      let uploadHeight: number | undefined;
+      let uploadMime: string;
+      let uploadName: string;
+
+      if (isSvg) {
+        // SVG: upload as-is through the secure SVG path — no derivative generation
+        uploadBlob = item.file;
+        uploadMime = "image/svg+xml";
+        uploadName = item.file.name;
+        queueActions._setStatus(item.id, "uploading");
+      } else {
+        queueActions._setStatus(item.id, "compressing");
+        queueActions._setProgress(item.id, 5);
+        if (item.abortController.signal.aborted) {
+          processingIds.current.delete(item.id);
+          return;
+        }
+        const { blob, width, height } = await compressToWebP(item.file);
+        if (item.abortController.signal.aborted) {
+          processingIds.current.delete(item.id);
+          return;
+        }
+        uploadBlob = blob;
+        uploadWidth = width;
+        uploadHeight = height;
+        uploadMime = "image/webp";
+        uploadName = item.file.name.replace(/\.[^.]+$/, ".webp");
+        queueActions._setProgress(item.id, 30);
+        queueActions._setStatus(item.id, "uploading");
+      }
+
+      // Step 2: Get upload URL
+      const uploadUrl = await generateUploadUrl({
+        siteId,
+        mimeType: uploadMime,
+      });
+      if (item.abortController.signal.aborted) {
+        processingIds.current.delete(item.id);
+        return;
+      }
+
+      // Step 3: Upload blob with progress simulation
+      queueActions._setProgress(item.id, 40);
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": uploadMime },
+        body: uploadBlob,
+        signal: item.abortController.signal,
+      });
+      if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
+      const { storageId } = await response.json() as { storageId: string };
+      queueActions._setProgress(item.id, 85);
+
+      // Step 4: Create media asset record (derivative generation is scheduled by server)
+      queueActions._setStatus(item.id, "processing");
+      await createMediaAsset({
+        siteId,
+        storageId: storageId as any,
+        fileName: uploadName,
+        mimeType: uploadMime,
+        sizeBytes: item.file.size,
+        optimizedSizeBytes: isSvg ? undefined : uploadBlob.size,
+        width: uploadWidth,
+        height: uploadHeight,
+      });
+
+      queueActions._setProgress(item.id, 100);
+      queueActions._setStatus(item.id, "done");
+    } catch (err: any) {
+      if (err?.name === "AbortError" || item.abortController.signal.aborted) {
+        queueActions._setStatus(item.id, "cancelled");
+      } else {
+        queueActions._setStatus(item.id, "failed", err instanceof Error ? err.message : String(err));
+      }
+    } finally {
+      processingIds.current.delete(item.id);
+    }
+  }, [siteId, generateUploadUrl, createMediaAsset, queueActions]);
+
+  // Watch for pending items and kick them off
+  useEffect(() => {
+    const pending = queueItems.filter(
+      (i) => i.status === "pending" && !processingIds.current.has(i.id)
+    );
+    for (const item of pending) {
+      processItem(item);
+    }
+  }, [queueItems, processItem]);
+
+  // ── File selection / drop ──────────────────────────────────────────────────
+
+  const handleFiles = useCallback((files: FileList | File[]) => {
+    const arr = Array.from(files);
+    const valid = arr.filter((f) => {
+      if (!ACCEPTED_TYPES.includes(f.type)) {
+        toast({ title: `${f.name}: unsupported type`, variant: "destructive" });
+        return false;
+      }
+      if (f.size > MAX_SIZE_BYTES) {
+        toast({ title: `${f.name}: too large (max ${MAX_SIZE_MB}MB)`, variant: "destructive" });
+        return false;
+      }
+      return true;
+    });
+    if (valid.length > 0) queueActions.enqueue(valid);
+  }, [queueActions, toast]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    handleFiles(e.dataTransfer.files);
+  }, [handleFiles]);
+
+  // ── Purge ──────────────────────────────────────────────────────────────────
 
   async function handlePurge() {
     setIsPurging(true);
@@ -66,6 +276,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
       setIsPurging(false);
     }
   }
+
+  // ── Single-file SmartImageEditor save ─────────────────────────────────────
 
   const handleSaveImage = async (imageData: {
     storageId?: string;
@@ -97,6 +309,8 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
     toast({ title: "Media asset added", description: `${imageData.fileName} uploaded and optimized.` });
   };
 
+  // ── Delete ─────────────────────────────────────────────────────────────────
+
   async function confirmDelete() {
     if (!deleteTarget) return;
     setIsDeleting(true);
@@ -116,9 +330,13 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
     }
   }
 
+  // ── Stats ──────────────────────────────────────────────────────────────────
+
   const totalSize = data?.reduce((s: number, m: any) => s + (m.optimizedSizeBytes ?? m.sizeBytes), 0) ?? 0;
   const missingAlt = data?.filter((m: any) => !m.altText && m.mimeType?.startsWith("image/")).length ?? 0;
   const webpCount = data?.filter((m: any) => m.mimeType?.includes("webp")).length ?? 0;
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -130,15 +348,57 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">AI-assisted optimization, automatic WebP conversion, and quality reporting.</p>
         </div>
-        <Button onClick={() => setUploaderOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Upload Image
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="h-4 w-4 mr-2" />
+            Quick Upload
+          </Button>
+          <Button onClick={() => setUploaderOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Smart Upload
+          </Button>
+        </div>
       </div>
+
+      {/* Hidden multi-file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ""; }}
+      />
+
+      {/* Multi-file drop zone */}
+      <div
+        onDrop={handleDrop}
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
+        onClick={() => fileInputRef.current?.click()}
+        className={`mb-6 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+          isDragOver
+            ? "border-primary bg-primary/5"
+            : "border-slate-200 hover:border-primary/40 hover:bg-slate-50"
+        }`}
+      >
+        <Upload className={`h-6 w-6 mx-auto mb-2 transition-colors ${isDragOver ? "text-primary" : "text-slate-300"}`} />
+        <p className="text-sm font-medium text-slate-600">
+          Drop images here or click to browse — multiple files supported
+        </p>
+        <p className="text-xs text-slate-400 mt-0.5">
+          JPG, PNG, WebP, GIF, SVG · max {MAX_SIZE_MB}MB per file · auto-converted to WebP
+        </p>
+      </div>
+
+      {/* Upload queue panel */}
+      {queueItems.length > 0 && (
+        <UploadQueue items={queueItems} actions={queueActions} />
+      )}
 
       {/* Stats */}
       {data && data.length > 0 && (
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-4 gap-4 mb-6 mt-6">
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <p className="text-xs text-slate-500 font-medium mb-1">Total Assets</p>
             <p className="text-2xl font-bold text-slate-900">{data.length}</p>
@@ -173,7 +433,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
               {health.broken} broken image record{health.broken > 1 ? "s" : ""} detected
             </p>
             <p className="text-red-700 text-xs mt-0.5">
-              {health.broken} of your {health.total} assets {health.broken === 1 ? "is a" : "are"} legacy base64 record{health.broken > 1 ? "s" : ""} that cannot be served on your live site. Clean them up to keep your media library accurate.
+              {health.broken} of your {health.total} assets {health.broken === 1 ? "is a" : "are"} legacy base64 record{health.broken > 1 ? "s" : ""} that cannot be served on your live site.
             </p>
           </div>
           <Button
@@ -211,61 +471,71 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
             <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl">
               <ImageIcon className="mx-auto h-12 w-12 text-slate-300 mb-3" />
               <h3 className="text-lg font-semibold text-slate-900 mb-1">No media yet</h3>
-              <p className="text-slate-500 text-sm mb-5">Upload images and the Smart Image Manager™ will automatically optimize them to WebP.</p>
+              <p className="text-slate-500 text-sm mb-5">Drop images above or use Smart Upload for detailed editing and alt text.</p>
               <Button onClick={() => setUploaderOpen(true)}>
-                <Sparkles className="h-4 w-4 mr-2" /> Upload First Image
+                <Sparkles className="h-4 w-4 mr-2" /> Smart Upload
               </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {data.map((m: any) => (
-                <button
-                  key={m._id}
-                  type="button"
-                  onClick={() => setSelected(selected?._id === m._id ? null : m)}
-                  className={`group relative bg-white border rounded-xl overflow-hidden text-left transition-all ${selected?._id === m._id ? "border-primary ring-2 ring-primary/20" : "border-slate-200 hover:border-slate-300"}`}
-                >
-                  <div className="aspect-square bg-slate-100 flex items-center justify-center overflow-hidden">
-                    {isBroken(m) ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-red-50">
-                        <XCircle className="h-8 w-8 text-red-400" />
-                        <span className="text-[10px] text-red-500 font-medium">Can't be served</span>
-                      </div>
-                    ) : m.mimeType?.startsWith("image/") ? (
-                      <img src={m.thumbnailUrl ?? m.url} alt={m.altText ?? m.fileName} className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-slate-300" />
-                    )}
-                    {isBroken(m) && (
-                      <div className="absolute top-1.5 left-1.5">
-                        <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1.5">Broken</Badge>
-                      </div>
-                    )}
-                    {!isBroken(m) && !m.altText && m.mimeType?.startsWith("image/") && (
-                      <div className="absolute top-1.5 left-1.5">
-                        <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1.5">No alt</Badge>
-                      </div>
-                    )}
-                    {!isBroken(m) && m.mimeType?.includes("webp") && (
-                      <div className="absolute top-1.5 right-1.5">
-                        <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] px-1.5">WebP</Badge>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-2">
-                    <p className="text-xs font-medium text-slate-900 truncate">{m.fileName}</p>
-                    <p className="text-xs text-slate-400">{formatBytes(m.optimizedSizeBytes ?? m.sizeBytes)}</p>
-                    {m.altText && <p className="text-[10px] text-slate-400 truncate mt-0.5" title={m.altText}>{m.altText}</p>}
-                  </div>
+              {data.map((m: any) => {
+                // Prefer thumbnail derivative → legacy thumbnailUrl → full URL
+                const displaySrc = m.thumbUrl ?? m.thumbnailUrl ?? m.url;
+                return (
                   <button
+                    key={m._id}
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(m); }}
-                    className="absolute bottom-1.5 right-1.5 bg-white/90 rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                    onClick={() => setSelected(selected?._id === m._id ? null : m)}
+                    className={`group relative bg-white border rounded-xl overflow-hidden text-left transition-all ${selected?._id === m._id ? "border-primary ring-2 ring-primary/20" : "border-slate-200 hover:border-slate-300"}`}
                   >
-                    <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    <div className="aspect-square bg-slate-100 flex items-center justify-center overflow-hidden">
+                      {isBroken(m) ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-red-50">
+                          <XCircle className="h-8 w-8 text-red-400" />
+                          <span className="text-[10px] text-red-500 font-medium">Can't be served</span>
+                        </div>
+                      ) : m.mimeType?.startsWith("image/") ? (
+                        <img src={displaySrc} alt={m.altText ?? m.fileName} className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-slate-300" />
+                      )}
+                      {isBroken(m) && (
+                        <div className="absolute top-1.5 left-1.5">
+                          <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1.5">Broken</Badge>
+                        </div>
+                      )}
+                      {!isBroken(m) && !m.altText && m.mimeType?.startsWith("image/") && (
+                        <div className="absolute top-1.5 left-1.5">
+                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1.5">No alt</Badge>
+                        </div>
+                      )}
+                      {!isBroken(m) && m.mimeType?.includes("webp") && (
+                        <div className="absolute top-1.5 right-1.5">
+                          <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] px-1.5">WebP</Badge>
+                        </div>
+                      )}
+                      {/* Thumbnail derivative badge */}
+                      {m.thumbUrl && (
+                        <div className="absolute bottom-1.5 left-1.5">
+                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] px-1.5">Optimized</Badge>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2">
+                      <p className="text-xs font-medium text-slate-900 truncate">{m.fileName}</p>
+                      <p className="text-xs text-slate-400">{formatBytes(m.optimizedSizeBytes ?? m.sizeBytes)}</p>
+                      {m.altText && <p className="text-[10px] text-slate-400 truncate mt-0.5" title={m.altText}>{m.altText}</p>}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(m); }}
+                      className="absolute bottom-1.5 right-1.5 bg-white/90 rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    </button>
                   </button>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -280,7 +550,11 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
                   <span className="text-xs text-red-500 font-medium">Cannot be previewed</span>
                 </div>
               ) : (
-                <img src={selected.thumbnailUrl ?? selected.url} alt={selected.altText ?? selected.fileName} className="w-full object-contain max-h-48" />
+                <img
+                  src={selected.thumbUrl ?? selected.thumbnailUrl ?? selected.url}
+                  alt={selected.altText ?? selected.fileName}
+                  className="w-full object-contain max-h-48"
+                />
               )}
             </div>
             <div>
@@ -296,7 +570,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
                   <AlertTriangle className="h-3.5 w-3.5" /> Broken record
                 </p>
                 <p className="text-xs text-red-700 leading-relaxed">
-                  This asset was stored as a raw base64 data URL, which cannot be served on your live site. It won't appear correctly for visitors.
+                  This asset was stored as a raw base64 data URL and cannot be served on your live site.
                 </p>
                 <p className="text-xs text-red-600 font-medium">
                   Use the "Clean Up" button above to remove all broken records, then re-upload the image.
@@ -313,6 +587,10 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
               )}
               {selected.optimizedSizeBytes && selected.sizeBytes > 0 && (
                 <div className="flex justify-between font-medium"><span>Savings</span><span className="text-green-600">{Math.round(((selected.sizeBytes - selected.optimizedSizeBytes) / selected.sizeBytes) * 100)}%</span></div>
+              )}
+              {/* Derivative availability */}
+              {selected.thumbUrl && (
+                <div className="flex justify-between text-blue-600"><span>Derivatives</span><span>Generated ✓</span></div>
               )}
             </div>
 
@@ -332,6 +610,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
                 { label: "Format", good: selected.mimeType?.includes("webp"), goodText: "WebP ✓", badText: "Not WebP" },
                 { label: "Alt Text", good: !!selected.altText, goodText: "Present ✓", badText: "Missing" },
                 { label: "Size", good: (selected.optimizedSizeBytes ?? selected.sizeBytes) < 500 * 1024, goodText: "Under 500KB ✓", badText: formatBytes(selected.optimizedSizeBytes ?? selected.sizeBytes) },
+                { label: "Derivatives", good: !!selected.thumbUrl, goodText: "Ready ✓", badText: "Pending…" },
               ].map(({ label, good, goodText, badText }) => (
                 <div key={label} className="flex items-center justify-between text-xs">
                   <span className="text-slate-500">{label}</span>
@@ -347,6 +626,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
         )}
       </div>
 
+      {/* Smart Image Editor (single-file with detailed edit) */}
       <SmartImageUploader
         siteId={siteId}
         open={uploaderOpen}

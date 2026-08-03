@@ -45,6 +45,7 @@ import type * as lib_roleCapabilities from "../lib/roleCapabilities.js";
 import type * as lib_siteAccessInternal from "../lib/siteAccessInternal.js";
 import type * as lib_testMode from "../lib/testMode.js";
 import type * as media from "../media.js";
+import type * as mediaDerivatives from "../mediaDerivatives.js";
 import type * as navigation from "../navigation.js";
 import type * as paymentConnectors from "../paymentConnectors.js";
 import type * as policies from "../policies.js";
@@ -108,6 +109,7 @@ declare const fullApi: ApiFromModules<{
   "lib/siteAccessInternal": typeof lib_siteAccessInternal;
   "lib/testMode": typeof lib_testMode;
   media: typeof media;
+  mediaDerivatives: typeof mediaDerivatives;
   navigation: typeof navigation;
   paymentConnectors: typeof paymentConnectors;
   policies: typeof policies;
