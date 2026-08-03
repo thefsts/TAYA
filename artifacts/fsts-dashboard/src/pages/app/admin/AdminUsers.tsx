@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Redirect } from "wouter";
@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -28,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Mail } from "lucide-react";
 import {
   ROLES,
   ROLE_LABELS,
@@ -84,6 +85,7 @@ export default function AdminUsers() {
   const createUser = useMutation(api.users.create);
   const updateUser = useMutation(api.users.update);
   const deleteUser = useMutation(api.users.remove);
+  const previewEmail = useAction(api.email.previewDashboardWelcome);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
@@ -95,6 +97,10 @@ export default function AdminUsers() {
   const [assignments, setAssignments] = useState<RoleAssignmentForm[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewSubject, setPreviewSubject] = useState("");
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   if (me === undefined) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
   if (!me || !me.isSuperAdmin) return <Redirect to="/app" />;
@@ -117,6 +123,28 @@ export default function AdminUsers() {
     setIsActive(u.isActive);
     setAssignments((u.roleAssignments ?? []).map((r: any) => ({ siteId: String(r.siteId), role: r.role })));
     setDialogOpen(true);
+  }
+
+  async function handlePreview() {
+    if (!name || !email) {
+      toast({ title: "Enter a name and email first", variant: "destructive" });
+      return;
+    }
+    setIsLoadingPreview(true);
+    try {
+      const result = await previewEmail({ recipientName: name, recipientEmail: email });
+      setPreviewHtml(result.html);
+      setPreviewSubject(result.subject);
+      setPreviewOpen(true);
+    } catch (err) {
+      toast({
+        title: "Couldn't load preview",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingPreview(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -317,6 +345,17 @@ export default function AdminUsers() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              {!editing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePreview}
+                  disabled={isLoadingPreview || !name || !email}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  {isLoadingPreview ? "Loading…" : "Preview email"}
+                </Button>
+              )}
               <Button type="submit" disabled={isPending}>
                 {isPending ? "Saving…" : "Save"}
               </Button>
@@ -337,6 +376,34 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Email preview dialog — dry-run view of the welcome email before saving */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-slate-500" />
+              Email preview
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              This is the welcome email that will be sent to <strong>{email}</strong> when you save.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="border border-slate-200 rounded-md overflow-hidden flex-1 min-h-0">
+            <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 text-xs text-slate-500">
+              <span className="font-medium text-slate-700">Subject: </span>{previewSubject}
+            </div>
+            <div className="overflow-auto p-4 bg-white h-full">
+              {previewHtml && (
+                <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

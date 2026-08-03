@@ -4,6 +4,7 @@ import { Id } from "./_generated/dataModel";
 import { provisionUser } from "./lib/getCurrentUser";
 import { isTestMode, requireTestEnvironment } from "./lib/testMode";
 import { logActivity } from "./lib/logActivity";
+import { internal } from "./_generated/api";
 
 function toUserResponse(user: any, sitesMap: Map<string, string>) {
   return {
@@ -116,6 +117,14 @@ export const create = mutation({
         details: `Assigned role '${ra.role}' to new user ${args.name}`,
       });
     }
+
+    // Send a welcome email to inform the new user that their dashboard account
+    // is ready. Scheduled asynchronously so a missing API key never blocks the
+    // mutation from completing.
+    await ctx.scheduler.runAfter(0, internal.email.sendDashboardWelcome, {
+      recipientEmail: args.email,
+      recipientName: args.name,
+    });
 
     const sites = await ctx.db.query("sites").collect();
     const sitesMap = new Map(sites.map((s) => [s._id as string, s.name]));

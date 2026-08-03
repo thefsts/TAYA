@@ -1,4 +1,4 @@
-import { query, mutation, internalAction, internalQuery } from "./_generated/server";
+import { query, mutation, internalAction, internalQuery, action } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { checkSiteAccess, checkModuleEnabled, requireDesignCapability, requireModuleEnabled } from "./lib/requireSiteAccess";
@@ -204,6 +204,128 @@ export const sendPortalWelcome = internalAction({
       apiKey: settings?.resendApiKey,
     });
     return { skipped: false };
+  },
+});
+
+// ─── Dashboard welcome email (new pending user created by a superadmin) ───────
+
+/**
+ * Builds the HTML for the "your dashboard account is ready" welcome email.
+ * Extracted so both the send and preview paths share the same template.
+ */
+function buildDashboardWelcomeHtml({
+  firstName,
+  recipientName,
+  dashboardUrl,
+}: {
+  firstName: string;
+  recipientName: string;
+  dashboardUrl: string;
+}): string {
+  return `
+    <div style="font-family:sans-serif;max-width:600px;margin:auto;color:#1a1a2e">
+      <div style="background:#1a1a2e;padding:24px 32px;border-radius:8px 8px 0 0">
+        <h1 style="margin:0;font-size:22px;color:#ffffff;letter-spacing:-0.5px">FSTS Client Dashboard</h1>
+      </div>
+      <div style="background:#ffffff;padding:32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">
+        <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a2e">Hi ${firstName}, your dashboard is ready!</h2>
+        <p style="color:#475569;line-height:1.7;margin:0 0 20px">
+          Your FSTS Client Dashboard account has been set up and is ready for you to use.
+          Sign in at the link below using the email address this message was sent to.
+        </p>
+        <a href="${dashboardUrl}"
+           style="display:inline-block;background:#1a1a2e;color:#ffffff;text-decoration:none;
+                  padding:12px 28px;border-radius:6px;font-weight:600;font-size:15px;
+                  letter-spacing:-0.2px">
+          Sign in to your dashboard →
+        </a>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:28px 0" />
+        <p style="color:#94a3b8;font-size:13px;margin:0 0 6px">
+          <strong style="color:#475569">Dashboard URL:</strong>
+          <a href="${dashboardUrl}" style="color:#3b82f6">${dashboardUrl}</a>
+        </p>
+        <p style="color:#94a3b8;font-size:13px;margin:0">
+          You'll be prompted to create a password the first time you sign in.
+          If you didn't expect this email, you can safely ignore it.
+        </p>
+        <p style="color:#cbd5e1;font-size:12px;margin-top:32px">
+          Sent by FSTS Platform on behalf of the FSTS team.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Send a "your dashboard account is ready" welcome email to a newly created
+ * pending dashboard user.
+ * Uses the platform-level RESEND_API_KEY and DASHBOARD_URL env vars.
+ * Logs a warning and returns { success: false } when no API key is configured.
+ */
+export const sendDashboardWelcome = internalAction({
+  args: {
+    recipientEmail: v.string(),
+    recipientName: v.string(),
+  },
+  handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.warn(
+        "[email.sendDashboardWelcome] No RESEND_API_KEY configured — welcome email skipped. " +
+        "Set RESEND_API_KEY as a Convex environment variable to enable this.",
+      );
+      return { success: false, error: "No RESEND_API_KEY configured" };
+    }
+
+    const dashboardUrl =
+      process.env.DASHBOARD_URL ?? "https://app.fstsclientsystem.com";
+    const firstName = args.recipientName.split(" ")[0] || args.recipientName;
+
+    const html = buildDashboardWelcomeHtml({
+      firstName,
+      recipientName: args.recipientName,
+      dashboardUrl,
+    });
+
+    const result: { success: boolean; error?: string } = await ctx.runAction(internal.email.send, {
+      to: args.recipientEmail,
+      subject: "Your FSTS Client Dashboard is ready",
+      html,
+      fromName: "FSTS Platform",
+      fromEmail: process.env.PLATFORM_FROM_EMAIL ?? "noreply@fstsclientsystem.com",
+    });
+    return result;
+  },
+});
+
+/**
+ * Return a preview of the dashboard welcome email HTML without sending it.
+ * Super-admin only. Used by the "Preview email" button in the Invite User dialog.
+ */
+export const previewDashboardWelcome = action({
+  args: {
+    recipientName: v.string(),
+    recipientEmail: v.string(),
+  },
+  handler: async (ctx, args): Promise<{ html: string; subject: string; to: string }> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const dashboardUrl =
+      process.env.DASHBOARD_URL ?? "https://app.fstsclientsystem.com";
+    const firstName = args.recipientName.split(" ")[0] || args.recipientName;
+
+    const html = buildDashboardWelcomeHtml({
+      firstName,
+      recipientName: args.recipientName,
+      dashboardUrl,
+    });
+
+    return {
+      html,
+      subject: "Your FSTS Client Dashboard is ready",
+      to: args.recipientEmail,
+    };
   },
 });
 
