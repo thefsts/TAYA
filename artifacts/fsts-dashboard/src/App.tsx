@@ -80,6 +80,9 @@ const AutomationRules = lazy(() => import("@/pages/app/sites/AutomationRules"));
 // Website Reviews Module™
 const ReviewsManager = lazy(() => import("@/pages/app/sites/ReviewsManager"));
 
+// Products / Offerings Manager
+const ProductsManager = lazy(() => import("@/pages/app/sites/ProductsManager"));
+
 // Phase 80 — Client Portal™ / Multi-Portal Authentication System™
 const PortalLogin = lazy(() => import("@/pages/portal/PortalLogin"));
 const PortalRegister = lazy(() => import("@/pages/portal/PortalRegister"));
@@ -403,6 +406,9 @@ function AppRouter() {
 
           {/* Phase 80 — Client Portal™ */}
           <Route path="/app/sites/:siteId/portal" component={PortalManager} />
+
+          {/* Products / Offerings Manager */}
+          <Route path="/app/sites/:siteId/products" component={ProductsManager} />
 
           <Route component={NotFound} />
         </Switch>

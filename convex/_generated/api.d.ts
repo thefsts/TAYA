@@ -52,6 +52,7 @@ import type * as paymentConnectors from "../paymentConnectors.js";
 import type * as policies from "../policies.js";
 import type * as popup from "../popup.js";
 import type * as portal from "../portal.js";
+import type * as products from "../products.js";
 import type * as provision from "../provision.js";
 import type * as public_ from "../public.js";
 import type * as reviews from "../reviews.js";
@@ -119,6 +120,7 @@ declare const fullApi: ApiFromModules<{
   policies: typeof policies;
   popup: typeof popup;
   portal: typeof portal;
+  products: typeof products;
   provision: typeof provision;
   public: typeof public_;
   reviews: typeof reviews;
