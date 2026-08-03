@@ -216,6 +216,45 @@ describe("Reorder — cross-site ID injection is rejected", () => {
   });
 });
 
+// ── seedPlaceholders idempotency ──────────────────────────────────────────────
+
+describe("seedPlaceholders — idempotency", () => {
+  const as = () => t.withIdentity({ subject: "superadmin" });
+
+  it("seeding once creates exactly 3 products", async () => {
+    const { seeded } = await as().mutation(api.products.seedPlaceholders, {
+      siteId: s.siteA,
+    });
+    expect(seeded).toBe(3);
+
+    const list = await t.run(async (ctx) =>
+      ctx.db
+        .query("siteProducts")
+        .withIndex("by_site", (q) => q.eq("siteId", s.siteA))
+        .collect(),
+    );
+    expect(list).toHaveLength(3);
+  });
+
+  it("calling seedPlaceholders a second time leaves exactly 3 products, not 6", async () => {
+    await as().mutation(api.products.seedPlaceholders, { siteId: s.siteA });
+    const second = await as().mutation(api.products.seedPlaceholders, {
+      siteId: s.siteA,
+    });
+
+    // Second call should be a no-op
+    expect(second.seeded).toBe(0);
+
+    const list = await t.run(async (ctx) =>
+      ctx.db
+        .query("siteProducts")
+        .withIndex("by_site", (q) => q.eq("siteId", s.siteA))
+        .collect(),
+    );
+    expect(list).toHaveLength(3);
+  });
+});
+
 // ── Unauthenticated access ────────────────────────────────────────────────────
 
 describe("Unauthenticated callers", () => {

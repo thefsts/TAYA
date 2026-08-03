@@ -1,9 +1,107 @@
 import { query, mutation } from "./_generated/server";
+import { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 import { provisionUser } from "./lib/getCurrentUser";
+import { Id } from "./_generated/dataModel";
+
+// ── Shared internal helper ───────────────────────────────────────────────────
+
+/**
+ * Inserts 3 placeholder products for a newly-created site.
+ * Idempotent: returns 0 immediately if any siteProducts already exist for
+ * the site, so it is safe to call multiple times without creating duplicates.
+ *
+ * @param opts.businessName  Optional client name used to personalise copy.
+ * @param opts.tiers         Optional triple of tier labels; falls back to
+ *                           ["Starter", "Professional", "Enterprise"].
+ */
+export async function insertPlaceholderProducts(
+  ctx: MutationCtx,
+  siteId: Id<"sites">,
+  opts: { businessName?: string; tiers?: [string, string, string] } = {},
+): Promise<number> {
+  // Idempotency guard — bail out if products already exist for this site.
+  const existing = await ctx.db
+    .query("siteProducts")
+    .withIndex("by_site", (q) => q.eq("siteId", siteId))
+    .first();
+  if (existing) return 0;
+
+  const bn = opts.businessName ? ` with ${opts.businessName}` : "";
+  const [t0, t1, t2] = opts.tiers ?? ["Starter", "Professional", "Enterprise"];
+
+  function slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 60);
+  }
+
+  const placeholders = [
+    {
+      title: `${t0} Package`,
+      slug: slugify(`${t0}-package`) || "starter-package",
+      shortDescription: `Everything you need to get started${bn}.`,
+      description:
+        `Our ${t0} Package is designed for individuals and small teams ready to hit the ground running${bn}. ` +
+        `Includes core features, onboarding support, and 30 days of follow-up assistance.`,
+      priceCents: 49900,
+      priceLabel: "$499",
+      isFeatured: false,
+      ctaLabel: "Get Started",
+    },
+    {
+      title: `${t1} Package`,
+      slug: slugify(`${t1}-package`) || "professional-package",
+      shortDescription: `For growing businesses that need more power${bn}.`,
+      description:
+        `The ${t1} Package unlocks advanced features, priority support, and expanded capacity ` +
+        `so your team can move faster and deliver better results${bn}.`,
+      priceCents: 149900,
+      priceLabel: "$1,499",
+      isFeatured: true,
+      ctaLabel: "Get Started",
+    },
+    {
+      title: `${t2} Package`,
+      slug: slugify(`${t2}-package`) || "enterprise-package",
+      shortDescription: `Custom solutions for large organisations${bn}.`,
+      description:
+        `The ${t2} Package is fully tailored to your organisation's scale and goals${bn}. ` +
+        `Includes dedicated account management, custom integrations, and an SLA-backed support tier.`,
+      priceCents: 299900,
+      priceLabel: "From $2,999",
+      isFeatured: false,
+      ctaLabel: "Contact Us",
+    },
+  ];
+
+  for (let i = 0; i < placeholders.length; i++) {
+    const p = placeholders[i];
+    await ctx.db.insert("siteProducts", {
+      siteId,
+      order: i,
+      isVisible: false,
+      category: "Packages",
+      title: p.title,
+      slug: p.slug,
+      description: p.description,
+      shortDescription: p.shortDescription,
+      priceCents: p.priceCents,
+      priceLabel: p.priceLabel,
+      isFeatured: p.isFeatured,
+      ctaLabel: p.ctaLabel,
+    });
+  }
+
+  return placeholders.length;
+}
 
 export const list = query({
   args: { siteId: v.id("sites") },
@@ -162,76 +260,20 @@ export const seedPlaceholders = mutation({
     const user = await provisionUser(ctx);
     if (!user.isSuperAdmin) throw new Error("Forbidden: superAdmin required");
 
-    const placeholders = [
-      {
-        title: "Starter Package",
-        slug: "starter-package",
-        shortDescription: "Everything you need to get started.",
-        description:
-          "Our Starter Package is designed for individuals and small teams ready to hit the ground running. " +
-          "Includes core features, onboarding support, and 30 days of follow-up assistance.",
-        priceCents: 49900,
-        priceLabel: "$499",
-        category: "Packages",
-        isFeatured: false,
-        ctaLabel: "Get Started",
-      },
-      {
-        title: "Professional Package",
-        slug: "professional-package",
-        shortDescription: "For growing businesses that need more power.",
-        description:
-          "The Professional Package unlocks advanced features, priority support, and expanded capacity " +
-          "so your team can move faster and deliver better results.",
-        priceCents: 149900,
-        priceLabel: "$1,499",
-        category: "Packages",
-        isFeatured: true,
-        ctaLabel: "Get Started",
-      },
-      {
-        title: "Enterprise Package",
-        slug: "enterprise-package",
-        shortDescription: "Custom solutions for large organisations.",
-        description:
-          "The Enterprise Package is fully tailored to your organisation's scale and goals. " +
-          "Includes dedicated account management, custom integrations, and an SLA-backed support tier.",
-        priceCents: 299900,
-        priceLabel: "From $2,999",
-        category: "Packages",
-        isFeatured: false,
-        ctaLabel: "Contact Us",
-      },
-    ];
+    const seeded = await insertPlaceholderProducts(ctx, siteId);
 
-    for (let i = 0; i < placeholders.length; i++) {
-      const p = placeholders[i];
-      await ctx.db.insert("siteProducts", {
+    if (seeded > 0) {
+      await logActivity(ctx, {
         siteId,
-        order: i,
-        isVisible: false,
-        title: p.title,
-        slug: p.slug,
-        description: p.description,
-        shortDescription: p.shortDescription,
-        priceCents: p.priceCents,
-        priceLabel: p.priceLabel,
-        category: p.category,
-        isFeatured: p.isFeatured,
-        ctaLabel: p.ctaLabel,
+        actorName: user.name,
+        action: "seeded",
+        entityType: "product",
+        page: "Onboarding",
+        details: `${seeded} placeholder products created (hidden until published)`,
       });
     }
 
-    await logActivity(ctx, {
-      siteId,
-      actorName: user.name,
-      action: "seeded",
-      entityType: "product",
-      page: "Onboarding",
-      details: "3 placeholder products created (hidden until published)",
-    });
-
-    return { seeded: placeholders.length };
+    return { seeded };
   },
 });
 export const reorder = mutation({
