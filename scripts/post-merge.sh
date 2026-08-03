@@ -1,10 +1,24 @@
 #!/bin/bash
 set -e
 
+# ── Serialize concurrent post-merge invocations ───────────────────────────────
+# Multiple task-agent merges arriving at the same time each spawn a copy of
+# this script.  Concurrent git operations race over .git/index.lock and corrupt
+# the author-rewrite.  Grab an advisory flock (not a git lock, so it does NOT
+# conflict with git internals) and wait up to 90 s for any prior invocation to
+# finish before proceeding.  The lock is released automatically when the script
+# exits (fd 9 is closed by the OS).
+_FSTS_LOCK="/tmp/fsts-post-merge.lock"
+exec 9>"$_FSTS_LOCK"
+if ! flock -w 90 9; then
+  echo "✗ Could not acquire post-merge serialization lock after 90 s — aborting" >&2
+  exit 1
+fi
+
 # ── Stale index lock cleanup ──────────────────────────────────────────────────
-# Simultaneous task-agent merges can leave a stale .git/index.lock that causes
-# subsequent git operations to fail with exit 128.  Remove it unconditionally
-# at startup — it is always safe to delete when no other git process is running.
+# Stale .git/index.lock files can also be left by crashed git processes
+# (unrelated to the concurrency issue above).  Remove unconditionally before
+# the first git operation — always safe when no other git process holds it.
 rm -f .git/index.lock 2>/dev/null || true
 
 # ── Corsair guard ─────────────────────────────────────────────────────────────
