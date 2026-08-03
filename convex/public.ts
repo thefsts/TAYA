@@ -431,6 +431,39 @@ export const getProductByProductSlug = internalQuery({
   },
 });
 
+export const getServicesBySlug = internalQuery({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!site) return [];
+    const docs = await ctx.db
+      .query("siteServices")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    return docs
+      .filter((d) => d.isVisible)
+      .sort((a, b) => a.order - b.order)
+      .map((d) => ({
+        id: d._id,
+        siteId: d.siteId,
+        title: d.title,
+        slug: d.slug,
+        description: d.description,
+        shortDescription: d.shortDescription ?? null,
+        imageUrl: d.imageUrl ?? null,
+        price: d.price ?? null,
+        duration: d.duration ?? null,
+        category: d.category ?? null,
+        order: d.order,
+        ctaLabel: d.ctaLabel ?? null,
+        ctaUrl: d.ctaUrl ?? null,
+      }));
+  },
+});
+
 export const getPopupBySlug = internalQuery({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {

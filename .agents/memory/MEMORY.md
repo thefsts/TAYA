@@ -20,3 +20,4 @@
 - [FSTS superAdmin allowlist](fsts-superadmin-allowlist.md) — first-signup bootstrap removed; use SUPERADMIN_EMAILS Convex env var; current allowlist: amorebey@gmail.com + e2e-test@fstsclientsystem.com.
 - [FSTS add-on catalog](fsts-addon-catalog.md) — addOnCatalog + siteAddOns schema; 6 items seeded; wizard Step 8 live; test site: apex-fitness-studio (siteId: qd71sbs6m0q215ehvdw9gbvkcn8brk1e).
 - [Corsair lock-file / Vercel npm compat](corsair-lockfile-vercel-compat.md) — never regenerate package-lock.json locally; Vercel's npm resolves @emnapi/* differently; restore green lock file instead.
+- [Corsair CMS wiring](corsair-cms-wiring.md) — Convex HTTP actions use *.convex.site (not .cloud); courses page uses server-wrapper + cmsPriceOverrides pattern; services endpoint added.

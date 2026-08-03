@@ -51,6 +51,8 @@ const preflightPaths = [
   // Products / Offerings
   "/api/public/products",
   "/api/public/products/by-slug",
+  // Services
+  "/api/public/services",
 ];
 for (const path of preflightPaths) {
   http.route({ path, method: "OPTIONS", handler: preflight });
@@ -629,6 +631,18 @@ http.route({
     } catch (err: any) {
       return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
     }
+  }),
+});
+
+/* ── GET /api/public/services?slug= ─────────────────────────────────────── */
+http.route({
+  path: "/api/public/services",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getServicesBySlug, { slug });
+    return ok(data);
   }),
 });
 
