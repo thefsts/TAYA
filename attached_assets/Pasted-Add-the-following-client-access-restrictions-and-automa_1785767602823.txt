@@ -1,0 +1,291 @@
+Add the following client-access restrictions and automatic class/event lifecycle controls to the FSTS Website Operating System™.
+
+## 1. Lock Website Design, Layout, and Code
+
+Client users must not be able to change the structural design of their website or the FSTS dashboard.
+
+Client users must not have access to:
+
+* Website source code
+* Dashboard source code
+* HTML, CSS, JavaScript, React, or framework files
+* Convex functions, schema, or backend code
+* Environment variables or API secrets
+* Global templates
+* Page layouts
+* Header or footer structure
+* Navigation structure beyond approved content fields
+* Theme files
+* Fonts
+* Brand color system
+* Global spacing
+* Component positioning
+* Responsive breakpoints
+* Shared dashboard components
+* Developer settings
+* Deployment settings
+* Vercel, GitHub, Clerk, Convex, Resend, or storage administration
+* Any code editor, custom-code field, script injection field, or raw HTML field
+
+The client may edit approved content only. The website's design system, layout, code, and responsive behavior must remain controlled by FSTS.
+
+SuperAdmin users may manage protected design and technical settings when necessary.
+
+## 2. Add Permission-Based Content Controls
+
+Create explicit RBAC permissions instead of relying only on hidden buttons.
+
+Recommended permissions:
+
+* `content.view`
+* `content.create`
+* `content.update`
+* `content.delete`
+* `media.view`
+* `media.upload`
+* `media.delete`
+* `flyers.create`
+* `flyers.update`
+* `flyers.publish`
+* `flyers.archive`
+* `events.manage`
+* `classes.manage`
+* `design.manage`
+* `layout.manage`
+* `code.manage`
+* `integrations.manage`
+* `deployment.manage`
+
+Client site-admin users may receive approved content, flyer, event, class, and media permissions.
+
+Only platform SuperAdmins may receive:
+
+* `design.manage`
+* `layout.manage`
+* `code.manage`
+* `integrations.manage`
+* `deployment.manage`
+
+Enforce these permissions in both the frontend and Convex backend. Hiding a button is not sufficient. Unauthorized mutations must be rejected server-side.
+
+## 3. Allow Clients to Add Flyers
+
+Add or confirm a client-accessible Flyer Manager.
+
+Clients should be able to:
+
+* Upload a flyer image
+* Enter a flyer title
+* Add a short description
+* Add an optional button label and destination link
+* Select a start date
+* Select an expiration date
+* Associate the flyer with a class, course, event, service, or general announcement
+* Save as draft
+* Publish
+* Schedule publication
+* Archive the flyer
+* Preview it before publishing
+
+Clients must not be able to redesign the flyer component or change its website layout. They may only manage the approved content fields and uploaded media.
+
+Flyers must use the existing website design system and approved templates.
+
+Automatically stop displaying a flyer when:
+
+* Its expiration date passes
+* Its associated event or class is cancelled
+* Its associated event or class has ended
+* A SuperAdmin or authorized client archives it
+
+Do not permanently delete expired flyers by default. Move them to an archived state so they remain available for records and reuse.
+
+## 4. Add Class Capacity Management
+
+Classes must support at least these fields:
+
+* `capacity`
+* `registeredCount`
+* `waitlistCapacity`
+* `waitlistCount`
+* `registrationOpenAt`
+* `registrationCloseAt`
+* `startDateTime`
+* `endDateTime`
+* `timezone`
+* `status`
+* `registrationStatus`
+* `isPublished`
+* `autoCloseRegistration`
+* `autoArchive`
+* `cancelledAt`
+* `completedAt`
+
+Recommended class statuses:
+
+* Draft
+* Scheduled
+* Registration Open
+* Nearly Full
+* Full
+* Waitlist Open
+* Registration Closed
+* In Progress
+* Completed
+* Cancelled
+* Archived
+
+The dashboard must calculate availability from authoritative registration records. Do not depend only on a manually entered `registeredCount`.
+
+When confirmed registrations reach capacity:
+
+1. Mark the class as `Full`.
+2. Close normal registration.
+3. Change the public website button from “Register” to “Class Full.”
+4. Open the waitlist automatically when waitlisting is enabled and capacity remains.
+5. Prevent registrations beyond capacity with an atomic backend check.
+6. Notify the client that the class is full.
+7. Optionally notify the platform SuperAdmin.
+
+The capacity check must happen inside the backend transaction or mutation to prevent two people from claiming the final seat simultaneously.
+
+If a registration is cancelled:
+
+* Recalculate remaining capacity.
+* Reopen registration automatically when permitted.
+* Or promote the next waitlisted person according to the configured policy.
+* Record the promotion and send the appropriate email notification.
+
+## 5. Automatically Handle Past Classes and Events
+
+The platform must automatically determine when classes and events are upcoming, active, or past by using their configured timezone and end date/time.
+
+When an event or class passes its `endDateTime`:
+
+1. Close registration.
+2. Set its lifecycle status to `Completed` or `Past`.
+3. Remove it from the public Upcoming Events or Upcoming Classes section.
+4. Move it to the public Past Events or Past Classes section when that section is enabled.
+5. Keep the record available in the dashboard.
+6. Preserve registrations, attendance, media, reports, and related records.
+7. Archive or expire associated promotional flyers.
+8. Record the automatic transition timestamp and reason.
+
+Do not delete past events or classes.
+
+If an end time is missing, use a documented fallback rule, such as the end of the event date in the event's configured timezone. The system should encourage the client to enter an exact end time.
+
+## 6. Upcoming and Past Website Queries
+
+Public website queries must clearly separate:
+
+* Upcoming events
+* Current events
+* Past events
+* Upcoming classes
+* Classes with open registration
+* Full classes
+* Waitlisted classes
+* Past classes
+* Cancelled items
+
+Upcoming queries must not return completed, expired, cancelled, or archived items.
+
+Past-event queries should return completed records in reverse chronological order.
+
+Cancelled events should not appear as normal upcoming events. They may appear with a Cancelled label only when the client intentionally keeps them visible.
+
+## 7. Automation and Scheduling
+
+Implement a reliable server-side lifecycle process.
+
+Use:
+
+* Immediate lifecycle recalculation whenever an event, class, registration, cancellation, or capacity value changes
+* A recurring Convex scheduled job to catch time-based transitions
+* Idempotent mutations so repeated runs do not duplicate actions or notifications
+* Timezone-aware date calculations
+* Audit logs for every automatic status change
+
+The scheduled process should check at least:
+
+* Registration opening
+* Registration closing
+* Capacity reached
+* Waitlist opening
+* Event/class beginning
+* Event/class ending
+* Flyer publishing
+* Flyer expiration
+* Automatic archiving
+
+Do not depend on a client having the dashboard open for these transitions to occur.
+
+## 8. Dashboard Assistance and Alerts
+
+The dashboard should help the client manage classes and events with clear notices such as:
+
+* “This class is nearly full.”
+* “This class has reached capacity.”
+* “Registration has closed.”
+* “This event has passed and was moved to Past Events.”
+* “This flyer expired and was archived.”
+* “Five people are currently on the waitlist.”
+* “This event has no end time. Add one for accurate automation.”
+* “Registration closes in 24 hours.”
+
+Add dashboard filters for:
+
+* Upcoming
+* Open Registration
+* Nearly Full
+* Full
+* Waitlist
+* Past
+* Cancelled
+* Draft
+* Archived
+
+## 9. Audit and Test Requirements
+
+Inspect the current code before implementing anything and reuse existing modules where possible.
+
+Provide:
+
+* Current permission model
+* Existing class and event schemas
+* Existing registration and capacity logic
+* Existing flyer or announcement functionality
+* Existing scheduled Convex jobs
+* Gaps found
+* Files changed
+* Schema changes
+* Migrations required
+* Tests added
+* Test results
+* Screenshots or production evidence
+
+Required tests include:
+
+* Client cannot access design, layout, code, integrations, or deployment controls
+* Client cannot call protected backend mutations directly
+* Client can create and publish an approved flyer
+* Expired flyer disappears from the live site and is archived
+* Registration closes exactly at capacity
+* Concurrent registrations cannot exceed capacity
+* Cancellation correctly frees a seat
+* Waitlisted user can be promoted
+* Registration closes at the configured date/time
+* Past events automatically leave Upcoming Events
+* Past events appear under Past Events
+* Cancelled events are handled correctly
+* Tenant isolation prevents one client from modifying another client's events, classes, flyers, or registrations
+* All lifecycle calculations honor the configured timezone
+
+Create separate implementation tasks where needed, assign priorities, and report which items are:
+
+* Critical before Corsair owner access
+* Required before onboarding Website #2
+* Post-launch enhancements
+
+Do not mark this work complete based only on UI changes. Confirm backend authorization, live website behavior, automated lifecycle transitions, and tenant isolation with tests and production evidence.
