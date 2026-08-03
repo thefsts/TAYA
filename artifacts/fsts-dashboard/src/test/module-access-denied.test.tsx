@@ -259,3 +259,100 @@ describe("ModuleAccessDenied — null query guard", () => {
     assertAccessDenied();
   });
 });
+
+// ── Loading-state suite ──────────────────────────────────────────────────────
+//
+// When useQuery returns `undefined` the query is still in flight.
+// Every covered page must render a Skeleton (animate-pulse div) instead of
+// content or ModuleAccessDenied, so users never see a blank page while loading.
+
+describe("Skeleton loading guard — undefined query", () => {
+  beforeEach(() => {
+    // All queries return undefined → in-flight / loading
+    mockUseQuery.mockReset();
+    mockUseQuery.mockReturnValue(undefined);
+    mockUseMutation.mockReset();
+    mockUseMutation.mockReturnValue(vi.fn());
+    mockUseAction.mockReset();
+    mockUseAction.mockReturnValue(vi.fn());
+  });
+
+  function assertSkeleton({ container }: { container: HTMLElement }) {
+    // Skeleton renders a div with the "animate-pulse" class.
+    const skeletons = container.querySelectorAll(".animate-pulse");
+    expect(skeletons.length).toBeGreaterThan(0);
+    // Must NOT show the access-denied message — that's a different state.
+    expect(screen.queryByText("Access denied")).not.toBeInTheDocument();
+  }
+
+  // ── Site pages ─────────────────────────────────────────────────────────
+
+  it("ActivityLog renders Skeleton while query is undefined", () => {
+    const { container } = render(<ActivityLog params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("BackupsList renders Skeleton while query is undefined", () => {
+    const { container } = render(<BackupsList params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("CoursesList renders Skeleton while primary query is undefined", () => {
+    const { container } = render(<CoursesList params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("EventsList renders Skeleton while primary query is undefined", () => {
+    const { container } = render(<EventsList params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("FormSubmissions renders Skeleton while query is undefined", () => {
+    const { container } = render(<FormSubmissions params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("MediaLibrary renders Skeleton while primary query is undefined", () => {
+    const { container } = render(<MediaLibrary params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("SeoSettings renders Skeleton while query is undefined", () => {
+    const { container } = render(<SeoSettings params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("VersionHistory renders Skeleton while query is undefined", () => {
+    const { container } = render(<VersionHistory params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("PaymentsConfig renders Skeleton while config query is undefined", () => {
+    const { container } = render(<PaymentsConfig params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("PaymentProviders renders Skeleton while connectors query is undefined", () => {
+    const { container } = render(<PaymentProviders params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  it("CrmConnectionConfig renders Skeleton while connection query is undefined", () => {
+    const { container } = render(<CrmConnectionConfig params={SITE_PARAMS} />);
+    assertSkeleton({ container });
+  });
+
+  // ── Admin pages ────────────────────────────────────────────────────────
+  // When me === undefined the page renders a Skeleton immediately (no isSuperAdmin
+  // check fires yet) — no special first-call override needed.
+
+  it("AdminSites renders Skeleton while me query is undefined", () => {
+    const { container } = render(<AdminSites />);
+    assertSkeleton({ container });
+  });
+
+  it("AdminDesignLock renders Skeleton while me query is undefined", () => {
+    const { container } = render(<AdminDesignLock />);
+    assertSkeleton({ container });
+  });
+});
