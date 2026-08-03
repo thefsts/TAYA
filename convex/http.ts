@@ -50,6 +50,7 @@ const preflightPaths = [
   "/api/public/reviews",
   // Products / Offerings
   "/api/public/products",
+  "/api/public/products/by-slug",
 ];
 for (const path of preflightPaths) {
   http.route({ path, method: "OPTIONS", handler: preflight });
@@ -639,6 +640,21 @@ http.route({
     const slug = new URL(request.url).searchParams.get("slug") ?? "";
     if (!slug) return notFound("slug required");
     const data = await ctx.runQuery(internal.public.getProductsBySlug, { slug });
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/public/products/by-slug?site=&product= ────────────────────── */
+http.route({
+  path: "/api/public/products/by-slug",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const params = new URL(request.url).searchParams;
+    const siteSlug = params.get("site") ?? "";
+    const productSlug = params.get("product") ?? "";
+    if (!siteSlug || !productSlug) return notFound("site and product params required");
+    const data = await ctx.runQuery(internal.public.getProductByProductSlug, { siteSlug, productSlug });
+    if (!data) return notFound("Product not found");
     return ok(data);
   }),
 });
