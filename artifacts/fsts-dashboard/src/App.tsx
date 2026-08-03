@@ -53,6 +53,7 @@ const AnnouncementBanner = lazy(() => import("@/pages/app/sites/AnnouncementBann
 const CtaManager = lazy(() => import("@/pages/app/sites/CtaManager"));
 const DownloadsManager = lazy(() => import("@/pages/app/sites/DownloadsManager"));
 const TeamManager = lazy(() => import("@/pages/app/sites/TeamManager"));
+const ServicesManager = lazy(() => import("@/pages/app/sites/ServicesManager"));
 const CareersManager = lazy(() => import("@/pages/app/sites/CareersManager"));
 const PopupManager = lazy(() => import("@/pages/app/sites/PopupManager"));
 
@@ -373,6 +374,7 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/cta" component={CtaManager} />
           <Route path="/app/sites/:siteId/downloads" component={DownloadsManager} />
           <Route path="/app/sites/:siteId/team" component={TeamManager} />
+          <Route path="/app/sites/:siteId/services" component={ServicesManager} />
           <Route path="/app/sites/:siteId/careers" component={CareersManager} />
           <Route path="/app/sites/:siteId/popup" component={PopupManager} />
           <Route path="/app/sites/:siteId/history" component={VersionHistoryGuarded} />

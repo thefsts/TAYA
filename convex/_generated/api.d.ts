@@ -55,6 +55,7 @@ import type * as portal from "../portal.js";
 import type * as provision from "../provision.js";
 import type * as public_ from "../public.js";
 import type * as reviews from "../reviews.js";
+import type * as services from "../services.js";
 import type * as seedClient from "../seedClient.js";
 import type * as seedCorsair from "../seedCorsair.js";
 import type * as seo from "../seo.js";
@@ -121,6 +122,7 @@ declare const fullApi: ApiFromModules<{
   provision: typeof provision;
   public: typeof public_;
   reviews: typeof reviews;
+  services: typeof services;
   seedClient: typeof seedClient;
   seedCorsair: typeof seedCorsair;
   seo: typeof seo;
