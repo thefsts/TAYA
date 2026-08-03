@@ -16,6 +16,7 @@ import {
   SlidersHorizontal,
   Rocket,
   BookOpen,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -110,6 +111,10 @@ export default function SitesList() {
               <Button variant="outline" onClick={() => setLocation("/app/admin/access-control")}>
                 <ShieldCheck className="h-4 w-4 mr-2 text-slate-500" />
                 Access Control
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/app/admin/roles")}>
+                <KeyRound className="h-4 w-4 mr-2 text-slate-500" />
+                Role Permissions
               </Button>
               <Button variant="outline" onClick={() => setLocation("/app/admin/design-lock")}>
                 <ShieldCheck className="h-4 w-4 mr-2 text-slate-500" />
