@@ -330,38 +330,60 @@ export const launch = mutation({
 
     // ── Seed placeholder products if the Products page was selected ───
     if (pages.includes("products")) {
+      // priceRange is an optional array of tier name strings that a future wizard
+      // step may supply (e.g. ["Basic", "Pro", "Elite"]). Fall back to generic
+      // names when the field is absent or has fewer than three entries.
+      const rawTiers: string[] = Array.isArray(d.priceRange)
+        ? (d.priceRange as unknown[]).filter(
+            (t): t is string => typeof t === "string" && t.trim().length > 0
+          )
+        : [];
+      const tier = (idx: number, fallback: string): string =>
+        rawTiers[idx]?.trim() || fallback;
+
+      // A short hint from the business description, used to personalise copy.
+      const descHint =
+        typeof d.description === "string" && d.description.trim().length > 0
+          ? d.description.trim().slice(0, 100)
+          : "";
+
+      const t0 = tier(0, "Starter");
+      const t1 = tier(1, "Professional");
+      const t2 = tier(2, "Enterprise");
+
       const productPlaceholders = [
         {
-          title: "Starter Package",
-          slug: "starter-package",
-          shortDescription: "Everything you need to get started.",
+          title: `${t0} Package`,
+          slug: slugify(`${t0}-package`) || "starter-package",
+          shortDescription: `Everything you need to get started with ${businessName}.`,
           description:
-            "Our Starter Package is designed for individuals and small teams ready to hit the ground running. " +
-            "Includes core features, onboarding support, and 30 days of follow-up assistance.",
+            `Our ${t0} Package is designed for individuals and small teams ready to hit the ground running with ${businessName}. ` +
+            (descHint ? `${descHint}. ` : "") +
+            `Includes core features, onboarding support, and 30 days of follow-up assistance.`,
           priceCents: 49900,
           priceLabel: "$499",
           isFeatured: false,
           ctaLabel: "Get Started",
         },
         {
-          title: "Professional Package",
-          slug: "professional-package",
-          shortDescription: "For growing businesses that need more power.",
+          title: `${t1} Package`,
+          slug: slugify(`${t1}-package`) || "professional-package",
+          shortDescription: `For growing businesses that need more from ${businessName}.`,
           description:
-            "The Professional Package unlocks advanced features, priority support, and expanded capacity " +
-            "so your team can move faster and deliver better results.",
+            `The ${t1} Package unlocks advanced features, priority support, and expanded capacity ` +
+            `so your team can move faster and deliver better results with ${businessName}.`,
           priceCents: 149900,
           priceLabel: "$1,499",
           isFeatured: true,
           ctaLabel: "Get Started",
         },
         {
-          title: "Enterprise Package",
-          slug: "enterprise-package",
-          shortDescription: "Custom solutions for large organisations.",
+          title: `${t2} Package`,
+          slug: slugify(`${t2}-package`) || "enterprise-package",
+          shortDescription: `Custom solutions for large organisations working with ${businessName}.`,
           description:
-            "The Enterprise Package is fully tailored to your organisation's scale and goals. " +
-            "Includes dedicated account management, custom integrations, and an SLA-backed support tier.",
+            `The ${t2} Package is fully tailored to your organisation's scale and goals at ${businessName}. ` +
+            `Includes dedicated account management, custom integrations, and an SLA-backed support tier.`,
           priceCents: 299900,
           priceLabel: "From $2,999",
           isFeatured: false,

@@ -132,6 +132,9 @@ interface StepData {
   templateId: string;
   // Step 5
   contentSetup: string;
+  /** Up to 3 pricing tier names for the Products page (e.g. ["Basic","Pro","Elite"]).
+   *  Seeded as placeholder product titles on launch. Falls back to Starter/Professional/Enterprise when empty. */
+  priceRange: string[];
   // Step 6
   domainChoice: string;
   customDomain: string;
@@ -146,6 +149,7 @@ const DEFAULT_DATA: StepData = {
   brandColorPrimary: "#1d4ed8", brandColorSecondary: "#0f172a",
   fontHeading: "Inter", fontBody: "Inter", designStyle: "modern",
   templateId: "modern_business", contentSetup: "skip",
+  priceRange: [],
   domainChoice: "later", customDomain: "",
   integrations: [],
 };
@@ -473,6 +477,20 @@ function Step5({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
     { value: "own",  label: "I'll enter my own content now",   desc: "You'll fill in key content fields during setup." },
     { value: "ai",   label: "Generate AI starter content",     desc: "Coming soon — AI-generated copy based on your business information." },
   ];
+
+  const hasProducts = data.pages.includes("products");
+
+  const setTier = (idx: number, value: string) => {
+    const next = [...(data.priceRange ?? []), "", ""].slice(0, 3) as [string, string, string];
+    next[idx] = value;
+    set({ priceRange: next });
+  };
+  const tiers = [
+    data.priceRange?.[0] ?? "",
+    data.priceRange?.[1] ?? "",
+    data.priceRange?.[2] ?? "",
+  ];
+
   return (
     <div className="space-y-4">
       <div>
@@ -488,6 +506,31 @@ function Step5({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
           />
         ))}
       </div>
+
+      {hasProducts && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div>
+            <p className="text-sm font-medium text-slate-800">Product Pricing Tiers <span className="text-slate-400 font-normal">(optional)</span></p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Name up to three pricing tiers for this client's Products page. These become the placeholder product titles — you can rename them any time from the dashboard.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {(["Tier 1", "Tier 2", "Tier 3"] as const).map((placeholder, idx) => (
+              <div key={idx} className="space-y-1">
+                <Label className="text-xs text-slate-500">{placeholder}</Label>
+                <Input
+                  value={tiers[idx]}
+                  onChange={(e) => setTier(idx, e.target.value)}
+                  placeholder={["Starter", "Professional", "Enterprise"][idx]}
+                  maxLength={40}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-slate-400">Leave blank to use the default names: Starter, Professional, Enterprise.</p>
+        </div>
+      )}
     </div>
   );
 }
