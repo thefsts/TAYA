@@ -297,3 +297,26 @@ export const seedTestSite = mutation({
     };
   },
 });
+
+// ─── Archive the Apex Fitness Studio test site ────────────────────────────────
+// Run once: npx convex run seed:archiveApexTestSite '{}'
+// Marks the dummy test site as "archived" so it no longer appears in the
+// dashboard. The Corsair site is now the first real client; the dummy site is
+// no longer needed as the default example.
+export const archiveApexTestSite = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const APEX_SLUG = "apex-fitness-studio";
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", APEX_SLUG))
+      .first();
+
+    if (!site) {
+      return { ok: false, message: "Apex Fitness Studio site not found — nothing to archive." };
+    }
+
+    await ctx.db.patch(site._id, { status: "archived" } as Partial<typeof site>);
+    return { ok: true, siteId: site._id, message: `✓ Site '${APEX_SLUG}' (${site._id}) marked as archived.` };
+  },
+});

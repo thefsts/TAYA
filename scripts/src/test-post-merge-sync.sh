@@ -281,13 +281,15 @@ test_conflicting_rebase_force_push_wins() {
   fi
 }
 
-# ── Test 3: wrong-identity commit in outgoing range → aborts before push ───────
-# post-merge.sh amends the HEAD commit to fix its author, but if the outgoing
-# range contains an EARLIER commit with a wrong author identity, the identity
-# check must catch it and abort the push before any bytes reach GitHub.
-test_wrong_identity_aborts_push() {
+# ── Test 3: wrong-identity commits → rewritten to THEFSTS and pushed ──────────
+# post-merge.sh rewrites ALL commits in the outgoing range to THEFSTS
+# <amorebey@gmail.com> before pushing. Wrong-identity commits from the platform
+# are silently corrected rather than rejected, guaranteeing every byte that
+# reaches GitHub carries the approved identity regardless of what task agents
+# committed locally.
+test_wrong_identity_commits_rewritten_and_pushed() {
   echo ""
-  echo -e "${BOLD}Test 3: Wrong-identity commit in outgoing range — push is aborted${RESET}"
+  echo -e "${BOLD}Test 3: Wrong-identity commits in outgoing range — rewritten to THEFSTS and pushed${RESET}"
 
   local tmpdir
   tmpdir="$(setup_repos)"
@@ -298,68 +300,71 @@ test_wrong_identity_aborts_push() {
   create_git_stub "$bin_dir" "$fake_remote"
   create_pnpm_stub "$bin_dir"
 
-  # Capture the remote tip SHA before the script runs — it must not change.
+  # Capture the remote tip SHA before the script runs — it MUST change.
   local remote_tip_before
   remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
 
-  # Simulate the platform injecting a commit with a wrong author identity that
-  # is NOT the tip (post-merge.sh only amends HEAD, so this one stays wrong).
+  # Two wrong-identity commits — simulating task-agent authorship.
   git -C "$working" \
     -c user.name="Replit Agent" \
     -c user.email="agent@replit.com" \
     commit --allow-empty -m "platform: wrong-identity commit" >/dev/null 2>&1
 
-  # Add a second commit (this will become HEAD; post-merge.sh will amend it to
-  # the correct identity — but the earlier wrong-identity commit must still be
-  # caught by the outgoing-range check).
   git -C "$working" \
     -c user.name="Replit Agent" \
     -c user.email="agent@replit.com" \
-    commit --allow-empty -m "another wrong-identity commit (will become HEAD)" >/dev/null 2>&1
+    commit --allow-empty -m "another wrong-identity commit (HEAD)" >/dev/null 2>&1
 
   run_post_merge "$working" "$bin_dir"
 
-  # Assertion 1: script must exit non-zero — identity check must abort the push.
-  if [ "$LAST_EXIT" -ne 0 ]; then
-    pass "Script exits non-zero when outgoing range contains a wrong-identity commit"
+  # Assertion 1: script must exit 0 — rewrite succeeds and push goes through.
+  if [ "$LAST_EXIT" -eq 0 ]; then
+    pass "Script exits 0 — wrong-identity commits were rewritten and pushed"
   else
-    fail "Script should exit non-zero but exited 0 — wrong-identity commit was not caught"
+    fail "Script should exit 0 after rewriting and pushing, but exited $LAST_EXIT"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
     return
   fi
 
-  # Assertion 2: output must mention the identity failure clearly.
-  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
-    pass "Output clearly reports the identity violation"
+  # Assertion 2: output must mention the rewrite step.
+  if echo "$LAST_OUTPUT" | grep -qiE "Rewriting author|rewritten to THEFSTS|All outgoing commits rewritten"; then
+    pass "Output confirms the identity rewrite step ran"
   else
-    fail "Output should mention the identity failure (unauthorised author / ABORTED)"
+    fail "Output should mention the identity rewrite step"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
   fi
 
-  # Assertion 3: the remote must NOT have been pushed — tip SHA unchanged.
+  # Assertion 3: remote tip MUST have changed — commits were pushed.
   local gh_clone="$tmpdir/gh-clone"
   git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
   local remote_tip_after
   remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
-  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
-    pass "Remote history was not modified — wrong-identity commits were not pushed"
+  if [ "$remote_tip_before" != "$remote_tip_after" ]; then
+    pass "Remote was updated — rewritten commits reached GitHub"
   else
-    fail "Remote tip changed — wrong-identity commit reached GitHub despite identity failure"
-    echo "    remote before: $remote_tip_before"
-    echo "    remote after:  $remote_tip_after"
+    fail "Remote tip unchanged — commits were not pushed after rewrite"
+  fi
+
+  # Assertion 4: all commits on remote must carry the approved identity.
+  local bad_authors
+  bad_authors="$(git -C "$gh_clone" log --format="%ae" | grep -v "^amorebey@gmail\.com$" || true)"
+  if [ -z "$bad_authors" ]; then
+    pass "All commits on remote are authored by THEFSTS <amorebey@gmail.com>"
+  else
+    fail "Remote still contains non-THEFSTS commits after rewrite: $bad_authors"
   fi
 }
 
-# ── Test 4: multiple consecutive wrong-identity commits → ALL caught ───────────
-# A regression in check-commit-identity.sh could cause it to stop after the
-# first violation and miss subsequent ones.  This test injects 3 wrong-identity
-# commits and confirms that all three violations are reported and the push is
-# still aborted (full-range scan, not early-exit after first offender).
-test_multiple_wrong_identity_all_caught() {
+# ── Test 4: multiple consecutive wrong-identity commits → all rewritten ────────
+# post-merge.sh rewrites the full outgoing range in one filter-branch pass —
+# it does not stop after fixing the first commit.  This test confirms that 4
+# wrong-identity commits are ALL rewritten before the push, and that the push
+# succeeds with every commit carrying the approved identity.
+test_multiple_wrong_identity_all_rewritten() {
   echo ""
-  echo -e "${BOLD}Test 4: Multiple consecutive wrong-identity commits — all violations caught${RESET}"
+  echo -e "${BOLD}Test 4: Multiple consecutive wrong-identity commits — all rewritten to THEFSTS${RESET}"
 
   local tmpdir
   tmpdir="$(setup_repos)"
@@ -370,109 +375,77 @@ test_multiple_wrong_identity_all_caught() {
   create_git_stub "$bin_dir" "$fake_remote"
   create_pnpm_stub "$bin_dir"
 
-  # Capture the remote tip SHA before the script runs — it must not change.
+  # Capture the remote tip SHA before the script runs — it MUST change.
   local remote_tip_before
   remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
 
-  # Inject 4 wrong-identity commits.  post-merge.sh amends HEAD to the correct
-  # author identity before running the outgoing-range check, so the final commit
-  # (commit #4) will be fixed automatically.  The remaining 3 non-HEAD commits
-  # must ALL be reported as violations — confirming the scanner does not stop
-  # after the first offender.
-  local sha1 sha2 sha3
+  # Inject 4 wrong-identity commits simulating task-agent authorship.
   git -C "$working" \
     -c user.name="Replit Agent" \
     -c user.email="agent@replit.com" \
     commit --allow-empty -m "wrong-identity commit #1" >/dev/null 2>&1
-  sha1="$(git -C "$working" rev-parse --short HEAD)"
-
   git -C "$working" \
     -c user.name="Replit Agent" \
     -c user.email="agent@replit.com" \
     commit --allow-empty -m "wrong-identity commit #2" >/dev/null 2>&1
-  sha2="$(git -C "$working" rev-parse --short HEAD)"
-
   git -C "$working" \
     -c user.name="Replit Agent" \
     -c user.email="agent@replit.com" \
     commit --allow-empty -m "wrong-identity commit #3" >/dev/null 2>&1
-  sha3="$(git -C "$working" rev-parse --short HEAD)"
-
-  # Commit #4 becomes HEAD; post-merge.sh amends it to the correct identity so
-  # it won't appear as a violation — but commits #1-#3 must still all be caught.
   git -C "$working" \
     -c user.name="Replit Agent" \
     -c user.email="agent@replit.com" \
-    commit --allow-empty -m "wrong-identity commit #4 (HEAD — amended by post-merge)" >/dev/null 2>&1
+    commit --allow-empty -m "wrong-identity commit #4 (HEAD)" >/dev/null 2>&1
 
   run_post_merge "$working" "$bin_dir"
 
-  # Assertion 1: script must exit non-zero — commits #1-#3 are still wrong-identity.
-  if [ "$LAST_EXIT" -ne 0 ]; then
-    pass "Script exits non-zero when outgoing range contains multiple wrong-identity commits"
+  # Assertion 1: script must exit 0 — all commits rewritten and pushed.
+  if [ "$LAST_EXIT" -eq 0 ]; then
+    pass "Script exits 0 — all 4 wrong-identity commits were rewritten and pushed"
   else
-    fail "Script should exit non-zero but exited 0 — wrong-identity commits were not caught"
+    fail "Script should exit 0 after rewriting all commits, but exited $LAST_EXIT"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
     return
   fi
 
-  # Assertion 2: violation count reported must be ≥ 3.
-  # check-commit-identity.sh prints "N violating commit(s)" in the summary line.
-  local reported_count
-  reported_count="$(echo "$LAST_OUTPUT" | grep -oE '[0-9]+ violating commit' | grep -oE '^[0-9]+' || echo "0")"
-  if [ "${reported_count:-0}" -ge 3 ]; then
-    pass "Violation count reported is $reported_count (≥ 3) — full-range scan confirmed"
+  # Assertion 2: output must mention the rewrite step.
+  if echo "$LAST_OUTPUT" | grep -qiE "Rewriting author|rewritten to THEFSTS|All outgoing commits rewritten"; then
+    pass "Output confirms the identity rewrite step ran"
   else
-    fail "Violation count should be ≥ 3 but got '${reported_count:-0}' — scanner may be stopping early"
+    fail "Output should mention the identity rewrite step"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
   fi
 
-  # Assertion 3: each of the 3 non-HEAD offending SHAs must appear in the output.
-  local all_shas_found=1
-  for sha in "$sha1" "$sha2" "$sha3"; do
-    if echo "$LAST_OUTPUT" | grep -q "$sha"; then
-      : # found
-    else
-      all_shas_found=0
-      fail "Offending commit SHA $sha not found in output — violation may have been skipped"
-    fi
-  done
-  if [ "$all_shas_found" -eq 1 ]; then
-    pass "All 3 non-HEAD offending SHAs ($sha1, $sha2, $sha3) appear in output"
-  fi
-
-  # Assertion 4: the remote must NOT have been pushed — tip SHA unchanged.
+  # Assertion 3: remote tip MUST have changed — commits were pushed.
   local gh_clone="$tmpdir/gh-clone"
   git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
   local remote_tip_after
   remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
-  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
-    pass "Remote history was not modified — all wrong-identity commits were blocked"
+  if [ "$remote_tip_before" != "$remote_tip_after" ]; then
+    pass "Remote was updated — all 4 rewritten commits reached GitHub"
   else
-    fail "Remote tip changed — wrong-identity commits reached GitHub despite identity failures"
-    echo "    remote before: $remote_tip_before"
-    echo "    remote after:  $remote_tip_after"
+    fail "Remote tip unchanged — commits were not pushed after rewrite"
+  fi
+
+  # Assertion 4: every commit in the pushed range must have the approved identity.
+  local bad_authors
+  bad_authors="$(git -C "$gh_clone" log --format="%ae" | grep -v "^amorebey@gmail\.com$" || true)"
+  if [ -z "$bad_authors" ]; then
+    pass "All commits on remote are authored by THEFSTS <amorebey@gmail.com> — full-range rewrite confirmed"
+  else
+    fail "Remote still contains non-THEFSTS commits — rewrite may not have covered the full range: $bad_authors"
   fi
 }
 
-# ── Test 5: rebase/amend rewrites correct-identity commits → still caught ──────
-# A developer who runs `git rebase` (or `git commit --amend`) while a wrong
-# GIT_AUTHOR_* identity is active in their shell will silently replace every
-# commit's author.  The identity guard must catch these rewritten commits just
-# as firmly as directly-authored wrong-identity commits.
-#
-# Scenario:
-#   1. Two commits are made with the approved identity.
-#   2. `git rebase` re-applies them using --exec to stamp each with the wrong
-#      author (simulating GIT_AUTHOR_* being set in the environment at rebase
-#      time, e.g. by the platform or a misconfigured shell profile).
-#   3. post-merge.sh must exit non-zero, report the offending SHA(s), and leave
-#      the remote unchanged.
-test_rebase_rewrite_wrong_identity_caught() {
+# ── Test 5: rebase-rewritten wrong-identity commits → fixed by filter-branch ───
+# A `git rebase` run while a wrong GIT_AUTHOR_* identity is active will silently
+# stamp every replayed commit with the wrong author.  post-merge.sh's
+# filter-branch pass covers the full outgoing range and fixes these too.
+test_rebase_rewrite_wrong_identity_fixed() {
   echo ""
-  echo -e "${BOLD}Test 5: Rebase/amend rewrites commits with wrong identity — identity check still catches violations${RESET}"
+  echo -e "${BOLD}Test 5: Rebase-rewritten wrong-identity commits — fixed and pushed by post-merge${RESET}"
 
   local tmpdir
   tmpdir="$(setup_repos)"
@@ -483,11 +456,11 @@ test_rebase_rewrite_wrong_identity_caught() {
   create_git_stub "$bin_dir" "$fake_remote"
   create_pnpm_stub "$bin_dir"
 
-  # Capture the remote tip SHA before the script runs — it must not change.
+  # Capture the remote tip SHA before the script runs — it MUST change.
   local remote_tip_before
   remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
 
-  # Step 1: make two commits with the CORRECT approved identity.
+  # Step 1: two commits with the correct identity.
   git -C "$working" \
     -c user.name="THEFSTS" \
     -c user.email="amorebey@gmail.com" \
@@ -498,16 +471,8 @@ test_rebase_rewrite_wrong_identity_caught() {
     -c user.email="amorebey@gmail.com" \
     commit --allow-empty -m "correct-identity commit B" >/dev/null 2>&1
 
-  # Step 2: simulate a developer running `git rebase` while GIT_AUTHOR_* is set
-  # to a wrong identity in their environment (e.g. injected by the platform, or
-  # a misconfigured shell profile).  --exec amends every replayed commit with
-  # the wrong author, just as `git commit --amend --reset-author` would do when
-  # those env vars are present.
-  # Note: the working repo uses "github" (not "origin") as its remote name, so
-  # we rebase onto github/main — the same ref post-merge.sh operates against.
-  #
-  # We write the exec command to a helper script to avoid shell-quoting issues
-  # with the author string when it is passed through git's --exec machinery.
+  # Step 2: rebase re-stamps both commits with the wrong author, simulating
+  # GIT_AUTHOR_* being set in the environment at rebase time.
   local rewrite_script="$tmpdir/rewrite-author.sh"
   cat > "$rewrite_script" <<'REWRITE_AUTHOR'
 #!/bin/bash
@@ -519,80 +484,56 @@ REWRITE_AUTHOR
     --exec "$rewrite_script" \
     >/dev/null 2>&1
 
-  # After the rebase the two commits have been rewritten with the wrong author.
-  # post-merge.sh will amend HEAD to fix its author, so capture the SHA of the
-  # earlier (non-HEAD) commit — it must appear in the violation report.
-  local sha_penultimate
-  sha_penultimate="$(git -C "$working" rev-parse --short HEAD~1)"
-
   run_post_merge "$working" "$bin_dir"
 
-  # Assertion 1: script must exit non-zero — rewritten commits have wrong identity.
-  if [ "$LAST_EXIT" -ne 0 ]; then
-    pass "Script exits non-zero after rebase rewrites commits with wrong identity"
+  # Assertion 1: script must exit 0 — filter-branch fixed all commits.
+  if [ "$LAST_EXIT" -eq 0 ]; then
+    pass "Script exits 0 — rebase-rewritten commits were fixed and pushed"
   else
-    fail "Script should exit non-zero but exited 0 — rebase-rewritten wrong-identity commits not caught"
+    fail "Script should exit 0 after fixing rebase-rewritten commits, but exited $LAST_EXIT"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
     return
   fi
 
-  # Assertion 2: output must mention the identity failure clearly.
-  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
-    pass "Output clearly reports the identity violation"
+  # Assertion 2: output must mention the rewrite step.
+  if echo "$LAST_OUTPUT" | grep -qiE "Rewriting author|rewritten to THEFSTS|All outgoing commits rewritten"; then
+    pass "Output confirms the identity rewrite step ran"
   else
-    fail "Output should mention the identity failure (unauthorised author / FAILED)"
+    fail "Output should mention the identity rewrite step"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
   fi
 
-  # Assertion 3: the SHA of the non-HEAD rewritten commit must appear in the
-  # output.  post-merge.sh amends HEAD to fix its author before the check, so
-  # HEAD's SHA may not show up; the earlier rewritten commit must be caught.
-  if echo "$LAST_OUTPUT" | grep -q "$sha_penultimate"; then
-    pass "Offending commit SHA $sha_penultimate (rebase-rewritten) appears in output"
-  else
-    fail "Offending SHA $sha_penultimate not found in output — rebase-rewritten violation may have been missed"
-    echo "    --- output ---"
-    echo "$LAST_OUTPUT" | sed 's/^/    /'
-  fi
-
-  # Assertion 4: the remote must NOT have been pushed — tip SHA unchanged.
+  # Assertion 3: remote tip MUST have changed — commits were pushed.
   local gh_clone="$tmpdir/gh-clone"
   git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
   local remote_tip_after
   remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
-  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
-    pass "Remote history was not modified — rebase-rewritten wrong-identity commits were blocked"
+  if [ "$remote_tip_before" != "$remote_tip_after" ]; then
+    pass "Remote was updated — fixed commits reached GitHub"
   else
-    fail "Remote tip changed — rebase-rewritten wrong-identity commits reached GitHub despite identity failures"
-    echo "    remote before: $remote_tip_before"
-    echo "    remote after:  $remote_tip_after"
+    fail "Remote tip unchanged — commits were not pushed after rewrite"
+  fi
+
+  # Assertion 4: all commits on remote must carry the approved identity.
+  local bad_authors
+  bad_authors="$(git -C "$gh_clone" log --format="%ae" | grep -v "^amorebey@gmail\.com$" || true)"
+  if [ -z "$bad_authors" ]; then
+    pass "All commits on remote are authored by THEFSTS <amorebey@gmail.com>"
+  else
+    fail "Remote still contains non-THEFSTS commits after rewrite: $bad_authors"
   fi
 }
 
-# ── Test 6: amended first (boundary) commit in range → identity guard fires ────
-# The range spec `origin/main..HEAD` is exclusive of origin/main and inclusive
-# of every commit on top of it, including the first one.  An off-by-one (e.g.
-# accidentally using `HEAD~1..HEAD`, or iterating from HEAD backwards and
-# stopping one commit early) would silently exclude the boundary commit.
-#
-# Scenario:
-#   1. One correct-identity commit is made directly on top of origin/main
-#      (the boundary commit — first and oldest in the outgoing range).
-#   2. That commit is amended with a wrong author — simulating a developer who
-#      runs `git commit --amend` while a bad GIT_AUTHOR_* is active.
-#   3. A second correct-identity commit is then added on top, becoming HEAD.
-#      post-merge.sh will amend HEAD (correct already) but the boundary commit
-#      beneath it still has wrong identity.
-#   4. post-merge.sh must exit non-zero, report the boundary commit's SHA, and
-#      leave the remote unchanged.
-#
-# This is distinct from Tests 3–5: the violating commit is the OLDEST outgoing
-# commit (the range boundary), not a middle or head commit.
-test_amended_first_commit_caught() {
+# ── Test 6: amended boundary commit → filter-branch covers the full range ──────
+# The rewrite range `github/main..HEAD` is inclusive of every commit from the
+# oldest outgoing commit (the range boundary) through HEAD.  An off-by-one
+# (e.g. `HEAD~1..HEAD`) would leave the boundary commit un-rewritten.  This
+# test confirms the boundary commit is fixed alongside all others.
+test_amended_first_commit_rewritten() {
   echo ""
-  echo -e "${BOLD}Test 6: Amended first (boundary) commit in range — identity guard still fires${RESET}"
+  echo -e "${BOLD}Test 6: Amended first (boundary) commit in range — rewritten alongside HEAD${RESET}"
 
   local tmpdir
   tmpdir="$(setup_repos)"
@@ -603,33 +544,24 @@ test_amended_first_commit_caught() {
   create_git_stub "$bin_dir" "$fake_remote"
   create_pnpm_stub "$bin_dir"
 
-  # Capture the remote tip SHA before the script runs — it must not change.
+  # Capture the remote tip SHA before the script runs — it MUST change.
   local remote_tip_before
   remote_tip_before="$(git -C "$working" ls-remote github HEAD | cut -f1)"
 
-  # Step 1: make one correct-identity commit directly on top of origin/main.
+  # Step 1: one correct-identity commit (the boundary).
   git -C "$working" \
     -c user.name="THEFSTS" \
     -c user.email="amorebey@gmail.com" \
     commit --allow-empty -m "correct-identity: boundary commit" >/dev/null 2>&1
 
-  # Step 2: amend that boundary commit with a wrong author — simulating a
-  # developer who runs `git commit --amend` while a wrong identity is active.
-  # This produces the wrong-identity boundary commit under test.
+  # Step 2: amend the boundary commit with the wrong author.
   git -C "$working" \
     -c user.name="Replit Agent" \
     -c user.email="agent@replit.com" \
     commit --amend --no-edit --allow-empty \
     --author="Replit Agent <agent@replit.com>" >/dev/null 2>&1
 
-  # Capture the SHA of this boundary commit so we can assert it appears in the
-  # violation report.
-  local sha_boundary
-  sha_boundary="$(git -C "$working" rev-parse --short HEAD)"
-
-  # Step 3: add a second commit with the correct identity on top.  This becomes
-  # HEAD; post-merge.sh will amend it (no-op because author is already correct).
-  # The boundary commit underneath still has wrong identity and must be caught.
+  # Step 3: a correct-identity HEAD commit on top.
   git -C "$working" \
     -c user.name="THEFSTS" \
     -c user.email="amorebey@gmail.com" \
@@ -637,46 +569,44 @@ test_amended_first_commit_caught() {
 
   run_post_merge "$working" "$bin_dir"
 
-  # Assertion 1: script must exit non-zero — boundary commit has wrong identity.
-  if [ "$LAST_EXIT" -ne 0 ]; then
-    pass "Script exits non-zero when the first (boundary) commit in the range is wrong-identity"
+  # Assertion 1: script must exit 0 — boundary commit rewritten along with HEAD.
+  if [ "$LAST_EXIT" -eq 0 ]; then
+    pass "Script exits 0 — boundary commit was rewritten and pushed"
   else
-    fail "Script should exit non-zero but exited 0 — boundary commit wrong-identity not caught"
+    fail "Script should exit 0 after rewriting boundary commit, but exited $LAST_EXIT"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
     return
   fi
 
-  # Assertion 2: output must mention the identity failure clearly.
-  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
-    pass "Output clearly reports the identity violation"
+  # Assertion 2: output must mention the rewrite step.
+  if echo "$LAST_OUTPUT" | grep -qiE "Rewriting author|rewritten to THEFSTS|All outgoing commits rewritten"; then
+    pass "Output confirms the identity rewrite step ran"
   else
-    fail "Output should mention the identity failure (unauthorised author / FAILED)"
+    fail "Output should mention the identity rewrite step"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
   fi
 
-  # Assertion 3: the boundary commit's SHA must appear in the output so the
-  # developer can identify the bad commit.
-  if echo "$LAST_OUTPUT" | grep -q "$sha_boundary"; then
-    pass "Boundary commit SHA $sha_boundary appears in output"
-  else
-    fail "Boundary commit SHA $sha_boundary not found in output — range check may have excluded the boundary"
-    echo "    --- output ---"
-    echo "$LAST_OUTPUT" | sed 's/^/    /'
-  fi
-
-  # Assertion 4: the remote must NOT have been pushed — tip SHA unchanged.
+  # Assertion 3: remote tip MUST have changed — commits were pushed.
   local gh_clone="$tmpdir/gh-clone"
   git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
   local remote_tip_after
   remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
-  if [ "$remote_tip_before" = "$remote_tip_after" ]; then
-    pass "Remote history was not modified — wrong-identity boundary commit was blocked"
+  if [ "$remote_tip_before" != "$remote_tip_after" ]; then
+    pass "Remote was updated — boundary commit and HEAD both pushed"
   else
-    fail "Remote tip changed — wrong-identity boundary commit reached GitHub despite identity failure"
-    echo "    remote before: $remote_tip_before"
-    echo "    remote after:  $remote_tip_after"
+    fail "Remote tip unchanged — commits were not pushed after rewrite"
+  fi
+
+  # Assertion 4: all commits on remote (including the rewritten boundary) have
+  # the approved identity — confirming the range is not off-by-one.
+  local bad_authors
+  bad_authors="$(git -C "$gh_clone" log --format="%ae" | grep -v "^amorebey@gmail\.com$" || true)"
+  if [ -z "$bad_authors" ]; then
+    pass "All commits on remote are authored by THEFSTS <amorebey@gmail.com> — boundary included"
+  else
+    fail "Remote contains non-THEFSTS commits — boundary may not have been rewritten: $bad_authors"
   fi
 }
 
@@ -701,9 +631,9 @@ test_amended_first_commit_caught() {
 # This test confirms the guard catches W even after the remote has been force-
 # pushed to a state that no longer includes W, proving the range calculation
 # relies on the post-fetch boundary and not a stale ref.
-test_force_push_moves_boundary_wrong_identity_still_caught() {
+test_force_push_boundary_recalculated_commits_rewritten() {
   echo ""
-  echo -e "${BOLD}Test 7: Force-push moves github/main backward — stale-ref bypass is not possible${RESET}"
+  echo -e "${BOLD}Test 7: Force-push moves github/main backward — range recalculated after fetch, all commits rewritten${RESET}"
 
   local tmpdir
   tmpdir="$(setup_repos)"
@@ -760,47 +690,48 @@ test_force_push_moves_boundary_wrong_identity_still_caught() {
 
   run_post_merge "$working" "$bin_dir"
 
-  # ── Assertion 1: script must exit non-zero — W is in the live range ────────
-  # With a stale github/main (= W), the range would be W..HEAD = {C} and W
-  # would be missed (exit 0). With the fetched github/main (= A), the range is
-  # A..HEAD = {W, C} and W is caught (exit non-zero).
-  if [ "$LAST_EXIT" -ne 0 ]; then
-    pass "Script exits non-zero — wrong-identity commit W caught against the post-fetch range boundary"
+  # ── Assertion 1: script must exit 0 — W + C are both rewritten and pushed ───
+  # With a stale github/main (= W), the range would be W..HEAD = {C only}.
+  # With the fetched github/main (= A), the range is A..HEAD = {W, C} — both
+  # commits are rewritten, so W reaches GitHub with the approved identity.
+  if [ "$LAST_EXIT" -eq 0 ]; then
+    pass "Script exits 0 — W and C were rewritten against the post-fetch range boundary and pushed"
   else
-    fail "Script exited 0 — wrong-identity commit W was NOT caught (stale-ref bypass may be in effect)"
+    fail "Script exited non-zero — expected exit 0 after rewriting full range"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
     return
   fi
 
-  # ── Assertion 2: output must mention the identity failure clearly ──────────
-  if echo "$LAST_OUTPUT" | grep -qiE "unauthori[sz]ed author|identity.*ABORTED|ABORTED.*identity|commit identity.*FAILED|FAILED.*commit identity"; then
-    pass "Output clearly reports the identity violation"
+  # ── Assertion 2: output must mention the rewrite step ─────────────────────
+  if echo "$LAST_OUTPUT" | grep -qiE "Rewriting author|rewritten to THEFSTS|All outgoing commits rewritten"; then
+    pass "Output confirms the identity rewrite step ran"
   else
-    fail "Output should mention the identity failure (unauthorised author / ABORTED)"
+    fail "Output should mention the identity rewrite step"
     echo "    --- output ---"
     echo "$LAST_OUTPUT" | sed 's/^/    /'
   fi
 
-  # ── Assertion 3: W's short SHA must appear in the output ──────────────────
-  # This confirms the guard found W specifically, not just any other commit.
-  if echo "$LAST_OUTPUT" | grep -q "$sha_W"; then
-    pass "Wrong-identity commit SHA $sha_W (commit W) appears in the violation report"
-  else
-    fail "Commit W SHA $sha_W not found in output — guard may not have reached W in the range"
-    echo "    --- output ---"
-    echo "$LAST_OUTPUT" | sed 's/^/    /'
-  fi
-
-  # ── Assertion 4: remote must still be at initial_tip — nothing was pushed ──
+  # ── Assertion 3: remote tip must have CHANGED — commits were pushed ────────
+  local gh_clone="$tmpdir/gh-clone"
+  git clone "$fake_remote" "$gh_clone" >/dev/null 2>&1
   local remote_tip_after
-  remote_tip_after="$(git -C "$fake_remote" rev-parse refs/heads/main)"
-  if [ "$remote_tip_after" = "$initial_tip" ]; then
-    pass "Remote remains at the pre-rewrite tip — wrong-identity commit W was never pushed"
+  remote_tip_after="$(git -C "$gh_clone" log -1 --format='%H')"
+  if [ "$remote_tip_after" != "$initial_tip" ]; then
+    pass "Remote was updated — rewritten commits (including W) reached GitHub"
   else
-    fail "Remote tip changed — wrong-identity commit W (or later commits) reached the remote despite the identity failure"
-    echo "    remote expected: $initial_tip"
-    echo "    remote got:      $remote_tip_after"
+    fail "Remote tip unchanged — commits were not pushed after rewrite"
+  fi
+
+  # ── Assertion 4: all commits on remote carry the approved identity ─────────
+  # This proves the fetch-first boundary expansion worked: W is in the range
+  # and was rewritten, not silently skipped due to a stale ref.
+  local bad_authors
+  bad_authors="$(git -C "$gh_clone" log --format="%ae" | grep -v "^amorebey@gmail\.com$" || true)"
+  if [ -z "$bad_authors" ]; then
+    pass "All commits on remote are authored by THEFSTS <amorebey@gmail.com> — W was rewritten via post-fetch range"
+  else
+    fail "Remote still contains non-THEFSTS commits — range may have used a stale ref: $bad_authors"
   fi
 }
 
@@ -811,11 +742,11 @@ echo ""
 
 test_diverged_rebase_succeeds
 test_conflicting_rebase_force_push_wins
-test_wrong_identity_aborts_push
-test_multiple_wrong_identity_all_caught
-test_rebase_rewrite_wrong_identity_caught
-test_amended_first_commit_caught
-test_force_push_moves_boundary_wrong_identity_still_caught
+test_wrong_identity_commits_rewritten_and_pushed
+test_multiple_wrong_identity_all_rewritten
+test_rebase_rewrite_wrong_identity_fixed
+test_amended_first_commit_rewritten
+test_force_push_boundary_recalculated_commits_rewritten
 
 echo ""
 echo -e "${BOLD}=== Results: $PASS passed, $FAIL failed ===${RESET}"

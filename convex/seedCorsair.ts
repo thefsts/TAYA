@@ -59,11 +59,11 @@ export const seedBranding = internalMutation({
     const identityData = {
       siteId,
       businessName: "Corsair Tactical Solutions",
-      tagline: "Elite Training. Tactical Excellence.",
+      tagline: "Professional Security Services & Security Training in Texas",
       logoUrl: "https://storage.googleapis.com/corsair-tactical/logo-white.png",
       faviconUrl: "https://storage.googleapis.com/corsair-tactical/favicon.ico",
-      websiteType: "training_academy",
-      timezone: "America/New_York",
+      websiteType: "security_services",
+      timezone: "America/Chicago",
       brandColorPrimary: "#1A3A52",
       brandColorSecondary: "#0f172a",
       brandColorAccent: "#C41E3A",
@@ -98,29 +98,29 @@ export const seedHomepage = internalMutation({
       .first();
 
     const heroData = {
-      heroHeadline: "Elite Tactical Training for Professionals",
+      heroHeadline: "Professional Security Services Across All 50 States",
       heroSubheadline:
-        "Corsair Tactical Solutions provides world-class firearms instruction, close-quarters combat training, and tactical leadership courses for law enforcement, military, and civilian professionals.",
+        "Corsair Tactical Solutions provides professional security services, armed protective services, private investigations, and state-certified security training nationwide. Veteran-owned. Licensed & Insured.",
       heroImageUrl: "https://storage.googleapis.com/corsair-tactical/hero-range.jpg",
       sections: [
         {
           type: "features",
-          headline: "Why Choose Corsair Tactical",
+          headline: "Why Train With Corsair?",
           items: [
             {
               icon: "shield",
-              title: "Expert Instructors",
-              body: "All instructors are active or retired military and law enforcement with 15+ years of operational experience.",
+              title: "Experienced, Certified Instructor",
+              body: "Veteran-owned and operated. Texas DPS-certified with deep experience in firearms instruction, security training, and LTC certification.",
             },
             {
               icon: "target",
-              title: "Certified Programs",
-              body: "NRA-certified and state-approved courses from beginner fundamentals to advanced tactical operations.",
+              title: "Texas LTC Experts",
+              body: "Specialising in Texas License to Carry certification, DPS security officer training, and private firearms instruction for all skill levels.",
             },
             {
               icon: "users",
-              title: "Small Class Sizes",
-              body: "Maximum 8 students per instructor ensures personalized attention and maximum skill development.",
+              title: "500+ Students Trained",
+              body: "North Texas's trusted training partner — 5.0 average rating from students. Real-world, practical instruction every time.",
             },
           ],
         },
@@ -241,17 +241,16 @@ export const seedContactInfo = internalMutation({
 
     const contactData = {
       email: "corsairtacticalsolutions@gmail.com",
-      phone: "+1 (555) 847-2200",
-      address: "1247 Tactical Way, Suite 100, Quantico, VA 22134",
-      mapEmbedUrl:
-        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3111.5!2d-77.34!3d38.52!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzjCsDMxJzA5LjIiTiA3N8KwMjAnMDguNCJX!5e0!3m2!1sen!2sus!4v1234567890",
+      phone: "214-335-6652",
+      address: "North Texas — Available in all 50 states",
+      mapEmbedUrl: undefined,
       hours: [
-        { day: "Monday", open: "08:00", close: "17:00" },
-        { day: "Tuesday", open: "08:00", close: "17:00" },
-        { day: "Wednesday", open: "08:00", close: "17:00" },
-        { day: "Thursday", open: "08:00", close: "17:00" },
-        { day: "Friday", open: "08:00", close: "17:00" },
-        { day: "Saturday", open: "09:00", close: "14:00" },
+        { day: "Monday", open: "09:00", close: "18:00" },
+        { day: "Tuesday", open: "09:00", close: "18:00" },
+        { day: "Wednesday", open: "09:00", close: "18:00" },
+        { day: "Thursday", open: "09:00", close: "18:00" },
+        { day: "Friday", open: "09:00", close: "18:00" },
+        { day: "Saturday", open: "08:00", close: "16:00" },
         { day: "Sunday", open: null, close: null },
       ],
     };
@@ -282,27 +281,34 @@ export const seedSeo = internalMutation({
     const seoPages = [
       {
         pagePath: "/",
-        title: "Corsair Tactical Solutions — Elite Tactical Training in Quantico, VA",
+        title: "Corsair Tactical Solutions | Professional Security Services & Training",
         description:
-          "Professional firearms instruction, close-quarters combat, and tactical leadership training. NRA-certified instructors. Small class sizes. Serving law enforcement, military, and civilians.",
+          "Professional security services, armed protection, private investigations, and state-certified security training nationwide. Veteran-owned. Licensed & Insured.",
         ogImageUrl: "https://storage.googleapis.com/corsair-tactical/og-home.jpg",
         canonicalUrl: "https://corsairtacticalsolutions.com/",
       },
       {
         pagePath: "/courses",
-        title: "Tactical Training Courses — Corsair Tactical Solutions",
+        title: "Training Courses — Corsair Tactical Solutions",
         description:
-          "Browse our full catalog of tactical training courses: firearms fundamentals, CQB, leadership & tactics, and more.",
+          "Texas DPS-certified security officer training, Texas License to Carry (LTC) certification, defensive shooting, and private firearms instruction. All skill levels.",
         ogImageUrl: "https://storage.googleapis.com/corsair-tactical/og-courses.jpg",
         canonicalUrl: "https://corsairtacticalsolutions.com/courses",
       },
       {
         pagePath: "/about",
-        title: "About Corsair Tactical Solutions — Our Instructors & Mission",
+        title: "About Corsair Tactical Solutions — Veteran-Owned Security & Training",
         description:
-          "Learn about Corsair Tactical Solutions, our experienced instructors, and our mission to provide elite tactical training to professionals and civilians.",
+          "Corsair Tactical Solutions is a veteran-owned, Texas DPS-certified security and firearms training company serving North Texas and nationwide.",
         ogImageUrl: "https://storage.googleapis.com/corsair-tactical/og-about.jpg",
         canonicalUrl: "https://corsairtacticalsolutions.com/about",
+      },
+      {
+        pagePath: "/contact",
+        title: "Contact Us | Corsair Tactical Solutions",
+        description:
+          "Get in touch with Corsair Tactical Solutions for firearms training, security services, and private investigations. Call 214-335-6652 or email us.",
+        canonicalUrl: "https://corsairtacticalsolutions.com/contact",
       },
     ];
 
@@ -329,79 +335,117 @@ export const seedArticles = internalMutation({
 
     await ctx.db.insert("articles", {
       siteId,
-      title: "Tactical Defense Fundamentals: Building Your Foundation",
-      slug: "tactical-defense-fundamentals",
+      title: "Everything You Need to Know About Getting Your Texas LTC",
+      slug: "texas-ltc-complete-guide",
       status: "published",
       excerpt:
-        "Whether you're a first-time shooter or an experienced professional, mastering the fundamentals is the non-negotiable foundation of tactical proficiency.",
-      body: `## Why Fundamentals Matter
+        "Texas License to Carry requirements, costs, and what to expect on class day — answered by a certified LTC instructor.",
+      body: `## What Is the Texas LTC?
 
-In tactical training, there are no shortcuts. Every advanced skill—from room-clearing to vehicle extraction—is built on a foundation of mastered fundamentals. At Corsair Tactical Solutions, we see the results of skipped fundamentals every day: students who can't maintain accuracy under stress because they never truly owned their stance, grip, sight picture, and trigger control.
+The Texas License to Carry (LTC) — formerly called the CHL (Concealed Handgun License) — is the state permit that allows you to carry a handgun, concealed or open, in Texas and in many other states through reciprocity agreements.
 
-## The Four Pillars
+## Requirements
 
-**1. Stance and Platform**
-Your platform is your base of stability under recoil and stress. The modified Weaver and Isosceles stances each have tactical applications. We teach both and help you identify which is right for your body mechanics.
+To obtain a Texas LTC you must:
+- Be 21 or older (18+ for active military)
+- Be a U.S. citizen or permanent resident
+- Not be prohibited under state or federal law from possessing a firearm
+- Complete a state-approved LTC course (classroom + range)
+- Submit fingerprints and a DPS application
 
-**2. Grip**
-A proper high-grip, thumbs-forward grip reduces muzzle flip and keeps you on target for follow-up shots. We use force-feedback training tools to help students feel the correct pressure before they fire a single round.
+## What Happens in Class?
 
-**3. Sight Alignment and Picture**
-The front sight is your truth. In defensive situations, a properly aligned front sight on a slightly blurry target beats a perfect target focus every time. We train dry-fire fundamentals for two hours before students ever load a magazine.
+Our one-day LTC course covers:
+1. **Texas handgun laws** — where you can and can't carry, duty to retreat, use of force rules
+2. **Safe storage** — especially if you have children in the home
+3. **Handgun safety and operation** — for students new to handguns
+4. **Shooting proficiency qualification** — 50 rounds at varying distances; passing score is required
 
-**4. Trigger Control**
-Trigger reset is the secret most shooters don't learn until they've been shooting for years. We teach it on Day 1.
+We provide everything you need for the classroom portion. Bring your own handgun and 50 rounds of ammunition for the range, or let us know in advance and we can arrange a loaner.
 
-## Join Our Next Fundamentals Course
+## After Class
 
-Our next **Firearms Fundamentals** course runs the second Saturday of every month. Class size is capped at 8 students. [Register here](/courses/firearms-fundamentals).`,
-      coverImageUrl: "https://storage.googleapis.com/corsair-tactical/blog-fundamentals.jpg",
-      publishedAt: now - 7 * 24 * 60 * 60 * 1000, // 1 week ago
-      category: "Training",
-      author: "Sgt. Marcus Webb (Ret.)",
-      readingTime: "6 min read",
-      tags: ["fundamentals", "firearms", "training", "beginners"],
+Once you've passed, you submit your DPS application online, schedule fingerprinting, and your license arrives by mail within 60 days. Corsair signs your proficiency certificate the same day.
+
+## Ready to Sign Up?
+
+[Contact us](https://corsairtacticalsolutions.com/contact) or call **214-335-6652** to register for the next available class.`,
+      coverImageUrl: "https://storage.googleapis.com/corsair-tactical/blog-ltc-guide.jpg",
+      publishedAt: now - 5 * 24 * 60 * 60 * 1000,
+      category: "LTC",
+      author: "Corsair Tactical Solutions",
+      readingTime: "5 min read",
+      tags: ["texas-ltc", "license-to-carry", "concealed-carry", "beginners"],
       featured: true,
-      seoTitle: "Tactical Defense Fundamentals — Corsair Tactical Solutions",
+      seoTitle: "Texas LTC Guide — Corsair Tactical Solutions",
       metaDescription:
-        "Learn why mastering the fundamentals of stance, grip, sight alignment, and trigger control is the non-negotiable foundation of every tactical skill.",
+        "Everything you need to know about getting your Texas License to Carry: requirements, cost, what happens in class, and next steps after you pass.",
     });
 
     await ctx.db.insert("articles", {
       siteId,
-      title: "Choosing Your First Defensive Firearm: A Practical Guide",
-      slug: "choosing-first-defensive-firearm",
+      title: "Level II vs Level III Security Training: What's the Difference?",
+      slug: "level-2-vs-level-3-security-training",
       status: "published",
       excerpt:
-        "With thousands of handguns on the market, first-time buyers are overwhelmed. Here's the framework our instructors use when advising new students.",
-      body: `## The Wrong Way to Choose
+        "Thinking about a career in security? Here's exactly what each Texas DPS certification covers and which one you need.",
+      body: `## Texas Security Officer Licensing
 
-Most people buy their first defensive firearm based on what a friend owns, what looked cool at the gun store, or what was on sale. None of these are good criteria.
+Texas regulates security officers through the Department of Public Safety (DPS). There are two primary licensing tiers for private security officers:
 
-## Our Selection Framework
+## Level II — Unarmed Security Officer
 
-We advise every new student to evaluate a firearm on five criteria before purchasing:
+Level II is the entry-level license required for **all** security officers in Texas, armed or unarmed. If you want to work as an unarmed guard, Level II is all you need.
 
-1. **Ergonomic fit** — Can you reach the trigger with a proper grip? Can you operate all controls without shifting your grip?
-2. **Reliability** — Has the model been proven reliable with a wide variety of ammunition?
-3. **Caliber** — For defensive use, the 9mm offers the best balance of capacity, recoil, and terminal performance for most shooters.
-4. **Concealability** — If you plan to carry, size matters. Full-size pistols are easier to shoot accurately but harder to carry all day.
-5. **Maintenance** — You should be able to field-strip, clean, and reassemble your firearm without needing a manual.
+**What it covers:**
+- Legal authority and limits of a security officer
+- Use of force continuum
+- Report writing and documentation
+- Professional conduct and appearance
 
-## Our Top Recommendations for 2026
+**Cost at Corsair:** $65  
+**Duration:** 1 day  
+**Who needs it:** Anyone starting a career in security
 
-We have no sponsorship relationships and no financial incentive to recommend any particular firearm. Our recommendations are based solely on instructor experience and student outcomes.
+## Level III — Armed Security Officer
 
-**For beginners:** Glock 19 (9mm) — reliable, common, parts-abundant  
-**For smaller hands:** SIG Sauer P365 (9mm) — exceptional ergonomics for smaller frames  
-**For budget buyers:** Smith & Wesson M&P Shield Plus — proven reliability at a lower price point`,
-      coverImageUrl: "https://storage.googleapis.com/corsair-tactical/blog-first-handgun.jpg",
-      publishedAt: now - 14 * 24 * 60 * 60 * 1000, // 2 weeks ago
-      category: "Gear",
-      author: "Lt. Dana Hargrove (Ret.)",
-      readingTime: "8 min read",
-      tags: ["gear", "handguns", "beginners", "buying-guide"],
+Level III is required to carry a firearm on duty. You **must already hold or obtain Level II** before applying for Level III.
+
+**What it covers:**
+- All Level II content
+- Firearm safety and handling
+- Shooting proficiency qualification
+- Laws governing armed security officers
+
+**Cost at Corsair:** $130  
+**Duration:** 2 days  
+**Who needs it:** Anyone who wants to carry a firearm as a security officer
+
+## Level IV — Personal Protection Officer (PPO / Bodyguard)
+
+Level IV is the highest tier, authorising you to work as an executive protection specialist or bodyguard.
+
+**Cost at Corsair:** $225  
+**Duration:** 2 days  
+**Bundle deal:** Level III + IV together for $400 (save $45)
+
+## Which Should You Take?
+
+If you're new to security: start with Level II.  
+If you want to carry: add Level III.  
+If executive protection is your goal: go straight to the Level III + IV bundle.
+
+Call us at **214-335-6652** — we'll help you map out the right path.`,
+      coverImageUrl: "https://storage.googleapis.com/corsair-tactical/blog-security-levels.jpg",
+      publishedAt: now - 12 * 24 * 60 * 60 * 1000,
+      category: "Security Training",
+      author: "Corsair Tactical Solutions",
+      readingTime: "6 min read",
+      tags: ["security-training", "level-2", "level-3", "texas-dps", "security-officer"],
       featured: false,
+      seoTitle: "Level II vs Level III Security Training Texas — Corsair Tactical Solutions",
+      metaDescription:
+        "Understand the difference between Texas DPS Level II and Level III security officer certifications — and which one you need for your career.",
     });
 
     return { ok: true, step: "articles", count: 2 };
@@ -421,44 +465,64 @@ export const seedCourses = internalMutation({
 
     const courses = [
       {
-        title: "Firearms Fundamentals",
-        slug: "firearms-fundamentals",
+        title: "Texas License to Carry (LTC)",
+        slug: "texas-ltc-certification-basic-handgun",
         status: "published",
         description:
-          "The essential foundation course for new and returning shooters. Covers safe handling, stance, grip, sight alignment, trigger control, and basic malfunction clearing. NRA Basic Pistol certified.",
-        durationLabel: "8 hours (1 day)",
-        priceCents: 24900,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-fundamentals.jpg",
+          "Texas DPS-certified License to Carry course. Covers Texas handgun laws, safe storage, shooting proficiency qualification, and all requirements to obtain your Texas LTC. All skill levels welcome — loaner firearms available.",
+        durationLabel: "1 day",
+        priceCents: 10000,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-ltc.jpg",
       },
       {
-        title: "Close-Quarters Battle (CQB) Foundations",
-        slug: "cqb-foundations",
+        title: "Level II Unarmed Security Officer Training",
+        slug: "level-2-security-training",
         status: "published",
         description:
-          "Builds on the fundamentals course. Introduces room-clearing concepts, hallway tactics, angle shooting, and team movement. Requires completion of Firearms Fundamentals or equivalent demonstrated proficiency.",
-        durationLabel: "16 hours (2 days)",
-        priceCents: 49900,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-cqb.jpg",
+          "Texas DPS-certified Level II unarmed security officer training. Required for all licensed security officers in Texas. Covers legal authority, use of force, report writing, and professional conduct.",
+        durationLabel: "1 day",
+        priceCents: 6500,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level2.jpg",
       },
       {
-        title: "Tactical Leadership & Decision-Making",
-        slug: "leadership-tactics",
+        title: "Level III Armed Security Officer Training",
+        slug: "level-3-security-training",
         status: "published",
         description:
-          "Designed for team leaders, supervisors, and professionals who must make high-stakes decisions under stress. Combines scenario-based tactical exercises with leadership frameworks.",
-        durationLabel: "24 hours (3 days)",
-        priceCents: 89900,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-leadership.jpg",
+          "Texas DPS-certified Level III armed security officer training. Covers firearm safety, shooting proficiency, legal use of force, and all requirements for a Texas armed security officer license.",
+        durationLabel: "2 days",
+        priceCents: 13000,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level3.jpg",
       },
       {
-        title: "Defensive Driving for Professionals",
-        slug: "defensive-driving",
-        status: "draft",
+        title: "Level IV Personal Protection Officer (PPO) Training",
+        slug: "level-4-ppo-training",
+        status: "published",
         description:
-          "Coming Spring 2027 — advanced vehicle operations including evasive maneuvers, counter-ambush driving, and protective detail techniques. Registration opens January 2027.",
-        durationLabel: "8 hours (1 day)",
-        priceCents: 34900,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-driving.jpg",
+          "Texas DPS-certified Level IV bodyguard and personal protection officer training. Designed for executive protection professionals. Covers protective driving, threat assessment, and close-protection tactics.",
+        durationLabel: "2 days",
+        priceCents: 22500,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level4.jpg",
+      },
+      {
+        title: "Level III + IV Complete Package",
+        slug: "level-3-4-security-bundle",
+        status: "published",
+        description:
+          "Complete your Level III and Level IV certifications together and save $45. The fastest path from unarmed to fully licensed personal protection officer.",
+        durationLabel: "3 days",
+        priceCents: 40000,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-bundle.jpg",
+      },
+      {
+        title: "Basic Handgun & Private Instruction",
+        slug: "basic-handgun-private-instruction",
+        status: "published",
+        description:
+          "Private 1:1 firearms instruction tailored to your skill level and goals. Includes beginner handgun fundamentals, defensive shooting skills, and scenario-based training. Available for individuals and small groups.",
+        durationLabel: "Flexible",
+        priceCents: undefined,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
       },
     ];
 
@@ -484,37 +548,37 @@ export const seedEvents = internalMutation({
     const now = Date.now();
     const events = [
       {
-        title: "Firearms Fundamentals — August 2026",
-        slug: "firearms-fundamentals-aug-2026",
+        title: "Texas LTC Class — August 2026",
+        slug: "texas-ltc-aug-2026",
         status: "published",
         description:
-          "Monthly Firearms Fundamentals course. Limited to 8 students. All skill levels welcome. Loaner firearms available for first-time students who don't yet own a firearm.",
-        startAt: now + 14 * 24 * 60 * 60 * 1000, // 2 weeks from now
+          "Texas License to Carry certification class. Covers Texas handgun laws, safe storage, and shooting proficiency qualification. All skill levels welcome. Bring your handgun and 50 rounds, or contact us about a loaner.",
+        startAt: now + 14 * 24 * 60 * 60 * 1000,
         endAt: now + 14 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000,
-        location: "Corsair Range Facility, 1247 Tactical Way, Quantico VA",
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-fundamentals.jpg",
+        location: "North Texas — contact us for venue details",
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
       },
       {
-        title: "CQB Foundations — August 2026 (Weekend Intensive)",
-        slug: "cqb-foundations-aug-2026",
+        title: "Level II Security Training — August 2026",
+        slug: "level-2-security-aug-2026",
         status: "published",
         description:
-          "Two-day close-quarters battle foundations course. Prerequisite: Firearms Fundamentals or demonstrated proficiency screening. Gear list provided upon registration.",
+          "Texas DPS-certified Level II unarmed security officer training. Required for all security officers in Texas. Register before seats fill — class sizes are intentionally small.",
         startAt: now + 21 * 24 * 60 * 60 * 1000,
-        endAt: now + 23 * 24 * 60 * 60 * 1000,
-        location: "Corsair Range Facility, 1247 Tactical Way, Quantico VA",
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-cqb.jpg",
+        endAt: now + 21 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000,
+        location: "North Texas — contact us for venue details",
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-level2.jpg",
       },
       {
-        title: "Tactical Leadership Intensive — September 2026",
-        slug: "leadership-intensive-sep-2026",
+        title: "Level III + IV Bundle — September 2026",
+        slug: "level-3-4-bundle-sep-2026",
         status: "published",
         description:
-          "Three-day leadership and decision-making course. Designed for team leaders, supervisors, and security professionals. Includes scenario-based exercises and after-action reviews.",
+          "Two-day intensive combining Level III armed security and Level IV personal protection officer certification. Save $45 vs. taking them separately. Prerequisite: Level II license or enrol in our combo package.",
         startAt: now + 45 * 24 * 60 * 60 * 1000,
-        endAt: now + 48 * 24 * 60 * 60 * 1000,
-        location: "Corsair Training Campus, 1247 Tactical Way, Quantico VA",
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-sep-leadership.jpg",
+        endAt: now + 47 * 24 * 60 * 60 * 1000,
+        location: "North Texas — contact us for venue details",
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-sep-level34.jpg",
       },
     ];
 
@@ -539,40 +603,49 @@ export const seedTestimonials = internalMutation({
 
     const testimonials = [
       {
-        name: "Officer James Whitfield",
-        role: "Patrol Supervisor",
-        company: "Fairfax County Police Department",
+        name: "Shamira",
+        role: "Texas License to Carry",
+        company: "",
         rating: 5,
-        text: "Corsair's CQB Foundations course is the most realistic, practical training I've taken outside of SWAT pre-qualification. Sgt. Webb's instruction style is direct, high-rep, and zero filler. Every officer on my team has now completed at least one Corsair course.",
+        text: "This LTC training class was amazing. The teachers were very knowledgeable. So enjoyed the energy. Continue to do what y'all do!",
         isActive: true,
         order: 0,
       },
       {
-        name: "Cassandra Torres",
-        role: "Private Security Contractor",
-        company: "SecureStrike LLC",
+        name: "Ronique",
+        role: "Texas License to Carry",
+        company: "",
         rating: 5,
-        text: "I've been to a lot of training facilities and most of them are just range time with an instructor who reads slides. Corsair is different — the instructors actually teach you to think, not just shoot. The Leadership & Tactics course changed how I approach every job.",
+        text: "Exceeded my expectations. The instructors were knowledgeable, safety-conscious, and provided a supportive learning environment. Highly recommend!",
         isActive: true,
         order: 1,
       },
       {
-        name: "Marcus Delgado",
-        role: "Veteran / Civilian Student",
+        name: "Juanita",
+        role: "Texas LTC",
         company: "",
         rating: 5,
-        text: "I left the Army three years ago and wanted to refresh my tactical skills. The Firearms Fundamentals course was a perfect reset — rigorous enough to challenge a vet but thorough enough that I relearned things I thought I already knew.",
+        text: "Best decision I made! The instructor was patient and thorough. I felt completely prepared and confident walking out. 10/10 would recommend to anyone looking to get their LTC.",
         isActive: true,
         order: 2,
       },
       {
-        name: "Lt. Sarah Okonkwo (Ret.)",
-        role: "Retired Navy EOD / Security Consultant",
-        company: "Independent",
+        name: "Marcus",
+        role: "Level III Security Training",
+        company: "",
         rating: 5,
-        text: "As a retired EOD officer, I was skeptical there was much new I could learn in a civilian course. I was wrong. The scenario design at Corsair reflects current threat environments, not textbook situations from 15 years ago.",
+        text: "Got my Level III through Corsair. No fluff, no wasted time — exactly what you need to pass the DPS requirements. The instructor clearly knows his stuff and makes sure you do too.",
         isActive: true,
         order: 3,
+      },
+      {
+        name: "Danielle",
+        role: "Women's Firearms Training",
+        company: "",
+        rating: 5,
+        text: "As a first-time shooter I was nervous, but the environment felt so safe and non-judgmental. By the end I was comfortable loading, firing, and clearing malfunctions on my own. Incredible experience.",
+        isActive: true,
+        order: 4,
       },
     ];
 
@@ -691,9 +764,9 @@ export const seedReviews = internalMutation({
       sourceId: sourceId!,
       provider: "google",
       externalId: "google-review-001-corsair",
-      reviewerName: "Michael Brennan",
+      reviewerName: "Shamira J.",
       rating: 5,
-      text: "Best tactical training I've found outside of military service. Instructors are professional, curriculum is current, and the facility is first-rate. Took the CQB course last fall and enrolled in the Leadership course for next month.",
+      text: "This LTC training class was amazing. The teachers were very knowledgeable. So enjoyed the energy. Continue to do what y'all do!",
       reviewDate: Date.now() - 30 * 24 * 60 * 60 * 1000,
       status: "approved",
       pinned: true,
@@ -705,16 +778,188 @@ export const seedReviews = internalMutation({
       sourceId: sourceId!,
       provider: "google",
       externalId: "google-review-002-corsair",
-      reviewerName: "Priya Nair",
+      reviewerName: "Ronique M.",
       rating: 5,
-      text: "Completed Firearms Fundamentals as a complete beginner. Dana Hargrove is an exceptional instructor — patient, knowledgeable, and safety-first without being condescending. Left feeling genuinely confident and safe with a firearm.",
+      text: "Exceeded my expectations. The instructors were knowledgeable, safety-conscious, and provided a supportive learning environment. Highly recommend!",
       reviewDate: Date.now() - 10 * 24 * 60 * 60 * 1000,
       status: "approved",
       pinned: false,
       cachedAt: Date.now(),
     });
 
+    await ctx.db.insert("importedReviews", {
+      siteId,
+      sourceId: sourceId!,
+      provider: "google",
+      externalId: "google-review-003-corsair",
+      reviewerName: "Marcus T.",
+      rating: 5,
+      text: "Got my Level III through Corsair. No fluff, no wasted time — exactly what you need to pass DPS requirements. Instructor knows his stuff and makes sure you do too.",
+      reviewDate: Date.now() - 5 * 24 * 60 * 60 * 1000,
+      status: "approved",
+      pinned: false,
+      cachedAt: Date.now(),
+    });
+
     return { ok: true, step: "reviews", count: 2 };
+  },
+});
+
+// ─── Step 14: Site Services (siteServices table) ──────────────────────────────
+
+export const seedSiteServices = internalMutation({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const existing = await ctx.db
+      .query("siteServices")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .collect();
+    for (const s of existing) await ctx.db.delete(s._id);
+
+    const services = [
+      {
+        title: "Security Services",
+        slug: "security-services",
+        description:
+          "Professional armed and unarmed security for businesses, events, churches, and organizations. Licensed, insured, and veteran-led. Serving clients throughout Texas and nationwide.",
+        shortDescription: "Armed & unarmed security for businesses, events, and organizations.",
+        price: "Call for quote",
+        category: "Security",
+        order: 0,
+        isVisible: true,
+        ctaLabel: "Get a Quote",
+        ctaUrl: "/contact",
+      },
+      {
+        title: "Security Training",
+        slug: "security-training",
+        description:
+          "Texas DPS-certified Level II, III, and IV security officer training. Start or renew your security credentials with a certified instructor. Level II $65 · Level III $130 · Level IV $225 · Bundle $400.",
+        shortDescription: "Texas DPS-certified Level II, III, and IV security officer courses.",
+        price: "From $65",
+        category: "Training",
+        order: 1,
+        isVisible: true,
+        ctaLabel: "View Courses",
+        ctaUrl: "/courses",
+      },
+      {
+        title: "Texas LTC / Private Instruction",
+        slug: "texas-ltc-private-instruction",
+        description:
+          "Texas License to Carry certification, beginner handgun training, defensive shooting, and 1:1 private instruction. All skill levels welcome — from first-time shooters to experienced carriers.",
+        shortDescription: "Texas LTC certification and private 1:1 firearms instruction.",
+        price: "LTC from $100",
+        category: "Firearms Training",
+        order: 2,
+        isVisible: true,
+        ctaLabel: "Book a Class",
+        ctaUrl: "/contact",
+      },
+    ];
+
+    for (const service of services) {
+      await ctx.db.insert("siteServices", { siteId, ...service });
+    }
+
+    return { ok: true, step: "siteServices", count: services.length };
+  },
+});
+
+// ─── Step 15: Site Products (siteProducts table) ──────────────────────────────
+
+export const seedSiteProducts = internalMutation({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const existing = await ctx.db
+      .query("siteProducts")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .collect();
+    for (const p of existing) await ctx.db.delete(p._id);
+
+    const products = [
+      {
+        title: "Texas License to Carry (LTC)",
+        slug: "texas-ltc-certification",
+        description:
+          "Complete Texas DPS-certified LTC certification course. Covers Texas handgun laws, safe storage, and shooting proficiency qualification. All skill levels welcome.",
+        shortDescription: "Full-day LTC class — classroom + range qualification.",
+        priceCents: 10000,
+        priceLabel: "$100",
+        category: "LTC Certification",
+        order: 0,
+        isVisible: true,
+        isFeatured: true,
+        ctaLabel: "Register",
+        ctaUrl: "/contact",
+      },
+      {
+        title: "Level II Unarmed Security Training",
+        slug: "level-2-security-training",
+        description:
+          "Texas DPS-certified Level II unarmed security officer certification. Required for all security officers in Texas.",
+        shortDescription: "DPS-certified unarmed security officer course.",
+        priceCents: 6500,
+        priceLabel: "$65",
+        category: "Security Certification",
+        order: 1,
+        isVisible: true,
+        isFeatured: false,
+        ctaLabel: "Register",
+        ctaUrl: "/contact",
+      },
+      {
+        title: "Level III Armed Security Training",
+        slug: "level-3-security-training",
+        description:
+          "Texas DPS-certified Level III armed security officer training. Includes firearm safety, shooting proficiency qualification, and legal use of force.",
+        shortDescription: "DPS-certified armed security officer course.",
+        priceCents: 13000,
+        priceLabel: "$130",
+        category: "Security Certification",
+        order: 2,
+        isVisible: true,
+        isFeatured: false,
+        ctaLabel: "Register",
+        ctaUrl: "/contact",
+      },
+      {
+        title: "Level IV Bodyguard / PPO Training",
+        slug: "level-4-ppo-training",
+        description:
+          "Texas DPS-certified Level IV personal protection officer training for executive protection professionals.",
+        shortDescription: "DPS-certified PPO / bodyguard certification.",
+        priceCents: 22500,
+        priceLabel: "$225",
+        category: "Security Certification",
+        order: 3,
+        isVisible: true,
+        isFeatured: false,
+        ctaLabel: "Register",
+        ctaUrl: "/contact",
+      },
+      {
+        title: "Level III + IV Complete Package",
+        slug: "level-3-4-bundle",
+        description:
+          "Complete your Level III and Level IV certifications together. The fastest path from unarmed to fully licensed personal protection officer — save $45 vs. purchasing separately.",
+        shortDescription: "Level III + Level IV bundle — save $45.",
+        priceCents: 40000,
+        priceLabel: "$400 (save $45)",
+        category: "Security Certification",
+        order: 4,
+        isVisible: true,
+        isFeatured: true,
+        ctaLabel: "Register",
+        ctaUrl: "/contact",
+      },
+    ];
+
+    for (const product of products) {
+      await ctx.db.insert("siteProducts", { siteId, ...product });
+    }
+
+    return { ok: true, step: "siteProducts", count: products.length };
   },
 });
 
@@ -751,6 +996,8 @@ export const seedAll = internalAction({
     await run("email", () => ctx.runMutation(sc.seedEmailConfig, { siteId }));
     await run("portal", () => ctx.runMutation(sc.seedPortalConfig, { siteId }));
     await run("reviews", () => ctx.runMutation(sc.seedReviews, { siteId }));
+    await run("siteServices", () => ctx.runMutation(sc.seedSiteServices, { siteId }));
+    await run("siteProducts", () => ctx.runMutation(sc.seedSiteProducts, { siteId }));
 
     const failed = Object.entries(results).filter(([, v]: any) => v?.error);
     return {
