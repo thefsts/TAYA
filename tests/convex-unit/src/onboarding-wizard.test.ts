@@ -399,6 +399,36 @@ describe("onboarding.launch — placeholder products personalisation", () => {
     expect(titles).toContain("Elite Package");
   });
 
+  it("falls back to generic labels for missing priceRange entries (partial tier array)", async () => {
+    const as = t.withIdentity({ subject: "superadmin" });
+    await as.mutation(api.onboarding.createSession, { sessionKey: SESSION_KEY });
+    const { siteId } = await as.mutation(api.onboarding.launch, {
+      sessionKey: SESSION_KEY,
+      stepData: {
+        ...STEP_DATA,
+        pages: [...STEP_DATA.pages, "products"],
+        priceRange: ["Gold"], // only one label supplied
+      },
+    });
+
+    const products = await t.run(async (ctx) =>
+      ctx.db
+        .query("siteProducts")
+        .withIndex("by_site", (q) => q.eq("siteId", siteId))
+        .collect(),
+    );
+
+    // Sort by insertion order so index 0 is the first product
+    const sorted = [...products].sort((a: any, b: any) => a.order - b.order);
+    const titles = sorted.map((p: any) => p.title);
+
+    // First entry uses the supplied label
+    expect(titles[0]).toBe("Gold Package");
+    // Remaining two fall back to generic defaults
+    expect(titles[1]).toBe("Professional Package");
+    expect(titles[2]).toBe("Enterprise Package");
+  });
+
   it("does NOT seed products when products page is not selected", async () => {
     const as = t.withIdentity({ subject: "superadmin" });
     await as.mutation(api.onboarding.createSession, { sessionKey: SESSION_KEY });
