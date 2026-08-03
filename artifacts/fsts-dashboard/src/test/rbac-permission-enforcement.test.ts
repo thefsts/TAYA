@@ -310,7 +310,68 @@ describe("PERMISSION_CATEGORIES completeness", () => {
   });
 });
 
-// ── 9. PERMISSIONS constants are stable string literals ────────────────────
+// ── 9. Frontend ROLE_PERMISSIONS matches the backend (convex) copy ─────────
+
+/**
+ * The backend convex/lib/rolePermissions.ts is the enforcement source of truth.
+ * The frontend src/lib/roleCapabilities.ts mirrors it for UI visibility.
+ * This suite catches any drift between the two so a removed or added permission
+ * on one side is flagged immediately rather than at runtime.
+ */
+describe("ROLE_PERMISSIONS — frontend/backend parity", async () => {
+  // Dynamic import so vitest resolves it through the @convex alias at runtime.
+  const { ROLE_PERMISSIONS: BACKEND_ROLE_PERMISSIONS } = await import(
+    "@convex/lib/rolePermissions"
+  );
+
+  const frontendRoles = Object.keys(ROLE_PERMISSIONS) as Array<keyof typeof ROLE_PERMISSIONS>;
+  const backendRoles = Object.keys(BACKEND_ROLE_PERMISSIONS) as string[];
+
+  it("frontend and backend define the same set of roles", () => {
+    const frontendSet = new Set<string>(frontendRoles);
+    const backendSet = new Set<string>(backendRoles);
+
+    for (const role of frontendSet) {
+      expect(
+        backendSet.has(role),
+        `Frontend ROLE_PERMISSIONS has role '${role}' but it is missing from the backend copy`,
+      ).toBe(true);
+    }
+    for (const role of backendSet) {
+      expect(
+        frontendSet.has(role),
+        `Backend ROLE_PERMISSIONS has role '${role}' but it is missing from the frontend copy`,
+      ).toBe(true);
+    }
+  });
+
+  for (const role of frontendRoles) {
+    it(`'${role}' has identical permission sets in frontend and backend`, () => {
+      const frontendPerms = new Set<string>(ROLE_PERMISSIONS[role]);
+      const backendPerms = new Set<string>(
+        (BACKEND_ROLE_PERMISSIONS[role] as string[] | undefined) ?? [],
+      );
+
+      // Every frontend permission must exist in the backend
+      for (const perm of frontendPerms) {
+        expect(
+          backendPerms.has(perm),
+          `Role '${role}': frontend grants '${perm}' but the backend copy does not`,
+        ).toBe(true);
+      }
+
+      // Every backend permission must exist in the frontend
+      for (const perm of backendPerms) {
+        expect(
+          frontendPerms.has(perm),
+          `Role '${role}': backend grants '${perm}' but the frontend copy does not`,
+        ).toBe(true);
+      }
+    });
+  }
+});
+
+// ── 10. PERMISSIONS constants are stable string literals ───────────────────
 
 describe("PERMISSIONS string values", () => {
   it("matches the expected dot-notation strings", () => {
