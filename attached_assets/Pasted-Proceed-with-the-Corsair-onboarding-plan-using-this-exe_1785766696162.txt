@@ -1,0 +1,133 @@
+Proceed with the Corsair onboarding plan using this execution order:
+
+1. Finish Task #31 — Vercel production configuration
+2. Finish Task #32 — Resend production email verification
+3. Complete Task #33 — media storage, retrieval, and broken asset validation
+4. Complete Task #29 — verify the Corsair repository and confirm it is ready for dashboard integration
+5. Complete Task #36 — create the Corsair tenant, register the website, provision the admin user, and initialize all required Convex records
+6. Complete Task #37 — onboard Corsair end to end through the production dashboard
+7. Complete Task #38 — run full production acceptance testing against the Corsair website and dashboard
+8. Complete Task #39 — create and finalize `WEBSITE_ONBOARDING_CHECKLIST.md`
+9. Complete Task #40 — produce the final GO/NO-GO certification report
+
+Before beginning Task #36, confirm all of the following with evidence:
+
+* Production Vercel domain is live
+* SSL is valid
+* DNS and routing work correctly
+* Clerk production keys are configured
+* Clerk authorized origins are correct
+* Convex production environment variables are configured
+* Resend API key is active
+* Resend sender domain is verified
+* A real production email has been successfully delivered
+* Media upload and retrieval work in production
+* No critical broken assets remain
+
+For Task #29, inspect the actual Corsair repository and report:
+
+* Repository URL
+* Current branch
+* Latest commit
+* Working tree status
+* Framework and build command
+* Deployment configuration
+* Convex integration status
+* Clerk integration status
+* Existing dashboard integration code
+* Missing environment variables
+* Missing API routes or adapters
+* Any blockers that would prevent onboarding
+
+Do not assume Corsair is ready based on documentation alone. Verify the real codebase.
+
+For Task #36, create the Corsair production tenant using the dashboard’s official multi-tenant architecture. Do not hardcode Corsair-specific logic into shared dashboard components.
+
+Confirm creation of:
+
+* Tenant record
+* Site record
+* Corsair domain and slug
+* SuperAdmin ownership
+* Client admin user
+* Role assignments
+* Site settings
+* Homepage records
+* Navigation
+* Footer
+* SEO configuration
+* Services
+* Products
+* Forms
+* Media library
+* Membership portal configuration
+* Feature flags
+* Add-on assignments
+* Notification email routing
+
+For Task #37, run the complete onboarding wizard in production. Do not bypass the wizard unless a technical failure requires a controlled recovery. If recovery is needed, document every manual database change.
+
+For Task #38, test all of the following end to end:
+
+* Clerk sign-in and sign-out
+* SuperAdmin access
+* Corsair client access
+* Tenant isolation
+* Role-based access control
+* Dashboard site list
+* Homepage editing
+* Navigation editing
+* Footer editing
+* Services CRUD
+* Products CRUD
+* Forms submission
+* Resend notification delivery
+* Media upload and retrieval
+* Smart Image Manager
+* SEO editing
+* Membership Portal
+* Public website rendering
+* Mobile responsiveness
+* Refresh and session persistence
+* Loading states
+* Empty states
+* Error states
+* Access-denied states
+* Broken images and assets
+* Production logs and console errors
+
+Verify that dashboard changes actually appear on the public Corsair website. Dashboard-only success is not sufficient.
+
+For every task, return:
+
+* Status: Complete, In Progress, Blocked, or Not Started
+* Exact changes made
+* Files changed
+* Database records created or modified
+* Commands run
+* Tests run
+* Test results
+* Production URLs
+* Screenshots or other evidence
+* Remaining issues
+* Recommended next action
+
+Do not mark any task complete without evidence.
+
+Immediately report any critical security issue, especially:
+
+* Public users being able to become superAdmin
+* Cross-tenant data exposure
+* Missing authentication on protected routes
+* Secrets exposed in client code
+* Incorrect production environment variables
+* Email notifications being silently skipped
+* Corsair-specific code being added to shared platform logic
+
+At the end, provide one consolidated status table for Tasks #31, #32, #33, #29, #36, #37, #38, #39, and #40, followed by a clear recommendation:
+
+* GO
+* GO WITH CONDITIONS
+* NO-GO
+
+Do not begin broad public onboarding until Corsair passes the complete production acceptance test and Task #40 issues a GO decision.

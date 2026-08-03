@@ -1,0 +1,67 @@
+Excellent. If Tasks #29, #31, #32, #33, #36, #37, #38, #39, and #40 are all merged, I want a production verification audit—not a summary.
+
+For each completed task, provide:
+
+* Merge commit hash
+* Pull request number (if applicable)
+* Files changed
+* Production URL(s)
+* Tests executed
+* Test results
+* Screenshots or evidence
+* Any remaining known limitations
+
+Then provide a complete status report for the active tasks:
+
+### Task #124 — Corsair Live CMS Integration
+
+* What dashboard modules are already connected?
+* Which modules are still pending?
+* Does every dashboard change immediately update the live Corsair website?
+* Are updates real-time through Convex or require rebuild/revalidation?
+* Any blockers?
+
+### Task #132 — Client Dashboard Access
+
+* Has the Corsair owner successfully signed in?
+* Is RBAC working correctly?
+* Are tenant boundaries verified?
+* Are there any authentication or authorization issues?
+
+### Task #133 — Dashboard Welcome Email
+
+* Was the email successfully delivered?
+* Was the account activation completed?
+* Are notification emails fully operational in production?
+
+### Task #134 — SuperAdmin Protection
+
+Describe the implemented security model:
+
+* How are SuperAdmins assigned?
+* Can first signup become SuperAdmin?
+* Can a client elevate themselves?
+* Is SuperAdmin assignment invite-only, allowlist-based, or manually managed?
+* What tests verified this protection?
+
+Finally, provide an updated platform readiness assessment with percentages for:
+
+* Dashboard Core
+* Multi-Tenant Architecture
+* CMS
+* AI / Corsair
+* Website Integration
+* Authentication & Security
+* Email Infrastructure
+* Media System
+* Onboarding
+* Billing / Add-ons
+* Production Operations
+
+End with:
+
+1. Remaining critical blockers (if any)
+2. Remaining launch-required work
+3. Recommended post-launch enhancements
+4. Estimated overall completion percentage for the FSTS Website Operating System™
+5. Whether the platform is ready to onboard additional client websites beyond Corsair.
