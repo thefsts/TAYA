@@ -26,6 +26,7 @@ const AdminPlatformControls = lazy(() => import("@/pages/app/admin/AdminPlatform
 const AdminSiteOnboarding = lazy(() => import("@/pages/app/admin/AdminSiteOnboarding"));
 const OnboardingWizard = lazy(() => import("@/pages/app/OnboardingWizard"));
 const AdminPlatformRunbook = lazy(() => import("@/pages/app/admin/AdminPlatformRunbook"));
+const AdminRoles = lazy(() => import("@/pages/app/admin/AdminRoles"));
 
 const HomepageEditor = lazy(() => import("@/pages/app/sites/HomepageEditor"));
 const CoursesList = lazy(() => import("@/pages/app/sites/CoursesList"));
@@ -353,6 +354,7 @@ function AppRouter() {
           <Route path="/app/admin/onboarding" component={AdminSiteOnboarding} />
           <Route path="/app/onboard" component={OnboardingWizard} />
           <Route path="/app/admin/runbook" component={AdminPlatformRunbook} />
+          <Route path="/app/admin/roles" component={AdminRoles} />
 
           <Route path="/app/sites/:siteId" component={SiteDashboard} />
           <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />

@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, Mail, Info } from "lucide-react";
 import {
   ROLES,
   ROLE_LABELS,
@@ -41,6 +41,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { RolePermissionsPanel } from "@/components/RolePermissionsPanel";
 
 type RoleAssignmentForm = { siteId: string; role: string };
 
@@ -101,6 +108,7 @@ export default function AdminUsers() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewSubject, setPreviewSubject] = useState("");
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [permissionsSheetRole, setPermissionsSheetRole] = useState<Role | null>(null);
 
   if (me === undefined) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
   if (!me || !me.isSuperAdmin) return <Redirect to="/app" />;
@@ -325,13 +333,28 @@ export default function AdminUsers() {
                       <SelectContent>
                         {ROLES.map((r) => (
                           <SelectItem key={r} value={r}>
-                            <div>
-                              <div className="font-medium text-sm">{ROLE_LABELS[r]}</div>
-                            </div>
+                            <div className="font-medium text-sm">{ROLE_LABELS[r]}</div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-slate-400 hover:text-primary"
+                          onClick={() => setPermissionsSheetRole(a.role as Role)}
+                          disabled={!a.role}
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        View permissions for this role
+                      </TooltipContent>
+                    </Tooltip>
                     <Button type="button" variant="ghost" size="sm" onClick={() => setAssignments(assignments.filter((_, idx) => idx !== i))}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
@@ -376,6 +399,28 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Role permissions sheet — shown when the ⓘ button is clicked next to a role selector */}
+      <Sheet open={!!permissionsSheetRole} onOpenChange={(o) => !o && setPermissionsSheetRole(null)}>
+        <SheetContent side="right" className="w-[360px] sm:w-[420px] overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="text-base">Role Permissions</SheetTitle>
+          </SheetHeader>
+          {permissionsSheetRole && (
+            <RolePermissionsPanel role={permissionsSheetRole} showHeader compact={false} />
+          )}
+          <div className="mt-6 pt-4 border-t border-slate-100">
+            <a
+              href="/app/admin/roles"
+              className="text-xs text-primary hover:underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View full role comparison grid →
+            </a>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Email preview dialog — dry-run view of the welcome email before saving */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
