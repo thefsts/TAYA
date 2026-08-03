@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Mail, Info } from "lucide-react";
+import { Plus, Pencil, Trash2, Mail, ChevronDown, ChevronUp } from "lucide-react";
 import {
   ROLES,
   ROLE_LABELS,
@@ -41,12 +41,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { RolePermissionsPanel } from "@/components/RolePermissionsPanel";
 
 type RoleAssignmentForm = { siteId: string; role: string };
@@ -108,7 +102,16 @@ export default function AdminUsers() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewSubject, setPreviewSubject] = useState("");
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-  const [permissionsSheetRole, setPermissionsSheetRole] = useState<Role | null>(null);
+  /** Indices of assignment rows whose "What can this role do?" panel is open */
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+  function toggleRow(i: number) {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) { next.delete(i); } else { next.add(i); }
+      return next;
+    });
+  }
 
   if (me === undefined) return <div className="p-8"><Skeleton className="h-10 w-48 mb-6" /></div>;
   if (!me || !me.isSuperAdmin) return <Redirect to="/app" />;
@@ -312,54 +315,85 @@ export default function AdminUsers() {
                     <Plus className="h-4 w-4 mr-1" /> Add
                   </Button>
                 </div>
-                {assignments.map((a, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Select value={a.siteId} onValueChange={(v) => {
-                      const next = [...assignments];
-                      next[i] = { ...a, siteId: v };
-                      setAssignments(next);
-                    }}>
-                      <SelectTrigger className="flex-1"><SelectValue placeholder="Site" /></SelectTrigger>
-                      <SelectContent>
-                        {sites?.map((s: any) => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Select value={a.role} onValueChange={(v) => {
-                      const next = [...assignments];
-                      next[i] = { ...a, role: v };
-                      setAssignments(next);
-                    }}>
-                      <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((r) => (
-                          <SelectItem key={r} value={r}>
-                            <div className="font-medium text-sm">{ROLE_LABELS[r]}</div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-slate-400 hover:text-primary"
-                          onClick={() => setPermissionsSheetRole(a.role as Role)}
-                          disabled={!a.role}
-                        >
-                          <Info className="h-4 w-4" />
+                {assignments.map((a, i) => {
+                  const isExpanded = expandedRows.has(i);
+                  return (
+                    <div key={i} className="rounded-md border border-slate-200 overflow-hidden">
+                      {/* Row: site + role selectors */}
+                      <div className="flex items-center gap-2 p-2 bg-slate-50">
+                        <Select value={a.siteId} onValueChange={(v) => {
+                          const next = [...assignments];
+                          next[i] = { ...a, siteId: v };
+                          setAssignments(next);
+                        }}>
+                          <SelectTrigger className="flex-1 bg-white"><SelectValue placeholder="Site" /></SelectTrigger>
+                          <SelectContent>
+                            {sites?.map((s: any) => <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Select value={a.role} onValueChange={(v) => {
+                          const next = [...assignments];
+                          next[i] = { ...a, role: v };
+                          setAssignments(next);
+                          // auto-expand when a role is chosen so the preview appears
+                          setExpandedRows((prev) => new Set(prev).add(i));
+                        }}>
+                          <SelectTrigger className="w-44 bg-white"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {ROLES.map((r) => (
+                              <SelectItem key={r} value={r}>
+                                <div className="font-medium text-sm">{ROLE_LABELS[r]}</div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-slate-400 hover:text-primary"
+                              onClick={() => toggleRow(i)}
+                              disabled={!a.role}
+                            >
+                              {isExpanded
+                                ? <ChevronUp className="h-4 w-4" />
+                                : <ChevronDown className="h-4 w-4" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            {isExpanded ? "Hide permissions" : "What can this role do?"}
+                          </TooltipContent>
+                        </Tooltip>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => {
+                          setAssignments(assignments.filter((_, idx) => idx !== i));
+                          setExpandedRows((prev) => {
+                            const next = new Set<number>();
+                            prev.forEach((n) => { if (n < i) next.add(n); else if (n > i) next.add(n - 1); });
+                            return next;
+                          });
+                        }}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        View permissions for this role
-                      </TooltipContent>
-                    </Tooltip>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setAssignments(assignments.filter((_, idx) => idx !== i))}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                ))}
+                      </div>
+
+                      {/* Collapsible permissions panel */}
+                      {isExpanded && a.role && (
+                        <div className="border-t border-slate-200 bg-white px-3 py-3">
+                          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                            What can this role do?
+                          </p>
+                          <RolePermissionsPanel
+                            role={a.role as Role}
+                            showHeader={false}
+                            compact={true}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 {assignments.length === 0 && (
                   <p className="text-xs text-slate-400">No site assignments yet. Add one above.</p>
                 )}
@@ -399,28 +433,6 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Role permissions sheet — shown when the ⓘ button is clicked next to a role selector */}
-      <Sheet open={!!permissionsSheetRole} onOpenChange={(o) => !o && setPermissionsSheetRole(null)}>
-        <SheetContent side="right" className="w-[360px] sm:w-[420px] overflow-y-auto">
-          <SheetHeader className="mb-4">
-            <SheetTitle className="text-base">Role Permissions</SheetTitle>
-          </SheetHeader>
-          {permissionsSheetRole && (
-            <RolePermissionsPanel role={permissionsSheetRole} showHeader compact={false} />
-          )}
-          <div className="mt-6 pt-4 border-t border-slate-100">
-            <a
-              href="/app/admin/roles"
-              className="text-xs text-primary hover:underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              View full role comparison grid →
-            </a>
-          </div>
-        </SheetContent>
-      </Sheet>
 
       {/* Email preview dialog — dry-run view of the welcome email before saving */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
