@@ -352,9 +352,12 @@ export const sendPaymentConfirmation = internalAction({
   handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
     const settings = await ctx.runQuery(internal.email._getEmailSettings, { siteId: args.siteId });
     if (!settings?.fromEmail) {
-      // No email config — record skip as success so we don't loop retries
-      console.warn("[email.sendPaymentConfirmation] No fromEmail configured for site", args.siteId);
-      return { success: true };
+      // No fromEmail configured — this is an operational failure that admins must
+      // fix. Returning { success: false } surfaces it in the email delivery state
+      // machine so retries occur and the dashboard shows a "failed" badge.
+      const errMsg = "No fromEmail configured for this site — set it in Email Config";
+      console.warn("[email.sendPaymentConfirmation]", errMsg, "siteId:", args.siteId);
+      return { success: false, error: errMsg };
     }
 
     const apiKey = settings.resendApiKey || process.env.RESEND_API_KEY;

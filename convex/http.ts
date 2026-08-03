@@ -603,20 +603,16 @@ http.route({
       const squareEventId: string | undefined = event.event_id ?? event.id ?? undefined;
       const webhookReceivedAt = Date.now();
 
-      // ── Idempotency guard — reject duplicate webhooks atomically ──────────
-      // If we have already written webhookProcessedAt for this event_id, return
-      // 200 immediately without executing any business logic.
-      if (squareEventId) {
-        const existing = await ctx.runQuery(internal.squareOrders.getByEventId, { siteId: site._id, squareEventId });
-        if (existing?.webhookProcessedAt) {
-          return ok({ received: true, duplicate: true });
-        }
-      }
-
+      // ── Idempotency guard (atomic) ────────────────────────────────────────
+      // The dedup check lives INSIDE upsertOrderFromWebhook, not here. That
+      // mutation is serialised by Convex so no race window exists between
+      // "read event_id" and "write webhookProcessedAt". The mutation returns
+      // { duplicate: true } when a matching processed event_id already exists;
+      // in that case we return 200 immediately without any further side effects.
       if (eventType === "payment.created" || eventType === "payment.updated") {
         const payment = event.data?.object?.payment;
         if (payment) {
-          await ctx.runMutation(internal.squareOrders.upsertOrderFromWebhook, {
+          const result = await ctx.runMutation(internal.squareOrders.upsertOrderFromWebhook, {
             siteId: site._id,
             squareOrderId: payment.order_id ?? payment.id,
             squarePaymentId: payment.id,
@@ -631,6 +627,9 @@ http.route({
               : undefined,
             itemName: payment.note,
           });
+          if (result.duplicate) {
+            return ok({ received: true, duplicate: true });
+          }
         }
       }
 

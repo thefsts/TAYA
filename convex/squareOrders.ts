@@ -70,11 +70,19 @@ export const getByEventId = internalQuery({
 
 /**
  * Atomically writes the order record and initialises email delivery state.
- * Email delivery is scheduled immediately after; failure to deliver email
- * never prevents this write from succeeding.
+ * The squareEventId dedup check is the FIRST operation inside this mutation so
+ * the duplicate-event claim is an atomic transaction, not a separate pre-query.
+ * Convex mutations run serially; no concurrent call can race past this guard.
  *
- * On duplicate call (same squareOrderId), existing email-state fields are
- * NOT reset — preserving in-flight or completed delivery state.
+ * Returns { orderId, duplicate: true } when this event ID was already processed
+ * (webhookProcessedAt is set). Callers must check `duplicate` and return early
+ * without executing further business logic.
+ *
+ * squareEventId on an existing order is NEVER overwritten — the order retains
+ * the event ID of the webhook that first created it.
+ *
+ * Email delivery is scheduled only for new orders; existing email-state fields
+ * are NOT reset so in-flight or completed delivery state is preserved.
  */
 export const upsertOrderFromWebhook = internalMutation({
   args: {
@@ -93,17 +101,38 @@ export const upsertOrderFromWebhook = internalMutation({
   },
   handler: async (ctx, { siteId, squareOrderId, squareEventId, webhookReceivedAt, ...fields }) => {
     const now = Date.now();
+
+    // ── Step 1: Atomic dedup by squareEventId ──────────────────────────────
+    // This check happens INSIDE the mutation so it is serialised by Convex and
+    // cannot race with a concurrent webhook delivery for the same event_id.
+    if (squareEventId) {
+      const byEvent = await ctx.db
+        .query("squareOrders")
+        .withIndex("by_squareEventId", (q) => q.eq("siteId", siteId).eq("squareEventId", squareEventId))
+        .first();
+      if (byEvent?.webhookProcessedAt) {
+        // Exact duplicate — already fully processed. Return early without any
+        // side effects (no CRM sync, no email scheduling, no capacity change).
+        return { orderId: byEvent._id, duplicate: true as const };
+      }
+    }
+
+    // ── Step 2: Upsert by squareOrderId ────────────────────────────────────
     const existing = await ctx.db
       .query("squareOrders")
       .withIndex("by_site_squareOrderId", (q) => q.eq("siteId", siteId).eq("squareOrderId", squareOrderId))
       .first();
 
     let orderId;
+    let isNewOrder = false;
+
     if (existing) {
-      // Update order fields but preserve email delivery state already set
+      // Patch payment fields but NEVER overwrite squareEventId (preserve the
+      // event ID of the webhook that first created this order) and NEVER reset
+      // email delivery state already in progress.
       await ctx.db.patch(existing._id, {
         ...fields,
-        squareEventId: squareEventId ?? existing.squareEventId,
+        // Keep the original squareEventId — do not replace with a newer event
         webhookReceivedAt: webhookReceivedAt ?? existing.webhookReceivedAt,
         webhookProcessedAt: now,
       });
@@ -120,10 +149,11 @@ export const upsertOrderFromWebhook = internalMutation({
         emailAttemptCount: 0,
         ...fields,
       });
+      isNewOrder = true;
     }
 
-    // Auto-trigger CRM payment_notification sync when order is completed.
-    if (fields.status === "COMPLETED") {
+    // ── Step 3: Side effects — only for new orders ─────────────────────────
+    if (fields.status === "COMPLETED" && isNewOrder) {
       await ctx.scheduler.runAfter(0, internal.crm.syncToCrm, {
         siteId,
         provider: "operon",
@@ -140,7 +170,7 @@ export const upsertOrderFromWebhook = internalMutation({
         },
       });
 
-      // Schedule email delivery — isolated so a delivery failure never rolls back the order
+      // Schedule email delivery. Failure never rolls back the order write.
       await ctx.scheduler.runAfter(0, internal.squareOrders.sendPaymentEmails, {
         orderId,
         siteId,
@@ -151,7 +181,7 @@ export const upsertOrderFromWebhook = internalMutation({
       });
     }
 
-    return orderId;
+    return { orderId, duplicate: false as const };
   },
 });
 
@@ -182,10 +212,21 @@ const MAX_EMAIL_ATTEMPTS = 5;
 /** Retry backoff: 5 min, 15 min, 30 min, 1 h, 2 h */
 const RETRY_DELAYS_MS = [5 * 60_000, 15 * 60_000, 30 * 60_000, 60 * 60_000, 120 * 60_000];
 
+/** States that allow a (re)delivery attempt. */
+const RETRYABLE_STATUSES = new Set(["pending", "failed", "retryScheduled"]);
+
 /**
- * Scheduled internal action — sends both customer confirmation and business
- * notification emails for a completed order. Each email's state is tracked
- * independently. Failure to send does NOT throw — it records a retry.
+ * Scheduled internal action — sends per-recipient confirmation and notification
+ * emails for a completed order. Each email's state is managed independently:
+ *
+ * - If `customerEmailStatus` is already "sent", that recipient is SKIPPED so
+ *   retries never send duplicate emails to already-confirmed customers.
+ * - If `businessEmailStatus` is already "sent", the business notification is
+ *   also skipped for the same reason.
+ * - Only statuses in RETRYABLE_STATUSES (pending | failed | retryScheduled)
+ *   trigger a delivery attempt.
+ *
+ * Failure to send does NOT throw — it records the error and schedules a retry.
  */
 export const sendPaymentEmails = internalAction({
   args: {
@@ -197,6 +238,7 @@ export const sendPaymentEmails = internalAction({
     amountCents: v.number(),
   },
   handler: async (ctx, { orderId, siteId, customerEmail, customerName, itemName, amountCents }) => {
+    // Re-fetch current state — a concurrent resend could have already changed it
     const order = await ctx.runQuery(internal.squareOrders.getOrderById, { orderId, siteId });
     if (!order) return;
 
@@ -204,12 +246,18 @@ export const sendPaymentEmails = internalAction({
     const attempt = (order.emailAttemptCount ?? 0) + 1;
     const retryDelay = RETRY_DELAYS_MS[Math.min(attempt - 1, RETRY_DELAYS_MS.length - 1)];
 
-    // Mark both as processing
+    const needsCustomer = RETRYABLE_STATUSES.has(order.customerEmailStatus ?? "pending");
+    const needsBusiness = RETRYABLE_STATUSES.has(order.businessEmailStatus ?? "pending");
+
+    // Nothing to do — both already delivered
+    if (!needsCustomer && !needsBusiness) return;
+
+    // Mark only the eligible recipients as "processing"
     await ctx.runMutation(internal.squareOrders.updateOrderEmailStatus, {
       orderId,
       siteId,
-      customerEmailStatus: "processing",
-      businessEmailStatus: "processing",
+      customerEmailStatus: needsCustomer ? "processing" : order.customerEmailStatus,
+      businessEmailStatus: needsBusiness ? "processing" : order.businessEmailStatus,
       emailAttemptCount: attempt,
       lastEmailAttemptAt: now,
     });
@@ -217,52 +265,65 @@ export const sendPaymentEmails = internalAction({
     let customerResult: { success: boolean; error?: string } = { success: true };
     let businessResult: { success: boolean; error?: string } = { success: true };
 
-    // ── Customer confirmation email ────────────────────────────────────────
-    if (customerEmail) {
-      customerResult = await ctx.runAction(internal.email.sendPaymentConfirmation, {
+    // ── Customer confirmation email ──────────────────────────────────────────
+    if (needsCustomer) {
+      if (customerEmail) {
+        customerResult = await ctx.runAction(internal.email.sendPaymentConfirmation, {
+          siteId,
+          customerEmail,
+          customerName,
+          itemName,
+          amountCents,
+          orderId: orderId.toString(),
+        });
+      } else {
+        // No address on record — treat as a configuration failure so it is
+        // visible in the dashboard rather than silently swallowed.
+        customerResult = { success: false, error: "No customer email address on file for this order" };
+      }
+    }
+
+    // ── Business notification email ────────────────────────────────────────
+    if (needsBusiness) {
+      businessResult = await ctx.runAction(internal.email.sendBusinessNotification, {
         siteId,
-        customerEmail,
         customerName,
+        customerEmail,
         itemName,
         amountCents,
         orderId: orderId.toString(),
       });
-    } else {
-      // No email address → skip gracefully
-      customerResult = { success: true };
     }
 
-    // ── Business notification email ────────────────────────────────────────
-    businessResult = await ctx.runAction(internal.email.sendBusinessNotification, {
-      siteId,
-      customerName,
-      customerEmail,
-      itemName,
-      amountCents,
-      orderId: orderId.toString(),
-    });
-
-    // ── Persist final state ────────────────────────────────────────────────
+    // ── Persist final state per recipient ──────────────────────────────────
     const customerOk = customerResult.success;
     const businessOk = businessResult.success;
 
-    if (customerOk && businessOk) {
+    const anyFailed = (needsCustomer && !customerOk) || (needsBusiness && !businessOk);
+
+    if (!anyFailed) {
       await ctx.runMutation(internal.squareOrders.updateOrderEmailStatus, {
         orderId,
         siteId,
-        customerEmailStatus: "sent",
-        businessEmailStatus: "sent",
+        customerEmailStatus: needsCustomer ? "sent" : order.customerEmailStatus,
+        businessEmailStatus: needsBusiness ? "sent" : order.businessEmailStatus,
         lastEmailError: undefined,
+        nextRetryAt: undefined,
       });
     } else {
       const isPermanent = attempt >= MAX_EMAIL_ATTEMPTS;
       const failStatus = isPermanent ? "permanentlyFailed" : "failed";
-      const err = (!customerOk ? customerResult.error : businessResult.error) ?? "unknown error";
+      const err = (needsCustomer && !customerOk
+        ? customerResult.error
+        : needsBusiness && !businessOk
+        ? businessResult.error
+        : undefined) ?? "unknown error";
+
       await ctx.runMutation(internal.squareOrders.updateOrderEmailStatus, {
         orderId,
         siteId,
-        customerEmailStatus: customerOk ? "sent" : failStatus,
-        businessEmailStatus: businessOk ? "sent" : failStatus,
+        customerEmailStatus: needsCustomer ? (customerOk ? "sent" : failStatus) : order.customerEmailStatus,
+        businessEmailStatus: needsBusiness ? (businessOk ? "sent" : failStatus) : order.businessEmailStatus,
         lastEmailError: err,
         nextRetryAt: isPermanent ? undefined : now + retryDelay,
       });
