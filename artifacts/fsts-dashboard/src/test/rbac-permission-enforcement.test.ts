@@ -21,6 +21,8 @@ import {
 } from "@/lib/permissions";
 import {
   ROLES,
+  ROLE_LABELS,
+  ROLE_DESCRIPTIONS,
   ROLE_PERMISSIONS,
   roleHasPermission,
 } from "@/lib/roleCapabilities";
@@ -211,7 +213,59 @@ describe("ROLE_PERMISSIONS completeness", () => {
   });
 });
 
-// ── 8. PERMISSION_CATEGORIES union covers every non-superAdmin permission ──
+// ── 8. ROLE_LABELS and ROLE_DESCRIPTIONS cover every Role ─────────────────
+
+describe("ROLE_LABELS completeness", () => {
+  it("has a label for every role in ROLES", () => {
+    for (const role of ROLES) {
+      expect(
+        Object.prototype.hasOwnProperty.call(ROLE_LABELS, role),
+        `ROLE_LABELS is missing an entry for role '${role}'`,
+      ).toBe(true);
+      expect(
+        ROLE_LABELS[role],
+        `ROLE_LABELS['${role}'] must be a non-empty string`,
+      ).toBeTruthy();
+    }
+  });
+
+  it("does not contain labels for roles that no longer exist in ROLES", () => {
+    const rolesSet = new Set<string>(ROLES);
+    for (const key of Object.keys(ROLE_LABELS)) {
+      expect(
+        rolesSet.has(key),
+        `ROLE_LABELS has a stale key '${key}' not in ROLES`,
+      ).toBe(true);
+    }
+  });
+});
+
+describe("ROLE_DESCRIPTIONS completeness", () => {
+  it("has a description for every role in ROLES", () => {
+    for (const role of ROLES) {
+      expect(
+        Object.prototype.hasOwnProperty.call(ROLE_DESCRIPTIONS, role),
+        `ROLE_DESCRIPTIONS is missing an entry for role '${role}'`,
+      ).toBe(true);
+      expect(
+        ROLE_DESCRIPTIONS[role],
+        `ROLE_DESCRIPTIONS['${role}'] must be a non-empty string`,
+      ).toBeTruthy();
+    }
+  });
+
+  it("does not contain descriptions for roles that no longer exist in ROLES", () => {
+    const rolesSet = new Set<string>(ROLES);
+    for (const key of Object.keys(ROLE_DESCRIPTIONS)) {
+      expect(
+        rolesSet.has(key),
+        `ROLE_DESCRIPTIONS has a stale key '${key}' not in ROLES`,
+      ).toBe(true);
+    }
+  });
+});
+
+// ── 9. PERMISSION_CATEGORIES union covers every non-superAdmin permission ──
 
 describe("PERMISSION_CATEGORIES completeness", () => {
   it("union of all category permissions equals the full non-superAdmin PERMISSIONS set", () => {
