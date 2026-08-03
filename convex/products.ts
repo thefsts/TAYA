@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
+import { provisionUser } from "./lib/getCurrentUser";
 
 export const list = query({
   args: { siteId: v.id("sites") },
@@ -148,6 +149,91 @@ export const remove = mutation({
   },
 });
 
+/**
+ * Seed 3 placeholder products for a newly-created site.
+ * Called by the onboarding wizard and admin site-creation flow when the
+ * Products module is enabled. Records are hidden (isVisible: false) so
+ * they don't appear publicly until the client edits and publishes them.
+ * Requires superAdmin.
+ */
+export const seedPlaceholders = mutation({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const user = await provisionUser(ctx);
+    if (!user.isSuperAdmin) throw new Error("Forbidden: superAdmin required");
+
+    const placeholders = [
+      {
+        title: "Starter Package",
+        slug: "starter-package",
+        shortDescription: "Everything you need to get started.",
+        description:
+          "Our Starter Package is designed for individuals and small teams ready to hit the ground running. " +
+          "Includes core features, onboarding support, and 30 days of follow-up assistance.",
+        priceCents: 49900,
+        priceLabel: "$499",
+        category: "Packages",
+        isFeatured: false,
+        ctaLabel: "Get Started",
+      },
+      {
+        title: "Professional Package",
+        slug: "professional-package",
+        shortDescription: "For growing businesses that need more power.",
+        description:
+          "The Professional Package unlocks advanced features, priority support, and expanded capacity " +
+          "so your team can move faster and deliver better results.",
+        priceCents: 149900,
+        priceLabel: "$1,499",
+        category: "Packages",
+        isFeatured: true,
+        ctaLabel: "Get Started",
+      },
+      {
+        title: "Enterprise Package",
+        slug: "enterprise-package",
+        shortDescription: "Custom solutions for large organisations.",
+        description:
+          "The Enterprise Package is fully tailored to your organisation's scale and goals. " +
+          "Includes dedicated account management, custom integrations, and an SLA-backed support tier.",
+        priceCents: 299900,
+        priceLabel: "From $2,999",
+        category: "Packages",
+        isFeatured: false,
+        ctaLabel: "Contact Us",
+      },
+    ];
+
+    for (let i = 0; i < placeholders.length; i++) {
+      const p = placeholders[i];
+      await ctx.db.insert("siteProducts", {
+        siteId,
+        order: i,
+        isVisible: false,
+        title: p.title,
+        slug: p.slug,
+        description: p.description,
+        shortDescription: p.shortDescription,
+        priceCents: p.priceCents,
+        priceLabel: p.priceLabel,
+        category: p.category,
+        isFeatured: p.isFeatured,
+        ctaLabel: p.ctaLabel,
+      });
+    }
+
+    await logActivity(ctx, {
+      siteId,
+      actorName: user.name,
+      action: "seeded",
+      entityType: "product",
+      page: "Onboarding",
+      details: "3 placeholder products created (hidden until published)",
+    });
+
+    return { seeded: placeholders.length };
+  },
+});
 export const reorder = mutation({
   args: {
     siteId: v.id("sites"),

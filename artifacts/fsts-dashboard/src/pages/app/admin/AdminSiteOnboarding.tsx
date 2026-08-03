@@ -102,6 +102,7 @@ export default function AdminSiteOnboarding() {
   const addSiteRole = useMutation(api.users.addSiteRole);
   const provisionConnector = useMutation(api.paymentConnectors.provisionConnector);
   const setActiveConnector = useMutation(api.paymentConnectors.setActiveConnector);
+  const seedProducts = useMutation(api.products.seedPlaceholders);
 
   const [step, setStep] = useState<OnboardingStep>("details");
   const [isPending, setIsPending] = useState(false);
@@ -200,6 +201,11 @@ export default function AdminSiteOnboarding() {
           await addSiteRole({ userId: user._id as Id<"users">, siteId: newSiteId, role: row.role });
           assignedCount++;
         }
+      }
+
+      // Seed placeholder products if the Products module is enabled
+      if (enabledModules["products"]) {
+        await seedProducts({ siteId: newSiteId });
       }
 
       // Provision payment connector and set it active

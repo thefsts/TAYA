@@ -25,12 +25,16 @@ function slugify(text: string): string {
     .slice(0, 60);
 }
 
-function defaultModulesForType(websiteType: string): Record<string, boolean> {
+function defaultModulesForType(
+  websiteType: string,
+  pages?: string[]
+): Record<string, boolean> {
   const base: Record<string, boolean> = {
     homepage: true,
     courses: false,
     events: false,
     articles: false,
+    products: false,
     media: true,
     contact: true,
     footer: true,
@@ -41,13 +45,17 @@ function defaultModulesForType(websiteType: string): Record<string, boolean> {
   };
   const type = websiteType ?? "business_website";
   if (type === "training_academy" || type === "membership") {
-    return { ...base, courses: true, events: true, articles: true, email: true };
+    Object.assign(base, { courses: true, events: true, articles: true, email: true });
+  } else if (type === "ecommerce") {
+    Object.assign(base, { payments: true, email: true, products: true });
+  } else if (type === "church") {
+    Object.assign(base, { events: true, articles: true });
   }
-  if (type === "ecommerce") {
-    return { ...base, payments: true, email: true };
-  }
-  if (type === "church") {
-    return { ...base, events: true, articles: true };
+  // Override with explicit page selections from the wizard
+  if (pages) {
+    if (pages.includes("products")) base.products = true;
+    if (pages.includes("events")) base.events = true;
+    if (pages.includes("blog")) base.articles = true;
   }
   return base;
 }
@@ -233,7 +241,7 @@ export const launch = mutation({
       whiteLabelEnabled: false,
       poweredByFsts: true,
       websiteType: industry,
-      enabledModules: defaultModulesForType(industry),
+      enabledModules: defaultModulesForType(industry, pages),
       agencyId,
     });
 
@@ -318,6 +326,65 @@ export const launch = mutation({
           `Please update this content with your actual policy before going live.`,
         updatedAt: Date.now(),
       });
+    }
+
+    // ── Seed placeholder products if the Products page was selected ───
+    if (pages.includes("products")) {
+      const productPlaceholders = [
+        {
+          title: "Starter Package",
+          slug: "starter-package",
+          shortDescription: "Everything you need to get started.",
+          description:
+            "Our Starter Package is designed for individuals and small teams ready to hit the ground running. " +
+            "Includes core features, onboarding support, and 30 days of follow-up assistance.",
+          priceCents: 49900,
+          priceLabel: "$499",
+          isFeatured: false,
+          ctaLabel: "Get Started",
+        },
+        {
+          title: "Professional Package",
+          slug: "professional-package",
+          shortDescription: "For growing businesses that need more power.",
+          description:
+            "The Professional Package unlocks advanced features, priority support, and expanded capacity " +
+            "so your team can move faster and deliver better results.",
+          priceCents: 149900,
+          priceLabel: "$1,499",
+          isFeatured: true,
+          ctaLabel: "Get Started",
+        },
+        {
+          title: "Enterprise Package",
+          slug: "enterprise-package",
+          shortDescription: "Custom solutions for large organisations.",
+          description:
+            "The Enterprise Package is fully tailored to your organisation's scale and goals. " +
+            "Includes dedicated account management, custom integrations, and an SLA-backed support tier.",
+          priceCents: 299900,
+          priceLabel: "From $2,999",
+          isFeatured: false,
+          ctaLabel: "Contact Us",
+        },
+      ];
+      for (let i = 0; i < productPlaceholders.length; i++) {
+        const p = productPlaceholders[i];
+        await ctx.db.insert("siteProducts", {
+          siteId,
+          order: i,
+          isVisible: false,
+          category: "Packages",
+          title: p.title,
+          slug: p.slug,
+          description: p.description,
+          shortDescription: p.shortDescription,
+          priceCents: p.priceCents,
+          priceLabel: p.priceLabel,
+          isFeatured: p.isFeatured,
+          ctaLabel: p.ctaLabel,
+        });
+      }
     }
 
     // ── CRM connection record ─────────────────────────────────────────
