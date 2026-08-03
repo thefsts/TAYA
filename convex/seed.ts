@@ -5,11 +5,36 @@
  * via `npx convex run seed:seedTestSite` from the CLI. They are idempotent
  * and safe to re-run. They must never be called from client UI code.
  *
- * Remove or gate with SEED_ALLOWED=false before a true public launch.
+ * ──────────────────────────────────────────────────────────────────────────────
+ * PRODUCTION SAFETY GATE
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Every seed/dev-only mutation in this file requires SEED_ALLOWED=true to be
+ * set as a Convex environment variable before it will execute.  This prevents
+ * dummy test data from being accidentally created on a real client's dashboard.
+ *
+ * To enable seeding in a local/dev deployment:
+ *   npx convex env set SEED_ALLOWED true
+ *
+ * To disable again (recommended before going to production):
+ *   npx convex env unset SEED_ALLOWED
+ *
+ * The variable should NEVER be set to "true" on the production deployment.
+ * ──────────────────────────────────────────────────────────────────────────────
  */
 
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+
+/** Throws a clear error if the SEED_ALLOWED env var is not set to "true". */
+function assertSeedAllowed() {
+  if (process.env.SEED_ALLOWED !== "true") {
+    throw new Error(
+      "Seed mutations are disabled on this deployment. " +
+        "Set the SEED_ALLOWED=true Convex environment variable to enable them. " +
+        "This variable must NOT be set on the production deployment."
+    );
+  }
+}
 
 function slugify(text: string): string {
   return text
@@ -27,6 +52,7 @@ export const seedTestSite = mutation({
     forceReseed: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    assertSeedAllowed();
     const biz = (args.businessName ?? "Apex Fitness Studio").trim();
     const slug = slugify(biz) || "apex-fitness-studio";
 
@@ -306,6 +332,7 @@ export const seedTestSite = mutation({
 export const archiveApexTestSite = mutation({
   args: {},
   handler: async (ctx) => {
+    assertSeedAllowed();
     const APEX_SLUG = "apex-fitness-studio";
     const site = await ctx.db
       .query("sites")
