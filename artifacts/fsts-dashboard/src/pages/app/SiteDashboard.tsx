@@ -249,13 +249,13 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policies`} isSuperAdmin={isSuperAdmin} />}
 
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-6">Configuration</div>
-          <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} isSuperAdmin={isSuperAdmin} />}
           {isEnabled("footer") && (
             <NavItem icon={LayoutTemplate} label="Footer" href={`/app/sites/${siteId}/footer`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           )}
           {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} isSuperAdmin={isSuperAdmin} />}
-          <NavItem icon={CreditCard} label="Payment Providers" href={`/app/sites/${siteId}/payment-providers`} isSuperAdmin={isSuperAdmin} />
+          <NavItem icon={CreditCard} label="Payment Providers" href={`/app/sites/${siteId}/payment-providers`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           {isEnabled("payments") && (
             <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           )}

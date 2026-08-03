@@ -284,4 +284,8 @@ export const DESIGN_LOCKED_PATHS = new Set([
   "history",
   "activity",
   "backups",
+  // Brand colors, fonts, favicon, module toggles — update_site_branding + manage_enabled_modules
+  "settings",
+  // Third-party payment connector credentials — configure_square et al.
+  "payment-providers",
 ]);

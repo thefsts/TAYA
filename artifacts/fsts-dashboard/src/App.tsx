@@ -313,7 +313,9 @@ function withDesignLock<P extends object>(Component: React.ComponentType<P>) {
 
 const FooterEditorGuarded = withDesignLock(FooterEditor);
 const PaymentsConfigGuarded = withDesignLock(PaymentsConfig);
+// CommerceGuarded wraps the legacy Commerce component; SquareCommerceGuarded wraps the live route.
 const CommerceGuarded = withDesignLock(Commerce);
+const SquareCommerceGuarded = withDesignLock(SquareCommerce);
 const EmailConfigGuarded = withDesignLock(EmailConfig);
 const CrmConnectionConfigGuarded = withDesignLock(CrmConnectionConfig);
 const HealthMonitorGuarded = withDesignLock(HealthMonitor);
@@ -321,6 +323,10 @@ const NavigationManagerGuarded = withDesignLock(NavigationManager);
 const VersionHistoryGuarded = withDesignLock(VersionHistory);
 const ActivityLogGuarded = withDesignLock(ActivityLog);
 const BackupsListGuarded = withDesignLock(BackupsList);
+// WebsiteSettings contains brand colors, fonts, and module toggles — all design-tier.
+const WebsiteSettingsGuarded = withDesignLock(WebsiteSettings);
+// PaymentProviders stores third-party payment API credentials — design-tier integration.
+const PaymentProvidersGuarded = withDesignLock(PaymentProviders);
 
 function AppRouter() {
   const [, setLocation] = useLocation();
@@ -369,7 +375,7 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/footer" component={FooterEditorGuarded} />
           <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
           <Route path="/app/sites/:siteId/payments" component={PaymentsConfigGuarded} />
-          <Route path="/app/sites/:siteId/commerce" component={SquareCommerce} />
+          <Route path="/app/sites/:siteId/commerce" component={SquareCommerceGuarded} />
           <Route path="/app/sites/:siteId/email" component={EmailConfigGuarded} />
           <Route path="/app/sites/:siteId/crm" component={CrmConnectionConfigGuarded} />
           <Route path="/app/sites/:siteId/faq" component={FaqManager} />
@@ -390,8 +396,8 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/backups" component={BackupsListGuarded} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
 
-          {/* WOS Phase 2 — Website Settings */}
-          <Route path="/app/sites/:siteId/settings" component={WebsiteSettings} />
+          {/* WOS Phase 2 — Website Settings (design-locked: brand colors, fonts, module toggles) */}
+          <Route path="/app/sites/:siteId/settings" component={WebsiteSettingsGuarded} />
 
           {/* Phase 3 — Form Builder */}
           <Route path="/app/sites/:siteId/forms" component={FormsList} />
@@ -400,8 +406,8 @@ function AppRouter() {
           {/* Phase 9 — Client Permissions™ */}
           <Route path="/app/sites/:siteId/permissions" component={MyPermissions} />
 
-          {/* WOS Phase 1 — Payment Connector Framework™ */}
-          <Route path="/app/sites/:siteId/payment-providers" component={PaymentProviders} />
+          {/* WOS Phase 1 — Payment Connector Framework™ (design-locked: third-party payment API credentials) */}
+          <Route path="/app/sites/:siteId/payment-providers" component={PaymentProvidersGuarded} />
 
           {/* WOS Phase 8 — Automation Engine™ */}
           <Route path="/app/sites/:siteId/automation" component={AutomationRules} />
