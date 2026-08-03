@@ -405,13 +405,118 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 5. ACCESS-DENIED GUARD CHECK
+#
+# Every page component under artifacts/fsts-dashboard/src/pages/app/sites/
+# that calls useQuery() MUST include a `=== null` branch (which should render
+# <ModuleAccessDenied> or an equivalent access-denied UI). Convex returns null
+# when the caller lacks access to a site or the module is disabled; omitting
+# the null branch silently renders a blank page instead of an error.
+#
+# Pattern enforced:
+#   - File uses useQuery(
+#   - File contains at least one `=== null` check
+#
+# KNOWN VIOLATIONS (pre-existing debt — fix these over time):
+#   New files added to src/pages/app/sites/ that violate the rule will cause
+#   a hard failure here. To add a new file to the known-violations list, you
+#   MUST also file a task to add the guard and link it in a comment.
+#
+# Reference: see "Access-denied guard convention" in replit.md.
+# ---------------------------------------------------------------------------
+echo ""
+echo "[boundary-check] Checking for missing access-denied guards in site page components…"
+
+# Files with pre-existing violations. New violations not listed here → hard fail.
+# Each entry is a filename (basename only, no path).
+GUARD_ALLOWLIST=(
+  "AnnouncementBanner.tsx"   # Task #83 — extend loading-skeleton / guard coverage
+  "ArticlesList.tsx"         # Task #83
+  "AutomationRules.tsx"      # Task #83
+  "CareersManager.tsx"       # Task #83
+  "Commerce.tsx"             # Task #83
+  "ContactInfo.tsx"          # Task #83
+  "CtaManager.tsx"           # Task #83
+  "DownloadsManager.tsx"     # Task #83
+  "FaqManager.tsx"           # Task #83
+  "FooterEditor.tsx"         # Task #83
+  "FormsList.tsx"            # Task #83
+  "HelpCenter.tsx"           # Task #83
+  "MyPermissions.tsx"        # Task #83
+  "NavigationManager.tsx"    # Task #83
+  "PolicyEditor.tsx"         # Task #83
+  "PopupManager.tsx"         # Task #83
+  "ReviewsManager.tsx"       # Task #83
+  "SquareCommerce.tsx"       # Task #83
+  "TeamManager.tsx"          # Task #83
+  "TestimonialsManager.tsx"  # Task #83
+)
+
+is_guard_allowlisted() {
+  local name="$1"
+  for entry in "${GUARD_ALLOWLIST[@]}"; do
+    if [ "$name" = "$entry" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+SITES_PAGES_DIR="$REPO_ROOT/artifacts/fsts-dashboard/src/pages/app/sites"
+GUARD_FOUND=0
+
+if [ -d "$SITES_PAGES_DIR" ]; then
+  while IFS= read -r -d '' page_file; do
+    fname="$(basename "$page_file")"
+
+    # Only check files that actually call useQuery
+    if ! grep -q "useQuery(" "$page_file" 2>/dev/null; then
+      continue
+    fi
+
+    # File must have at least one `=== null` branch
+    if grep -q "=== null" "$page_file" 2>/dev/null; then
+      continue
+    fi
+
+    # Violation — check if it is a known pre-existing debt entry
+    if is_guard_allowlisted "$fname"; then
+      echo "⚠️   KNOWN DEBT (allowlisted): $fname — useQuery without === null guard (fix tracked in Task #83)"
+    else
+      echo "❌  MISSING ACCESS-DENIED GUARD: $fname"
+      echo "    $page_file"
+      echo "    This page calls useQuery() but has no '=== null' branch."
+      echo "    Add a null check that renders <ModuleAccessDenied> (or equivalent)."
+      echo "    See 'Access-denied guard convention' in replit.md for the required pattern."
+      echo ""
+      GUARD_FOUND=1
+    fi
+  done < <(find "$SITES_PAGES_DIR" -maxdepth 1 -name "*.tsx" -print0 | sort -z)
+
+  if [ "$GUARD_FOUND" -eq 0 ]; then
+    echo "[boundary-check] ✅  No new access-denied guard violations found."
+    echo "    (${#GUARD_ALLOWLIST[@]} known pre-existing violations are allowlisted — see Task #83)"
+  fi
+else
+  echo "[boundary-check] ⚠️   Sites pages directory not found — skipping guard check: $SITES_PAGES_DIR"
+fi
+
+# ---------------------------------------------------------------------------
 # Final result
 # ---------------------------------------------------------------------------
 echo ""
-if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$CLIENT_APP_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ]; then
+if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$CLIENT_APP_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ] && [ "$GUARD_FOUND" -eq 0 ]; then
   echo "[boundary-check] ✅  All checks passed. Repository boundary is clean."
   exit 0
 else
+  if [ "$GUARD_FOUND" -ne 0 ]; then
+    echo "[boundary-check] ❌  Access-denied guard violation(s) detected."
+    echo ""
+    echo "  Every page in src/pages/app/sites/ that calls useQuery() must include"
+    echo "  a '=== null' branch rendering <ModuleAccessDenied> (or equivalent)."
+    echo "  See 'Access-denied guard convention' in replit.md for the template."
+    echo ""
+  fi
   if [ "$IDENTITY_FOUND" -ne 0 ]; then
     echo "[boundary-check] ❌  Commit identity violation(s) detected."
     echo ""

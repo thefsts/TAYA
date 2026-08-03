@@ -37,6 +37,67 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 ## Architecture decisions
 
 - **Product boundary — FSTS-WOS™ vs. Operon CRM™:** This dashboard is FSTS Website Operating System™ (FSTS-WOS™). Features that act on customers or leads (marketing automation, reputation management, appointment management, lead intelligence, advanced ecommerce) belong in the separate Operon CRM™ product. FSTS-WOS™ is connected to Operon CRM™ exclusively through the Operon Connector™. See `docs/product-boundaries.md` for the full, authoritative boundary specification.
+
+### Access-denied guard convention
+
+Every page component under `artifacts/fsts-dashboard/src/pages/app/sites/` that calls `useQuery()` **must** include a three-state guard:
+
+| Query result | What to render |
+|---|---|
+| `undefined` (loading) | `<Skeleton>` |
+| `null` (access denied / module disabled) | `<ModuleAccessDenied>` |
+| data object | normal page content |
+
+**Why this matters:** Convex returns `null` when the authenticated user does not have access to the requested site or the module is disabled. Without the `=== null` branch the page silently renders a blank state instead of telling the user why data is missing.
+
+**Enforced by CI:** `scripts/check-boundary.sh` (section 5) scans every file in `src/pages/app/sites/` that calls `useQuery()` and fails the build if no `=== null` branch is present. Pages currently missing the guard are allowlisted as known debt (see Task #83).
+
+**Required imports:**
+
+```tsx
+import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
+```
+
+**Page template — copy this when creating a new sites page:**
+
+```tsx
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
+import { AppLayout } from "@/pages/app/SiteDashboard";
+
+export default function MyNewPage({ params }: { params: { siteId: string } }) {
+  const siteId = params.siteId as Id<"sites">;
+  const data = useQuery(api.myModule.get, { siteId });
+
+  // ── three-state guard (required — enforced by scripts/check-boundary.sh) ──
+  if (data === undefined) {
+    return (
+      <AppLayout siteId={params.siteId}>
+        <Skeleton className="h-64" />
+      </AppLayout>
+    );
+  }
+  if (data === null) {
+    return (
+      <AppLayout siteId={params.siteId}>
+        <ModuleAccessDenied message="Unable to load My Module — you may not have access to this site or the module is disabled." />
+      </AppLayout>
+    );
+  }
+  // ── end guard ─────────────────────────────────────────────────────────────
+
+  return (
+    <AppLayout siteId={params.siteId}>
+      {/* page content using data */}
+    </AppLayout>
+  );
+}
+```
+
 - _Populate as you build — additional non-obvious choices a reader couldn't infer from the code._
 
 ## Product
