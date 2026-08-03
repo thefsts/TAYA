@@ -33,6 +33,14 @@ export const create = mutation({
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requireSiteAccessMutation(ctx, siteId);
+    // Enforce slug uniqueness within this site
+    const slugConflict = await ctx.db
+      .query("siteProducts")
+      .withIndex("by_site_slug", (q) => q.eq("siteId", siteId).eq("slug", fields.slug))
+      .first();
+    if (slugConflict) {
+      throw new Error(`A product with the slug "${fields.slug}" already exists on this site. Choose a different slug.`);
+    }
     // Determine next order value
     const existing = await ctx.db
       .query("siteProducts")
@@ -87,6 +95,16 @@ export const update = mutation({
     const user = await requireSiteAccessMutation(ctx, siteId);
     const existing = await ctx.db.get(productId);
     if (!existing || existing.siteId !== siteId) throw new Error("Product not found");
+    // Enforce slug uniqueness within this site (excluding the current product)
+    if (fields.slug !== undefined) {
+      const slugConflict = await ctx.db
+        .query("siteProducts")
+        .withIndex("by_site_slug", (q) => q.eq("siteId", siteId).eq("slug", fields.slug!))
+        .first();
+      if (slugConflict && slugConflict._id !== productId) {
+        throw new Error(`A product with the slug "${fields.slug}" already exists on this site. Choose a different slug.`);
+      }
+    }
     await ctx.db.patch(productId, fields as any);
     const doc = (await ctx.db.get(productId))!;
     await logActivity(ctx, {
