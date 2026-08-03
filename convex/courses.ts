@@ -8,6 +8,14 @@ import { logActivity } from "./lib/logActivity";
 import { internal } from "./_generated/api";
 import { calculateLifecycleStatus } from "./lib/lifecycleStatus";
 
+// Shorthand for scheduling an immediate lifecycle recalculation after a write.
+async function scheduleRecalc(ctx: any, courseId: string) {
+  await ctx.scheduler.runAfter(0, (internal as any).lifecycle.recalculateOne, {
+    entityType: "course",
+    entityId: courseId,
+  });
+}
+
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString(), updatedAt: new Date(doc._creationTime).toISOString() };
 }
@@ -121,6 +129,7 @@ export const update = mutation({
     const doc = (await ctx.db.get(courseId))!;
     const lifecycleStatus = calculateLifecycleStatus(doc, confirmed.length, Date.now());
     await ctx.db.patch(courseId, { lifecycleStatus });
+    await scheduleRecalc(ctx, courseId);
     const finalDoc = (await ctx.db.get(courseId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "course", entityId: courseId, page: "Courses", previousValue: existing, newValue: finalDoc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "course", entityId: courseId, snapshot: finalDoc });
@@ -163,6 +172,7 @@ export const updateCapacity = mutation({
     const doc = (await ctx.db.get(courseId))!;
     const lifecycleStatus = calculateLifecycleStatus(doc, confirmed.length, Date.now());
     await ctx.db.patch(courseId, { lifecycleStatus });
+    await scheduleRecalc(ctx, courseId);
     const finalDoc = (await ctx.db.get(courseId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated_capacity", entityType: "course", entityId: courseId, page: "Courses", newValue: { capacity: finalDoc.capacity, waitlistCapacity: finalDoc.waitlistCapacity, lifecycleStatus } });
     return toResponse(finalDoc);

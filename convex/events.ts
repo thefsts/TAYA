@@ -8,6 +8,14 @@ import { logActivity } from "./lib/logActivity";
 import { internal } from "./_generated/api";
 import { calculateLifecycleStatus } from "./lib/lifecycleStatus";
 
+// Shorthand for scheduling an immediate lifecycle recalculation after a write.
+async function scheduleRecalc(ctx: any, eventId: string) {
+  await ctx.scheduler.runAfter(0, (internal as any).lifecycle.recalculateOne, {
+    entityType: "event",
+    entityId: eventId,
+  });
+}
+
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, createdAt: new Date(doc._creationTime).toISOString(), updatedAt: new Date(doc._creationTime).toISOString(), startAt: new Date(doc.startAt).toISOString(), endAt: doc.endAt ? new Date(doc.endAt).toISOString() : null };
 }
@@ -150,6 +158,7 @@ export const update = mutation({
     const doc = (await ctx.db.get(eventId))!;
     const lifecycleStatus = calculateLifecycleStatus(doc, confirmed.length, Date.now());
     await ctx.db.patch(eventId, { lifecycleStatus });
+    await scheduleRecalc(ctx, eventId);
     const finalDoc = (await ctx.db.get(eventId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated", entityType: "event", entityId: eventId, page: "Events", previousValue: existing, newValue: finalDoc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "event", entityId: eventId, snapshot: finalDoc });
@@ -192,6 +201,7 @@ export const updateCapacity = mutation({
     const doc = (await ctx.db.get(eventId))!;
     const lifecycleStatus = calculateLifecycleStatus(doc, confirmed.length, Date.now());
     await ctx.db.patch(eventId, { lifecycleStatus });
+    await scheduleRecalc(ctx, eventId);
     const finalDoc = (await ctx.db.get(eventId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: "updated_capacity", entityType: "event", entityId: eventId, page: "Events", newValue: { capacity: finalDoc.capacity, waitlistCapacity: finalDoc.waitlistCapacity, lifecycleStatus } });
     return toResponse(finalDoc);

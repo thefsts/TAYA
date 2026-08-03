@@ -223,6 +223,12 @@ export const register = mutation({
     const newConfirmedCount = regStatus === "confirmed" ? confirmedCount + 1 : confirmedCount;
     await refreshEntityLifecycle(ctx, entityType, entityId, siteId, newConfirmedCount);
 
+    // Immediate recalculation belt-and-suspenders (catches edge-case timing)
+    await ctx.scheduler.runAfter(0, (internal as any).lifecycle.recalculateOne, {
+      entityType,
+      entityId,
+    });
+
     await logActivity(ctx, {
       siteId,
       actorName: userId,
@@ -268,7 +274,7 @@ export const cancel = mutation({
 
     // If a confirmed slot opened up, promote next on waitlist
     if (wasConfirmed) {
-      await ctx.runMutation((internal as any).registrations.promoteNextWaitlisted, {
+      await ctx.scheduler.runAfter(0, (internal as any).registrations.promoteNextWaitlisted, {
         siteId,
         entityType: reg.entityType,
         entityId: reg.entityId,
@@ -278,6 +284,12 @@ export const cancel = mutation({
       const confirmedCount = await getConfirmedCount(ctx, reg.entityType, reg.entityId);
       await refreshEntityLifecycle(ctx, reg.entityType, reg.entityId, siteId, confirmedCount);
     }
+
+    // Belt-and-suspenders immediate recalculation via the lifecycle engine
+    await ctx.scheduler.runAfter(0, (internal as any).lifecycle.recalculateOne, {
+      entityType: reg.entityType,
+      entityId: reg.entityId,
+    });
 
     return { success: true };
   },
@@ -326,6 +338,51 @@ export const promoteNextWaitlisted = internalMutation({
 
     const confirmedCount = await getConfirmedCount(ctx, entityType, entityId);
     await refreshEntityLifecycle(ctx, entityType, entityId, siteId, confirmedCount);
+
+    // ── Enqueue waitlist promotion email ──────────────────────────────────
+    // Resolve all display values here (in the mutation context where DB reads
+    // are cheap) so the action receives pre-resolved args.
+    try {
+      // Determine recipient email: userId is either an email string (public
+      // registrations) or a Clerk user ID (dashboard-managed registrations).
+      let recipientEmail: string | null = null;
+      if (next.userId.includes("@")) {
+        recipientEmail = next.userId;
+      } else {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_user_id", (q: any) => q.eq("clerkUserId", next.userId))
+          .first();
+        if (user?.email) recipientEmail = user.email;
+      }
+
+      if (recipientEmail) {
+        // Look up entity title
+        const table = entityType === "course" ? "courses" : "events";
+        const entity = await ctx.db
+          .query(table as any)
+          .filter((q: any) => q.eq(q.field("_id"), entityId))
+          .first();
+        const entityTitle = entity?.title ?? (entityType === "course" ? "the class" : "the event");
+
+        // Look up site email settings
+        const emailSettings = await ctx.db
+          .query("emailSettings")
+          .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+          .first();
+
+        await ctx.scheduler.runAfter(0, (internal as any).lifecycle.sendWaitlistPromotionEmail, {
+          recipientEmail,
+          entityTitle,
+          fromName:     emailSettings?.fromName  ?? "FSTS Platform",
+          fromEmail:    emailSettings?.fromEmail ?? "noreply@fsts-platform.com",
+          resendApiKey: emailSettings?.resendApiKey,
+        });
+      }
+    } catch (err) {
+      // Email scheduling is best-effort — never block the promotion itself
+      console.warn("[registrations] promoteNextWaitlisted: email scheduling failed", err);
+    }
 
     return next._id;
   },

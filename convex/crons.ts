@@ -1,6 +1,10 @@
 /**
  * Scheduled background jobs for the FSTS Client Dashboard.
  *
+ * - Lifecycle clock (every 5 min): drives time-based status transitions for
+ *   courses, events, and flyers via `internal.lifecycle.tick`.
+ * - Daily auto-archive: marks Completed entities older than 90 days as
+ *   Archived when `autoArchive` is true (handled inside the same tick).
  * - Daily auto-backup: 3 AM UTC every day, captures a full snapshot of every
  *   active site and writes it to the `backups` table.
  * - Hourly health check: pings each active site's domain and logs
@@ -10,6 +14,26 @@ import { cronJobs } from "convex/server";
 import { internal } from "./_generated/api";
 
 const crons = cronJobs();
+
+/* ── Lifecycle clock — every 5 minutes ──────────────────────────────────── */
+// Drives time-based transitions: registration opening/closing, InProgress,
+// Completed, flyer expiration, flyer scheduling, waitlist promotion, and the
+// 90-day auto-archive for completed entities.
+crons.interval(
+  "lifecycleClock",
+  { minutes: 5 },
+  (internal as any).lifecycle.tick,
+);
+
+/* ── Daily auto-archive sweep at 01:00 UTC ─────────────────────────────── */
+// A dedicated daily run ensures auto-archive is applied even when the 5-min
+// tick is briefly delayed (e.g. cold-start). The tick itself is idempotent so
+// double-processing is safe.
+crons.daily(
+  "daily-lifecycle-archive",
+  { hourUTC: 1, minuteUTC: 0 },
+  (internal as any).lifecycle.tick,
+);
 
 /* ── Daily auto-backup at 03:00 UTC ──────────────────────────────────────── */
 crons.daily(
