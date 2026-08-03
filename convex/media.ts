@@ -1,7 +1,7 @@
 import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
 import { requirePermission } from "./lib/requirePermission";
 import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
@@ -647,7 +647,7 @@ export const healthStats = query({
 export const migrateDeleteDataUrls = mutation({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.DEPLOYMENT_MANAGE);
     const docs = await ctx.db
       .query("mediaAssets")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))

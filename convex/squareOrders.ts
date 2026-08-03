@@ -1,7 +1,9 @@
 import { query, mutation, action, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, checkModuleEnabled, requireSiteAccessMutation, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled, requireModuleEnabled } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 
 // ── Square Orders ─────────────────────────────────────────────────────────────
@@ -223,7 +225,7 @@ export const createDiscount = mutation({
     expiresAt: v.optional(v.number()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "commerce");
     const id = await ctx.db.insert("squareDiscounts", { siteId, ...fields });
     await logActivity(ctx, { siteId, actorName: user.name, action: "created", entityType: "square_discount", entityId: id, page: "Commerce", details: fields.name });
@@ -234,7 +236,7 @@ export const createDiscount = mutation({
 export const updateDiscount = mutation({
   args: { siteId: v.id("sites"), discountId: v.id("squareDiscounts"), name: v.optional(v.string()), code: v.optional(v.string()), expiresAt: v.optional(v.number()) },
   handler: async (ctx, { siteId, discountId, ...fields }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "commerce");
     const existing = await ctx.db.get(discountId);
     if (!existing || existing.siteId !== siteId) throw new Error("Discount not found");
@@ -247,7 +249,7 @@ export const updateDiscount = mutation({
 export const removeDiscount = mutation({
   args: { siteId: v.id("sites"), discountId: v.id("squareDiscounts") },
   handler: async (ctx, { siteId, discountId }) => {
-    const user = await requireSiteAccessMutation(ctx, siteId);
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.INTEGRATIONS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "commerce");
     const existing = await ctx.db.get(discountId);
     if (!existing || existing.siteId !== siteId) throw new Error("Discount not found");

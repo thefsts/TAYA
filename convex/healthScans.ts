@@ -1,7 +1,9 @@
 import { query, mutation, action, internalMutation, internalAction, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess, requireSiteAccessMutation } from "./lib/requireSiteAccess";
+import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { requirePermission } from "./lib/requirePermission";
+import { PERMISSIONS } from "./lib/permissions";
 import { requireTestEnvironment } from "./lib/testMode";
 
 export type CategoryScore = {
@@ -88,7 +90,7 @@ export const markNotificationRead = mutation({
   handler: async (ctx, { notificationId }) => {
     const notification = await ctx.db.get(notificationId);
     if (!notification) throw new Error("Notification not found");
-    await requireSiteAccessMutation(ctx, notification.siteId);
+    await requirePermission(ctx, notification.siteId, PERMISSIONS.DEPLOYMENT_MANAGE);
     await ctx.db.patch(notificationId, { readAt: Date.now() });
   },
 });
@@ -96,7 +98,7 @@ export const markNotificationRead = mutation({
 export const markAllNotificationsRead = mutation({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
-    await requireSiteAccessMutation(ctx, siteId);
+    await requirePermission(ctx, siteId, PERMISSIONS.DEPLOYMENT_MANAGE);
     const notifications = await ctx.db
       .query("healthNotifications")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -113,7 +115,7 @@ export const dismissNotification = mutation({
   handler: async (ctx, { notificationId }) => {
     const notification = await ctx.db.get(notificationId);
     if (!notification) throw new Error("Notification not found");
-    await requireSiteAccessMutation(ctx, notification.siteId);
+    await requirePermission(ctx, notification.siteId, PERMISSIONS.DEPLOYMENT_MANAGE);
     await ctx.db.patch(notificationId, { dismissedAt: Date.now() });
   },
 });
