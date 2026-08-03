@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Pencil, Plus, Trash2, Star, Eye, EyeOff, GripVertical } from "lucide-react";
+import { Package, Pencil, Plus, Trash2, Star, Eye, EyeOff, GripVertical, X, Sparkles } from "lucide-react";
 
 type ProductFormState = {
   title: string;
@@ -85,6 +85,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
   const reorderProducts = useMutation(api.products.reorder);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState<ProductFormState>(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
@@ -272,6 +273,31 @@ export default function ProductsManager({ params }: { params: { siteId: string }
           Add Product
         </Button>
       </div>
+
+      {/* Placeholder nudge banner — shown when every product is hidden */}
+      {!nudgeDismissed &&
+        sorted !== null &&
+        sorted !== undefined &&
+        sorted.length > 0 &&
+        sorted.every((p: any) => !p.isVisible) && (
+          <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3.5">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+            <div className="flex-1 text-sm text-amber-800">
+              <span className="font-semibold">
+                {sorted.length} starter {sorted.length === 1 ? "product" : "products"} ready to publish.
+              </span>{" "}
+              Edit each one to add your real details, then toggle the{" "}
+              <Eye className="inline h-3.5 w-3.5 align-text-bottom" /> visibility switch to make it live on your site.
+            </div>
+            <button
+              onClick={() => setNudgeDismissed(true)}
+              className="ml-2 shrink-0 text-amber-400 hover:text-amber-600 transition-colors"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
       {data === undefined ? (
         <div className="space-y-2">
