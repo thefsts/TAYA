@@ -854,4 +854,46 @@ http.route({
   }),
 });
 
+// ── Admin: Configuration-status endpoint ─────────────────────────────────────
+
+import { configStatusHandler } from "./adminConfig";
+
+/* ── OPTIONS /api/admin/config-status ───────────────────────────────────── */
+// Dedicated preflight: must allow Authorization so browsers can send Bearer tokens.
+const adminPreflight = httpAction(async () =>
+  new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Max-Age": "86400",
+    },
+  }),
+);
+http.route({ path: "/api/admin/config-status", method: "OPTIONS", handler: adminPreflight });
+
+/* ── GET /api/admin/config-status?siteSlug= ─────────────────────────────── */
+/**
+ * Returns a structured JSON report of production configuration completeness.
+ * Requires a valid superadmin Clerk JWT in the Authorization header.
+ *
+ * Response shape:
+ * {
+ *   squareWebhookVerification: "configured" | "missing",
+ *   resendApiKey:              "configured" | "missing",
+ *   convexEnvironment:         "production" | "sandbox" | "unknown",
+ *   emailDelivery:             "configured" | "missing",
+ *   siteSlug:                  string | null,
+ *   checkedAt:                 ISO timestamp,
+ * }
+ *
+ * See docs/PRODUCTION_STARTUP_GUARD.md for full documentation.
+ */
+http.route({
+  path: "/api/admin/config-status",
+  method: "GET",
+  handler: httpAction(configStatusHandler),
+});
+
 export default http;
