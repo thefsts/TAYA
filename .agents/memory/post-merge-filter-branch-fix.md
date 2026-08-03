@@ -17,10 +17,10 @@ When filter-branch receives `${base}..HEAD` as its range, git may resolve `HEAD`
 
 **Fix:** use `${base}..${BRANCH}` (e.g. `${base}..main`) as the upper bound. filter-branch sees the explicit ref name `main`, rewrites the range, and updates `refs/heads/main` to the new tip. HEAD (symref to main) follows automatically.
 
-## Root cause 3: Stale index.lock from simultaneous merges
-Multiple task agents merging simultaneously can leave a stale `.git/index.lock`, causing `git commit --amend` (the first git operation in the script) to exit 128, killing the script before any rewrite or push.
+## Root cause 3: Concurrent invocations race over index.lock
+Multiple task-agent merges arriving simultaneously each spawn their own post-merge.sh. The concurrent git operations (amend, filter-branch, push) race over `.git/index.lock` — whichever instance creates the lock first causes all others to exit 128 before any rewrite or push. Simply removing the lock file at startup is NOT sufficient because a live concurrent instance re-creates it.
 
-**Fix:** `rm -f .git/index.lock 2>/dev/null || true` at the very top of the script, before any git operation.
+**Fix:** Acquire an advisory `flock` at the very top of the script on `/tmp/fsts-post-merge.lock` (fd 9, `-w 90` timeout). Each invocation waits for the previous one to finish before touching the git repo. The lock is released automatically on script exit. Also keep `rm -f .git/index.lock` as a safety net for separately crashed git processes (unrelated to the concurrency issue).
 
 ## Root cause 4: Identity check range used HEAD, not the branch ref
 `PUSH_RANGE="github/${BRANCH}..HEAD"` — if HEAD lagged behind `refs/heads/main` (e.g. after filter-branch in a detached context), the check saw pre-rewrite commits. Changed to `"github/${BRANCH}..${BRANCH}"` to always check the updated branch ref.
