@@ -365,8 +365,8 @@ export const getCareersBySlug = internalQuery({
 // ── Products / Offerings ──────────────────────────────────────────────────────
 
 export const getProductsBySlug = internalQuery({
-  args: { slug: v.string() },
-  handler: async (ctx, { slug }) => {
+  args: { slug: v.string(), category: v.optional(v.string()) },
+  handler: async (ctx, { slug, category }) => {
     const site = await ctx.db
       .query("sites")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
@@ -377,7 +377,7 @@ export const getProductsBySlug = internalQuery({
       .withIndex("by_site", (q) => q.eq("siteId", site._id))
       .collect();
     return docs
-      .filter((d) => d.isVisible)
+      .filter((d) => d.isVisible && (category === undefined || d.category === category))
       .sort((a, b) => a.order - b.order)
       .map((d) => ({
         id: d._id,

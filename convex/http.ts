@@ -632,14 +632,16 @@ http.route({
   }),
 });
 
-/* ── GET /api/public/products?slug= ─────────────────────────────────────── */
+/* ── GET /api/public/products?slug=&category= ───────────────────────────── */
 http.route({
   path: "/api/public/products",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
-    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    const params = new URL(request.url).searchParams;
+    const slug = params.get("slug") ?? "";
     if (!slug) return notFound("slug required");
-    const data = await ctx.runQuery(internal.public.getProductsBySlug, { slug });
+    const category = params.get("category") ?? undefined;
+    const data = await ctx.runQuery(internal.public.getProductsBySlug, { slug, ...(category ? { category } : {}) });
     return ok(data);
   }),
 });
