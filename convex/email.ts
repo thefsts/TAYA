@@ -72,22 +72,30 @@ export const send = internalAction({
     };
     if (args.replyTo) body.reply_to = args.replyTo;
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("[email.send] Resend API error:", response.status, text);
-      return { success: false, error: text };
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("[email.send] Resend API error:", response.status, text);
+        return { success: false, error: `Resend API ${response.status}: ${text}` };
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      // Network / runtime errors must never propagate as throws — callers rely
+      // on { success: false } to update delivery state and schedule a retry.
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[email.send] Unexpected error:", msg);
+      return { success: false, error: `Unexpected send error: ${msg}` };
     }
-
-    return { success: true };
   },
 });
 

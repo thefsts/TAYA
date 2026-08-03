@@ -265,34 +265,56 @@ export const sendPaymentEmails = internalAction({
     let customerResult: { success: boolean; error?: string } = { success: true };
     let businessResult: { success: boolean; error?: string } = { success: true };
 
-    // ── Customer confirmation email ──────────────────────────────────────────
-    if (needsCustomer) {
-      if (customerEmail) {
-        customerResult = await ctx.runAction(internal.email.sendPaymentConfirmation, {
+    try {
+      // ── Customer confirmation email ────────────────────────────────────────
+      if (needsCustomer) {
+        if (customerEmail) {
+          customerResult = await ctx.runAction(internal.email.sendPaymentConfirmation, {
+            siteId,
+            customerEmail,
+            customerName,
+            itemName,
+            amountCents,
+            orderId: orderId.toString(),
+          });
+        } else {
+          // No address on record — treat as a configuration failure so it is
+          // visible in the dashboard rather than silently swallowed.
+          customerResult = { success: false, error: "No customer email address on file for this order" };
+        }
+      }
+
+      // ── Business notification email ────────────────────────────────────────
+      if (needsBusiness) {
+        businessResult = await ctx.runAction(internal.email.sendBusinessNotification, {
           siteId,
-          customerEmail,
           customerName,
+          customerEmail,
           itemName,
           amountCents,
           orderId: orderId.toString(),
         });
-      } else {
-        // No address on record — treat as a configuration failure so it is
-        // visible in the dashboard rather than silently swallowed.
-        customerResult = { success: false, error: "No customer email address on file for this order" };
       }
-    }
+    } catch (err: unknown) {
+      // Defensive catch: network/runtime errors inside email actions must never
+      // leave an order stuck in "processing". Transition all processing recipients
+      // to retryScheduled (or permanentlyFailed at max attempts) so the cron
+      // and dashboard resend button can recover the order.
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error("[squareOrders.sendPaymentEmails] Unexpected throw during email send:", errMsg, "orderId:", orderId);
 
-    // ── Business notification email ────────────────────────────────────────
-    if (needsBusiness) {
-      businessResult = await ctx.runAction(internal.email.sendBusinessNotification, {
+      const isPermanent = attempt >= MAX_EMAIL_ATTEMPTS;
+      const failStatus  = isPermanent ? "permanentlyFailed" : "retryScheduled";
+
+      await ctx.runMutation(internal.squareOrders.updateOrderEmailStatus, {
+        orderId,
         siteId,
-        customerName,
-        customerEmail,
-        itemName,
-        amountCents,
-        orderId: orderId.toString(),
+        customerEmailStatus: needsCustomer ? failStatus : order.customerEmailStatus,
+        businessEmailStatus: needsBusiness ? failStatus : order.businessEmailStatus,
+        lastEmailError: `Unexpected error: ${errMsg}`,
+        nextRetryAt: isPermanent ? undefined : now + retryDelay,
       });
+      return;
     }
 
     // ── Persist final state per recipient ──────────────────────────────────

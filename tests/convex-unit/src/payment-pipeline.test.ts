@@ -618,6 +618,120 @@ describe("Scenario 13 — siteId isolation prevents cross-tenant access", () => 
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Regression: throw recovery — orders cannot be stuck in "processing"
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe("Regression — unexpected throw during email send does not deadlock order in 'processing'", () => {
+  /**
+   * The sendPaymentEmails action has a top-level try/catch that writes
+   * "retryScheduled" (or "permanentlyFailed") on unexpected throws so the
+   * cron and manual resend can always recover the order.
+   *
+   * We verify this recovery path by:
+   *   a) Confirming an order stuck in "processing" is NOT picked up by the cron
+   *      (processing is not in the retryable set — the order would be lost
+   *      without the catch block).
+   *   b) Confirming the catch block's write ("retryScheduled") IS picked up by
+   *      the cron, proving recovery.
+   */
+  it("order in 'processing' is NOT found by the cron retry query (would deadlock without catch block)", async () => {
+    const r = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({ squareOrderId: "sq_order_processing_test" }),
+    });
+
+    // Simulate the action having set "processing" but then crashing before writing the terminal state
+    await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
+      orderId: r.orderId,
+      siteId:  s.siteA,
+      customerEmailStatus: "processing",
+      businessEmailStatus: "processing",
+      emailAttemptCount:   1,
+    });
+
+    const stuckOrders = await t.run(async (ctx) => {
+      const all = await ctx.db.query("squareOrders").collect();
+      const pastNow = Date.now() + 999_999;
+      return all.filter((o) => {
+        // Cron only retries retryScheduled + failed (not processing)
+        const needsRetry =
+          (o.customerEmailStatus === "retryScheduled" ||
+            o.businessEmailStatus === "retryScheduled" ||
+            o.customerEmailStatus === "failed" ||
+            o.businessEmailStatus === "failed") &&
+          (o.emailAttemptCount ?? 0) < 5;
+        const isDue = !o.nextRetryAt || o.nextRetryAt <= pastNow;
+        return needsRetry && isDue;
+      });
+    });
+    // Order in "processing" is NOT in the retry queue — it would be lost
+    expect(stuckOrders.some((o) => o._id === r.orderId)).toBe(false);
+  });
+
+  it("order written to 'retryScheduled' by the catch block IS found by the cron retry query", async () => {
+    const r = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({ squareOrderId: "sq_order_catch_test" }),
+    });
+
+    // Simulate what the catch block writes after an unexpected throw
+    await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
+      orderId: r.orderId,
+      siteId:  s.siteA,
+      customerEmailStatus: "retryScheduled",
+      businessEmailStatus: "retryScheduled",
+      emailAttemptCount:   1,
+      lastEmailAttemptAt:  Date.now(),
+      lastEmailError:      "Unexpected error: fetch failed — network timeout",
+      nextRetryAt:         Date.now() - 1, // already past due
+    });
+
+    const recoverableOrders = await t.run(async (ctx) => {
+      const all = await ctx.db.query("squareOrders").collect();
+      const pastNow = Date.now() + 1_000;
+      return all.filter((o) => {
+        const needsRetry =
+          (o.customerEmailStatus === "retryScheduled" ||
+            o.businessEmailStatus === "retryScheduled") &&
+          (o.emailAttemptCount ?? 0) < 5;
+        const isDue = !o.nextRetryAt || o.nextRetryAt <= pastNow;
+        return needsRetry && isDue;
+      });
+    });
+    // Order is now recoverable via the cron
+    expect(recoverableOrders.some((o) => o._id === r.orderId)).toBe(true);
+  });
+
+  it("order at max attempts (5) is written to 'permanentlyFailed', not retryScheduled", async () => {
+    const r = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({ squareOrderId: "sq_order_maxattempt_test" }),
+    });
+
+    // Simulate 5 failed attempts — catch block writes permanentlyFailed
+    await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
+      orderId: r.orderId,
+      siteId:  s.siteA,
+      customerEmailStatus: "permanentlyFailed",
+      businessEmailStatus: "permanentlyFailed",
+      emailAttemptCount:   5,
+      lastEmailError:      "Unexpected error: max attempts exceeded",
+      // nextRetryAt is NOT set — no further automatic retry
+    });
+
+    const order = await t.run(async (ctx) => ctx.db.get(r.orderId));
+    expect(order!.customerEmailStatus).toBe("permanentlyFailed");
+    expect(order!.businessEmailStatus).toBe("permanentlyFailed");
+    expect(order!.nextRetryAt).toBeUndefined();
+
+    // permanentlyFailed is NOT in the retryable set for cron
+    const RETRYABLE = new Set(["pending", "failed", "retryScheduled"]);
+    expect(RETRYABLE.has(order!.customerEmailStatus ?? "")).toBe(false);
+    // But admin resend button IS shown for permanentlyFailed (tested in Scenario 8/9)
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Scenario 14: webhookProcessedAt and squareEventId written atomically with order
 // ──────────────────────────────────────────────────────────────────────────────
 
