@@ -61,24 +61,35 @@ export const get = query({
 });
 
 /**
- * Public query — returns only published flyers whose date window is active.
+ * Public query — returns only published flyers whose date window is active,
+ * scoped by siteSlug (tenant-safe: never accepts a raw siteId).
+ * Limited to 20 results to prevent scraping.
  * Used by the website template to display flyers.
  */
 export const listActive = query({
-  args: { siteId: v.id("sites") },
-  handler: async (ctx, { siteId }) => {
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    // Resolve slug → siteId; throws if not found or not active.
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", siteSlug))
+      .first();
+    if (!site || site.status !== "active") return [];
+
     const now = Date.now();
     const published = await ctx.db
       .query("flyers")
       .withIndex("by_site_status", (q) =>
-        q.eq("siteId", siteId).eq("status", "published"),
+        q.eq("siteId", site._id).eq("status", "published"),
       )
       .collect();
-    return published.filter((f) => {
-      const afterStart = f.startDate == null || f.startDate <= now;
-      const beforeExpiry = f.expirationDate == null || f.expirationDate >= now;
-      return afterStart && beforeExpiry;
-    });
+    return published
+      .filter((f) => {
+        const afterStart = f.startDate == null || f.startDate <= now;
+        const beforeExpiry = f.expirationDate == null || f.expirationDate >= now;
+        return afterStart && beforeExpiry;
+      })
+      .slice(0, 20);
   },
 });
 

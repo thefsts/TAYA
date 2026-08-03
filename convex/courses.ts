@@ -7,6 +7,8 @@ import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 import { internal } from "./_generated/api";
 import { calculateLifecycleStatus } from "./lib/lifecycleStatus";
+import { siteFromSlug } from "./lib/siteFromSlug";
+import { endOfDayMs } from "./lib/timezoneUtils";
 
 // Shorthand for scheduling an immediate lifecycle recalculation after a write.
 async function scheduleRecalc(ctx: any, courseId: string) {
@@ -188,5 +190,181 @@ export const remove = mutation({
     await ctx.db.delete(courseId);
     await logActivity(ctx, { siteId, actorName: user.name, action: "deleted", entityType: "course", entityId: courseId, page: "Courses", previousValue: existing });
     return { success: true };
+  },
+});
+
+// ── Public website queries (no auth, scoped by siteSlug) ──────────────────
+
+/**
+ * Returns true when a course should be visible on the public website.
+ * Accepts explicit `isPublished: true` OR legacy records that only have
+ * `status: "published"` (seeded before the isPublished field was introduced).
+ */
+function isEffectivelyPublished(d: any): boolean {
+  if (d.isPublished === true) return true;
+  if (d.isPublished == null && d.status === "published") return true;
+  return false;
+}
+
+/** Lifecycle statuses that represent a course visible in "upcoming" sections. */
+const UPCOMING_LIFECYCLE_STATUSES = new Set([
+  "Scheduled",
+  "RegistrationOpen",
+  "NearlyFull",
+  "Full",
+  "WaitlistOpen",
+  "RegistrationClosed",
+  "InProgress",
+]);
+
+/** Shape returned to the public website — excludes internal write fields. */
+function toPublicCourseResponse(doc: any, extra?: Record<string, unknown>) {
+  return {
+    id: doc._id,
+    title: doc.title,
+    slug: doc.slug,
+    description: doc.description,
+    durationLabel: doc.durationLabel ?? null,
+    priceCents: doc.priceCents ?? null,
+    imageUrl: doc.imageUrl ?? null,
+    startDateTime: doc.startDateTime ?? null,
+    endDateTime: doc.endDateTime ?? null,
+    timezone: doc.timezone ?? null,
+    lifecycleStatus: doc.lifecycleStatus ?? null,
+    registrationStatus: doc.registrationStatus ?? null,
+    capacity: doc.capacity ?? null,
+    cancelledAt: doc.cancelledAt ?? null,
+    completedAt: doc.completedAt ?? null,
+    ...extra,
+  };
+}
+
+/**
+ * Public — upcoming courses for a site.
+ * Returns published courses whose lifecycleStatus is one of:
+ *   Scheduled | RegistrationOpen | NearlyFull | Full | WaitlistOpen |
+ *   RegistrationClosed | InProgress
+ * Ordered by startDateTime ASC.
+ */
+export const listUpcoming = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    const docs = await ctx.db
+      .query("courses")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    return docs
+      .filter(
+        (d) =>
+          isEffectivelyPublished(d) &&
+          (UPCOMING_LIFECYCLE_STATUSES.has(d.lifecycleStatus ?? "") ||
+            // Legacy records with no lifecycleStatus default to upcoming when published
+            (d.lifecycleStatus == null && d.status === "published")),
+      )
+      .sort((a, b) => (a.startDateTime ?? 0) - (b.startDateTime ?? 0))
+      .map((d) => toPublicCourseResponse(d));
+  },
+});
+
+/**
+ * Public — open-registration courses for a site.
+ * Returns published courses where registrationStatus = "open" and
+ * lifecycleStatus is RegistrationOpen or NearlyFull.
+ */
+export const listOpenRegistration = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    const docs = await ctx.db
+      .query("courses")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    return docs
+      .filter(
+        (d) =>
+          isEffectivelyPublished(d) &&
+          d.registrationStatus === "open" &&
+          (d.lifecycleStatus === "RegistrationOpen" ||
+            d.lifecycleStatus === "NearlyFull"),
+      )
+      .sort((a, b) => (a.startDateTime ?? 0) - (b.startDateTime ?? 0))
+      .map((d) => toPublicCourseResponse(d));
+  },
+});
+
+/**
+ * Public — full courses for a site (no seats available, no waitlist).
+ * Returns published courses with lifecycleStatus = "Full".
+ */
+export const listFull = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    const docs = await ctx.db
+      .query("courses")
+      .withIndex("by_site_lifecycleStatus", (q) =>
+        q.eq("siteId", site._id).eq("lifecycleStatus", "Full"),
+      )
+      .collect();
+    return docs
+      .filter((d) => isEffectivelyPublished(d))
+      .sort((a, b) => (a.startDateTime ?? 0) - (b.startDateTime ?? 0))
+      .map((d) => toPublicCourseResponse(d));
+  },
+});
+
+/**
+ * Public — waitlisted courses for a site.
+ * Returns published courses with lifecycleStatus = "WaitlistOpen".
+ */
+export const listWaitlist = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    const docs = await ctx.db
+      .query("courses")
+      .withIndex("by_site_lifecycleStatus", (q) =>
+        q.eq("siteId", site._id).eq("lifecycleStatus", "WaitlistOpen"),
+      )
+      .collect();
+    return docs
+      .filter((d) => isEffectivelyPublished(d))
+      .sort((a, b) => (a.startDateTime ?? 0) - (b.startDateTime ?? 0))
+      .map((d) => toPublicCourseResponse(d));
+  },
+});
+
+/**
+ * Public — past courses for a site.
+ * Returns published courses with lifecycleStatus = "Completed".
+ * Ordered by effective endDateTime DESC.
+ * When endDateTime is missing, end-of-day in the course's timezone is used
+ * and the record includes `missingEndTime: true`.
+ */
+export const listPast = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    const docs = await ctx.db
+      .query("courses")
+      .withIndex("by_site_lifecycleStatus", (q) =>
+        q.eq("siteId", site._id).eq("lifecycleStatus", "Completed"),
+      )
+      .collect();
+
+    return docs
+      .filter((d) => isEffectivelyPublished(d))
+      .map((d) => {
+        const hasMissingEnd = !d.endDateTime;
+        const effectiveEnd = hasMissingEnd
+          ? endOfDayMs(d.timezone ?? "UTC", d.startDateTime ?? Date.now())
+          : (d.endDateTime as number);
+        return { doc: d, effectiveEnd, hasMissingEnd };
+      })
+      .sort((a, b) => b.effectiveEnd - a.effectiveEnd)
+      .map(({ doc, hasMissingEnd }) =>
+        toPublicCourseResponse(doc, hasMissingEnd ? { missingEndTime: true } : {}),
+      );
   },
 });

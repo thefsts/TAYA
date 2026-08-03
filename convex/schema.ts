@@ -104,7 +104,9 @@ export default defineSchema({
     autoArchive: v.optional(v.boolean()),
     cancelledAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
-  }).index("by_site", ["siteId"]),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_lifecycleStatus", ["siteId", "lifecycleStatus"]),
 
   events: defineTable({
     siteId: v.id("sites"),
@@ -132,7 +134,9 @@ export default defineSchema({
     autoArchive: v.optional(v.boolean()),
     cancelledAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
-  }).index("by_site", ["siteId"]),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_lifecycleStatus", ["siteId", "lifecycleStatus"]),
 
   // ── Registrations ─────────────────────────────────────────────────────
   registrations: defineTable({
@@ -591,6 +595,9 @@ export default defineSchema({
     seoUpdatedAt: v.optional(v.number()),
     integrationsUpdatedAt: v.optional(v.number()),
     legalUpdatedAt: v.optional(v.number()),
+    // Events display preferences
+    showCancelledEvents: v.optional(v.boolean()),
+    eventsUpdatedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
 
   // Phase 9 — Client Permissions™

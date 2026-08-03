@@ -20,6 +20,7 @@ import {
   Plug,
   ScrollText,
   CheckCircle2,
+  CalendarX2,
 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
@@ -170,6 +171,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
   const saveSeo = useMutation(api.siteSettings.updateSeo);
   const saveIntegrations = useMutation(api.siteSettings.updateIntegrations);
   const saveLegal = useMutation(api.siteSettings.updateLegal);
+  const saveEventDisplay = useMutation(api.siteSettings.updateEventDisplay);
 
   const [pending, setPending] = useState<string | null>(null);
 
@@ -205,6 +207,8 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
   const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState("");
   const [termsOfServiceUrl, setTermsOfServiceUrl] = useState("");
   const [legalCookiePolicyUrl, setLegalCookiePolicyUrl] = useState("");
+
+  const [showCancelledEvents, setShowCancelledEvents] = useState(false);
 
   useEffect(() => {
     if (!data) return;
@@ -242,6 +246,8 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
     setPrivacyPolicyUrl((data as any).privacyPolicyUrl ?? "");
     setTermsOfServiceUrl((data as any).termsOfServiceUrl ?? "");
     setLegalCookiePolicyUrl((data as any).cookiePolicyUrl ?? "");
+
+    setShowCancelledEvents((data as any).showCancelledEvents ?? false);
   }, [data]);
 
   function updateHour(index: number, field: keyof BusinessHourRow, value: string | boolean) {
@@ -325,6 +331,10 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
           <TabsTrigger value="legal" className="flex items-center gap-1.5 text-xs font-medium">
             <ScrollText className="h-3.5 w-3.5" />
             Legal
+          </TabsTrigger>
+          <TabsTrigger value="events" className="flex items-center gap-1.5 text-xs font-medium">
+            <CalendarX2 className="h-3.5 w-3.5" />
+            Events
           </TabsTrigger>
         </TabsList>
 
@@ -817,6 +827,51 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 <p className="text-xs text-slate-500 leading-relaxed">
                   <strong className="text-slate-700">Note:</strong> These URLs are used by your FSTS-powered website to link to your legal documents from the footer and cookie consent banner. Make sure each page is publicly accessible.
                 </p>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        {/* ── Events ── */}
+        <TabsContent value="events">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
+            <SectionHeader
+              title="Events Display"
+              description="Control how events appear on your public website."
+              ts={d.eventsUpdatedAt}
+            >
+              <Button
+                size="sm"
+                disabled={pending === "events"}
+                onClick={() =>
+                  handleSave("events", () =>
+                    saveEventDisplay({
+                      siteId,
+                      showCancelledEvents,
+                    })
+                  )
+                }
+              >
+                {pending === "events" ? "Saving…" : "Save Events"}
+              </Button>
+            </SectionHeader>
+
+            <div className="space-y-5">
+              <div className="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
+                <Switch
+                  id="showCancelledEvents"
+                  checked={showCancelledEvents}
+                  onCheckedChange={setShowCancelledEvents}
+                  className="mt-0.5"
+                />
+                <div>
+                  <Label htmlFor="showCancelledEvents" className="text-sm font-medium text-slate-800 cursor-pointer">
+                    Show cancelled events on the website
+                  </Label>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    When enabled, events with a <strong>Cancelled</strong> status will appear in a dedicated
+                    cancelled section on your public website. Disabled by default.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

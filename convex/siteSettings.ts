@@ -43,6 +43,8 @@ const EMPTY: Record<string, unknown> = {
   seoUpdatedAt: null,
   integrationsUpdatedAt: null,
   legalUpdatedAt: null,
+  showCancelledEvents: false,
+  eventsUpdatedAt: null,
 };
 
 export const get = query({
@@ -249,6 +251,32 @@ export const updateLegal = mutation({
     const doc = (await ctx.db.get(docId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: existing ? "updated" : "created", entityType: "site_settings_legal", page: "Website Settings", previousValue: existing, newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "site_settings_legal", entityId: docId, snapshot: doc });
+    return toResponse(doc);
+  },
+});
+
+export const updateEventDisplay = mutation({
+  args: {
+    siteId: v.id("sites"),
+    showCancelledEvents: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { siteId, ...fields }) => {
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
+    const existing = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .first();
+    const patch = { ...fields, eventsUpdatedAt: Date.now() };
+    let docId;
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+      docId = existing._id;
+    } else {
+      docId = await ctx.db.insert("siteSettings", { siteId, ...patch });
+    }
+    const doc = (await ctx.db.get(docId))!;
+    await logActivity(ctx, { siteId, actorName: user.name, action: existing ? "updated" : "created", entityType: "site_settings_events", page: "Website Settings", previousValue: existing, newValue: doc });
+    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "site_settings_events", entityId: docId, snapshot: doc });
     return toResponse(doc);
   },
 });

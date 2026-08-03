@@ -125,6 +125,31 @@ function getDateParts(d: Date, timezone: string): DateParts {
   };
 }
 
+/**
+ * Returns the UTC epoch milliseconds for 23:59:59.999 on the same local
+ * calendar date as `refMs` in the given IANA timezone.
+ *
+ * Used by public queries to compute an end-of-day cutoff when an entity has
+ * no explicit `endDateTime`.
+ *
+ * @param timezone - IANA timezone string, e.g. "America/Chicago"
+ * @param refMs    - Any UTC timestamp within the target local day
+ */
+export function endOfDayMs(timezone: string, refMs: number): number {
+  const tz = validTimezone(timezone);
+  // 1. Get the local calendar date at refMs.
+  const parts = getDateParts(new Date(refMs), tz);
+  // 2. Build the "local 23:59:59.999" as a fake UTC epoch (no tz adjustment yet).
+  const localEodFakeUtc = Date.UTC(parts.year, parts.month - 1, parts.day, 23, 59, 59, 999);
+  // 3. Compute the timezone offset at approximately noon on that local day so DST
+  //    edge-cases near midnight don't affect us.
+  const noonUtcApprox = Date.UTC(parts.year, parts.month - 1, parts.day, 12, 0, 0, 0);
+  const offsetMs = getTimezoneOffsetMs(tz, noonUtcApprox);
+  // 4. Real UTC end-of-day = local fake-UTC - offset.
+  //    (getTimezoneOffsetMs returns tzRef - utcRef, i.e. local-as-UTC minus actual-UTC)
+  return localEodFakeUtc - offsetMs;
+}
+
 /** Return the timezone string if valid, else "UTC". */
 function validTimezone(tz: string | undefined | null): string {
   if (!tz) return "UTC";

@@ -7,6 +7,8 @@ import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
 import { internal } from "./_generated/api";
 import { calculateLifecycleStatus } from "./lib/lifecycleStatus";
+import { siteFromSlug } from "./lib/siteFromSlug";
+import { endOfDayMs } from "./lib/timezoneUtils";
 
 // Shorthand for scheduling an immediate lifecycle recalculation after a write.
 async function scheduleRecalc(ctx: any, eventId: string) {
@@ -217,5 +219,149 @@ export const remove = mutation({
     await ctx.db.delete(eventId);
     await logActivity(ctx, { siteId, actorName: user.name, action: "deleted", entityType: "event", entityId: eventId, page: "Events", previousValue: existing });
     return { success: true };
+  },
+});
+
+// ── Public website queries (no auth, scoped by siteSlug) ──────────────────
+
+/**
+ * Returns true when an event should be visible on the public website.
+ * Accepts explicit `isPublished: true` OR legacy records that only have
+ * `status: "published"` (seeded before the isPublished field was introduced).
+ */
+function isEffectivelyPublished(d: any): boolean {
+  if (d.isPublished === true) return true;
+  if (d.isPublished == null && d.status === "published") return true;
+  return false;
+}
+
+/** Lifecycle statuses that represent an event visible in "upcoming" sections. */
+const UPCOMING_LIFECYCLE_STATUSES = new Set([
+  "Scheduled",
+  "RegistrationOpen",
+  "NearlyFull",
+  "Full",
+  "WaitlistOpen",
+  "RegistrationClosed",
+  "InProgress",
+]);
+
+/** Shape returned to the public website — excludes internal write fields. */
+function toPublicEventResponse(doc: any, extra?: Record<string, unknown>) {
+  return {
+    id: doc._id,
+    title: doc.title,
+    slug: doc.slug,
+    description: doc.description,
+    startAt: new Date(doc.startAt).toISOString(),
+    endAt: doc.endAt ? new Date(doc.endAt).toISOString() : null,
+    location: doc.location ?? null,
+    imageUrl: doc.imageUrl ?? null,
+    startDateTime: doc.startDateTime ?? null,
+    endDateTime: doc.endDateTime ?? null,
+    timezone: doc.timezone ?? null,
+    lifecycleStatus: doc.lifecycleStatus ?? null,
+    registrationStatus: doc.registrationStatus ?? null,
+    capacity: doc.capacity ?? null,
+    cancelledAt: doc.cancelledAt ?? null,
+    completedAt: doc.completedAt ?? null,
+    ...extra,
+  };
+}
+
+/**
+ * Public — upcoming events for a site.
+ * Returns published events whose lifecycleStatus is one of:
+ *   Scheduled | RegistrationOpen | NearlyFull | Full | WaitlistOpen |
+ *   RegistrationClosed | InProgress
+ * Ordered by startDateTime ASC.
+ */
+export const listUpcoming = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    const docs = await ctx.db
+      .query("events")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .collect();
+    return docs
+      .filter(
+        (d) =>
+          isEffectivelyPublished(d) &&
+          (UPCOMING_LIFECYCLE_STATUSES.has(d.lifecycleStatus ?? "") ||
+            // Legacy records with no lifecycleStatus default to upcoming when published
+            (d.lifecycleStatus == null && d.status === "published")),
+      )
+      .sort(
+        (a, b) =>
+          (a.startDateTime ?? a.startAt) - (b.startDateTime ?? b.startAt),
+      )
+      .map((d) => toPublicEventResponse(d));
+  },
+});
+
+/**
+ * Public — past events for a site.
+ * Returns published events with lifecycleStatus = "Completed".
+ * Ordered by effective endDateTime DESC.
+ * When endDateTime is missing, end-of-day in the event's timezone is used
+ * and the record includes `missingEndTime: true`.
+ */
+export const listPast = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    const docs = await ctx.db
+      .query("events")
+      .withIndex("by_site_lifecycleStatus", (q) =>
+        q.eq("siteId", site._id).eq("lifecycleStatus", "Completed"),
+      )
+      .collect();
+
+    return docs
+      .filter((d) => isEffectivelyPublished(d))
+      .map((d) => {
+        const hasMissingEnd = !d.endDateTime;
+        const effectiveEnd = hasMissingEnd
+          ? endOfDayMs(d.timezone ?? "UTC", d.startDateTime ?? d.startAt)
+          : (d.endDateTime as number);
+        return {
+          doc: d,
+          effectiveEnd,
+          hasMissingEnd,
+        };
+      })
+      .sort((a, b) => b.effectiveEnd - a.effectiveEnd)
+      .map(({ doc, hasMissingEnd }) =>
+        toPublicEventResponse(doc, hasMissingEnd ? { missingEndTime: true } : {}),
+      );
+  },
+});
+
+/**
+ * Public — cancelled events for a site.
+ * Only returned when the site has `showCancelledEvents: true` in siteSettings.
+ * Returns published events with lifecycleStatus = "Cancelled".
+ */
+export const listCancelled = query({
+  args: { siteSlug: v.string() },
+  handler: async (ctx, { siteSlug }) => {
+    const site = await siteFromSlug(ctx, siteSlug);
+    // Gate on the site's showCancelledEvents setting (default: hidden).
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_site", (q) => q.eq("siteId", site._id))
+      .first();
+    if (!settings?.showCancelledEvents) return [];
+
+    const docs = await ctx.db
+      .query("events")
+      .withIndex("by_site_lifecycleStatus", (q) =>
+        q.eq("siteId", site._id).eq("lifecycleStatus", "Cancelled"),
+      )
+      .collect();
+    return docs
+      .filter((d) => isEffectivelyPublished(d))
+      .map((d) => toPublicEventResponse(d));
   },
 });
