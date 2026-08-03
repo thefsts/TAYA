@@ -17,4 +17,6 @@
 - [Pull external repo over scaffold](pull-external-repo-over-scaffold.md) — set origin + gitPull (merge fails on unrelated history but fetch succeeds), then `git reset --hard origin/<branch>`.
 - [FSTS-WOS security model](fsts-security-model.md) — full guard vocabulary for audits; CONVEX_TEST_MODE is a backdoor if set on prod; convex-test seeding trap.
 - [Convex deployment alignment](convex-deployment-alignment.md) — VITE_CONVEX_URL env var must match CONVEX_DEPLOY_KEY target (uncommon-cobra-336); stale clean-marlin-94 value caused "function not found" on new modules.
+- [FSTS superAdmin allowlist](fsts-superadmin-allowlist.md) — first-signup bootstrap removed; use SUPERADMIN_EMAILS Convex env var; current allowlist: amorebey@gmail.com + e2e-test@fstsclientsystem.com.
+- [FSTS add-on catalog](fsts-addon-catalog.md) — addOnCatalog + siteAddOns schema; 6 items seeded; wizard Step 8 live; test site: apex-fitness-studio (siteId: qd71sbs6m0q215ehvdw9gbvkcn8brk1e).
 - [Corsair lock-file / Vercel npm compat](corsair-lockfile-vercel-compat.md) — never regenerate package-lock.json locally; Vercel's npm resolves @emnapi/* differently; restore green lock file instead.
