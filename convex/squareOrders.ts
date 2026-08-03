@@ -69,20 +69,24 @@ export const getByEventId = internalQuery({
 // ── Atomic order upsert (webhook entry point) ─────────────────────────────────
 
 /**
- * Atomically writes the order record and initialises email delivery state.
- * The squareEventId dedup check is the FIRST operation inside this mutation so
- * the duplicate-event claim is an atomic transaction, not a separate pre-query.
- * Convex mutations run serially; no concurrent call can race past this guard.
+ * Atomically writes the order record and triggers completion side effects.
  *
- * Returns { orderId, duplicate: true } when this event ID was already processed
- * (webhookProcessedAt is set). Callers must check `duplicate` and return early
- * without executing further business logic.
+ * IDEMPOTENCY: The squareEventId dedup check runs FIRST, inside this mutation,
+ * so the duplicate-event claim is a serialised atomic transaction — no race
+ * window exists with a concurrent delivery for the same event_id.
+ * Returns { orderId, duplicate: true } immediately; callers must short-circuit.
  *
- * squareEventId on an existing order is NEVER overwritten — the order retains
- * the event ID of the webhook that first created it.
+ * COMPLETION TRIGGER: CRM sync and email scheduling fire whenever the order
+ * STATUS transitions INTO "COMPLETED" (wasCompleted=false → isCompleted=true).
+ * This covers both:
+ *   a) New order arriving already COMPLETED (e.g. payment.completed webhook).
+ *   b) Existing order updated from a non-final state → COMPLETED
+ *      (e.g. payment.created with PENDING, then payment.updated with COMPLETED).
+ * Repeated COMPLETED updates on an already-COMPLETED order are idempotent —
+ * side effects do not fire again, preserving email delivery state.
  *
- * Email delivery is scheduled only for new orders; existing email-state fields
- * are NOT reset so in-flight or completed delivery state is preserved.
+ * SQUAREEVENTID: Never overwritten on existing orders — the order retains the
+ * event ID of the first webhook that wrote it.
  */
 export const upsertOrderFromWebhook = internalMutation({
   args: {
@@ -103,16 +107,13 @@ export const upsertOrderFromWebhook = internalMutation({
     const now = Date.now();
 
     // ── Step 1: Atomic dedup by squareEventId ──────────────────────────────
-    // This check happens INSIDE the mutation so it is serialised by Convex and
-    // cannot race with a concurrent webhook delivery for the same event_id.
+    // Serialised by Convex — cannot race with concurrent delivery of same event.
     if (squareEventId) {
       const byEvent = await ctx.db
         .query("squareOrders")
         .withIndex("by_squareEventId", (q) => q.eq("siteId", siteId).eq("squareEventId", squareEventId))
         .first();
       if (byEvent?.webhookProcessedAt) {
-        // Exact duplicate — already fully processed. Return early without any
-        // side effects (no CRM sync, no email scheduling, no capacity change).
         return { orderId: byEvent._id, duplicate: true as const };
       }
     }
@@ -123,37 +124,54 @@ export const upsertOrderFromWebhook = internalMutation({
       .withIndex("by_site_squareOrderId", (q) => q.eq("siteId", siteId).eq("squareOrderId", squareOrderId))
       .first();
 
+    // Track whether the order was already COMPLETED before this webhook so we
+    // know whether this webhook is a status transition INTO COMPLETED.
+    const wasCompleted = existing?.status === "COMPLETED";
+    const isNowCompleted = fields.status === "COMPLETED";
+    const transitioningToCompleted = isNowCompleted && !wasCompleted;
+
     let orderId;
-    let isNewOrder = false;
 
     if (existing) {
-      // Patch payment fields but NEVER overwrite squareEventId (preserve the
-      // event ID of the webhook that first created this order) and NEVER reset
-      // email delivery state already in progress.
+      // Patch payment fields. Never overwrite squareEventId (preserve the
+      // event ID of the first webhook). Never reset email delivery state —
+      // delivery may already be in flight or completed.
+      const emailStateInit = transitioningToCompleted
+        ? {
+            // Initialise delivery state only when first transitioning to COMPLETED
+            customerEmailStatus: "pending",
+            businessEmailStatus: "pending",
+            emailAttemptCount: 0,
+          }
+        : {};
+
       await ctx.db.patch(existing._id, {
         ...fields,
-        // Keep the original squareEventId — do not replace with a newer event
+        ...emailStateInit,
         webhookReceivedAt: webhookReceivedAt ?? existing.webhookReceivedAt,
         webhookProcessedAt: now,
       });
       orderId = existing._id;
     } else {
+      // New order — initialise email state only when COMPLETED.
+      const emailStateInit = isNowCompleted
+        ? { customerEmailStatus: "pending", businessEmailStatus: "pending", emailAttemptCount: 0 }
+        : {};
+
       orderId = await ctx.db.insert("squareOrders", {
         siteId,
         squareOrderId,
         squareEventId,
         webhookReceivedAt: webhookReceivedAt ?? now,
         webhookProcessedAt: now,
-        customerEmailStatus: "pending",
-        businessEmailStatus: "pending",
-        emailAttemptCount: 0,
+        ...emailStateInit,
         ...fields,
       });
-      isNewOrder = true;
     }
 
-    // ── Step 3: Side effects — only for new orders ─────────────────────────
-    if (fields.status === "COMPLETED" && isNewOrder) {
+    // ── Step 3: Completion side effects ────────────────────────────────────
+    // Fire exactly once per order: when it transitions INTO COMPLETED.
+    if (transitioningToCompleted || (!existing && isNowCompleted)) {
       await ctx.scheduler.runAfter(0, internal.crm.syncToCrm, {
         siteId,
         provider: "operon",

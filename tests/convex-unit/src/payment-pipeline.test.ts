@@ -618,6 +618,130 @@ describe("Scenario 13 — siteId isolation prevents cross-tenant access", () => 
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Regression: status transition — non-COMPLETED → COMPLETED fires side effects
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe("Regression — non-COMPLETED → COMPLETED transition triggers email and CRM side effects exactly once", () => {
+  it("order created with non-final status has no email delivery state initialised", async () => {
+    // Square sends payment.created with status PENDING before payment completes.
+    // No emails should be scheduled yet.
+    const r = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({
+        squareOrderId: "sq_order_transition",
+        squareEventId: "sq_event_pending",
+        status: "PENDING",
+      }),
+    });
+
+    expect(r.duplicate).toBe(false);
+    const order = await t.run(async (ctx) => ctx.db.get(r.orderId));
+    expect(order!.status).toBe("PENDING");
+    // Email state should NOT be initialised for non-completed orders
+    expect(order!.customerEmailStatus).toBeUndefined();
+    expect(order!.businessEmailStatus).toBeUndefined();
+    expect(order!.emailAttemptCount).toBeUndefined();
+  });
+
+  it("updating the same order to COMPLETED initialises email state and marks as duplicate:false", async () => {
+    // First webhook: PENDING
+    await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({
+        squareOrderId: "sq_order_transition2",
+        squareEventId: "sq_event_pending2",
+        status: "PENDING",
+      }),
+    });
+
+    // Second webhook: COMPLETED (different event ID, same squareOrderId)
+    const r2 = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({
+        squareOrderId: "sq_order_transition2",
+        squareEventId: "sq_event_completed2",
+        status: "COMPLETED",
+      }),
+    });
+
+    expect(r2.duplicate).toBe(false);
+    const order = await t.run(async (ctx) => ctx.db.get(r2.orderId));
+    expect(order!.status).toBe("COMPLETED");
+    // Email state initialised at the COMPLETED transition
+    expect(order!.customerEmailStatus).toBe("pending");
+    expect(order!.businessEmailStatus).toBe("pending");
+    expect(order!.emailAttemptCount).toBe(0);
+  });
+
+  it("a second COMPLETED update on an already-COMPLETED order does not reset email delivery state", async () => {
+    // Create order directly as COMPLETED
+    const r1 = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({
+        squareOrderId: "sq_order_idempotent",
+        squareEventId: "sq_event_idempotent1",
+        status: "COMPLETED",
+      }),
+    });
+
+    // Simulate email having been sent after first COMPLETED webhook
+    await t.mutation(internal.squareOrders.updateOrderEmailStatus, {
+      orderId: r1.orderId,
+      siteId: s.siteA,
+      customerEmailStatus: "sent",
+      businessEmailStatus: "sent",
+      emailAttemptCount: 1,
+    });
+
+    // A second COMPLETED update (e.g. payment.updated with same final status)
+    // using a NEW squareEventId — dedup won't fire (different event), but
+    // wasCompleted=true so email state must not be reset.
+    const r2 = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({
+        squareOrderId: "sq_order_idempotent",
+        squareEventId: "sq_event_idempotent2",
+        status: "COMPLETED",
+      }),
+    });
+
+    expect(r2.duplicate).toBe(false);
+    expect(r2.orderId).toEqual(r1.orderId);
+
+    const order = await t.run(async (ctx) => ctx.db.get(r1.orderId));
+    // Email state preserved — NOT reset by the second COMPLETED update
+    expect(order!.customerEmailStatus).toBe("sent");
+    expect(order!.businessEmailStatus).toBe("sent");
+    expect(order!.emailAttemptCount).toBe(1);
+  });
+
+  it("squareEventId is preserved from the first webhook across status transitions", async () => {
+    const firstEventId = "sq_event_first_transition";
+    await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({
+        squareOrderId: "sq_order_eventid_preserve",
+        squareEventId: firstEventId,
+        status: "PENDING",
+      }),
+    });
+
+    const r2 = await t.mutation(internal.squareOrders.upsertOrderFromWebhook, {
+      siteId: s.siteA,
+      ...orderPayload({
+        squareOrderId: "sq_order_eventid_preserve",
+        squareEventId: "sq_event_second_transition",
+        status: "COMPLETED",
+      }),
+    });
+
+    const order = await t.run(async (ctx) => ctx.db.get(r2.orderId));
+    // Original squareEventId never overwritten
+    expect(order!.squareEventId).toBe(firstEventId);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Regression: throw recovery — orders cannot be stuck in "processing"
 // ──────────────────────────────────────────────────────────────────────────────
 
