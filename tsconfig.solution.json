@@ -1,0 +1,11 @@
+{
+    "files": [],
+    "references": [
+      { "path": "lib/db" },
+      { "path": "lib/embed-widget" },
+      { "path": "lib/payment-connectors" },
+      { "path": "lib/api-client-react" },
+      { "path": "lib/api-zod" }
+    ]
+    }
+    
