@@ -1,0 +1,381 @@
+# Full FSTS-WOS™ Status Update and First-Site Onboarding Audit
+
+Give me a complete, current-state audit of the FSTS Website Operating System™ and tell me exactly where we stand on adding our first live site, Corsair.
+
+Do not give me a high-level summary only. I want the actual implementation status based on the current codebase, task state, production configuration, and live integration.
+
+## 1. Overall Platform Status
+
+Report the current completion percentage for each area:
+
+* Dashboard Core
+* Multi-Tenant Architecture
+* Authentication & RBAC
+* Security
+* CMS
+* Services
+* Products
+* Courses / Classes
+* Events
+* Flyers / Media
+* Forms
+* Email
+* Payments
+* Smart Image Manager™
+* Membership Portal
+* SEO
+* Add-ons / Billing
+* Website Integration
+* Production Operations
+* Onboarding System
+
+For each area, show:
+
+* Complete
+* In Progress
+* Blocked
+* Not Started
+* Completion percentage
+* Remaining work
+
+## 2. First Site — Corsair
+
+Tell me exactly where Corsair stands right now.
+
+Include:
+
+* Tenant created?
+* Site registered?
+* Client admin provisioned?
+* Clerk login working?
+* RBAC working?
+* Tenant isolation verified?
+* Public domain connected?
+* Canonical domain finalized?
+* SSL working?
+* CMS connected to live Corsair website?
+* Homepage connected?
+* Navigation connected?
+* Footer connected?
+* Services connected?
+* Products connected?
+* Courses/classes connected?
+* Events connected?
+* Forms connected?
+* Media connected?
+* SEO connected?
+* Membership Portal connected?
+* Email connected?
+* Square payments connected?
+* Reviews connected?
+* Flyers connected?
+
+For every item, mark:
+
+* ✅ Verified in production
+* 🟡 Built but still needs live verification
+* 🔴 Blocked
+* ❌ Not implemented
+
+## 3. Live CMS Integration
+
+I want an exact update on the work that was previously tracked under Task #124 and related follow-up tasks.
+
+Confirm:
+
+* Which Corsair pages are now reading from FSTS-WOS™ data
+* Which still use hardcoded/local content
+* Whether Convex reactive queries are actually working in production
+* Whether dashboard edits appear on the live website without a rebuild
+* Whether any content requires Vercel redeployment
+* Whether Services, Products, Courses, Classes, and Events all render correctly
+* Whether there are any remaining empty-data or slug-link issues
+
+If Task #139 or its replacement is complete, provide the evidence.
+
+## 4. Client Access and Security
+
+Confirm the client cannot change:
+
+* Website layout
+* Website design system
+* Website code
+* Dashboard code
+* HTML/CSS/JavaScript
+* React/Next.js code
+* Backend functions
+* Convex schema
+* Environment variables
+* Deployment configuration
+* Vercel
+* GitHub
+* Clerk platform configuration
+* Resend secrets
+* Square secrets
+* Global templates
+* Shared dashboard components
+
+Confirm all restrictions are enforced server-side, not just hidden in the UI.
+
+Also confirm:
+
+* First signup cannot become SuperAdmin
+* Client cannot promote themselves
+* SuperAdmin assignment is allowlist/manual only
+* A SuperAdmin cannot accidentally receive inappropriate site roles
+* Cross-tenant access is rejected
+
+Give me the current status of any remaining work related to Tasks #134 and #138.
+
+## 5. Client Content Permissions
+
+Confirm exactly what Corsair's client account can manage today.
+
+They should be able to manage approved content such as:
+
+* Text content
+* Services
+* Products
+* Courses/classes
+* Events
+* Forms
+* Media
+* Flyers
+* SEO fields
+* Portal content where authorized
+
+But they must not be able to alter protected design or code.
+
+Show me the actual current permission model and backend checks.
+
+## 6. Flyers
+
+Report whether the Flyer Manager is implemented.
+
+Confirm whether the client can:
+
+* Upload a flyer
+* Enter title/description
+* Add a CTA/link
+* Choose publish date
+* Choose expiration date
+* Link flyer to a course/class/event/service
+* Schedule it
+* Publish it
+* Archive it
+* Preview it
+
+Confirm that clients cannot redesign the flyer component itself.
+
+Also confirm whether expired flyers or flyers attached to completed/cancelled events are automatically removed from the live site and archived.
+
+## 7. Classes and Events Automation
+
+Give me the actual current implementation status for class/event lifecycle automation.
+
+Confirm whether the system currently knows:
+
+* Class capacity
+* Number registered
+* Seats remaining
+* Waitlist count
+* Registration opening date
+* Registration closing date
+* Start date/time
+* End date/time
+* Timezone
+* Full status
+* Past/completed status
+* Cancelled status
+
+Confirm whether these actions happen automatically:
+
+* Registration closes when a class becomes full
+* Website button changes from Register to Class Full
+* Waitlist opens when configured
+* Two people cannot claim the last seat at the same time
+* Cancellation frees a seat
+* Waitlisted users can be promoted
+* Registration closes at the configured deadline
+* Events leave Upcoming Events after they end
+* Completed events move to Past Events
+* Past classes move to Past Classes
+* Cancelled events are handled correctly
+* Associated flyers automatically expire/archive
+
+Tell me what is automated today versus what still needs to be built.
+
+## 8. Payment Pipeline
+
+Give me the current status of Tasks #446, #447, and #448, or their replacement tasks.
+
+For payments, confirm the full chain:
+
+Registration → Customer → Order → Square payment → Webhook → Deduplication → Registration record → Customer email → Business email
+
+Confirm:
+
+* Square webhook verification works
+* Duplicate webhooks cannot create duplicate registrations
+* Capacity cannot increment twice
+* Missing Resend configuration cannot silently lose the transaction
+* Email delivery has its own retry/recovery process
+* Customer confirmation can be resent
+* Business notification can be resent
+* KV deduplication works
+* Production behavior if KV is unavailable
+* A successful payment is always preserved even if email fails
+
+Provide the current live-test status, not just unit-test results.
+
+## 9. Production Environment Variables
+
+Show the current production configuration status for:
+
+* SQUARE_WEBHOOK_SIGNATURE_KEY
+* RESEND_WEBHOOK_SECRET
+* RESEND_API_KEY
+* KV_REST_API_URL
+* KV_REST_API_TOKEN
+* NEXT_PUBLIC_SITE_URL
+* Clerk production keys
+* Convex production configuration
+
+Do not display secret values.
+
+Show only:
+
+* Configured
+* Missing
+* Using fallback
+* Owner action required
+
+Also confirm whether a production redeploy has occurred after the latest variables were added.
+
+## 10. Email
+
+Confirm:
+
+* Corsair welcome email delivered?
+* Registration confirmations delivered?
+* Business notifications delivered?
+* SPF configured?
+* DKIM configured?
+* Resend API key configured?
+* Sender domain verified?
+* Missing email configuration visible in the dashboard?
+* Manual resend available?
+
+If anything is still waiting on the Corsair owner, list it clearly.
+
+## 11. Media
+
+Confirm:
+
+* Live Corsair browser upload completed?
+* Convex File Storage working?
+* CDN URL renders publicly?
+* Smart Image Manager™ works?
+* Broken asset detection works?
+* Client media isolated to Corsair?
+* Real logo uploaded?
+* Real favicon uploaded?
+
+Separate code verification from actual live-browser verification.
+
+## 12. Remaining Human QA
+
+Give me the current status of all remaining human/live checks, including:
+
+* Corsair owner browser login
+* Real media upload
+* Real form submission
+* Real inbox email delivery
+* Real Square transaction
+* Portal login
+* Mobile QA
+* Lighthouse score
+* Uptime monitoring
+* Console errors
+* Broken assets
+* DNS/domain verification
+
+## 13. Active Tasks
+
+List every task that is currently:
+
+* Active
+* In Progress
+* Draft
+* Blocked
+* Proposed
+
+For each, provide:
+
+* Task number
+* Title
+* Purpose
+* Current status
+* What is already done
+* What remains
+* Whether it blocks Corsair launch
+* Whether it blocks Website #2
+
+## 14. Evidence
+
+For all major completed items, provide:
+
+* Commit hash
+* PR number if applicable
+* Files changed
+* Tests run
+* Test results
+* Production URL or evidence
+* Any known limitations
+
+Do not call something complete just because the code exists.
+
+Clearly distinguish:
+
+* Code complete
+* Automated-test complete
+* Production verified
+* Human verified
+
+## 15. Final First-Site Readiness Report
+
+End with a single table for Corsair showing:
+
+* Infrastructure
+* Authentication
+* Security
+* CMS
+* Website connection
+* Courses/classes
+* Events
+* Flyers
+* Payments
+* Email
+* Media
+* Portal
+* SEO
+* Client access
+* Production monitoring
+
+Then answer these five questions directly:
+
+1. What percentage complete is Corsair as our first fully managed FSTS-WOS™ website?
+2. What exactly prevents Corsair from being considered 100% complete today?
+3. Can the Corsair owner safely use the dashboard today?
+4. Is Corsair ready to take real customer registrations/payments today?
+5. Are we ready to onboard Website #2 today?
+
+Finish with one verdict only:
+
+* GO
+* GO WITH CONDITIONS
+* NO-GO
+
+If the verdict is GO WITH CONDITIONS or NO-GO, list the exact conditions that must be cleared first.
+
+Use the actual current codebase, production state, and live task records. Do not repeat old status information if newer work has superseded it.
