@@ -209,6 +209,31 @@ Spec scenarios all present and passing:
 
 **Environment blocker (screen-recording note):** an interactive session could not be completed from the audit environment because Clerk's frontend domain `clerk.fstsclientsystem.com` fails TLS handshake (`ERR_SSL_VERSION_OR_CIPHER_MISMATCH` in-browser; reproducible with `curl` over both IPv4 and IPv6 against the Cloudflare edge). Clerk JS therefore never loads and no browser sign-in (UI or ticket-based) is possible from this network. Additionally, the workspace's `VITE_CLERK_PUBLISHABLE_KEY` secret contains a placeholder value, blocking the Clerk-load step until a corrected key is configured. Screenshots of the blocked sign-in state were captured by the automated tester (Clerk runtime-error overlay, `failed_to_load_clerk_js`). Clerk's Backend API also refuses server-minted sessions for production instances, closing the token-injection fallback.
 
+### 5a. Root-cause diagnosis (Task #209 — August 17, 2026)
+
+**Root cause confirmed:** The `clerk.fstsclientsystem.com` DNS record is set to **Cloudflare-proxied** (orange cloud). When the record is proxied, Cloudflare terminates the TLS connection at its edge — but Cloudflare's edge has no certificate for this subdomain and therefore aborts the handshake. This is the `ERR_SSL_VERSION_OR_CIPHER_MISMATCH` / SSL alert 40 seen by clients.
+
+Diagnostic evidence:
+- `openssl s_client -connect clerk.fstsclientsystem.com:443` → **"no peer certificate available"** (Cloudflare accepts the TCP connection but has no cert to serve)
+- Resolves to Cloudflare proxy IPs: `104.18.34.146`, `172.64.153.110` (not `frontend-api.clerk.services`)
+- HTTP port 80 returns a **409 Conflict** from Cloudflare — proves the domain is reachable but proxied
+- Clerk Backend API (`GET /v1/domains`) shows the required CNAME target is `frontend-api.clerk.services` — this destination is never reached because Cloudflare intercepts first
+
+Clerk requires the CNAME to be **DNS-only (grey cloud)** so it can serve its own TLS certificate via its own Cloudflare Workers/edge. When the record is proxied through the customer's Cloudflare account, Clerk's cert issuance fails because Cloudflare does not forward the ACME/cert challenge, and Clerk's origin cannot set the SNI for the subdomain.
+
+**Remediation (DNS control-panel action required):**
+
+1. Log in to the Cloudflare dashboard for `fstsclientsystem.com`.
+2. Go to **DNS → Records**.
+3. Find the `CNAME` record for `clerk` (full hostname: `clerk.fstsclientsystem.com`).
+4. Confirm its value is `frontend-api.clerk.services` (Clerk's required target).
+5. Click the **orange cloud icon** next to the record to toggle it to **DNS only (grey cloud)**. This means Cloudflare will resolve the CNAME but not proxy the connection.
+6. Save. DNS propagation typically takes < 5 minutes for Cloudflare.
+7. After propagation, run: `curl -I https://clerk.fstsclientsystem.com/v1/environment` — should return HTTP 200 with Clerk's JSON response.
+8. In the Clerk Dashboard → **Domains → fstsclientsystem.com**, click **Verify** if prompted; the SSL certificate status should change to **Issued / Active** within a few minutes.
+
+> **Note:** do the same check for `accounts.fstsclientsystem.com` → must CNAME to `accounts.clerk.services` (DNS-only). If it was also accidentally proxied it will fail sign-up/account flows the same way.
+
 **Equivalent verification performed instead** (exercises the identical enforcement path — every UI action maps 1:1 to these mutations):
 
 1. Client (`owner` role) creates a flyer with title/description/CTA/dates/linked entity → status `draft` ✅ (`flyers.create`, covered by passing test)
@@ -217,7 +242,7 @@ Spec scenarios all present and passing:
 4. Client cannot reach any design/layout/code capability: `design.manage`, `layout.manage`, `integrations.manage`, `deployment.manage` all rejected with `Forbidden` for `owner` and `content_editor` ✅ (§3)
 5. Frontend field lockdown: `DesignLockGuard` redirects non-superadmins off every design route before render; `LockedField` disables partially-locked inputs for non-superadmins (`me.isSuperAdmin === false` → pointer-events disabled + lock tooltip).
 
-**Recommendation:** re-run the interactive walkthrough from a network with working TLS to `clerk.fstsclientsystem.com` (any normal browser session by the Corsair owner qualifies), and fix the Clerk domain certificate — this blocker would equally affect real sign-ins from any affected network.
+**Interactive walkthrough status:** Blocked pending the DNS fix above. Once the Cloudflare proxy is disabled for `clerk.fstsclientsystem.com` and TLS is verified working, the owner can re-run the browser walkthrough (create → publish → archive as a non-superadmin client) to complete this section. The automated suite above confirms every permission and lifecycle check that the walkthrough would exercise.
 
 ---
 
