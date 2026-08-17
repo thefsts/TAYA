@@ -131,14 +131,14 @@ beforeEach(async () => {
 describe("migrateDeleteDataUrls — happy path", () => {
   it("deletes only the data: URL record and returns deleted=1", async () => {
     const result = await t
-      .withIdentity({ subject: "owner_a" })
+      .withIdentity({ subject: "superadmin" })
       .mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
 
     expect(result.deleted).toBe(1);
   });
 
   it("leaves the real-URL record untouched", async () => {
-    await t.withIdentity({ subject: "owner_a" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
+    await t.withIdentity({ subject: "superadmin" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
 
     const remaining = await t.run((ctx) => ctx.db.get(s.realUrlId));
     expect(remaining).not.toBeNull();
@@ -146,7 +146,7 @@ describe("migrateDeleteDataUrls — happy path", () => {
   });
 
   it("leaves the storageId record untouched", async () => {
-    await t.withIdentity({ subject: "owner_a" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
+    await t.withIdentity({ subject: "superadmin" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
 
     const remaining = await t.run((ctx) => ctx.db.get(s.storageAssetId));
     expect(remaining).not.toBeNull();
@@ -154,7 +154,7 @@ describe("migrateDeleteDataUrls — happy path", () => {
   });
 
   it("actually removes the base64 record from the database", async () => {
-    await t.withIdentity({ subject: "owner_a" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
+    await t.withIdentity({ subject: "superadmin" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
 
     const gone = await t.run((ctx) => ctx.db.get(s.dataUrlId));
     expect(gone).toBeNull();
@@ -164,7 +164,7 @@ describe("migrateDeleteDataUrls — happy path", () => {
 describe("migrateDeleteDataUrls — idempotency", () => {
   it("returns deleted=0 when called a second time on an already-clean library", async () => {
     const caller = () =>
-      t.withIdentity({ subject: "owner_a" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
+      t.withIdentity({ subject: "superadmin" }).mutation(api.media.migrateDeleteDataUrls, { siteId: s.siteA });
 
     const first = await caller();
     expect(first.deleted).toBe(1);
