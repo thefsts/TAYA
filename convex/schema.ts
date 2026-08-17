@@ -86,7 +86,8 @@ export default defineSchema({
     status: v.string(),
     description: v.string(),
     durationLabel: v.optional(v.string()),
-    priceCents: v.optional(v.number()),
+    /** Price in integer minor units (cents). null = explicitly cleared; absent = not set. */
+    priceCents: v.optional(v.union(v.number(), v.null())),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
     // ── Capacity & Registration fields ───────────────────────────────────
@@ -119,6 +120,14 @@ export default defineSchema({
     location: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
+    /** Price in integer minor units (cents). null = explicitly cleared; absent = not set. */
+    priceCents: v.optional(v.union(v.number(), v.null())),
+    /**
+     * Optional reference to a course slug on the same site.
+     * When set and no matching course slug exists, the event is considered
+     * "orphaned" and flagged in the admin dashboard.
+     */
+    courseSlug: v.optional(v.string()),
     // ── Capacity & Registration fields ───────────────────────────────────
     capacity: v.optional(v.number()),
     waitlistCapacity: v.optional(v.number()),

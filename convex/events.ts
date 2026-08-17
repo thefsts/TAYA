@@ -9,6 +9,7 @@ import { internal } from "./_generated/api";
 import { calculateLifecycleStatus } from "./lib/lifecycleStatus";
 import { siteFromSlug } from "./lib/siteFromSlug";
 import { endOfDayMs } from "./lib/timezoneUtils";
+import { assertValidPriceCents } from "./lib/formatPrice";
 
 // Shorthand for scheduling an immediate lifecycle recalculation after a write.
 async function scheduleRecalc(ctx: any, eventId: string) {
@@ -86,11 +87,20 @@ export const create = mutation({
     location: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
+    /** Price in integer minor units (cents). Absent = free / contact-for-pricing. */
+    priceCents: v.optional(v.number()),
+    /** Optional reference to a course slug on the same site (for linked-event detection). */
+    courseSlug: v.optional(v.string()),
     ...capacityArgs,
   },
   handler: async (ctx, { siteId, startAt, endAt, ...fields }) => {
     const user = await requirePermission(ctx, siteId, PERMISSIONS.EVENTS_MANAGE);
     await requireModuleEnabled(ctx, siteId, "events");
+    // Validate and normalise priceCents: must be a finite non-negative integer.
+    if (fields.priceCents != null) {
+      assertValidPriceCents(fields.priceCents, "event price");
+      (fields as any).priceCents = Math.round(fields.priceCents);
+    }
     const startAtMs = new Date(startAt).getTime();
     const endAtMs = endAt ? new Date(endAt).getTime() : undefined;
     // Mirror startAt/endAt into startDateTime/endDateTime so that lifecycle
@@ -130,6 +140,14 @@ export const update = mutation({
     location: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
+    /**
+     * Price in integer minor units (cents).
+     * Pass `null` to explicitly clear a stored price.
+     * Omit to leave the existing price unchanged.
+     */
+    priceCents: v.optional(v.union(v.number(), v.null())),
+    /** Optional reference to a course slug on the same site (for linked-event detection). */
+    courseSlug: v.optional(v.string()),
     ...capacityArgs,
   },
   handler: async (ctx, { siteId, eventId, startAt, endAt, ...fields }) => {
@@ -137,18 +155,31 @@ export const update = mutation({
     await requireModuleEnabled(ctx, siteId, "events");
     const existing = await ctx.db.get(eventId);
     if (!existing || existing.siteId !== siteId) throw new Error("Event not found");
-    const patch: Record<string, unknown> = { ...fields };
+    // Handle priceCents: null = explicitly clear; number = validate, round, set; absent = no change.
+    const { priceCents, ...otherFields } = fields as any;
+    const pricePatch: Record<string, unknown> = {};
+    if ("priceCents" in fields) {
+      if (priceCents === null) {
+        // Explicit clear — store null so the field is present but empty.
+        // null renders as "Contact for pricing" / "—" in all UI paths.
+        pricePatch.priceCents = null;
+      } else if (typeof priceCents === "number") {
+        assertValidPriceCents(priceCents, "event price");
+        pricePatch.priceCents = Math.round(priceCents);
+      }
+    }
+    const patch: Record<string, unknown> = { ...otherFields, ...pricePatch };
     if (startAt) {
       const startAtMs = new Date(startAt).getTime();
       patch.startAt = startAtMs;
       // Keep startDateTime in sync with startAt unless caller explicitly set it
-      if (!("startDateTime" in fields)) patch.startDateTime = startAtMs;
+      if (!("startDateTime" in otherFields)) patch.startDateTime = startAtMs;
     }
     if (endAt !== undefined) {
       const endAtMs = endAt ? new Date(endAt).getTime() : undefined;
       patch.endAt = endAtMs;
       // Keep endDateTime in sync with endAt unless caller explicitly set it
-      if (!("endDateTime" in fields)) patch.endDateTime = endAtMs;
+      if (!("endDateTime" in otherFields)) patch.endDateTime = endAtMs;
     }
     await ctx.db.patch(eventId, patch as any);
     // Recalculate lifecycle status
@@ -295,6 +326,8 @@ function toPublicEventResponse(doc: any, extra?: Record<string, unknown>) {
     endAt: doc.endAt ? new Date(doc.endAt).toISOString() : null,
     location: doc.location ?? null,
     imageUrl: doc.imageUrl ?? null,
+    // Coerce priceCents: guard NaN/Infinite so they never reach the browser
+    priceCents: (typeof doc.priceCents === "number" && isFinite(doc.priceCents)) ? doc.priceCents : null,
     startDateTime: doc.startDateTime ?? null,
     endDateTime: doc.endDateTime ?? null,
     timezone: doc.timezone ?? null,
@@ -401,5 +434,39 @@ export const listCancelled = query({
     return docs
       .filter((d) => isEffectivelyPublished(d))
       .map((d) => toPublicEventResponse(d));
+  },
+});
+
+// ── Admin queries ─────────────────────────────────────────────────────────
+
+/**
+ * Detects events whose `courseSlug` does not match any course slug on the
+ * same site. These "orphaned" events are shown with a warning badge in the
+ * Events dashboard page.
+ *
+ * Only events that have a non-empty courseSlug are considered — events without
+ * a courseSlug are skipped (they are not linked to a course and are fine).
+ */
+export const listOrphanedCourseSlug = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "events")) return [];
+
+    const [events, courses] = await Promise.all([
+      ctx.db.query("events").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+      ctx.db.query("courses").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+    ]);
+
+    const courseSlugs = new Set(courses.map((c) => c.slug));
+
+    return events
+      .filter((e) => e.courseSlug != null && !courseSlugs.has(e.courseSlug as string))
+      .map((e) => ({
+        _id: e._id,
+        title: e.title,
+        slug: e.slug,
+        courseSlug: e.courseSlug,
+      }));
   },
 });

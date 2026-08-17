@@ -54,14 +54,26 @@ export const getEventsBySlug = internalQuery({
     const site = await ctx.db.query("sites").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
     if (!site) return [];
     const docs = await ctx.db.query("events").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
+    const now = Date.now();
     return docs
-      .filter((d) => d.status === "published")
+      .filter(
+        (d) =>
+          d.status === "published" &&
+          // Exclude terminal / non-active lifecycle states from the public feed
+          d.lifecycleStatus !== "Cancelled" &&
+          d.lifecycleStatus !== "Archived" &&
+          // Past events (startAt in the past and no active lifecycleStatus) are excluded from
+          // the default public feed; consumers wanting past events should use events.listPast
+          !(d.lifecycleStatus === "Completed" || (d.lifecycleStatus == null && d.startAt < now)),
+      )
       .map((d) => ({
         ...d,
         id: d._id,
         siteId: d.siteId,
         startAt: new Date(d.startAt).toISOString(),
         endAt: d.endAt ? new Date(d.endAt).toISOString() : null,
+        // Coerce priceCents: null (explicitly cleared) or NaN/Infinite → null
+        priceCents: (typeof d.priceCents === "number" && isFinite(d.priceCents)) ? d.priceCents : null,
       }));
   },
 });
@@ -73,8 +85,23 @@ export const getCoursesBySlug = internalQuery({
     if (!site) return [];
     const docs = await ctx.db.query("courses").withIndex("by_site", (q) => q.eq("siteId", site._id)).collect();
     return docs
-      .filter((d) => d.status === "published")
-      .map((d) => ({ ...d, id: d._id, siteId: d.siteId }));
+      .filter(
+        (d) =>
+          d.status === "published" &&
+          // Exclude terminal / non-active lifecycle states from the default
+          // course feed. Consumers wanting past or cancelled courses should
+          // use courses.listPast or courses.listFull respectively.
+          d.lifecycleStatus !== "Cancelled" &&
+          d.lifecycleStatus !== "Archived" &&
+          d.lifecycleStatus !== "Completed",
+      )
+      .map((d) => ({
+        ...d,
+        id: d._id,
+        siteId: d.siteId,
+        // Coerce priceCents: null (explicitly cleared) or NaN/Infinite → null
+        priceCents: (typeof d.priceCents === "number" && isFinite(d.priceCents)) ? d.priceCents : null,
+      }));
   },
 });
 
@@ -446,21 +473,37 @@ export const getServicesBySlug = internalQuery({
     return docs
       .filter((d) => d.isVisible)
       .sort((a, b) => a.order - b.order)
-      .map((d) => ({
-        id: d._id,
-        siteId: d.siteId,
-        title: d.title,
-        slug: d.slug,
-        description: d.description,
-        shortDescription: d.shortDescription ?? null,
-        imageUrl: d.imageUrl ?? null,
-        price: d.price ?? null,
-        duration: d.duration ?? null,
-        category: d.category ?? null,
-        order: d.order,
-        ctaLabel: d.ctaLabel ?? null,
-        ctaUrl: d.ctaUrl ?? null,
-      }));
+      .map((d) => {
+        // Normalize the legacy string `price` field to integer cents at the API
+        // boundary so the client never receives NaN or an unformatted string.
+        let normalizedPriceCents: number | null = null;
+        if (typeof d.price === "string" && d.price.trim()) {
+          const cleaned = d.price.replace(/[^0-9.-]/g, "");
+          if (cleaned) {
+            const dollars = parseFloat(cleaned);
+            if (isFinite(dollars) && !isNaN(dollars)) {
+              normalizedPriceCents = Math.round(dollars * 100);
+            }
+          }
+        }
+        return {
+          id: d._id,
+          siteId: d.siteId,
+          title: d.title,
+          slug: d.slug,
+          description: d.description,
+          shortDescription: d.shortDescription ?? null,
+          imageUrl: d.imageUrl ?? null,
+          price: d.price ?? null,
+          /** Normalized price in integer cents derived from the `price` string. Null when free or unparseable. */
+          priceCents: normalizedPriceCents,
+          duration: d.duration ?? null,
+          category: d.category ?? null,
+          order: d.order,
+          ctaLabel: d.ctaLabel ?? null,
+          ctaUrl: d.ctaUrl ?? null,
+        };
+      });
   },
 });
 

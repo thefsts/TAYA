@@ -9,6 +9,7 @@ import { internal } from "./_generated/api";
 import { calculateLifecycleStatus } from "./lib/lifecycleStatus";
 import { siteFromSlug } from "./lib/siteFromSlug";
 import { endOfDayMs } from "./lib/timezoneUtils";
+import { assertValidPriceCents } from "./lib/formatPrice";
 
 // Shorthand for scheduling an immediate lifecycle recalculation after a write.
 async function scheduleRecalc(ctx: any, courseId: string) {
@@ -90,6 +91,11 @@ export const create = mutation({
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requirePermission(ctx, siteId, PERMISSIONS.CLASSES_MANAGE);
     await requireModuleEnabled(ctx, siteId, "courses");
+    // Validate and normalise priceCents: must be a finite non-negative integer.
+    if (fields.priceCents != null) {
+      assertValidPriceCents(fields.priceCents, "course price");
+      (fields as any).priceCents = Math.round(fields.priceCents);
+    }
     const id = await ctx.db.insert("courses", { siteId, status: "draft", ...fields });
     const doc = (await ctx.db.get(id))!;
     const lifecycleStatus = calculateLifecycleStatus(doc, 0, Date.now());
@@ -111,7 +117,12 @@ export const update = mutation({
     status: v.optional(v.string()),
     description: v.optional(v.string()),
     durationLabel: v.optional(v.string()),
-    priceCents: v.optional(v.number()),
+    /**
+     * Price in integer minor units (cents).
+     * Pass `null` to explicitly clear a stored price.
+     * Omit to leave the existing price unchanged.
+     */
+    priceCents: v.optional(v.union(v.number(), v.null())),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
     ...capacityArgs,
@@ -121,7 +132,20 @@ export const update = mutation({
     await requireModuleEnabled(ctx, siteId, "courses");
     const existing = await ctx.db.get(courseId);
     if (!existing || existing.siteId !== siteId) throw new Error("Course not found");
-    await ctx.db.patch(courseId, fields as any);
+    // Handle priceCents: null = explicitly clear; number = validate, round, set; absent = no change.
+    const { priceCents, ...otherFields } = fields as any;
+    const pricePatch: Record<string, unknown> = {};
+    if ("priceCents" in fields) {
+      if (priceCents === null) {
+        // Explicit clear — store null so the field is present but empty.
+        // null renders as "Contact for pricing" / "—" in all UI paths.
+        pricePatch.priceCents = null;
+      } else if (typeof priceCents === "number") {
+        assertValidPriceCents(priceCents, "course price");
+        pricePatch.priceCents = Math.round(priceCents);
+      }
+    }
+    await ctx.db.patch(courseId, { ...otherFields, ...pricePatch } as any);
     // Recalculate lifecycle status — requires confirmed count from registrations
     const confirmed = await ctx.db
       .query("registrations")

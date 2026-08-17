@@ -48,6 +48,7 @@ import type { LifecycleAlertType } from "@/components/LifecycleAlert";
 // Course/Event Thumb preset (16:9, 800×450)
 const COURSE_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
 import { NEARLY_FULL_THRESHOLD, LIFECYCLE_STATUS_LABELS } from "@/lib/constants";
+import { formatPrice } from "@/lib/formatPrice";
 
 // Common IANA timezones for the picker
 const COMMON_TIMEZONES = [
@@ -375,6 +376,9 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
       };
 
       if (editing) {
+        // For update: empty price field = null (explicitly clear any stored price).
+        // For create: empty price field = undefined (no price; field simply omitted).
+        const updatePriceCents = form.priceCents !== "" ? parseInt(form.priceCents, 10) : null;
         await updateCourse({
           siteId,
           courseId: editing._id,
@@ -383,13 +387,14 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           status: form.status,
           description: form.description,
           durationLabel: form.durationLabel || undefined,
-          priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
+          priceCents: updatePriceCents,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
           ...capacityFields,
         });
         toast({ title: "Course updated" });
       } else {
+        const createPriceCents = form.priceCents !== "" ? parseInt(form.priceCents, 10) : undefined;
         await createCourse({
           siteId,
           title: form.title,
@@ -397,7 +402,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           status: form.status,
           description: form.description,
           durationLabel: form.durationLabel || undefined,
-          priceCents: form.priceCents ? parseInt(form.priceCents, 10) : undefined,
+          priceCents: createPriceCents,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
           ...capacityFields,
@@ -545,7 +550,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                   </td>
                   <td className="px-4 py-3 text-slate-500">{c.durationLabel || "—"}</td>
                   <td className="px-4 py-3 text-slate-500">
-                    {c.priceCents != null ? `$${(c.priceCents / 100).toFixed(2)}` : "—"}
+                    {c.priceCents != null ? formatPrice(c.priceCents) : "—"}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>
@@ -717,7 +722,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                       <SelectItem value="__none__">Not linked</SelectItem>
                       {(catalogItems ?? []).map((item: any) => (
                         <SelectItem key={item.squareItemId} value={item.squareItemId}>
-                          {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
+                          {item.name}{item.priceCents != null ? ` — ${formatPrice(item.priceCents)}` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>

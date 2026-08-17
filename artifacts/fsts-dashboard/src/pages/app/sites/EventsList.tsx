@@ -37,7 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { AlertTriangle, CalendarDays, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
@@ -48,6 +48,7 @@ import type { LifecycleAlertType } from "@/components/LifecycleAlert";
 // Course/Event Thumb preset (16:9, 800×450)
 const EVENT_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
 import { NEARLY_FULL_THRESHOLD, LIFECYCLE_STATUS_LABELS } from "@/lib/constants";
+import { formatPrice } from "@/lib/formatPrice";
 
 // Common IANA timezones for the picker
 const COMMON_TIMEZONES = [
@@ -134,6 +135,7 @@ type EventFormState = {
   startAt: string;
   endAt: string;
   location: string;
+  priceCents: string;
   imageUrl: string;
   squareItemId: string;
   // Capacity & scheduling
@@ -187,6 +189,7 @@ const emptyForm: EventFormState = {
   startAt: "",
   endAt: "",
   location: "",
+  priceCents: "",
   imageUrl: "",
   squareItemId: "",
   capacity: "",
@@ -323,6 +326,8 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
   const { toast } = useToast();
   const data = useQuery(api.events.list, { siteId });
   const catalogItems = useQuery(api.square.listCatalogItems, { siteId });
+  // Orphaned courseSlug detection — events referencing a course slug that no longer exists
+  const orphanedEvents = useQuery((api as any).events.listOrphanedCourseSlug, { siteId });
   const createEvent = useMutation(api.events.create);
   const updateEvent = useMutation(api.events.update);
   const deleteEvent = useMutation(api.events.remove);
@@ -367,6 +372,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
       startAt: toLocalInput(ev.startAt),
       endAt: toLocalInput(ev.endAt),
       location: ev.location ?? "",
+      priceCents: ev.priceCents != null ? String(ev.priceCents) : "",
       imageUrl: ev.imageUrl ?? "",
       squareItemId: ev.squareItemId ?? "",
       capacity: ev.capacity != null ? String(ev.capacity) : "",
@@ -404,6 +410,8 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
       const endAtIso = toIso(form.endAt);
 
       if (editing) {
+        // For update: empty price field = null (explicitly clear any stored price).
+        const updatePriceCents = form.priceCents !== "" ? parseInt(form.priceCents, 10) : null;
         await updateEvent({
           siteId,
           eventId: editing._id,
@@ -414,12 +422,15 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           startAt: startAtIso,
           endAt: endAtIso,
           location: form.location || undefined,
+          priceCents: updatePriceCents,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
           ...capacityFields,
         });
         toast({ title: "Event updated" });
       } else {
+        // For create: empty price field = undefined (no price; field simply omitted).
+        const createPriceCents = form.priceCents !== "" ? parseInt(form.priceCents, 10) : undefined;
         await createEvent({
           siteId,
           title: form.title,
@@ -429,6 +440,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
           startAt: startAtIso ?? form.startAt,
           endAt: endAtIso,
           location: form.location || undefined,
+          priceCents: createPriceCents,
           imageUrl: form.imageUrl || undefined,
           squareItemId: form.squareItemId || undefined,
           ...capacityFields,
@@ -514,6 +526,22 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
         ))}
       </div>
 
+      {/* ── Orphaned courseSlug warning ── */}
+      {orphanedEvents && orphanedEvents.length > 0 && (
+        <div className="mb-4 flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-amber-600" />
+          <div>
+            <span className="font-medium">Orphaned course link detected</span>
+            <span className="ml-1">— {orphanedEvents.length} event{orphanedEvents.length > 1 ? "s" : ""} reference{orphanedEvents.length === 1 ? "s" : ""} a course slug that no longer exists:</span>
+            <ul className="mt-1 ml-3 list-disc">
+              {orphanedEvents.map((ev: any) => (
+                <li key={ev._id}><strong>{ev.title}</strong> — courseSlug: <code>{ev.courseSlug}</code></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {data === undefined ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
@@ -546,6 +574,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Lifecycle</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Registrations</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Price</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Starts</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
                 <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
@@ -573,6 +602,9 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
                     ) : (
                       <span className="text-slate-400 text-xs">Unlimited</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-slate-500">
+                    {ev.priceCents != null ? formatPrice(ev.priceCents) : "—"}
                   </td>
                   <td className="px-4 py-3 text-slate-500">{new Date(ev.startAt).toLocaleString()}</td>
                   <td className="px-4 py-3 text-slate-500">{ev.location || "—"}</td>
@@ -660,6 +692,16 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
               <div className="space-y-1.5">
                 <Label>Location</Label>
                 <Input placeholder="e.g. Main Studio" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Price <span className="text-slate-400 font-normal">(cents, e.g. 9900 = $99.00; leave blank for free)</span></Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="e.g. 9900"
+                  value={form.priceCents}
+                  onChange={(e) => setForm({ ...form, priceCents: e.target.value })}
+                />
               </div>
             </div>
 
@@ -749,7 +791,7 @@ export default function EventsList({ params }: { params: { siteId: string } }) {
                       <SelectItem value="__none__">Free / not linked</SelectItem>
                       {(catalogItems ?? []).map((item: any) => (
                         <SelectItem key={item.squareItemId} value={item.squareItemId}>
-                          {item.name}{item.priceCents != null ? ` — $${(item.priceCents / 100).toFixed(2)}` : ""}
+                          {item.name}{item.priceCents != null ? ` — ${formatPrice(item.priceCents)}` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>
