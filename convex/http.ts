@@ -53,6 +53,10 @@ const preflightPaths = [
   "/api/public/products/by-slug",
   // Services
   "/api/public/services",
+  // Public Booking System™
+  "/api/public/availability",
+  "/api/public/register",
+  "/api/public/cancel",
 ];
 for (const path of preflightPaths) {
   http.route({ path, method: "OPTIONS", handler: preflight });
@@ -912,6 +916,124 @@ http.route({
   path: "/api/admin/config-status",
   method: "GET",
   handler: httpAction(configStatusHandler),
+});
+
+/* ── Public Booking System™ ──────────────────────────────────────────────── */
+
+/* GET /api/public/availability?slug=<site-slug>&type=<course|event>&entitySlug=<slug> */
+http.route({
+  path: "/api/public/availability",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const p = new URL(request.url).searchParams;
+    const siteSlug  = p.get("slug") ?? "";
+    const typeParam = p.get("type") ?? "";
+    const entitySlug = p.get("entitySlug") ?? "";
+    if (!siteSlug || !entitySlug || (typeParam !== "course" && typeParam !== "event")) {
+      return new Response(JSON.stringify({ error: "slug, type (course|event), and entitySlug are required" }), {
+        status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    const data = await ctx.runQuery(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug,
+      entityType: typeParam as "course" | "event",
+      entitySlug,
+    });
+    if (!data) {
+      return new Response(JSON.stringify({ error: "not_found" }), {
+        status: 404, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }),
+});
+
+/* POST /api/public/register */
+http.route({
+  path: "/api/public/register",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    let body: any;
+    try { body = await request.json(); } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+        status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    const { slug: siteSlug, entityType, entitySlug, customerName, customerEmail, customerPhone, notes, termsAccepted } = body ?? {};
+    if (!siteSlug || !entityType || !entitySlug || !customerName || !customerEmail) {
+      return new Response(JSON.stringify({ error: "slug, entityType, entitySlug, customerName, and customerEmail are required" }), {
+        status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    try {
+      const result = await ctx.runMutation(internal.publicBooking.registerPublicByEntitySlug, {
+        siteSlug, entityType, entitySlug, customerName, customerEmail,
+        customerPhone: customerPhone ?? undefined,
+        notes: notes ?? undefined,
+        termsAccepted: termsAccepted ?? undefined,
+      });
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    } catch (err: any) {
+      let parsed: any = {};
+      try { parsed = JSON.parse(err.message ?? "{}"); } catch {}
+      const code = parsed.code ?? "internal_error";
+      const status = code === "entity_not_found" ? 404
+        : code === "registration_closed" ? 409
+        : code === "already_registered"  ? 409
+        : code === "class_full"          ? 409
+        : 500;
+      return new Response(JSON.stringify({ error: parsed.message ?? err.message ?? "Unknown error", code, ...parsed }), {
+        status, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+  }),
+});
+
+/* POST /api/public/cancel */
+http.route({
+  path: "/api/public/cancel",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    let body: any;
+    try { body = await request.json(); } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+        status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    const { registrationId, customerEmail } = body ?? {};
+    if (!registrationId || !customerEmail) {
+      return new Response(JSON.stringify({ error: "registrationId and customerEmail are required" }), {
+        status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    try {
+      const result = await ctx.runMutation(internal.publicBooking.cancelPublicInternal, {
+        registrationId,
+        customerEmail,
+      });
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    } catch (err: any) {
+      let parsed: any = {};
+      try { parsed = JSON.parse(err.message ?? "{}"); } catch {}
+      const code = parsed.code ?? "internal_error";
+      const status = code === "not_found" ? 404
+        : code === "email_mismatch"    ? 403
+        : code === "already_cancelled" ? 409
+        : 500;
+      return new Response(JSON.stringify({ error: parsed.message ?? err.message ?? "Unknown error", code }), {
+        status, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+  }),
 });
 
 export default http;

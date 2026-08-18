@@ -79,8 +79,8 @@ export const getAvailabilityInternal = internalQuery({
     if (!site) return null;
 
     const table = entityType === "course" ? "courses" : "events";
-    const entity = await ctx.db
-      .query(table)
+    const entity: any = await ctx.db
+      .query(table as any)
       .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
       .filter((q: any) => q.eq(q.field("_id"), entityId))
       .first();
@@ -172,8 +172,8 @@ export const registerPublicInternal = internalMutation({
 
     // ── 2. Validate entity belongs to site + is published ──────────────────
     const table = entityType === "course" ? "courses" : "events";
-    const entity = await ctx.db
-      .query(table)
+    const entity: any = await ctx.db
+      .query(table as any)
       .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
       .filter((q: any) => q.eq(q.field("_id"), entityId))
       .first();
@@ -502,5 +502,224 @@ export const sendBookingCancellationEmail = internalAction({
       apiKey: args.resendApiKey ?? undefined,
     });
     return { skipped: false };
+  },
+});
+
+// ─── Slug-based availability (for public websites) ───────────────────────────
+
+/**
+ * Slug-based variant of getAvailabilityInternal.
+ * The website passes siteSlug + entityType + entitySlug — no Convex ID required.
+ */
+export const getAvailabilityByEntitySlug = internalQuery({
+  args: {
+    siteSlug: v.string(),
+    entityType: v.union(v.literal("course"), v.literal("event")),
+    entitySlug: v.string(),
+  },
+  handler: async (ctx, { siteSlug, entityType, entitySlug }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q: any) => q.eq("slug", siteSlug))
+      .first();
+    if (!site) return null;
+
+    const table = entityType === "course" ? "courses" : "events";
+    const entity: any = await (ctx.db.query(table) as any)
+      .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
+      .filter((q: any) => q.eq(q.field("slug"), entitySlug))
+      .first();
+    if (!entity) return null;
+    if (!entity.isPublished && entity.status !== "published") return null;
+
+    const confirmedCount = await getConfirmedCount(ctx, entityType, entity._id as string);
+    const waitlistCount  = await getWaitlistCount(ctx, entityType, entity._id as string);
+
+    const capacity: number | null = entity.capacity ?? null;
+    const waitlistCapacity: number = entity.waitlistCapacity ?? 0;
+    const seatsRemaining = capacity != null ? Math.max(0, capacity - confirmedCount) : null;
+    const isFull = capacity != null && confirmedCount >= capacity;
+    const isWaitlistFull = waitlistCapacity > 0 ? waitlistCount >= waitlistCapacity : true;
+
+    const now = Date.now();
+    const registrationOpenAt: number | null = entity.registrationOpenAt ?? null;
+    const registrationCloseAt: number | null = entity.registrationCloseAt ?? null;
+    const registrationOpen =
+      (registrationOpenAt == null || now >= registrationOpenAt) &&
+      (registrationCloseAt == null || now <= registrationCloseAt);
+
+    return {
+      entityId: entity._id as string,
+      entityType,
+      entitySlug: entity.slug as string,
+      title: entity.title as string,
+      description: (entity.description ?? entity.excerpt ?? null) as string | null,
+      imageUrl: (entity.imageUrl ?? entity.coverImageUrl ?? null) as string | null,
+      priceCents: (typeof entity.priceCents === "number" && isFinite(entity.priceCents))
+        ? entity.priceCents
+        : null,
+      lifecycleStatus: (entity.lifecycleStatus ?? null) as string | null,
+      startAt: entity.startAt ? new Date(entity.startAt as number).toISOString() : null,
+      endAt: entity.endAt ? new Date(entity.endAt as number).toISOString() : null,
+      location: (entity.location ?? null) as string | null,
+      capacity,
+      waitlistCapacity,
+      confirmedCount,
+      waitlistCount,
+      seatsRemaining,
+      isFull,
+      hasWaitlist: waitlistCapacity > 0,
+      isWaitlistFull,
+      registrationOpen,
+      registrationOpenAt,
+      registrationCloseAt,
+      requiresPayment: typeof entity.priceCents === "number" && entity.priceCents > 0,
+      siteName: site.name as string,
+      siteSlug: site.slug as string,
+    };
+  },
+});
+
+// ─── Slug-based registration (for public websites) ───────────────────────────
+
+/**
+ * Slug-based variant of registerPublicInternal.
+ * Resolves entitySlug → entityId and delegates to the same atomic logic.
+ */
+export const registerPublicByEntitySlug = internalMutation({
+  args: {
+    siteSlug: v.string(),
+    entityType: v.union(v.literal("course"), v.literal("event")),
+    entitySlug: v.string(),
+    customerName: v.string(),
+    customerEmail: v.string(),
+    customerPhone: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    termsAccepted: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const { siteSlug, entityType, entitySlug, customerName, customerEmail } = args;
+
+    // Resolve site
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q: any) => q.eq("slug", siteSlug))
+      .first();
+    if (!site) throw new Error(JSON.stringify({ code: "entity_not_found", message: "Site not found." }));
+
+    // Resolve entity by slug
+    const table = entityType === "course" ? "courses" : "events";
+    const entity: any = await (ctx.db.query(table) as any)
+      .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
+      .filter((q: any) => q.eq(q.field("slug"), entitySlug))
+      .first();
+    if (!entity || (entity.status !== "published" && !entity.isPublished)) {
+      throw new Error(JSON.stringify({ code: "entity_not_found", message: "Class or event not found." }));
+    }
+
+    const entityId = entity._id as string;
+    const now = Date.now();
+
+    // Enforce registration window
+    if (entity.registrationOpenAt && now < entity.registrationOpenAt) {
+      throw new Error(JSON.stringify({ code: "registration_closed", message: "Registration has not opened yet." }));
+    }
+    if (entity.registrationCloseAt && now > entity.registrationCloseAt) {
+      throw new Error(JSON.stringify({ code: "registration_closed", message: "Registration is closed." }));
+    }
+
+    // Duplicate check
+    const existing = await ctx.db
+      .query("registrations")
+      .withIndex("by_entity", (q: any) =>
+        q.eq("entityType", entityType).eq("entityId", entityId),
+      )
+      .filter((q: any) =>
+        q.and(
+          q.eq(q.field("customerEmail"), customerEmail),
+          q.neq(q.field("status"), "cancelled"),
+        ),
+      )
+      .first();
+    if (existing) {
+      throw new Error(JSON.stringify({ code: "already_registered", message: "You are already registered.", registrationId: existing._id }));
+    }
+
+    // Capacity / waitlist decision
+    const capacity: number | undefined = entity.capacity;
+    const waitlistCapacity: number = entity.waitlistCapacity ?? 0;
+    const confirmedCount = await getConfirmedCount(ctx, entityType, entityId);
+
+    let regStatus: "confirmed" | "waitlisted";
+    if (!capacity || confirmedCount < capacity) {
+      regStatus = "confirmed";
+    } else {
+      const waitlistCount = await getWaitlistCount(ctx, entityType, entityId);
+      if (waitlistCapacity > 0 && waitlistCount < waitlistCapacity) {
+        regStatus = "waitlisted";
+      } else {
+        throw new Error(JSON.stringify({ code: "class_full", message: "No seats or waitlist slots available." }));
+      }
+    }
+
+    // Insert registration
+    const regId = await ctx.db.insert("registrations", {
+      siteId: site._id,
+      entityType,
+      entityId,
+      userId: customerEmail,
+      status: regStatus,
+      registeredAt: now,
+      customerName,
+      customerEmail,
+      customerPhone: args.customerPhone,
+      notes: args.notes,
+      termsAccepted: args.termsAccepted,
+      bookingSource: "public",
+      attendanceStatus: "registered",
+    });
+
+    // Refresh lifecycle
+    const newConfirmedCount = regStatus === "confirmed" ? confirmedCount + 1 : confirmedCount;
+    await refreshEntityLifecycle(ctx, entityType, entityId, site._id, newConfirmedCount);
+    await ctx.scheduler.runAfter(0, (internal as any).lifecycle.recalculateOne, { entityType, entityId });
+
+    // Activity log
+    await logActivity(ctx, {
+      siteId: site._id,
+      actorName: `${customerName} <${customerEmail}>`,
+      action: regStatus === "confirmed" ? "public_booking_confirmed" : "public_booking_waitlisted",
+      entityType,
+      entityId,
+      page: entityType === "course" ? "Courses" : "Events",
+      newValue: { status: regStatus, customerEmail },
+    });
+
+    // Schedule confirmation email
+    try {
+      const emailSettings = await ctx.db
+        .query("emailSettings")
+        .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
+        .first();
+
+      await ctx.scheduler.runAfter(0, internal.publicBooking.sendBookingConfirmationEmail, {
+        registrationId: regId,
+        customerName,
+        customerEmail,
+        entityTitle: entity.title as string,
+        entityType,
+        startAt: entity.startAt ? new Date(entity.startAt as number).toISOString() : null,
+        location: (entity.location ?? null) as string | null,
+        status: regStatus,
+        siteName: site.name as string,
+        fromName: (emailSettings?.fromName ?? site.name ?? "FSTS Platform") as string,
+        fromEmail: (emailSettings?.fromEmail ?? null) as string | null,
+        resendApiKey: (emailSettings?.resendApiKey ?? null) as string | null,
+      });
+    } catch (err) {
+      console.warn("[publicBooking] Email scheduling failed:", err);
+    }
+
+    return { status: regStatus, registrationId: regId as string };
   },
 });
