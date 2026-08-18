@@ -24,7 +24,7 @@ const OUT_PDF  = resolve(OUT_DIR, "fsts-dashboard-roadmap.pdf");
 // --- Load data from canonical source ---
 
 const DATA_FILE = resolve(__dirname, "roadmap-data.json");
-const { categories: CATEGORIES, waves: WAVES } = JSON.parse(
+const { categories: CATEGORIES, waves: WAVES, topPriority: TOP_PRIORITY } = JSON.parse(
   readFileSync(DATA_FILE, "utf8"),
 );
 
@@ -313,18 +313,7 @@ function buildHtml() {
       <tr><th>#</th><th>ID</th><th>Improvement</th><th>Priority</th><th>Rationale</th></tr>
     </thead>
     <tbody>
-      ${[
-        { id: 211, rationale: "Clients cannot sign in -- blocking all revenue" },
-        { id: 203, rationale: "Validates payment flow after idempotency changes" },
-        { id: 206, rationale: "Stops $0/corrupt orders reaching Square" },
-        { id: 204, rationale: "Protects all future payment integrations" },
-        { id: 92, rationale: "Services not appearing on live website (#1 CMS gap)" },
-        { id: 202, rationale: "Paid customers must receive order confirmation" },
-        { id: 65, rationale: "Email config requires developer access today" },
-        { id: 193, rationale: "Ghost registrations = payments for cancelled classes" },
-        { id: 85, rationale: "Blank screens instead of access-denied messages" },
-        { id: 135, rationale: "Price changes must reflect within 60 seconds" },
-      ].map((t, idx) => {
+      ${TOP_PRIORITY.map((t, idx) => {
         const item = ALL_ITEMS.find((i) => i.id === t.id);
         if (!item) return "";
         const pc = PRIORITY_COLORS[item.priority];

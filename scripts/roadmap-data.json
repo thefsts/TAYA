@@ -426,5 +426,17 @@
       "lightColor": "#f0fdf4",
       "milestone": null
     }
+  ],
+  "topPriority": [
+    { "id": 211, "rationale": "Clients cannot sign in -- blocking all revenue" },
+    { "id": 203, "rationale": "Validates payment flow after idempotency changes" },
+    { "id": 206, "rationale": "Stops $0/corrupt orders reaching Square" },
+    { "id": 204, "rationale": "Protects all future payment integrations" },
+    { "id": 92,  "rationale": "Services not appearing on live website (#1 CMS gap)" },
+    { "id": 202, "rationale": "Paid customers must receive order confirmation" },
+    { "id": 65,  "rationale": "Email config requires developer access today" },
+    { "id": 193, "rationale": "Ghost registrations = payments for cancelled classes" },
+    { "id": 85,  "rationale": "Blank screens instead of access-denied messages" },
+    { "id": 135, "rationale": "Price changes must reflect within 60 seconds" }
   ]
 }
