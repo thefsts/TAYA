@@ -152,6 +152,9 @@ export default defineSchema({
     siteId: v.id("sites"),
     entityType: v.union(v.literal("course"), v.literal("event")),
     entityId: v.string(),
+    // userId: Clerk user ID for dashboard-managed registrations; customerEmail
+    // for public bookings (kept for backward-compat with existing promotion/
+    // cancellation logic that checks userId.includes("@")).
     userId: v.string(),
     status: v.union(
       v.literal("confirmed"),
@@ -161,9 +164,21 @@ export default defineSchema({
     registeredAt: v.number(),
     cancelledAt: v.optional(v.number()),
     promotedFromWaitlistAt: v.optional(v.number()),
+    // ── Public-booking customer fields (optional; absent for admin-created) ──
+    customerName: v.optional(v.string()),
+    customerEmail: v.optional(v.string()),
+    customerPhone: v.optional(v.string()),
+    // "public" | "admin"
+    bookingSource: v.optional(v.string()),
+    // "registered" | "attended" | "no_show"
+    attendanceStatus: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    termsAccepted: v.optional(v.boolean()),
   })
     .index("by_entity", ["entityType", "entityId"])
-    .index("by_user", ["userId", "entityType"]),
+    .index("by_user", ["userId", "entityType"])
+    .index("by_site_entity", ["siteId", "entityType", "entityId"])
+    .index("by_customer_email", ["siteId", "customerEmail"]),
 
   articles: defineTable({
     siteId: v.id("sites"),

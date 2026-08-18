@@ -1,0 +1,484 @@
+Corsair Full Dashboard Integration & Functional Certification
+
+Update the current task so the primary objective is:
+
+Fully attach the Corsair website to FSTS-WOS™ and verify that Corsair can use every dashboard function that is supposed to be available for its site type, including public booking.
+
+Do not treat “site connected” as complete unless dashboard changes, public-site behavior, client permissions, automation, email, media, booking, and lifecycle features all work end-to-end in production.
+
+1. Corsair Must Be Fully Connected to FSTS-WOS™
+
+Verify the live Corsair website is reading the correct tenant/site data from FSTS-WOS™ for every supported module.
+
+Audit and verify:
+
+- Homepage content
+- Navigation
+- Footer
+- Branding
+- Services
+- Products where enabled
+- Courses
+- Classes
+- Events
+- Flyers
+- Forms
+- Media
+- Reviews
+- SEO
+- Portal content
+- Contact information
+- Business settings
+
+For every module mark:
+
+- ✅ Live and production verified
+- 🟡 Connected but still needs human verification
+- 🔴 Broken or blocked
+- ⚪ Not applicable to Corsair
+
+No Corsair content should remain hardcoded on the website if that content is supposed to be managed from the dashboard.
+
+2. Dashboard-to-Website Live Sync
+
+For every editable Corsair content type, perform a real production edit from the dashboard and verify the change appears on the live website.
+
+Test:
+
+- Text update
+- Image change
+- Service update
+- Course update
+- Class update
+- Event update
+- Flyer publish/unpublish
+- SEO change
+- Navigation change where client permission allows
+- Form configuration change
+
+Document whether each update is:
+
+- Real-time
+- Near real-time
+- Cached
+- Requires manual refresh
+- Requires redeploy
+
+Dashboard-managed content should not require a developer deployment unless there is a documented technical reason.
+
+3. Public Booking Is Now Required
+
+Public booking is part of Corsair launch readiness.
+
+Build or complete a reusable booking system that works through FSTS-WOS™.
+
+Do not create a Corsair-only booking implementation.
+
+The booking system must be reusable by future sites that offer:
+
+- Courses
+- Classes
+- Events
+- Appointments
+- Training sessions
+
+Public booking flow
+
+A visitor should be able to:
+
+1. Open a class/course/event on the Corsair website.
+2. See current availability.
+3. Select an available session.
+4. Enter required customer information.
+5. Accept required terms/waivers if configured.
+6. Submit the booking.
+7. Receive confirmation.
+8. Have the registration appear immediately in the Corsair dashboard.
+
+Support free booking first, with payment integration attached when a class requires payment.
+
+4. Booking Data Model
+
+Verify or implement site-scoped records for:
+
+- Customer
+- Registration
+- Course
+- Class/session
+- Event
+- Booking source
+- Registration status
+- Payment status
+- Attendance status
+- Capacity
+- Waitlist
+- Cancellation
+- Notes
+- Created timestamp
+- Updated timestamp
+
+Every record must include the correct site/tenant scope.
+
+No Corsair booking record may be visible to another client.
+
+5. Capacity Enforcement
+
+Capacity must be authoritative and enforced server-side.
+
+For each class/session support:
+
+- Maximum capacity
+- Confirmed registrations
+- Seats remaining
+- Nearly full threshold
+- Full status
+- Waitlist capacity
+- Waitlist count
+- Registration opening time
+- Registration closing time
+
+When capacity is reached:
+
+- Close standard registration automatically.
+- Change the public CTA to "Class Full".
+- Prevent another registration from exceeding capacity.
+- Open waitlist when enabled.
+- Notify Corsair through the dashboard.
+
+Use atomic backend enforcement so two customers cannot take the final seat simultaneously.
+
+6. Waitlist
+
+If enabled:
+
+- Customer can join the waitlist.
+- Waitlist order is preserved.
+- Client sees the queue in the dashboard.
+- Cancellation may promote the next eligible customer.
+- Promotion updates capacity correctly.
+- Promoted customer receives notification.
+- Duplicate waitlist entries are prevented.
+
+7. Booking Cancellation
+
+Support authorized cancellation.
+
+When a booking is cancelled:
+
+- Registration status updates.
+- Capacity is recalculated.
+- Seat becomes available when appropriate.
+- Waitlist promotion may occur.
+- Customer receives cancellation confirmation.
+- Client sees the updated status.
+
+Preserve the registration record for reporting/audit purposes.
+
+8. Class and Event Lifecycle Automation
+
+The dashboard must automatically know when a class/event is:
+
+- Draft
+- Upcoming
+- Registration Open
+- Nearly Full
+- Full
+- Waitlist Open
+- Registration Closed
+- In Progress
+- Completed
+- Cancelled
+- Archived
+
+Use:
+
+- Start date/time
+- End date/time
+- Timezone
+- Registration dates
+- Capacity
+- Cancellation state
+
+When a class/event passes its end time:
+
+1. Close registration.
+2. Mark it completed/past.
+3. Remove it from Upcoming content.
+4. Move it to Past Events or Past Classes.
+5. Keep it available in the dashboard.
+6. Preserve registrations and attendance records.
+7. Expire/archive linked flyers where appropriate.
+
+Do not require the client to manually move every completed event.
+
+9. Flyer Integration
+
+Verify the Corsair client can:
+
+- Upload flyer image
+- Add title
+- Add description
+- Add CTA
+- Add link
+- Select publish date
+- Select expiration date
+- Connect flyer to course/class/event
+- Preview
+- Publish
+- Schedule
+- Archive
+- Duplicate where supported
+
+Flyers connected to completed, cancelled, or deleted events/classes must not continue advertising stale activity.
+
+Client may manage flyer content but may not redesign the flyer layout/template.
+
+10. Forms
+
+Verify public Corsair forms operate end-to-end.
+
+Test:
+
+- Contact form
+- Lead form
+- Booking-related forms
+- Any service inquiry forms
+
+Required result:
+
+Public submission → correct site record → Corsair dashboard → correct notification → no cross-tenant exposure.
+
+11. Email
+
+Configure and verify real production email.
+
+Test:
+
+- Dashboard welcome email
+- Contact-form notification
+- Booking confirmation
+- Booking cancellation
+- Waitlist confirmation
+- Waitlist promotion
+- Event/class update notification where supported
+- Business/admin notification
+
+Email failures must not silently destroy or undo registrations.
+
+Booking data must persist even if email fails.
+
+Display failed delivery to authorized admins and provide retry/manual resend where supported.
+
+12. Media and Smart Image Manager™
+
+Perform human production tests for:
+
+- Upload
+- Storage
+- Retrieval
+- Image picker
+- Reuse across modules
+- Flyer images
+- Course images
+- Event images
+- Service images
+- Broken asset handling
+- Deleted-image protection
+- Alt text
+
+Verify Corsair media cannot be accessed or modified by another tenant.
+
+13. Client Permissions
+
+The Corsair owner must be able to manage approved business functions without being able to redesign or modify the platform.
+
+Client MAY manage:
+
+- Site content
+- Services
+- Products where enabled
+- Courses
+- Classes
+- Events
+- Registrations
+- Waitlists
+- Forms
+- Media
+- Flyers
+- Approved SEO fields
+- Reviews
+- Portal content
+- Approved site integrations
+
+Client MUST NOT manage:
+
+- Source code
+- Website structural layout
+- Global design system
+- Dashboard source
+- Backend code
+- Convex schema/functions
+- Platform integrations
+- Deployment configuration
+- GitHub
+- Vercel
+- Clerk platform configuration
+- FSTS secrets
+- Other tenants
+
+Enforce restrictions server-side.
+
+14. Portal
+
+Verify Corsair's portal end-to-end if enabled.
+
+Test:
+
+- Login
+- Logout
+- Password/session behavior
+- Member isolation
+- Protected content
+- Lockout
+- Unlock
+- Access-denied behavior
+
+15. Reviews
+
+Verify:
+
+- Real review source configuration
+- Place/source ID
+- Sync
+- Display on website
+- Dashboard management
+- Failure handling
+
+If Corsair owner configuration is still required, identify it clearly.
+
+16. SEO
+
+Verify dashboard-managed SEO controls actually affect the live Corsair website:
+
+- Page titles
+- Meta descriptions
+- Canonical URLs
+- Open Graph
+- Structured data where supported
+- Sitemap
+- Robots behavior
+
+Resolve the canonical Corsair domain before certification.
+
+17. Payment Readiness
+
+Payments are not required for every booking, but the booking architecture must support them.
+
+For any paid Corsair class/event:
+
+Booking → Price validation → Corsair merchant account → payment → webhook → registration → capacity → email.
+
+Do not use FSTS platform billing credentials for Corsair customer transactions.
+
+If Corsair has not supplied merchant credentials, free booking must still work and paid booking should clearly show as unavailable rather than failing unpredictably.
+
+18. Human Production Certification
+
+Do not certify Corsair based only on unit tests.
+
+Perform an actual production journey:
+
+Client journey
+
+1. Corsair owner signs in.
+2. Sees only Corsair.
+3. Edits website content.
+4. Uploads an image.
+5. Creates/updates a flyer.
+6. Creates/updates a class.
+7. Views registrations.
+8. Attempts protected design/admin route and is denied.
+
+Customer journey
+
+1. Visitor opens live Corsair site.
+2. Finds class/event.
+3. Opens booking.
+4. Registers.
+5. Capacity updates.
+6. Customer receives confirmation.
+7. Corsair sees registration in dashboard.
+8. Cancel registration.
+9. Capacity updates.
+10. Verify waitlist behavior if enabled.
+
+Lifecycle journey
+
+Create a short-lived test event/class and confirm:
+
+- Registration opens.
+- Capacity logic works.
+- Registration closes.
+- Event reaches end time.
+- It leaves Upcoming.
+- It appears under Past.
+- Linked flyer expires/archives.
+
+19. Regression Tests
+
+Required automated tests include:
+
+- Tenant isolation
+- Booking cross-site rejection
+- Capacity race condition
+- Duplicate booking prevention
+- Waitlist promotion
+- Cancellation capacity restoration
+- Past-event lifecycle
+- Flyer lifecycle
+- Client design/code restrictions
+- Admin route protection
+- Email failure persistence
+- Media isolation
+- Live CMS queries
+- Invalid slug handling
+- Disabled-module behavior
+
+20. Definition of Done
+
+Corsair is complete only when:
+
+- Owner can safely use the dashboard.
+- Every intended Corsair module works.
+- Public website is driven by dashboard data where intended.
+- Public booking works.
+- Registrations appear in dashboard.
+- Capacity works.
+- Lifecycle automation works.
+- Email works.
+- Media works.
+- Forms work.
+- Flyers work.
+- Portal works where enabled.
+- Tenant isolation is verified.
+- Design/code access is blocked.
+- Production human QA passes.
+
+Final Report
+
+Return:
+
+1. Corsair overall completion percentage.
+2. Module-by-module completion table.
+3. Booking completion percentage.
+4. Remaining blockers.
+5. Client owner actions.
+6. FSTS actions.
+7. Production tests completed.
+8. Production tests still outstanding.
+9. Commit hashes for changes.
+10. Final verdict:
+
+GO / GO WITH CONDITIONS / NO-GO
+
+Do not move the primary development focus to Website #2, billing, full e-commerce, AI features, or general roadmap polish until Corsair has passed this complete end-to-end functional certification.
