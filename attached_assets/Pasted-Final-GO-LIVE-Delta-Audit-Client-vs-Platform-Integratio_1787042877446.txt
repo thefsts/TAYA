@@ -1,0 +1,322 @@
+Final GO-LIVE Delta Audit + Client vs Platform Integration Architecture
+
+Before doing more feature development, perform a fresh audit of the current FSTS-WOS™ codebase and tell me exactly what prevents us from going live TODAY.
+
+There is also an important architecture requirement that must be verified.
+
+1. Separate FSTS Platform Integrations From Client Website Integrations
+
+FSTS-WOS™ must have two completely separate integration layers.
+
+A. FSTS Platform Integrations
+
+These belong to Fullstack Tech Solutions and are used to operate/sell the dashboard itself.
+
+Examples:
+
+- FSTS subscription billing
+- Dashboard subscription plans
+- Add-on billing
+- FSTS invoices
+- FSTS customer billing
+- Dashboard welcome emails
+- FSTS system notifications
+- Platform alerts
+- Platform operational email
+
+These use FSTS-owned credentials/accounts.
+
+B. Client Website Integrations
+
+These belong to each website/tenant connected to FSTS-WOS™.
+
+Examples:
+
+- Corsair Square account
+- Corsair Resend/email configuration
+- Future e-commerce client's payment processor
+- Client transactional email
+- Client form notifications
+- Client order confirmations
+- Client registration confirmations
+- Client refunds
+- Client discounts
+- Client customer transactions
+
+Money collected from a client's website must go to that client's configured merchant account.
+
+FSTS merchant credentials must NEVER accidentally process a client's customer transaction.
+
+Likewise, one client's payment/email credentials must never be usable by another tenant.
+
+2. Audit Current Square Architecture
+
+Tell me exactly how Square works today.
+
+Determine whether the existing Square integration is:
+
+- FSTS platform billing
+- Client-site commerce
+- Or incorrectly mixing both responsibilities
+
+Show:
+
+- Where Square credentials are stored
+- Whether credentials are global or per-site
+- How a site chooses its merchant account
+- How webhook events resolve to the correct tenant/site
+- How orders are associated with a site
+- How customers are associated with a site
+- How refunds are associated with a site
+- How discounts are associated with a site
+- Whether one tenant could ever process through another tenant's Square account
+
+Do not expose secret values.
+
+If the architecture currently uses one global Square account for all client websites, flag that immediately.
+
+3. Required Client Payment Architecture
+
+Each website must be capable of having its own payment configuration.
+
+For example:
+
+Corsair:
+FSTS-WOS → Corsair site → Corsair Square → Corsair customer payment
+
+Future Store:
+FSTS-WOS → Store tenant → Store payment provider → Store customer order
+
+FSTS:
+FSTS-WOS platform billing → FSTS merchant account → FSTS client subscription
+
+These transaction types must remain separate.
+
+Store provider-specific IDs separately from FSTS internal IDs.
+
+Design the client commerce layer so Square is our first provider, not permanently the only provider.
+
+Future providers may include other approved processors without requiring the entire CMS/commerce system to be rewritten.
+
+4. Audit Current Resend Architecture
+
+Perform the same audit for Resend/email.
+
+Determine which emails are:
+
+Platform emails
+
+Examples:
+
+- Dashboard invitation
+- FSTS account notifications
+- Platform alerts
+- Subscription/billing messages
+
+Client website emails
+
+Examples:
+
+- Contact-form notifications
+- Customer registration confirmations
+- Course confirmations
+- Event confirmations
+- Order confirmations
+- Shipping/fulfillment notifications
+- Client business notifications
+
+Tell me:
+
+- Which Resend configuration each currently uses
+- Whether client email credentials/configuration are site-scoped
+- How sender domains are handled
+- How tenant isolation is enforced
+- Whether one site's email configuration can ever affect another site
+
+5. Client Integration Setup
+
+A client should eventually be able to configure approved integrations from their dashboard without receiving access to platform infrastructure.
+
+For example:
+
+Site → Settings → Integrations → Payments
+
+Site → Settings → Integrations → Email
+
+Clients should never see raw platform secrets.
+
+Where possible, use secure connection/setup flows rather than displaying secret values after they are stored.
+
+Only authorized roles may configure these integrations.
+
+6. Client Design/Code Lock
+
+Reconfirm that client users cannot modify:
+
+- Website structural layout
+- Global design
+- Source code
+- Dashboard code
+- HTML/CSS/JavaScript
+- React/Next.js
+- Convex schema/functions
+- Environment variables
+- Vercel configuration
+- GitHub
+- FSTS integrations
+- Shared templates/components
+
+This must be enforced server-side.
+
+Clients can manage approved business content and their authorized site integrations.
+
+7. Final GO-LIVE Delta
+
+Now inspect every current task and the actual codebase.
+
+Return ONLY three implementation buckets:
+
+P0 — MUST COMPLETE BEFORE FSTS DASHBOARD GO-LIVE
+
+Only genuine security, data-loss, authentication, tenant-isolation, payment-integrity, or production blockers belong here.
+
+For every P0 item provide:
+
+- Task number
+- Current status
+- What's missing
+- Estimated effort
+- Dependency
+- Exact acceptance test
+
+P1 — MUST COMPLETE BEFORE WEBSITE #2
+
+These are scalability/repeatability requirements that do not prevent Corsair from safely operating but must be completed before onboarding another client.
+
+Include anything required to prove:
+
+- Tenant isolation
+- Reusable onboarding
+- Per-site integrations
+- No Corsair-specific architecture
+- Modular site capabilities
+- E-commerce compatibility
+- Repeatable seeding/setup
+- Correct client permissions
+
+P2 — SAFE AFTER LAUNCH
+
+Put UX improvements, convenience features, performance polish, advanced automation, and other non-blocking roadmap work here.
+
+Do not classify something P0 merely because a task exists.
+
+8. Corsair GO-LIVE Test
+
+Tell me which of these have actually been HUMAN/PRODUCTION verified:
+
+- Corsair owner signs in
+- Owner sees only Corsair
+- Owner cannot access design/code/platform administration
+- Dashboard content edit appears on live Corsair website
+- Real media upload works
+- Real flyer works
+- Real form submission works
+- Client notification email arrives
+- Customer confirmation email arrives
+- Real class/event can be published
+- Capacity/full logic works
+- Past-event automation works
+- Portal login works
+
+For payments, clearly distinguish:
+
+Does Corsair currently need customer payments enabled to launch?
+
+If yes:
+A real transaction must be processed through CORSair's merchant configuration.
+
+If no:
+Do not make Corsair Square testing an FSTS dashboard launch blocker. Classify it according to when Corsair actually needs to accept payments.
+
+9. FSTS Platform Billing
+
+Separately report the status of OUR ability to charge businesses for using FSTS-WOS™.
+
+Tell me whether we currently have:
+
+- Subscription plans
+- Free/trial tier
+- Paid tiers
+- Add-on pricing
+- Recurring billing
+- Merchant integration
+- Subscription status
+- Failed-payment handling
+- Upgrade/downgrade
+- Cancellation
+- Entitlement enforcement
+- Billing portal
+- Invoice/receipt handling
+
+Do not confuse this with client-site commerce.
+
+Tell me what must be completed before we can SELL the dashboard to Website #2 and future clients.
+
+10. E-Commerce Readiness
+
+Tell me what architecture exists today for attaching a real e-commerce website.
+
+Audit support for:
+
+- Products
+- Variants
+- SKUs
+- Inventory
+- Categories
+- Cart
+- Checkout
+- Orders
+- Customers
+- Discounts
+- Taxes
+- Shipping
+- Fulfillment
+- Refunds
+- Returns
+- Transactional email
+- Merchant account isolation
+- Webhook isolation
+
+Do not require all of these for Corsair unless Corsair needs them.
+
+Instead identify what belongs in the Website #2/e-commerce roadmap.
+
+11. Final Answer
+
+Finish with these exact answers:
+
+1. FSTS Dashboard GO-LIVE readiness: ___%
+2. Corsair first-site readiness: ___%
+3. Website #2 onboarding readiness: ___%
+4. E-commerce website readiness: ___%
+5. FSTS platform billing readiness: ___%
+
+Then:
+
+P0 blockers remaining: ___
+
+Estimated work required to clear P0: ___
+
+Can we realistically GO LIVE this week? YES / YES WITH CONDITIONS / NO
+
+Can Corsair safely use the dashboard today? YES / YES WITH CONDITIONS / NO
+
+Can we onboard Website #2 today? YES / YES WITH CONDITIONS / NO
+
+Can we sell FSTS-WOS™ subscriptions today? YES / YES WITH CONDITIONS / NO
+
+Finally provide one overall verdict:
+
+GO / GO WITH CONDITIONS / NO-GO
+
+Base this entirely on the CURRENT codebase and production state. Do not rely on old audits when newer commits or tasks have superseded them. Do not create new implementation tasks until this audit identifies the actual remaining gaps.
