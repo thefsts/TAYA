@@ -502,10 +502,25 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Roadmap PDF smoke test
+# Confirms that the PDF generator produces a valid, non-empty file after a
+# new category is added to roadmap-data.json.
+# ---------------------------------------------------------------------------
+echo ""
+echo "--- Roadmap PDF smoke test ---"
+ROADMAP_PDF_FOUND=0
+if bash "$(dirname "${BASH_SOURCE[0]}")/smoke-test-roadmap-pdf.sh"; then
+  echo "[boundary-check] ✅  Roadmap PDF smoke test passed."
+else
+  echo "[boundary-check] ❌  Roadmap PDF smoke test FAILED."
+  ROADMAP_PDF_FOUND=1
+fi
+
+# ---------------------------------------------------------------------------
 # Final result
 # ---------------------------------------------------------------------------
 echo ""
-if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$CLIENT_APP_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ] && [ "$GUARD_FOUND" -eq 0 ]; then
+if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$CLIENT_APP_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ] && [ "$GUARD_FOUND" -eq 0 ] && [ "$ROADMAP_PDF_FOUND" -eq 0 ]; then
   echo "[boundary-check] ✅  All checks passed. Repository boundary is clean."
   exit 0
 else
@@ -538,6 +553,15 @@ else
     echo "  Client website source must not be stored inside this platform repo."
     echo "  Move the flagged directory to its own dedicated repository."
     echo "  See docs/repo-governance.md §1 for the two-repository rule."
+    echo ""
+  fi
+  if [ "$ROADMAP_PDF_FOUND" -ne 0 ]; then
+    echo "[boundary-check] ❌  Roadmap PDF smoke test failed."
+    echo ""
+    echo "  Running 'node scripts/generate-roadmap-pdf.mjs' after adding a new"
+    echo "  category to scripts/roadmap-data.json did not produce a valid PDF."
+    echo "  Check that the Chromium path in generate-roadmap-pdf.mjs is current"
+    echo "  and that the JSON is well-formed."
     echo ""
   fi
   exit 1
