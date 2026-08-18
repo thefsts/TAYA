@@ -7,7 +7,7 @@ description: Why browser-based Clerk sign-in cannot work from the Replit workspa
 
 Browser sign-in (Clerk UI or `__clerk_ticket` flow) to the FSTS dashboard cannot work from this workspace:
 
-1. **Misconfigured publishable key** — the workspace's Clerk publishable-key secret holds a placeholder, not a valid key, so Clerk JS resolution is broken in dev preview until the secret is corrected (tracked by a follow-up task).
+1. ~~**Misconfigured publishable key**~~ — **RESOLVED**: `VITE_CLERK_PUBLISHABLE_KEY` secret has been updated to the correct live Clerk publishable key. Clerk JS now attempts to load from `clerk.fstsclientsystem.com` rather than an empty host.
 2. **TLS handshake failure to the Clerk frontend domain** (`clerk.fstsclientsystem.com`) — the Cloudflare edge rejects the handshake from this network over both IPv4 and IPv6, so Clerk JS never loads regardless of key.
 3. **No server-side fallback** — production Clerk instances refuse Backend-API-minted sessions (`request_invalid_for_environment`), so a Convex JWT cannot be minted server-side either.
 
