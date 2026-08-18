@@ -864,8 +864,20 @@ export default function AdminPlatformRunbook() {
 
       {/* Footer */}
       <div className="mt-8 border-t border-slate-200 pt-6 text-xs text-slate-400">
-        <p>FSTS Website Operating System™ — Internal Platform Runbook</p>
-        <p className="mt-1">This document is for FSTS team members only. Do not share with clients.</p>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p>FSTS Website Operating System™ — Internal Platform Runbook</p>
+            <p className="mt-1">This document is for FSTS team members only. Do not share with clients.</p>
+          </div>
+          <a
+            href="/fsts-dashboard-roadmap.pdf"
+            download="FSTS-Improvement-Roadmap.pdf"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors border border-primary/30 hover:border-primary/60 rounded-md px-3 py-1.5 bg-primary/5 hover:bg-primary/10 no-underline"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Download Improvement Roadmap PDF
+          </a>
+        </div>
       </div>
     </div>
   );

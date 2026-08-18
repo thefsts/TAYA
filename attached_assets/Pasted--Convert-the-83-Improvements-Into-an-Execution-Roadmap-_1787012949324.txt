@@ -1,0 +1,257 @@
+# Convert the 83 Improvements Into an Execution Roadmap
+
+The 83-item FSTS improvement list is approved as a roadmap source, but do not treat generating the PDF as completion of the improvement work.
+
+Proceed with Task #212 if it is useful for documentation, but I also want the 83 improvements converted into an actionable engineering plan.
+
+## 1. Classify Every Improvement
+
+For all 83 items, assign one of these priorities:
+
+* P0 — Critical before Corsair can safely operate
+* P1 — Required before Website #2
+* P2 — Important platform improvement
+* P3 — Post-launch enhancement
+
+Also assign:
+
+* Security
+* Reliability
+* Client UX
+* Revenue
+* Automation
+* Infrastructure
+* Technical debt
+
+An improvement may have more than one category.
+
+## 2. Identify What Is Already Done
+
+Audit the current codebase before creating new tasks.
+
+For every improvement mark:
+
+* ✅ Already implemented and verified
+* 🟡 Partially implemented
+* 🔵 Task already exists / active
+* ❌ Not implemented
+* ⚪ No longer needed / superseded
+
+Do not create duplicate work for improvements already addressed by newer tasks.
+
+Reference the current task number, commit, and test where applicable.
+
+## 3. Create a Corsair Launch Group
+
+Create a dedicated milestone:
+
+**Milestone: Corsair First-Site Production Completion**
+
+This milestone should contain every remaining improvement that affects Corsair's ability to safely operate today.
+
+At minimum review these carefully:
+
+* #14
+* #21
+* #23
+* #27
+* #45
+* #65
+* #66
+* #81
+* #82
+* #92
+* #135
+* #136
+* #137
+* #141
+* #142
+* #143
+* #159
+* #164
+* #171
+* #172
+* #181
+* #184
+* #185
+* #189
+* #193
+* #194
+* #195
+* #202
+* #203
+* #206
+* #207
+* #211
+
+Determine which are still relevant based on the current code.
+
+## 4. Create a Website #2 Readiness Group
+
+Create another milestone:
+
+**Milestone: Website #2 Ready**
+
+This should contain everything required to prove the FSTS-WOS™ can onboard another client without developer intervention or cross-tenant risk.
+
+Review especially:
+
+* #12
+* #44
+* #73
+* #90
+* #91
+* #93
+* #109
+* #112
+* #123
+* #129
+* #130
+* #131
+* #144
+* #145
+* #146
+* #158
+* #159
+* #181
+* #184
+* #185
+* #186
+* #187
+
+## 5. Preserve the Client Design Lock
+
+The roadmap must reflect our existing platform rule:
+
+Clients can manage approved content, media, flyers, services, products, classes, events, forms, SEO, and authorized portal content.
+
+Clients cannot modify:
+
+* Website structural layout
+* Global design system
+* Dashboard layout
+* Website source code
+* Dashboard source code
+* HTML/CSS/JavaScript
+* React/Next.js code
+* Convex backend/schema
+* Environment variables
+* Deployment infrastructure
+* Global templates
+* Shared components
+* Platform integrations
+
+Check the 83 improvements for anything that conflicts with this rule.
+
+Any client-facing feature must work inside FSTS-controlled templates and permissions.
+
+## 6. Prioritize Class and Event Automation
+
+Treat automatic class/event lifecycle management as a major platform capability.
+
+Make sure the backlog covers:
+
+* Capacity
+* Seats remaining
+* Nearly-full status
+* Full status
+* Waitlist
+* Registration deadlines
+* Automatic registration closure
+* Start/end date awareness
+* Timezone handling
+* Upcoming → Past transition
+* Cancelled classes/events
+* Flyer expiration when an event ends
+* Preventing registration for cancelled/full/past classes
+* Atomic capacity enforcement
+* Dashboard lifecycle alerts
+
+If the existing improvements do not fully cover these requirements, create the minimum additional tasks necessary.
+
+## 7. Prioritize Payment Reliability
+
+Tasks related to payment integrity should rank above cosmetic improvements.
+
+Ensure the roadmap covers:
+
+* Square signature verification
+* Payment idempotency
+* Duplicate webhook protection
+* Registration creation exactly once
+* Capacity increment exactly once
+* Persistent email delivery state
+* Retryable failed confirmations
+* Business notifications
+* Manual resend
+* Missing/corrupt price blocking
+* Production live transaction verification
+
+## 8. Prioritize Client Self-Service
+
+Where safe, reduce the need for FSTS staff intervention.
+
+High-value examples include:
+
+* Site owners inviting their own dashboard users
+* Admins unlocking portal accounts
+* Email configuration from the dashboard
+* Sending test emails
+* Resending welcome emails
+* Fixing broken images
+* Duplicating flyers
+* Fixing broken course/event relationships
+* Managing Square discounts
+
+All self-service functionality must still respect tenant isolation and server-side RBAC.
+
+## 9. Build an Implementation Order
+
+Return the improvements in execution waves:
+
+### Wave 1 — Corsair Critical
+
+Security, payments, authentication, email, live CMS, class/event correctness.
+
+### Wave 2 — Website #2 Readiness
+
+Multi-tenant safeguards, onboarding reliability, reusable seeding, permissions, CI/E2E.
+
+### Wave 3 — Client Self-Service
+
+Reduce FSTS manual support requirements.
+
+### Wave 4 — UX & Performance
+
+Loading states, navigation speed, accessibility, dashboard polish.
+
+### Wave 5 — Growth & Enhancement
+
+Marketing, commerce, advanced automation, and non-blocking improvements.
+
+For every wave provide:
+
+* Task numbers
+* Dependencies
+* Expected outcome
+* Tests required
+* Whether production verification is required
+
+## 10. Final Report
+
+End with:
+
+* Number already completed
+* Number active
+* Number remaining
+* Number P0
+* Number P1
+* Number P2
+* Number P3
+* Corsair completion percentage
+* Website #2 readiness percentage
+* Top 10 tasks that provide the greatest immediate value
+
+Also tell me whether Task #212 should be completed immediately or deferred until the engineering roadmap is finalized.
+
+Do not prioritize improvements merely because they have lower task numbers. Prioritize by security, production risk, customer impact, revenue risk, and our ability to scale the FSTS-WOS™ to additional client websites.

@@ -1,0 +1,258 @@
+# FSTS-WOS™ Multi-Site and E-Commerce Architecture Requirement
+
+Add this as a permanent architectural requirement for the entire 83-improvement roadmap and all future FSTS-WOS™ development.
+
+## Core Rule
+
+Do not design the FSTS Website Operating System™ around Corsair specifically.
+
+Corsair is Website #1 and our first production validation site. It is not the definition of the platform.
+
+Every new feature, database model, permission, automation, CMS module, API, onboarding step, and dashboard component must be evaluated for reuse across many independent client websites.
+
+The platform must support different types of businesses, including:
+
+* Service businesses
+* E-commerce stores
+* Training companies
+* Course/class businesses
+* Event businesses
+* Membership organizations
+* Professional services
+* Restaurants and hospitality
+* Nonprofits
+* Contractors
+* Retail businesses
+* Product + service hybrid businesses
+* Businesses selling digital products
+* Businesses selling physical products
+* Businesses selling appointments/bookings
+* Businesses selling subscriptions or memberships
+
+## Modular Site Architecture
+
+A site should only receive the modules it needs.
+
+Examples:
+
+**Service Website**
+
+* Services
+* Forms
+* Reviews
+* Flyers
+* SEO
+* CRM/lead management
+
+**E-Commerce Website**
+
+* Products
+* Categories
+* Inventory
+* Cart
+* Checkout
+* Orders
+* Customers
+* Discounts
+* Taxes
+* Shipping
+* Fulfillment
+* Returns/refunds
+* Payment processing
+
+**Training Website**
+
+* Courses
+* Classes
+* Events
+* Registration
+* Capacity
+* Waitlists
+* Payments
+* Certificates
+
+**Membership Website**
+
+* Members
+* Portal
+* Protected content
+* Membership plans
+* Recurring billing
+* Courses/resources
+
+**Hybrid Website**
+May enable any approved combination of these modules.
+
+Do not hardcode assumptions that every website has courses, products, services, events, or memberships.
+
+## E-Commerce Must Be First-Class
+
+Do not treat e-commerce as an add-on to Corsair's course-registration system.
+
+The architecture must be capable of supporting a real online store.
+
+Review the roadmap for missing requirements involving:
+
+* Product variants
+* SKUs
+* Inventory
+* Inventory reservations
+* Product categories/collections
+* Physical products
+* Digital products
+* Product images
+* Pricing
+* Sale pricing
+* Discounts/coupons
+* Cart
+* Checkout
+* Taxes
+* Shipping
+* Pickup
+* Orders
+* Order statuses
+* Fulfillment
+* Refunds
+* Returns
+* Customer accounts
+* Transactional emails
+* Abandoned carts
+* Low-stock/out-of-stock states
+* Payment idempotency
+* Webhook reliability
+
+Create additional roadmap tasks where the current 83 improvements do not cover these requirements.
+
+## Provider-Agnostic Commerce
+
+Do not tightly couple the core FSTS data model to Square.
+
+Square can be our first supported payment provider, but the platform architecture should allow additional providers later without rebuilding the CMS or commerce system.
+
+Use a provider abstraction where appropriate for:
+
+* Payments
+* Refunds
+* Customers
+* Orders
+* Discounts
+* Webhooks
+
+Provider-specific IDs should be stored separately from FSTS internal IDs.
+
+## Client Design Lock Still Applies
+
+Different website types do not mean clients can redesign their websites.
+
+Clients may manage the business data and content their enabled modules permit.
+
+For example, an e-commerce client may manage:
+
+* Products
+* Images
+* Prices
+* Inventory
+* Categories
+* Discounts
+* Orders
+* Fulfillment
+* Flyers/promotions
+
+But they still cannot modify:
+
+* Source code
+* Structural page layouts
+* Global design system
+* Dashboard code
+* Shared components
+* Backend code
+* Deployment infrastructure
+* Environment secrets
+
+FSTS controls the templates and presentation system.
+
+## Multi-Tenant Requirement
+
+Every record must belong to the appropriate site/tenant where applicable.
+
+A client must never be able to read, modify, search, export, or indirectly discover another client's:
+
+* Products
+* Orders
+* Customers
+* Payments
+* Classes
+* Registrations
+* Events
+* Forms
+* Leads
+* Media
+* Flyers
+* Members
+* Discounts
+* Analytics
+* Configuration
+
+Tenant isolation must be enforced server-side.
+
+## Onboarding Must Be Business-Type Aware
+
+Update the onboarding architecture so a new website can select its business capabilities.
+
+For example:
+
+**What does this website need?**
+
+* Services
+* Products / Online Store
+* Courses / Classes
+* Events
+* Appointments / Booking
+* Membership Portal
+* Forms / Lead Generation
+* Reviews
+* Flyers / Promotions
+* CRM
+* Email Marketing
+* Other approved modules
+
+The answers should determine which dashboard modules and website capabilities are enabled.
+
+Website #2 must not require editing Corsair-specific code.
+
+## Roadmap Requirement
+
+Re-evaluate all 83 proposed improvements using this architecture.
+
+For every task ask:
+
+1. Is this reusable across tenants?
+2. Does it assume Corsair-specific behavior?
+3. Does it work for non-Corsair businesses?
+4. Does it work when the relevant module is disabled?
+5. Does it maintain tenant isolation?
+6. Does it respect the client design lock?
+7. Could it work for an e-commerce site?
+8. Does it require a more generic data model?
+9. Does it scale to dozens or hundreds of client websites?
+10. Does it create technical debt that would make Website #2, #10, or #100 harder?
+
+Refactor any proposed implementation that fails these tests.
+
+## Success Test
+
+The ultimate test of the FSTS-WOS™ architecture is:
+
+**Can we onboard a completely different business—including a full e-commerce business—without changing the core dashboard code?**
+
+The answer must eventually be YES.
+
+Corsair proves Website #1.
+
+Website #2 proves repeatability.
+
+An e-commerce client proves platform flexibility.
+
+Website #10 proves scalability.
+
+Build the roadmap toward those milestones.
