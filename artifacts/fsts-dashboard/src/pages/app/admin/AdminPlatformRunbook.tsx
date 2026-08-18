@@ -44,6 +44,7 @@ import {
   Trash2,
   CheckCircle2,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -813,7 +814,7 @@ export default function AdminPlatformRunbook() {
           </div>
         </div>
 
-        <div className="px-4 py-4 space-y-4">
+        <div className="px-4 py-4 space-y-6">
           <div>
             <p className="text-sm font-medium text-slate-800 mb-1 flex items-center gap-2">
               <ImageIcon className="h-4 w-4 text-slate-400" />
@@ -826,6 +827,33 @@ export default function AdminPlatformRunbook() {
               Run this for every site before Website #1 onboarding.
             </p>
             <PurgeBase64MediaPanel />
+          </div>
+
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-sm font-medium text-slate-800 mb-1 flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-slate-400" />
+              Improvement Roadmap PDF
+            </p>
+            <p className="text-xs text-slate-500 mb-3">
+              The roadmap PDF is generated from{" "}
+              <code className="font-mono bg-slate-100 px-1 rounded">scripts/roadmap-data.json</code> and is
+              automatically regenerated on every post-merge run — no manual step required when improvements
+              are added or updated. Download the latest version below.
+            </p>
+            <div className="flex items-center gap-3">
+              <a
+                href="/fsts-dashboard-roadmap.pdf"
+                download="FSTS-Improvement-Roadmap.pdf"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors border border-primary/30 hover:border-primary/60 rounded-md px-3 py-2 bg-primary/5 hover:bg-primary/10 no-underline"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download Current Roadmap PDF
+              </a>
+              <span className="text-xs text-slate-400">
+                Regenerates automatically after every merge via{" "}
+                <code className="font-mono bg-slate-100 px-1 rounded">scripts/post-merge.sh</code>
+              </span>
+            </div>
           </div>
         </div>
       </div>

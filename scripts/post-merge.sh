@@ -117,6 +117,30 @@ fi
 pnpm install --frozen-lockfile
 pnpm --filter @workspace/db run push || true
 
+# ── Roadmap PDF regeneration ──────────────────────────────────────────────────
+# Re-generate the roadmap PDF from roadmap-data.json so the public PDF in
+# artifacts/fsts-dashboard/public/ always matches the current backlog.
+# If the PDF changes, amend the last commit to include it before pushing.
+echo ""
+echo "--- Roadmap PDF regeneration ---"
+_CHROMIUM="/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium"
+if [ -f "$_CHROMIUM" ]; then
+  if node scripts/generate-roadmap-pdf.mjs; then
+    _PDF="artifacts/fsts-dashboard/public/fsts-dashboard-roadmap.pdf"
+    if ! git diff --quiet HEAD -- "$_PDF" 2>/dev/null || git status --porcelain "$_PDF" | grep -q .; then
+      git add "$_PDF"
+      git commit --amend --no-edit --no-verify
+      echo "✓ Roadmap PDF regenerated and added to commit"
+    else
+      echo "✓ Roadmap PDF unchanged — no commit amendment needed"
+    fi
+  else
+    echo "⚠ Roadmap PDF generation failed — skipping (PDF may be stale)"
+  fi
+else
+  echo "⚠ Chromium not found at expected path — skipping roadmap PDF regeneration"
+fi
+
 # ── GitHub mirror sync ────────────────────────────────────────────────────────
 echo ""
 echo "--- GitHub mirror sync ---"
