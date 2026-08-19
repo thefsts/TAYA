@@ -7,6 +7,7 @@
     "hello": "tsx ./src/hello.ts",
     "check-clerk-key": "tsx ./src/check-clerk-key.ts",
     "sync-github": "tsx ./src/sync-github.ts",
+    "validate:catalog": "tsx ./src/validate-catalog.ts",
     "visual-diff-report": "tsx ./src/visual-diff-report.ts",
     "test:post-merge-sync": "bash ./src/test-post-merge-sync.sh",
     "typecheck": "tsc -p tsconfig.json --noEmit"

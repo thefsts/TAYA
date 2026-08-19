@@ -1067,6 +1067,8 @@ async function seedCorsairCourse(
     courseSlug?: string;
     siteSlug?: string;
     title?: string;
+    contactOnly?: boolean;
+    externalCourse?: boolean;
   } = {},
 ): Promise<{ siteId: Id<"sites">; courseSlug: string; siteSlug: string }> {
   const resolvedSiteSlug = options.siteSlug ?? "corsair-ltc";
@@ -1095,6 +1097,8 @@ async function seedCorsairCourse(
       waitlistCapacity: options.waitlistCapacity ?? 0,
       lifecycleStatus: "RegistrationOpen",
       startDateTime: Date.now() + 7 * 24 * 60 * 60 * 1000, // 1 week from now
+        ...(options.contactOnly ? { contactOnly: true } : {}),
+        ...(options.externalCourse ? { externalCourse: true } : {}),
     });
 
     return { siteId, courseSlug: resolvedCourseSlug, siteSlug: resolvedSiteSlug };
@@ -1209,6 +1213,66 @@ describe("Public booking end-to-end — happy path for a Corsair LTC class", () 
     expect(av!.siteName).toBe("Corsair LTC");
     expect(av!.requiresPayment).toBe(false);
     expect(av!.registrationOpen).toBe(true);
+  });
+});
+
+describe("Public booking — contact-only and external courses", () => {
+  it("does not present a contact-only course as publicly registrable", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      siteSlug: "corsair-contact-only",
+      courseSlug: "private-instruction",
+      contactOnly: true,
+    });
+
+    const availability = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+    });
+
+    expect(availability).toMatchObject({
+      contactOnly: true,
+      externalCourse: false,
+      registrationAvailable: false,
+      registrationUnavailableReason: "contact_only",
+      registrationOpen: false,
+    });
+    await expect(t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+      customerName: "Contact Only Customer",
+      customerEmail: "contact-only@example.com",
+    })).rejects.toThrow(/registration_not_available/);
+  });
+
+  it("does not present an externally fulfilled course as publicly registrable", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      siteSlug: "corsair-external-course",
+      courseSlug: "online-assessment",
+      externalCourse: true,
+    });
+
+    const availability = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+    });
+
+    expect(availability).toMatchObject({
+      contactOnly: false,
+      externalCourse: true,
+      registrationAvailable: false,
+      registrationUnavailableReason: "external_course",
+      registrationOpen: false,
+    });
+    await expect(t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+      customerName: "External Course Customer",
+      customerEmail: "external-course@example.com",
+    })).rejects.toThrow(/registration_not_available/);
   });
 });
 

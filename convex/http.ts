@@ -985,6 +985,7 @@ http.route({
       const code = parsed.code ?? "internal_error";
       const status = code === "entity_not_found" ? 404
         : code === "registration_closed" ? 409
+        : code === "registration_not_available" ? 409
         : code === "already_registered"  ? 409
         : code === "class_full"          ? 409
         : 500;

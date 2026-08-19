@@ -88,6 +88,10 @@ export default defineSchema({
     durationLabel: v.optional(v.string()),
     /** Price in integer minor units (cents). null = explicitly cleared; absent = not set. */
     priceCents: v.optional(v.union(v.number(), v.null())),
+    /** Exempts an intentionally contact-only course from online checkout and price requirements. */
+    contactOnly: v.optional(v.boolean()),
+    /** Course is fulfilled by an external provider rather than the local checkout flow. */
+    externalCourse: v.optional(v.boolean()),
     imageUrl: v.optional(v.string()),
     squareItemId: v.optional(v.string()),
     // ── Capacity & Registration fields ───────────────────────────────────

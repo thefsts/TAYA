@@ -31,7 +31,7 @@
  * model of the dashboard.
  */
 
-import { internalMutation, internalAction, action } from "./_generated/server";
+import { internalMutation, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
@@ -537,6 +537,7 @@ export const seedCourses = internalMutation({
           "Complete the Texas LTC classroom portion online through our trusted training partner, Texas Carry Academy. Self-paced, state-approved. Schedule your live-fire qualification with Corsair at the range once complete.",
         durationLabel: "4–6 hrs online + range",
         priceCents: null,
+        externalCourse: true,
         capacity: 50,
         timezone: "America/Chicago",
         autoCloseRegistration: false,
@@ -737,6 +738,8 @@ export const seedCourses = internalMutation({
           "Training in non-lethal defensive tools and techniques including OC spray, tasers, and hand-to-hand defensive measures. Ideal for security officers, civilians, and those who prefer non-lethal options.",
         durationLabel: "2–4 hrs",
         priceCents: null,
+        // Intentionally contact-only: rates vary by individual and group session.
+        contactOnly: true,
         capacity: 15,
         timezone: "America/Chicago",
         autoCloseRegistration: false,
@@ -863,20 +866,21 @@ export const seedCourses = internalMutation({
   },
 });
 
-// ─── Public: Ensure Corsair courses exist (smoke-test helper) ─────────────────
+// ─── Ensure Corsair courses exist (deploy-key smoke-test helper) ──────────────
 //
 // Called by scripts/smoke-test-free-booking.sh via `npx convex run` when the
 // availability endpoint returns 404, meaning the Corsair courses have not been
 // seeded into this deployment yet.
 //
-// This is a PUBLIC action (not internal) so the Convex CLI can invoke it with
-// a deploy key. It is IDEMPOTENT — it checks for each course by slug before
-// inserting, so running it multiple times never creates duplicates.
+// This is an internal action. The Convex CLI can invoke it with a deployment
+// key, but browser clients cannot use it to write catalog data. It is
+// IDEMPOTENT — it checks for each course by slug before inserting, so running
+// it multiple times never creates duplicates.
 //
 // The site is looked up by slug rather than hardcoded siteId so this works
 // across deployments where the Corsair site may have a different document ID.
 
-export const ensureCorsairCourses = action({
+export const ensureCorsairCourses = internalAction({
   args: {},
   handler: async (ctx): Promise<{ inserted: number; skipped: number; siteFound: boolean }> => {
     return await ctx.runMutation(internal.seedCorsair._ensureCorsairCoursesMutation, {});
@@ -975,7 +979,9 @@ export const _ensureCorsairCoursesMutation = internalMutation({
         description:
           "Private 1:1 firearms instruction tailored to your skill level and goals. Includes beginner handgun fundamentals, defensive shooting skills, and scenario-based training. Available for individuals and small groups.",
         durationLabel: "Flexible",
-        priceCents: undefined,
+        // Intentionally contact-only: private and group session rates vary.
+        priceCents: null,
+        contactOnly: true,
         imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
       },
     ];

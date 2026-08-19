@@ -59,6 +59,32 @@ async function refreshEntityLifecycle(
   await ctx.db.patch(doc._id, { lifecycleStatus: newStatus });
 }
 
+function registrationUnavailableReason(
+  entityType: "course" | "event",
+  entity: { contactOnly?: boolean; externalCourse?: boolean },
+): "contact_only" | "external_course" | null {
+  if (entityType !== "course") return null;
+  if (entity.contactOnly) return "contact_only";
+  if (entity.externalCourse) return "external_course";
+  return null;
+}
+
+function assertPublicRegistrationAvailable(
+  entityType: "course" | "event",
+  entity: { contactOnly?: boolean; externalCourse?: boolean },
+) {
+  const reason = registrationUnavailableReason(entityType, entity);
+  if (reason) {
+    throw new Error(JSON.stringify({
+      code: "registration_not_available",
+      message: reason === "contact_only"
+        ? "This course requires direct contact for enrollment."
+        : "This course is fulfilled by an external provider.",
+      reason,
+    }));
+  }
+}
+
 // ─── Availability query ──────────────────────────────────────────────────────
 
 /**
@@ -103,6 +129,8 @@ export const getAvailabilityInternal = internalQuery({
     const registrationOpen =
       (registrationOpenAt == null || now >= registrationOpenAt) &&
       (registrationCloseAt == null || now <= registrationCloseAt);
+    const registrationBlockReason = registrationUnavailableReason(entityType, entity);
+    const registrationAvailable = registrationBlockReason === null;
 
     return {
       entityId: entity._id as string,
@@ -125,9 +153,13 @@ export const getAvailabilityInternal = internalQuery({
       isFull,
       hasWaitlist: waitlistCapacity > 0,
       isWaitlistFull,
-      registrationOpen,
+      registrationOpen: registrationOpen && registrationAvailable,
       registrationOpenAt,
       registrationCloseAt,
+      registrationAvailable,
+      registrationUnavailableReason: registrationBlockReason,
+      contactOnly: entityType === "course" && entity.contactOnly === true,
+      externalCourse: entityType === "course" && entity.externalCourse === true,
       requiresPayment: typeof entity.priceCents === "number" && entity.priceCents > 0,
       siteName: site.name as string,
       siteSlug: site.slug as string,
@@ -180,6 +212,7 @@ export const registerPublicInternal = internalMutation({
     if (!entity || (entity.status !== "published" && !entity.isPublished)) {
       throw new Error(JSON.stringify({ code: "entity_not_found", message: "Class or event not found." }));
     }
+    assertPublicRegistrationAvailable(entityType, entity);
 
     // ── 3. Enforce registration window ──────────────────────────────────────
     const now = Date.now();
@@ -547,6 +580,8 @@ export const getAvailabilityByEntitySlug = internalQuery({
     const registrationOpen =
       (registrationOpenAt == null || now >= registrationOpenAt) &&
       (registrationCloseAt == null || now <= registrationCloseAt);
+    const registrationBlockReason = registrationUnavailableReason(entityType, entity);
+    const registrationAvailable = registrationBlockReason === null;
 
     return {
       entityId: entity._id as string,
@@ -570,9 +605,13 @@ export const getAvailabilityByEntitySlug = internalQuery({
       isFull,
       hasWaitlist: waitlistCapacity > 0,
       isWaitlistFull,
-      registrationOpen,
+      registrationOpen: registrationOpen && registrationAvailable,
       registrationOpenAt,
       registrationCloseAt,
+      registrationAvailable,
+      registrationUnavailableReason: registrationBlockReason,
+      contactOnly: entityType === "course" && entity.contactOnly === true,
+      externalCourse: entityType === "course" && entity.externalCourse === true,
       requiresPayment: typeof entity.priceCents === "number" && entity.priceCents > 0,
       siteName: site.name as string,
       siteSlug: site.slug as string,
@@ -616,6 +655,7 @@ export const registerPublicByEntitySlug = internalMutation({
     if (!entity || (entity.status !== "published" && !entity.isPublished)) {
       throw new Error(JSON.stringify({ code: "entity_not_found", message: "Class or event not found." }));
     }
+    assertPublicRegistrationAvailable(entityType, entity);
 
     const entityId = entity._id as string;
     const now = Date.now();

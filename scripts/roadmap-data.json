@@ -7,30 +7,92 @@
       "lightColor": "#eef2ff",
       "borderColor": "#a5b4fc",
       "items": [
-        { "id": 11, "wave": 2, "priority": "P1", "tags": ["Client UX", "Security"],
+        {
+          "id": 11,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Security"
+          ],
           "what": "Let admins manually unlock a locked portal user account",
-          "why": "Admins can unblock users without developer intervention, reducing support delays." },
-        { "id": 12, "wave": 2, "priority": "P1", "tags": ["Security", "Reliability"],
+          "why": "Admins can unblock users without developer intervention, reducing support delays."
+        },
+        {
+          "id": 12,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security",
+            "Reliability"
+          ],
           "what": "Stop other user management pages from leaking the full site list",
-          "why": "Prevents unauthorized data exposure by scoping site lists to the correct context." },
-        { "id": 13, "wave": 2, "priority": "P2", "tags": ["Reliability", "Technical debt"],
+          "why": "Prevents unauthorized data exposure by scoping site lists to the correct context."
+        },
+        {
+          "id": 13,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Reliability",
+            "Technical debt"
+          ],
           "what": "Confirm portal lockout and password flow can't be broken by a future change",
-          "why": "Guards against regressions that could lock users out permanently." },
-        { "id": 144, "wave": 2, "priority": "P1", "tags": ["Security"],
+          "why": "Guards against regressions that could lock users out permanently."
+        },
+        {
+          "id": 144,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm addSiteRole stays blocked even if superadmin status is set after roles already exist",
-          "why": "Closes a privilege escalation window where late-granted superadmin could bypass role guards." },
-        { "id": 145, "wave": 2, "priority": "P1", "tags": ["Security", "Reliability"],
+          "why": "Closes a privilege escalation window where late-granted superadmin could bypass role guards."
+        },
+        {
+          "id": 145,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security",
+            "Reliability"
+          ],
           "what": "Catch a superadmin partial update silently wiping roles on any site owner",
-          "why": "Prevents accidental data loss that could lock site owners out of their own accounts." },
-        { "id": 146, "wave": 2, "priority": "P1", "tags": ["Security", "Reliability"],
+          "why": "Prevents accidental data loss that could lock site owners out of their own accounts."
+        },
+        {
+          "id": 146,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security",
+            "Reliability"
+          ],
           "what": "Confirm role changes made through users.update are always recorded in the activity log",
-          "why": "Full audit trail for every permission change so admins can trace who changed what and when." },
-        { "id": 181, "wave": 1, "priority": "P1", "tags": ["Security"],
+          "why": "Full audit trail for every permission change so admins can trace who changed what and when."
+        },
+        {
+          "id": 181,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Catch a stale legacy role grant the moment a permission is renamed or removed",
-          "why": "Prevents ghost permissions that outlive their intended purpose from accumulating over time." },
-        { "id": 187, "wave": 3, "priority": "P2", "tags": ["Client UX", "Automation"],
+          "why": "Prevents ghost permissions that outlive their intended purpose from accumulating over time."
+        },
+        {
+          "id": 187,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Let site owners invite dashboard users directly from their site -- without needing a super admin",
-          "why": "Eliminates the bottleneck of requiring FSTS staff involvement for every user invitation." }
+          "why": "Eliminates the bottleneck of requiring FSTS staff involvement for every user invitation."
+        }
       ]
     },
     {
@@ -40,33 +102,99 @@
       "lightColor": "#fef2f2",
       "borderColor": "#fca5a5",
       "items": [
-        { "id": 85, "wave": 1, "priority": "P0", "tags": ["Security"],
+        {
+          "id": 85,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Security"
+          ],
           "what": "Make the guard check smart enough to catch null checks that don't show an access-denied message",
-          "why": "Ensures users always see a clear 'access denied' message instead of a confusing blank screen." },
-        { "id": 86, "wave": 1, "priority": "P0", "tags": ["Security", "Infrastructure"],
+          "why": "Ensures users always see a clear 'access denied' message instead of a confusing blank screen."
+        },
+        {
+          "id": 86,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Security",
+            "Infrastructure"
+          ],
           "what": "Extend the access-denied guard requirement to any new route category added outside the sites folder",
-          "why": "Future-proofs the app so new routes automatically inherit the correct access-denied behavior." },
-        { "id": 159, "wave": 1, "priority": "P0", "tags": ["Security"],
+          "why": "Future-proofs the app so new routes automatically inherit the correct access-denied behavior."
+        },
+        {
+          "id": 159,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm write-path guards work for CRM, forms, and media modules too",
-          "why": "Closes gaps where CRM or media write operations could bypass module-access checks." },
-        { "id": 164, "wave": 1, "priority": "P0", "tags": ["Security"],
+          "why": "Closes gaps where CRM or media write operations could bypass module-access checks."
+        },
+        {
+          "id": 164,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm a client-role user is automatically blocked from every design-locked route",
-          "why": "Enforces the client permission boundary so clients can't reach admin-only design tools." },
-        { "id": 171, "wave": 1, "priority": "P0", "tags": ["Security"],
+          "why": "Enforces the client permission boundary so clients can't reach admin-only design tools."
+        },
+        {
+          "id": 171,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm the Footer, Email, CRM, and Payments pages can't be unlocked by a client user",
-          "why": "Hardens the client boundary on critical business and payment configuration pages." },
-        { "id": 172, "wave": 1, "priority": "P0", "tags": ["Security"],
+          "why": "Hardens the client boundary on critical business and payment configuration pages."
+        },
+        {
+          "id": 172,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Security"
+          ],
           "what": "Catch a client user bypassing the navigation update and delete guards too",
-          "why": "Ensures mutation guards on nav items cover all roles, not just the read-path checks." },
-        { "id": 184, "wave": 2, "priority": "P1", "tags": ["Security"],
+          "why": "Ensures mutation guards on nav items cover all roles, not just the read-path checks."
+        },
+        {
+          "id": 184,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm the module-access grid for site users also covers every role",
-          "why": "Guarantees no role is accidentally excluded from the module-access matrix." },
-        { "id": 185, "wave": 2, "priority": "P1", "tags": ["Security", "Infrastructure"],
+          "why": "Guarantees no role is accidentally excluded from the module-access matrix."
+        },
+        {
+          "id": 185,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security",
+            "Infrastructure"
+          ],
           "what": "Confirm the module-access matrix stays complete when a dashboard module is added or removed",
-          "why": "Prevents new modules from launching without any permission boundaries set." },
-        { "id": 186, "wave": 2, "priority": "P1", "tags": ["Client UX", "Security"],
+          "why": "Prevents new modules from launching without any permission boundaries set."
+        },
+        {
+          "id": 186,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Security"
+          ],
           "what": "Confirm the permissions preview always matches the role actually being saved",
-          "why": "Admins see exactly what they're granting before they save -- no surprise permission gaps." }
+          "why": "Admins see exactly what they're granting before they save -- no surprise permission gaps."
+        }
       ]
     },
     {
@@ -76,30 +204,91 @@
       "lightColor": "#ecfeff",
       "borderColor": "#67e8f9",
       "items": [
-        { "id": 14, "wave": 1, "priority": "P0", "tags": ["Client UX", "Revenue"],
+        {
+          "id": 14,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Client UX",
+            "Revenue"
+          ],
           "what": "Let clients actually use their uploaded images across their whole site",
-          "why": "Unlocks the media library as a shared asset pool, so clients get full value from every upload." },
-        { "id": 15, "wave": 1, "priority": "P1", "tags": ["Client UX", "Reliability"],
+          "why": "Unlocks the media library as a shared asset pool, so clients get full value from every upload."
+        },
+        {
+          "id": 15,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Prevent broken images when a media asset is deleted that's still in use",
-          "why": "Eliminates embarrassing broken-image placeholders on client-facing websites." },
-        { "id": 16, "wave": 2, "priority": "P2", "tags": ["Technical debt", "Infrastructure"],
+          "why": "Eliminates embarrassing broken-image placeholders on client-facing websites."
+        },
+        {
+          "id": 16,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Technical debt",
+            "Infrastructure"
+          ],
           "what": "Clean up legacy base64 images already in clients' media libraries",
-          "why": "Reduces database size and speeds up media library load times across all client sites." },
-        { "id": 44, "wave": 2, "priority": "P2", "tags": ["Reliability"],
+          "why": "Reduces database size and speeds up media library load times across all client sites."
+        },
+        {
+          "id": 44,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Confirm the purge tool is safe to run when a site has thousands of records across multiple pages",
-          "why": "Prevents partial deletes that would leave orphaned records when running cleanup at scale." },
-        { "id": 45, "wave": 3, "priority": "P2", "tags": ["Client UX", "Automation"],
+          "why": "Prevents partial deletes that would leave orphaned records when running cleanup at scale."
+        },
+        {
+          "id": 45,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Let clients fix broken images directly from the nav badge -- not just see the count",
-          "why": "Turns the broken-image badge into an actionable fix flow instead of a passive warning." },
-        { "id": 80, "wave": 4, "priority": "P3", "tags": ["Client UX"],
+          "why": "Turns the broken-image badge into an actionable fix flow instead of a passive warning."
+        },
+        {
+          "id": 80,
+          "wave": 4,
+          "priority": "P3",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Verify the image editor is keyboard-navigable and screen-reader friendly",
-          "why": "Makes the image editor accessible to users who rely on keyboards or assistive technology." },
-        { "id": 81, "wave": 1, "priority": "P1", "tags": ["Client UX", "Automation"],
+          "why": "Makes the image editor accessible to users who rely on keyboards or assistive technology."
+        },
+        {
+          "id": 81,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Auto-generate alt text when images are uploaded so clients never have empty alt text",
-          "why": "Improves SEO and accessibility on every client website automatically, with zero extra effort from clients." },
-        { "id": 82, "wave": 1, "priority": "P1", "tags": ["Reliability"],
+          "why": "Improves SEO and accessibility on every client website automatically, with zero extra effort from clients."
+        },
+        {
+          "id": 82,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Confirm image picker flows work end-to-end in a real browser across every module",
-          "why": "Catches browser-specific picker bugs before clients encounter them on live sites." }
+          "why": "Catches browser-specific picker bugs before clients encounter them on live sites."
+        }
       ]
     },
     {
@@ -109,39 +298,124 @@
       "lightColor": "#f0fdf4",
       "borderColor": "#86efac",
       "items": [
-        { "id": 21, "wave": 1, "priority": "P0", "tags": ["Client UX", "Reliability"],
+        {
+          "id": 21,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Make failed welcome email deliveries visible so admins know when a new registrant didn't get their email",
-          "why": "Admins can proactively follow up instead of discovering the issue after a registrant complains." },
-        { "id": 22, "wave": 1, "priority": "P1", "tags": ["Reliability", "Client UX"],
+          "why": "Admins can proactively follow up instead of discovering the issue after a registrant complains."
+        },
+        {
+          "id": 22,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Reliability",
+            "Client UX"
+          ],
           "what": "Warn admins when the lead alert recipient address looks wrong or bounces",
-          "why": "Catches misconfigured alert emails before real leads go unnoticed." },
-        { "id": 23, "wave": 1, "priority": "P1", "tags": ["Client UX", "Automation"],
+          "why": "Catches misconfigured alert emails before real leads go unnoticed."
+        },
+        {
+          "id": 23,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Let admins send a test lead alert to confirm their notification email is working",
-          "why": "One-click confidence check so admins know leads are flowing to the right inbox." },
-        { "id": 26, "wave": 1, "priority": "P1", "tags": ["Technical debt", "Reliability"],
+          "why": "One-click confidence check so admins know leads are flowing to the right inbox."
+        },
+        {
+          "id": 26,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Technical debt",
+            "Reliability"
+          ],
           "what": "Fix broken tests in the email suite that are silently hiding regressions",
-          "why": "Restores reliable CI feedback so email bugs are caught before they reach production." },
-        { "id": 27, "wave": 1, "priority": "P1", "tags": ["Reliability"],
+          "why": "Restores reliable CI feedback so email bugs are caught before they reach production."
+        },
+        {
+          "id": 27,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Confirm the notification email override reaches the right address end-to-end",
-          "why": "Guarantees the override setting actually redirects emails -- not just stores the address." },
-        { "id": 65, "wave": 1, "priority": "P0", "tags": ["Client UX", "Automation"],
+          "why": "Guarantees the override setting actually redirects emails -- not just stores the address."
+        },
+        {
+          "id": 65,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Let admins configure their Resend API key from the Email Config page -- not the Convex dashboard",
-          "why": "Removes a technical barrier that currently requires developer access to configure email." },
-        { "id": 66, "wave": 1, "priority": "P0", "tags": ["Reliability", "Client UX"],
+          "why": "Removes a technical barrier that currently requires developer access to configure email."
+        },
+        {
+          "id": 66,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Reliability",
+            "Client UX"
+          ],
           "what": "Confirm a real email reaches the right inbox once Resend is configured for the first client",
-          "why": "End-to-end proof that the Resend integration actually delivers before clients go live." },
-        { "id": 141, "wave": 1, "priority": "P1", "tags": ["Reliability"],
+          "why": "End-to-end proof that the Resend integration actually delivers before clients go live."
+        },
+        {
+          "id": 141,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Confirm the welcome email fires when a new user is created -- and only then",
-          "why": "Prevents duplicate welcome emails from confusing new users during re-invites or re-seeding." },
-        { "id": 142, "wave": 3, "priority": "P2", "tags": ["Client UX", "Automation"],
+          "why": "Prevents duplicate welcome emails from confusing new users during re-invites or re-seeding."
+        },
+        {
+          "id": 142,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Let admins re-send the welcome email to a pending user who hasn't signed in yet",
-          "why": "Admins can help users who lost their welcome email without creating a new account." },
-        { "id": 143, "wave": 1, "priority": "P1", "tags": ["Reliability"],
+          "why": "Admins can help users who lost their welcome email without creating a new account."
+        },
+        {
+          "id": 143,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Make sure welcome emails link to the correct dashboard URL after deployment",
-          "why": "New users land on the right domain -- not a broken or dev preview link." },
-        { "id": 202, "wave": 1, "priority": "P0", "tags": ["Revenue", "Reliability"],
+          "why": "New users land on the right domain -- not a broken or dev preview link."
+        },
+        {
+          "id": 202,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Revenue",
+            "Reliability"
+          ],
           "what": "Alert admins the moment a paid order confirmation email permanently fails to deliver",
-          "why": "Paid customers always know their order went through -- failed emails surface immediately." }
+          "why": "Paid customers always know their order went through -- failed emails surface immediately."
+        }
       ]
     },
     {
@@ -151,30 +425,90 @@
       "lightColor": "#fffbeb",
       "borderColor": "#fcd34d",
       "items": [
-        { "id": 72, "wave": 2, "priority": "P1", "tags": ["Automation", "Client UX"],
+        {
+          "id": 72,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Automation",
+            "Client UX"
+          ],
           "what": "Add an onboarding wizard so admins can seed a new client without touching the CLI",
-          "why": "Non-technical staff can onboard new clients end-to-end through the dashboard UI." },
-        { "id": 73, "wave": 2, "priority": "P1", "tags": ["Reliability", "Security"],
+          "why": "Non-technical staff can onboard new clients end-to-end through the dashboard UI."
+        },
+        {
+          "id": 73,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Reliability",
+            "Security"
+          ],
           "what": "Confirm the seeder runs end-to-end for a second site without corrupting the first",
-          "why": "Verifies multi-site isolation so onboarding a second client never affects existing data." },
-        { "id": 90, "wave": 2, "priority": "P1", "tags": ["Reliability"],
+          "why": "Verifies multi-site isolation so onboarding a second client never affects existing data."
+        },
+        {
+          "id": 90,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Make sure a second launch on the same session can't silently create a duplicate site",
-          "why": "Prevents orphaned duplicate site records from confusing admins and fragmenting data." },
-        { "id": 91, "wave": 2, "priority": "P1", "tags": ["Client UX", "Reliability"],
+          "why": "Prevents orphaned duplicate site records from confusing admins and fragmenting data."
+        },
+        {
+          "id": 91,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Confirm the temp domain is assigned to the site record when the client picks a temporary URL",
-          "why": "New clients can immediately preview their site at the expected URL after onboarding." },
-        { "id": 93, "wave": 2, "priority": "P2", "tags": ["Client UX"],
+          "why": "New clients can immediately preview their site at the expected URL after onboarding."
+        },
+        {
+          "id": 93,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Seed placeholder services when onboarding creates a site with services enabled",
-          "why": "New sites launch with example content rather than an empty, confusing services section." },
-        { "id": 110, "wave": 4, "priority": "P3", "tags": ["Client UX"],
+          "why": "New sites launch with example content rather than an empty, confusing services section."
+        },
+        {
+          "id": 110,
+          "wave": 4,
+          "priority": "P3",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Remember that the getting-started nudge was dismissed so it doesn't reappear on every visit",
-          "why": "Eliminates a repetitive UI annoyance that makes the dashboard feel unpolished." },
-        { "id": 111, "wave": 4, "priority": "P3", "tags": ["Client UX"],
+          "why": "Eliminates a repetitive UI annoyance that makes the dashboard feel unpolished."
+        },
+        {
+          "id": 111,
+          "wave": 4,
+          "priority": "P3",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Confirm the placeholder nudge banner shows and disappears at the right times",
-          "why": "Makes the onboarding experience feel intentional -- guides new users, then gets out of the way." },
-        { "id": 192, "wave": 2, "priority": "P2", "tags": ["Infrastructure", "Technical debt"],
+          "why": "Makes the onboarding experience feel intentional -- guides new users, then gets out of the way."
+        },
+        {
+          "id": 192,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Infrastructure",
+            "Technical debt"
+          ],
           "what": "Add a CONTRIBUTING guide so new contributors always commit with the right identity",
-          "why": "Prevents messy commit history and identity-check failures from new team members." }
+          "why": "Prevents messy commit history and identity-check failures from new team members."
+        }
       ]
     },
     {
@@ -184,30 +518,90 @@
       "lightColor": "#f5f3ff",
       "borderColor": "#c4b5fd",
       "items": [
-        { "id": 107, "wave": 3, "priority": "P2", "tags": ["Client UX", "Revenue"],
+        {
+          "id": 107,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Revenue"
+          ],
           "what": "Let visitors see which product categories exist before filtering",
-          "why": "Visitors can browse categories without guessing what's available, boosting discoverability." },
-        { "id": 108, "wave": 2, "priority": "P1", "tags": ["Reliability"],
+          "why": "Visitors can browse categories without guessing what's available, boosting discoverability."
+        },
+        {
+          "id": 108,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Make sure filtering products by category can't silently return wrong results",
-          "why": "Prevents clients from unknowingly showing incorrect product sets to customers." },
-        { "id": 109, "wave": 2, "priority": "P1", "tags": ["Security"],
+          "why": "Prevents clients from unknowingly showing incorrect product sets to customers."
+        },
+        {
+          "id": 109,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm disabled-module sites can't have their products scraped via the public endpoint",
-          "why": "Protects product data from sites that haven't purchased the commerce module." },
-        { "id": 112, "wave": 2, "priority": "P1", "tags": ["Reliability", "Technical debt"],
+          "why": "Protects product data from sites that haven't purchased the commerce module."
+        },
+        {
+          "id": 112,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Reliability",
+            "Technical debt"
+          ],
           "what": "Catch a future refactor that breaks the products list endpoint's visibility filter",
-          "why": "Automated check that draft/hidden products can never leak to the public storefront." },
-        { "id": 114, "wave": 2, "priority": "P2", "tags": ["Client UX"],
+          "why": "Automated check that draft/hidden products can never leak to the public storefront."
+        },
+        {
+          "id": 114,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Confirm seeded product titles always carry the client's business name",
-          "why": "Demo products feel branded from day one, giving clients a realistic preview of their store." },
-        { "id": 118, "wave": 2, "priority": "P1", "tags": ["Client UX", "Reliability"],
+          "why": "Demo products feel branded from day one, giving clients a realistic preview of their store."
+        },
+        {
+          "id": 118,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Confirm featured products can't appear in the featured spotlight if they're still hidden",
-          "why": "Prevents draft products from accidentally appearing in premium homepage real estate." },
-        { "id": 123, "wave": 2, "priority": "P1", "tags": ["Reliability"],
+          "why": "Prevents draft products from accidentally appearing in premium homepage real estate."
+        },
+        {
+          "id": 123,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Prevent two products from sharing the same slug on the same site",
-          "why": "Eliminates broken product URLs caused by slug collisions that route to the wrong item." },
-        { "id": 169, "wave": 3, "priority": "P2", "tags": ["Client UX", "Revenue"],
+          "why": "Eliminates broken product URLs caused by slug collisions that route to the wrong item."
+        },
+        {
+          "id": 169,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Revenue"
+          ],
           "what": "Make sure client admins can manage their Square discounts without needing FSTS staff help",
-          "why": "Clients can run promotions independently, removing a support dependency on FSTS staff." }
+          "why": "Clients can run promotions independently, removing a support dependency on FSTS staff."
+        }
       ]
     },
     {
@@ -217,15 +611,40 @@
       "lightColor": "#ecfdf5",
       "borderColor": "#6ee7b7",
       "items": [
-        { "id": 203, "wave": 1, "priority": "P0", "tags": ["Revenue", "Reliability"],
+        {
+          "id": 203,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Revenue",
+            "Reliability"
+          ],
           "what": "Confirm Square payments still process correctly end-to-end after the idempotency changes",
-          "why": "Validates that the idempotency hardening didn't break the actual checkout flow for real customers." },
-        { "id": 204, "wave": 1, "priority": "P0", "tags": ["Revenue", "Reliability", "Security"],
+          "why": "Validates that the idempotency hardening didn't break the actual checkout flow for real customers."
+        },
+        {
+          "id": 204,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Revenue",
+            "Reliability",
+            "Security"
+          ],
           "what": "Harden the provider-agnostic payment webhook with the same idempotency and email-state guards",
-          "why": "Ensures future payment integrations can't double-charge customers or skip order confirmation emails." },
-        { "id": 206, "wave": 1, "priority": "P0", "tags": ["Revenue", "Reliability"],
+          "why": "Ensures future payment integrations can't double-charge customers or skip order confirmation emails."
+        },
+        {
+          "id": 206,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Revenue",
+            "Reliability"
+          ],
           "what": "Block checkout when a course or event price is missing or corrupt so no broken order reaches Square",
-          "why": "Prevents $0 or malformed orders from reaching Square, protecting clients from disputes and chargebacks." }
+          "why": "Prevents $0 or malformed orders from reaching Square, protecting clients from disputes and chargebacks."
+        }
       ]
     },
     {
@@ -235,27 +654,82 @@
       "lightColor": "#fff7ed",
       "borderColor": "#fdba74",
       "items": [
-        { "id": 157, "wave": 1, "priority": "P1", "tags": ["Security", "Reliability"],
+        {
+          "id": 157,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Security",
+            "Reliability"
+          ],
           "what": "Confirm courses stay hidden when the agency switches the module off platform-wide",
-          "why": "Module toggles work at the platform level -- clients can't circumvent a module being disabled." },
-        { "id": 158, "wave": 2, "priority": "P1", "tags": ["Security"],
+          "why": "Module toggles work at the platform level -- clients can't circumvent a module being disabled."
+        },
+        {
+          "id": 158,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm a disabled-module site can't be unlocked by a direct courses.get call",
-          "why": "API-level guard prevents clever URL manipulation from bypassing module restrictions." },
-        { "id": 189, "wave": 1, "priority": "P1", "tags": ["Client UX", "Reliability"],
+          "why": "API-level guard prevents clever URL manipulation from bypassing module restrictions."
+        },
+        {
+          "id": 189,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Confirm lifecycle alerts in the edit dialog always reflect live registration data",
-          "why": "Admins editing a class see accurate enrollment counts, not stale cached data." },
-        { "id": 193, "wave": 1, "priority": "P0", "tags": ["Revenue", "Reliability"],
+          "why": "Admins editing a class see accurate enrollment counts, not stale cached data."
+        },
+        {
+          "id": 193,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Revenue",
+            "Reliability"
+          ],
           "what": "Make sure a client with a stale session can't register for a class that's already been cancelled",
-          "why": "Prevents ghost registrations where customers pay for a class that no longer exists." },
-        { "id": 194, "wave": 1, "priority": "P1", "tags": ["Client UX", "Reliability"],
+          "why": "Prevents ghost registrations where customers pay for a class that no longer exists."
+        },
+        {
+          "id": 194,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Catch a flyer that stays published after its linked class is deleted outright",
-          "why": "Orphaned flyers advertising deleted classes are automatically unpublished to avoid customer confusion." },
-        { "id": 195, "wave": 1, "priority": "P1", "tags": ["Reliability", "Automation"],
+          "why": "Orphaned flyers advertising deleted classes are automatically unpublished to avoid customer confusion."
+        },
+        {
+          "id": 195,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Reliability",
+            "Automation"
+          ],
           "what": "Confirm the lifecycle clock is registered so tick can never be silently skipped",
-          "why": "Class status transitions (open -> full -> closed) happen on schedule rather than getting stuck." },
-        { "id": 207, "wave": 3, "priority": "P2", "tags": ["Client UX", "Automation"],
+          "why": "Class status transitions (open -> full -> closed) happen on schedule rather than getting stuck."
+        },
+        {
+          "id": 207,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Let admins fix a broken course link on an event from the warning banner -- not just see it",
-          "why": "Turns a passive warning about broken course links into a one-click repair action." }
+          "why": "Turns a passive warning about broken course links into a one-click repair action."
+        }
       ]
     },
     {
@@ -265,15 +739,37 @@
       "lightColor": "#f0f9ff",
       "borderColor": "#7dd3fc",
       "items": [
-        { "id": 92, "wave": 1, "priority": "P0", "tags": ["Client UX", "Reliability"],
+        {
+          "id": 92,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Confirm services created in the dashboard actually appear on the public website",
-          "why": "Closes the gap where a service looks correct in the dashboard but never surfaces on the live site." },
-        { "id": 94, "wave": 2, "priority": "P1", "tags": ["Reliability"],
+          "why": "Closes the gap where a service looks correct in the dashboard but never surfaces on the live site."
+        },
+        {
+          "id": 94,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Reliability"
+          ],
           "what": "Prevent two services from sharing the same slug on the same site",
-          "why": "Avoids URL collisions that cause the wrong service page to load for customers." },
-        { "id": 137, "wave": 1, "priority": "P1", "tags": ["Client UX"],
+          "why": "Avoids URL collisions that cause the wrong service page to load for customers."
+        },
+        {
+          "id": 137,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Seed services data for Corsair so the live services section appears on the website",
-          "why": "Corsair's website displays a real services section immediately after seeding, no manual entry needed." }
+          "why": "Corsair's website displays a real services section immediately after seeding, no manual entry needed."
+        }
       ]
     },
     {
@@ -283,12 +779,28 @@
       "lightColor": "#fdf2f8",
       "borderColor": "#f9a8d4",
       "items": [
-        { "id": 167, "wave": 3, "priority": "P2", "tags": ["Client UX", "Automation"],
+        {
+          "id": 167,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Automation"
+          ],
           "what": "Let clients duplicate an existing flyer instead of rebuilding from scratch",
-          "why": "Dramatically speeds up flyer creation for recurring events -- clients copy and adjust instead of starting over." },
-        { "id": 168, "wave": 3, "priority": "P2", "tags": ["Client UX", "Security"],
+          "why": "Dramatically speeds up flyer creation for recurring events -- clients copy and adjust instead of starting over."
+        },
+        {
+          "id": 168,
+          "wave": 3,
+          "priority": "P2",
+          "tags": [
+            "Client UX",
+            "Security"
+          ],
           "what": "Confirm health notifications give a clear 'access denied' message to non-admin users",
-          "why": "Non-admin users get a clear boundary message instead of an unexplained error." }
+          "why": "Non-admin users get a clear boundary message instead of an unexplained error."
+        }
       ]
     },
     {
@@ -298,9 +810,16 @@
       "lightColor": "#f8fafc",
       "borderColor": "#cbd5e1",
       "items": [
-        { "id": 176, "wave": 4, "priority": "P3", "tags": ["Client UX"],
+        {
+          "id": 176,
+          "wave": 4,
+          "priority": "P3",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Add a Role Permissions link to the per-site sidebar so admins can reach it from inside a site",
-          "why": "Eliminates navigation friction -- admins can jump directly to role settings from any site context." }
+          "why": "Eliminates navigation friction -- admins can jump directly to role settings from any site context."
+        }
       ]
     },
     {
@@ -310,18 +829,48 @@
       "lightColor": "#faf5ff",
       "borderColor": "#d8b4fe",
       "items": [
-        { "id": 54, "wave": 4, "priority": "P3", "tags": ["Technical debt", "Infrastructure"],
+        {
+          "id": 54,
+          "wave": 4,
+          "priority": "P3",
+          "tags": [
+            "Technical debt",
+            "Infrastructure"
+          ],
           "what": "Fix the circular vendor chunk warning so every production build is clean",
-          "why": "Clean builds with no warnings make it easier to spot real problems in CI output." },
-        { "id": 55, "wave": 4, "priority": "P3", "tags": ["Client UX"],
+          "why": "Clean builds with no warnings make it easier to spot real problems in CI output."
+        },
+        {
+          "id": 55,
+          "wave": 4,
+          "priority": "P3",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Make page transitions feel instant by preloading chunks on hover",
-          "why": "Dashboard navigation feels snappier -- chunks are ready before the user clicks." },
-        { "id": 83, "wave": 4, "priority": "P2", "tags": ["Client UX"],
+          "why": "Dashboard navigation feels snappier -- chunks are ready before the user clicks."
+        },
+        {
+          "id": 83,
+          "wave": 4,
+          "priority": "P2",
+          "tags": [
+            "Client UX"
+          ],
           "what": "Extend loading-skeleton guards to the remaining dashboard pages not yet covered",
-          "why": "Eliminates blank-flash loading states on pages that currently show nothing while data loads." },
-        { "id": 84, "wave": 2, "priority": "P2", "tags": ["Technical debt", "Reliability"],
+          "why": "Eliminates blank-flash loading states on pages that currently show nothing while data loads."
+        },
+        {
+          "id": 84,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Technical debt",
+            "Reliability"
+          ],
           "what": "Confirm a dropped skeleton guard shows up as a failing test -- not a silent blank page",
-          "why": "Prevents future regressions where a missing skeleton silently degrades the loading experience." }
+          "why": "Prevents future regressions where a missing skeleton silently degrades the loading experience."
+        }
       ]
     },
     {
@@ -331,12 +880,28 @@
       "lightColor": "#f0fdfa",
       "borderColor": "#5eead4",
       "items": [
-        { "id": 135, "wave": 1, "priority": "P0", "tags": ["Client UX", "Reliability"],
+        {
+          "id": 135,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Confirm a price change in the dashboard actually updates the Corsair website within 60 seconds",
-          "why": "Clients can trust the dashboard price is what customers see -- no manual cache purge needed." },
-        { "id": 136, "wave": 1, "priority": "P1", "tags": ["Client UX", "Reliability"],
+          "why": "Clients can trust the dashboard price is what customers see -- no manual cache purge needed."
+        },
+        {
+          "id": 136,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Client UX",
+            "Reliability"
+          ],
           "what": "Extend live CMS data to the course detail pages so per-course pricing is also accurate",
-          "why": "Detail pages reflect real pricing, preventing customers from seeing stale rates." }
+          "why": "Detail pages reflect real pricing, preventing customers from seeing stale rates."
+        }
       ]
     },
     {
@@ -346,15 +911,36 @@
       "lightColor": "#fff1f2",
       "borderColor": "#fca5a5",
       "items": [
-        { "id": 129, "wave": 2, "priority": "P1", "tags": ["Security"],
+        {
+          "id": 129,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm the seed gate can't be bypassed if SEED_ALLOWED is set to 'false' or empty",
-          "why": "Prevents accidental data seeding on production environments from a misconfigured env var." },
-        { "id": 130, "wave": 2, "priority": "P1", "tags": ["Security"],
+          "why": "Prevents accidental data seeding on production environments from a misconfigured env var."
+        },
+        {
+          "id": 130,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Make sure the add-on catalog seed can't run on production even if someone sets SEED_ALLOWED by mistake",
-          "why": "Belt-and-suspenders protection against overwriting live add-on catalog data." },
-        { "id": 131, "wave": 2, "priority": "P1", "tags": ["Security"],
+          "why": "Belt-and-suspenders protection against overwriting live add-on catalog data."
+        },
+        {
+          "id": 131,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Security"
+          ],
           "what": "Confirm visitors can't forge form submissions for a site they don't belong to",
-          "why": "Closes a cross-site form injection vector where a malicious visitor could pollute another site's CRM." }
+          "why": "Closes a cross-site form injection vector where a malicious visitor could pollute another site's CRM."
+        }
       ]
     },
     {
@@ -364,24 +950,71 @@
       "lightColor": "#eff6ff",
       "borderColor": "#93c5fd",
       "items": [
-        { "id": 20, "wave": 1, "priority": "P1", "tags": ["Infrastructure"],
+        {
+          "id": 20,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Infrastructure"
+          ],
           "what": "Make sure Vercel deploys cleanly against the rewritten commit history",
-          "why": "Unblocks deployments that were failing because of the history rewrite required for identity cleanup." },
-        { "id": 30, "wave": 2, "priority": "P2", "tags": ["Infrastructure", "Reliability"],
+          "why": "Unblocks deployments that were failing because of the history rewrite required for identity cleanup."
+        },
+        {
+          "id": 30,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Infrastructure",
+            "Reliability"
+          ],
           "what": "Make the client-website E2E suite actually run in CI against a deployed site",
-          "why": "Catches client-facing website regressions in CI instead of after a client reports them." },
-        { "id": 58, "wave": 2, "priority": "P2", "tags": ["Infrastructure", "Technical debt"],
+          "why": "Catches client-facing website regressions in CI instead of after a client reports them."
+        },
+        {
+          "id": 58,
+          "wave": 2,
+          "priority": "P2",
+          "tags": [
+            "Infrastructure",
+            "Technical debt"
+          ],
           "what": "Make sure the workspace branch can't silently drift ahead of origin/main again",
-          "why": "Prevents the confusing scenario where local and remote history diverge without warning." },
-        { "id": 61, "wave": 1, "priority": "P1", "tags": ["Infrastructure", "Client UX"],
+          "why": "Prevents the confusing scenario where local and remote history diverge without warning."
+        },
+        {
+          "id": 61,
+          "wave": 1,
+          "priority": "P1",
+          "tags": [
+            "Infrastructure",
+            "Client UX"
+          ],
           "what": "Confirm www.fstsclientsystem.com actually redirects once the Vercel alias is added",
-          "why": "Clients can reach the dashboard at the canonical www address -- not just the bare domain." },
-        { "id": 62, "wave": 2, "priority": "P1", "tags": ["Infrastructure", "Security"],
+          "why": "Clients can reach the dashboard at the canonical www address -- not just the bare domain."
+        },
+        {
+          "id": 62,
+          "wave": 2,
+          "priority": "P1",
+          "tags": [
+            "Infrastructure",
+            "Security"
+          ],
           "what": "Turn on the branch protection rule so the identity check can't be bypassed on GitHub",
-          "why": "Enforces commit identity standards at the repository level -- no accidental bypass via direct push." },
-        { "id": 211, "wave": 1, "priority": "P0", "tags": ["Client UX", "Infrastructure"],
+          "why": "Enforces commit identity standards at the repository level -- no accidental bypass via direct push."
+        },
+        {
+          "id": 211,
+          "wave": 1,
+          "priority": "P0",
+          "tags": [
+            "Client UX",
+            "Infrastructure"
+          ],
           "what": "Confirm clients can actually sign in once the Cloudflare DNS fix is applied",
-          "why": "Verifies the DNS fix resolves the sign-in issue for clients on all networks." }
+          "why": "Verifies the DNS fix resolves the sign-in issue for clients on all networks."
+        }
       ]
     }
   ],
@@ -428,15 +1061,45 @@
     }
   ],
   "topPriority": [
-    { "id": 211, "rationale": "Clients cannot sign in -- blocking all revenue" },
-    { "id": 203, "rationale": "Validates payment flow after idempotency changes" },
-    { "id": 206, "rationale": "Stops $0/corrupt orders reaching Square" },
-    { "id": 204, "rationale": "Protects all future payment integrations" },
-    { "id": 92,  "rationale": "Services not appearing on live website (#1 CMS gap)" },
-    { "id": 202, "rationale": "Paid customers must receive order confirmation" },
-    { "id": 65,  "rationale": "Email config requires developer access today" },
-    { "id": 193, "rationale": "Ghost registrations = payments for cancelled classes" },
-    { "id": 85,  "rationale": "Blank screens instead of access-denied messages" },
-    { "id": 135, "rationale": "Price changes must reflect within 60 seconds" }
+    {
+      "id": 211,
+      "rationale": "Clients cannot sign in -- blocking all revenue"
+    },
+    {
+      "id": 203,
+      "rationale": "Validates payment flow after idempotency changes"
+    },
+    {
+      "id": 206,
+      "rationale": "Stops $0/corrupt orders reaching Square"
+    },
+    {
+      "id": 204,
+      "rationale": "Protects all future payment integrations"
+    },
+    {
+      "id": 92,
+      "rationale": "Services not appearing on live website (#1 CMS gap)"
+    },
+    {
+      "id": 202,
+      "rationale": "Paid customers must receive order confirmation"
+    },
+    {
+      "id": 65,
+      "rationale": "Email config requires developer access today"
+    },
+    {
+      "id": 193,
+      "rationale": "Ghost registrations = payments for cancelled classes"
+    },
+    {
+      "id": 85,
+      "rationale": "Blank screens instead of access-denied messages"
+    },
+    {
+      "id": 135,
+      "rationale": "Price changes must reflect within 60 seconds"
+    }
   ]
 }

@@ -524,18 +524,18 @@ fi
 #   POST /api/public/register      → confirms a registrationId is returned (2xx)
 #   POST /api/public/cancel        → cleans up the test registration
 #
-# A failure here means visitors who submit the FSTSPublicBookingForm on the
-# Corsair website may silently get no confirmation and no DB entry.
+# A failure here means a contact-only Corsair course may be accepted as a free
+# public booking, bypassing the intended direct-contact workflow.
 #
 # Script: scripts/smoke-test-free-booking.sh
 # ---------------------------------------------------------------------------
 echo ""
-echo "--- Free course booking smoke test ---"
+echo "--- Contact-only course booking guard smoke test ---"
 FREE_BOOKING_FOUND=0
 if bash "$(dirname "${BASH_SOURCE[0]}")/smoke-test-free-booking.sh"; then
-  echo "[boundary-check] ✅  Free course booking smoke test passed."
+  echo "[boundary-check] ✅  Contact-only course booking guard smoke test passed."
 else
-  echo "[boundary-check] ❌  Free course booking smoke test FAILED."
+  echo "[boundary-check] ❌  Contact-only course booking guard smoke test FAILED."
   FREE_BOOKING_FOUND=1
 fi
 
@@ -590,9 +590,9 @@ else
   if [ "$FREE_BOOKING_FOUND" -ne 0 ]; then
     echo "[boundary-check] ❌  Free course booking smoke test failed."
     echo ""
-    echo "  The public booking flow for 'basic-handgun-private-instruction'"
-    echo "  (corsair-tactical-solutions) did not return a registrationId."
-    echo "  Visitors using FSTSPublicBookingForm may silently fail to register."
+    echo "  The contact-only booking guard for 'basic-handgun-private-instruction'"
+    echo "  (corsair-tactical-solutions) did not reject a public registration."
+    echo "  Visitors may be able to book a contact-only course without payment."
     echo "  Check the Convex deployment and run scripts/smoke-test-free-booking.sh"
     echo "  directly for a detailed error message."
     echo ""
