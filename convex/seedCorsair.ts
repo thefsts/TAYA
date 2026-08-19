@@ -31,7 +31,7 @@
  * model of the dashboard.
  */
 
-import { internalMutation, internalAction } from "./_generated/server";
+import { internalMutation, internalAction, action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
@@ -860,6 +860,141 @@ export const seedCourses = internalMutation({
     }
 
     return { ok: true, step: "courses", count: courses.length };
+  },
+});
+
+// ─── Public: Ensure Corsair courses exist (smoke-test helper) ─────────────────
+//
+// Called by scripts/smoke-test-free-booking.sh via `npx convex run` when the
+// availability endpoint returns 404, meaning the Corsair courses have not been
+// seeded into this deployment yet.
+//
+// This is a PUBLIC action (not internal) so the Convex CLI can invoke it with
+// a deploy key. It is IDEMPOTENT — it checks for each course by slug before
+// inserting, so running it multiple times never creates duplicates.
+//
+// The site is looked up by slug rather than hardcoded siteId so this works
+// across deployments where the Corsair site may have a different document ID.
+
+export const ensureCorsairCourses = action({
+  args: {},
+  handler: async (ctx): Promise<{ inserted: number; skipped: number; siteFound: boolean }> => {
+    return await ctx.runMutation(internal.seedCorsair._ensureCorsairCoursesMutation, {});
+  },
+});
+
+export const _ensureCorsairCoursesMutation = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ inserted: number; skipped: number; siteFound: boolean; siteCreated: boolean }> => {
+    // Resolve site by slug — works across deployments regardless of siteId
+    let site: any = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q: any) => q.eq("slug", "corsair-tactical-solutions"))
+      .first();
+
+    let siteCreated = false;
+    if (!site) {
+      // Create a minimal Corsair site so the smoke test can validate the booking flow.
+      // This site is used by the Corsair Tactical Solutions public website and is
+      // needed for the public booking endpoints to resolve correctly.
+      const newSiteId = await ctx.db.insert("sites", {
+        name: "Corsair Tactical Solutions",
+        slug: "corsair-tactical-solutions",
+        status: "active",
+        brandColorPrimary: "#1a1a2e",
+        brandColorSecondary: "#e8c547",
+        whiteLabelEnabled: false,
+        poweredByFsts: true,
+        websiteType: "standard",
+        enabledModules: { courses: true, events: true },
+        domain: "corsairtacticalsolutions.com",
+        logoUrl: "https://storage.googleapis.com/corsair-tactical/logo-white.png",
+        faviconUrl: "https://storage.googleapis.com/corsair-tactical/favicon.ico",
+      } as any);
+      site = await ctx.db.get(newSiteId);
+      siteCreated = true;
+    }
+
+    const siteId = site._id;
+
+    const courseDefs = [
+      {
+        title: "Texas License to Carry (LTC)",
+        slug: "texas-ltc-certification-basic-handgun",
+        status: "published",
+        description:
+          "Texas DPS-certified License to Carry course. Covers Texas handgun laws, safe storage, shooting proficiency qualification, and all requirements to obtain your Texas LTC. All skill levels welcome — loaner firearms available.",
+        durationLabel: "1 day",
+        priceCents: 10000,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-ltc.jpg",
+      },
+      {
+        title: "Level II Unarmed Security Officer Training",
+        slug: "level-2-security-training",
+        status: "published",
+        description:
+          "Texas DPS-certified Level II unarmed security officer training. Required for all licensed security officers in Texas. Covers legal authority, use of force, report writing, and professional conduct.",
+        durationLabel: "1 day",
+        priceCents: 6500,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level2.jpg",
+      },
+      {
+        title: "Level III Armed Security Officer Training",
+        slug: "level-3-security-training",
+        status: "published",
+        description:
+          "Texas DPS-certified Level III armed security officer training. Covers firearm safety, shooting proficiency, legal use of force, and all requirements for a Texas armed security officer license.",
+        durationLabel: "2 days",
+        priceCents: 13000,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level3.jpg",
+      },
+      {
+        title: "Level IV Personal Protection Officer (PPO) Training",
+        slug: "level-4-ppo-training",
+        status: "published",
+        description:
+          "Texas DPS-certified Level IV bodyguard and personal protection officer training. Designed for executive protection professionals. Covers protective driving, threat assessment, and close-protection tactics.",
+        durationLabel: "2 days",
+        priceCents: 22500,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level4.jpg",
+      },
+      {
+        title: "Level III + IV Complete Package",
+        slug: "level-3-4-security-bundle",
+        status: "published",
+        description:
+          "Complete your Level III and Level IV certifications together and save $45. The fastest path from unarmed to fully licensed personal protection officer.",
+        durationLabel: "3 days",
+        priceCents: 40000,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-bundle.jpg",
+      },
+      {
+        title: "Basic Handgun & Private Instruction",
+        slug: "basic-handgun-private-instruction",
+        status: "published",
+        description:
+          "Private 1:1 firearms instruction tailored to your skill level and goals. Includes beginner handgun fundamentals, defensive shooting skills, and scenario-based training. Available for individuals and small groups.",
+        durationLabel: "Flexible",
+        priceCents: undefined,
+        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+      },
+    ];
+
+    let inserted = 0;
+    let skipped = 0;
+    for (const def of courseDefs) {
+      const existing = await (ctx.db.query("courses") as any)
+        .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+        .filter((q: any) => q.eq(q.field("slug"), def.slug))
+        .first();
+      if (existing) {
+        skipped++;
+      } else {
+        await ctx.db.insert("courses", { siteId, ...def } as any);
+        inserted++;
+      }
+    }
+    return { inserted, skipped, siteFound: true, siteCreated };
   },
 });
 

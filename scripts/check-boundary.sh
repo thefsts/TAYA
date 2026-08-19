@@ -517,10 +517,33 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 6. FREE COURSE BOOKING SMOKE TEST
+#
+# Verifies the end-to-end public booking flow against the live Convex backend:
+#   GET  /api/public/availability  → confirms course exists and is free
+#   POST /api/public/register      → confirms a registrationId is returned (2xx)
+#   POST /api/public/cancel        → cleans up the test registration
+#
+# A failure here means visitors who submit the FSTSPublicBookingForm on the
+# Corsair website may silently get no confirmation and no DB entry.
+#
+# Script: scripts/smoke-test-free-booking.sh
+# ---------------------------------------------------------------------------
+echo ""
+echo "--- Free course booking smoke test ---"
+FREE_BOOKING_FOUND=0
+if bash "$(dirname "${BASH_SOURCE[0]}")/smoke-test-free-booking.sh"; then
+  echo "[boundary-check] ✅  Free course booking smoke test passed."
+else
+  echo "[boundary-check] ❌  Free course booking smoke test FAILED."
+  FREE_BOOKING_FOUND=1
+fi
+
+# ---------------------------------------------------------------------------
 # Final result
 # ---------------------------------------------------------------------------
 echo ""
-if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$CLIENT_APP_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ] && [ "$GUARD_FOUND" -eq 0 ] && [ "$ROADMAP_PDF_FOUND" -eq 0 ]; then
+if [ "$FOUND" -eq 0 ] && [ "$REPO_SEPARATION_FOUND" -eq 0 ] && [ "$CLIENT_APP_FOUND" -eq 0 ] && [ "$IDENTITY_FOUND" -eq 0 ] && [ "$GUARD_FOUND" -eq 0 ] && [ "$ROADMAP_PDF_FOUND" -eq 0 ] && [ "$FREE_BOOKING_FOUND" -eq 0 ]; then
   echo "[boundary-check] ✅  All checks passed. Repository boundary is clean."
   exit 0
 else
@@ -562,6 +585,16 @@ else
     echo "  category to scripts/roadmap-data.json did not produce a valid PDF."
     echo "  Check that the Chromium path in generate-roadmap-pdf.mjs is current"
     echo "  and that the JSON is well-formed."
+    echo ""
+  fi
+  if [ "$FREE_BOOKING_FOUND" -ne 0 ]; then
+    echo "[boundary-check] ❌  Free course booking smoke test failed."
+    echo ""
+    echo "  The public booking flow for 'basic-handgun-private-instruction'"
+    echo "  (corsair-tactical-solutions) did not return a registrationId."
+    echo "  Visitors using FSTSPublicBookingForm may silently fail to register."
+    echo "  Check the Convex deployment and run scripts/smoke-test-free-booking.sh"
+    echo "  directly for a detailed error message."
     echo ""
   fi
   exit 1
