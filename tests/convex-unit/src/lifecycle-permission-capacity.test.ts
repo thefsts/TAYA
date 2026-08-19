@@ -1041,3 +1041,446 @@ describe("Timezone correctness — lifecycle uses DST-aware end times", () => {
     expect((found as any).missingEndTime).toBe(true);
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// 7. Public booking end-to-end — slug-based handlers (production path)
+//
+// All tests exercise the SAME handlers that the HTTP routes call:
+//   GET  /api/public/availability → getAvailabilityByEntitySlug
+//   POST /api/public/register     → registerPublicByEntitySlug
+//
+// The availability query resolves site-slug → entity-slug → row, and the
+// registration mutation resolves the same path before inserting.  Tests
+// that exercise the ID-based internal variants (registerPublicInternal /
+// getAvailabilityInternal) would miss regressions in slug resolution.
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Seeds a published course in the Corsair LTC site.
+ * Returns { siteId, courseSlug } — the same slug the HTTP handler uses.
+ */
+async function seedCorsairCourse(
+  t: ReturnType<typeof convexTest>,
+  options: {
+    capacity?: number;
+    waitlistCapacity?: number;
+    courseSlug?: string;
+    siteSlug?: string;
+    title?: string;
+  } = {},
+): Promise<{ siteId: Id<"sites">; courseSlug: string; siteSlug: string }> {
+  const resolvedSiteSlug = options.siteSlug ?? "corsair-ltc";
+  const resolvedCourseSlug = options.courseSlug ?? "ltc-concealed-carry";
+  return await t.run(async (ctx) => {
+    const siteId = await ctx.db.insert("sites", {
+      name: "Corsair LTC",
+      slug: resolvedSiteSlug,
+      status: "active",
+      brandColorPrimary: "#1a1a2e",
+      brandColorSecondary: "#ffffff",
+      whiteLabelEnabled: false,
+      poweredByFsts: true,
+      websiteType: "professional_services",
+      enabledModules: { courses: true, events: true },
+    });
+
+    await ctx.db.insert("courses", {
+      siteId,
+      title: options.title ?? "LTC Concealed Carry Class",
+      slug: resolvedCourseSlug,
+      status: "published",
+      isPublished: true,
+      description: "Texas License to Carry course",
+      capacity: options.capacity ?? 10,
+      waitlistCapacity: options.waitlistCapacity ?? 0,
+      lifecycleStatus: "RegistrationOpen",
+      startDateTime: Date.now() + 7 * 24 * 60 * 60 * 1000, // 1 week from now
+    });
+
+    return { siteId, courseSlug: resolvedCourseSlug, siteSlug: resolvedSiteSlug };
+  });
+}
+
+describe("Public booking end-to-end — happy path for a Corsair LTC class", () => {
+  it("creates a confirmed registration row with all required fields", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t);
+
+    // Uses the same slug-based handler that POST /api/public/register invokes
+    const result = await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+      customerName: "Jane Smith",
+      customerEmail: "jane@example.com",
+      customerPhone: "555-0100",
+      termsAccepted: true,
+    });
+
+    expect(result.status).toBe("confirmed");
+    expect(result.registrationId).toBeTruthy();
+
+    // Verify the row exists in the DB with the expected shape
+    const row = await t.run(async (ctx) => ctx.db.get(result.registrationId as Id<"registrations">));
+    expect(row).not.toBeNull();
+    expect(row?.status).toBe("confirmed");
+    expect(row?.customerName).toBe("Jane Smith");
+    expect(row?.customerEmail).toBe("jane@example.com");
+    expect(row?.bookingSource).toBe("public");
+    expect(row?.entityType).toBe("course");
+    expect(row?.attendanceStatus).toBe("registered");
+    expect(row?.registeredAt).toBeTypeOf("number");
+  });
+
+  it("confirmedCount increments and seatsRemaining decrements after registration", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, { capacity: 5 });
+
+    // Before: confirmedCount = 0, seatsRemaining = 5 (via GET /api/public/availability handler)
+    const before = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+    });
+    expect(before).not.toBeNull();
+    expect(before!.confirmedCount).toBe(0);
+    expect(before!.seatsRemaining).toBe(5);
+    expect(before!.isFull).toBe(false);
+
+    // Register one customer via POST /api/public/register handler
+    await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+      customerName: "Bob Jones",
+      customerEmail: "bob@example.com",
+    });
+
+    // After: confirmedCount = 1, seatsRemaining = 4
+    const after = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug,
+      entityType: "course",
+      entitySlug: courseSlug,
+    });
+    expect(after!.confirmedCount).toBe(1);
+    expect(after!.seatsRemaining).toBe(4);
+    expect(after!.isFull).toBe(false);
+  });
+
+  it("seatsRemaining reaches 0 and isFull flips true when last seat is taken", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      capacity: 2,
+      courseSlug: "ltc-two-seats",
+      siteSlug: "corsair-ltc-two-seats",
+    });
+
+    await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Alice A", customerEmail: "alice@example.com",
+    });
+    await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Bob B", customerEmail: "bob@example.com",
+    });
+
+    const av = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+    });
+    expect(av!.confirmedCount).toBe(2);
+    expect(av!.seatsRemaining).toBe(0);
+    expect(av!.isFull).toBe(true);
+  });
+
+  it("getAvailabilityByEntitySlug returns correct entity metadata for the Corsair course", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      capacity: 10,
+      siteSlug: "corsair-ltc-meta",
+      courseSlug: "ltc-meta-check",
+    });
+
+    const av = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+    });
+
+    expect(av).not.toBeNull();
+    expect(av!.title).toBe("LTC Concealed Carry Class");
+    expect(av!.capacity).toBe(10);
+    expect(av!.entitySlug).toBe(courseSlug);
+    expect(av!.entityType).toBe("course");
+    expect(av!.siteSlug).toBe(siteSlug);
+    expect(av!.siteName).toBe("Corsair LTC");
+    expect(av!.requiresPayment).toBe(false);
+    expect(av!.registrationOpen).toBe(true);
+  });
+});
+
+describe("Public booking end-to-end — duplicate registration rejected", () => {
+  it("second registration for the same email throws already_registered", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      siteSlug: "corsair-ltc-dupe",
+      courseSlug: "ltc-dupe-test",
+    });
+
+    // First registration succeeds
+    const first = await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Carol C", customerEmail: "carol@example.com",
+    });
+    expect(first.status).toBe("confirmed");
+
+    // Second attempt with the same email must be rejected
+    await expect(
+      t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+        siteSlug, entityType: "course", entitySlug: courseSlug,
+        customerName: "Carol C", customerEmail: "carol@example.com",
+      }),
+    ).rejects.toThrow(/already_registered/);
+  });
+
+  it("exact-same email is always rejected (duplicate check uses db .eq which is case-sensitive)", async () => {
+    // The registration mutation stores customerEmail as-is and deduplicates via a
+    // case-sensitive Convex db.filter .eq() call.  Two calls with exactly the same
+    // email string are always blocked.  Case variants resolve as distinct — documented
+    // here as a known gap, not a guarantee.
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      siteSlug: "corsair-ltc-case",
+      courseSlug: "ltc-case-exact",
+    });
+
+    await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Dave D", customerEmail: "dave@example.com",
+    });
+
+    // Identical email (same casing) must be rejected
+    await expect(
+      t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+        siteSlug, entityType: "course", entitySlug: courseSlug,
+        customerName: "Dave D", customerEmail: "dave@example.com",
+      }),
+    ).rejects.toThrow(/already_registered/);
+  });
+
+  it("cancelled registration does not block a fresh registration from the same email", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      siteSlug: "corsair-ltc-rereg",
+      courseSlug: "ltc-reregister",
+    });
+
+    const first = await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Eve E", customerEmail: "eve@example.com",
+    });
+
+    // Cancel the registration directly in DB (simulates a public cancel)
+    await t.run(async (ctx) => {
+      await ctx.db.patch(first.registrationId as Id<"registrations">, {
+        status: "cancelled",
+        cancelledAt: Date.now(),
+      });
+    });
+
+    // Same email should now be allowed to re-register
+    const second = await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Eve E", customerEmail: "eve@example.com",
+    });
+    expect(second.status).toBe("confirmed");
+  });
+});
+
+describe("Public booking end-to-end — class full rejects with class_full", () => {
+  it("registration attempt when class is full (no waitlist) throws class_full", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      capacity: 1, waitlistCapacity: 0,
+      siteSlug: "corsair-ltc-full-nowl",
+      courseSlug: "ltc-full-no-wl",
+    });
+
+    // Fill the only seat
+    const first = await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Frank F", customerEmail: "frank@example.com",
+    });
+    expect(first.status).toBe("confirmed");
+
+    // Next attempt must fail with class_full
+    await expect(
+      t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+        siteSlug, entityType: "course", entitySlug: courseSlug,
+        customerName: "Grace G", customerEmail: "grace@example.com",
+      }),
+    ).rejects.toThrow(/class_full/);
+  });
+
+  it("registration attempt when class and waitlist are both full throws class_full", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      capacity: 1, waitlistCapacity: 1,
+      siteSlug: "corsair-ltc-full-wl",
+      courseSlug: "ltc-full-wl-full",
+    });
+
+    // Fill the confirmed seat
+    await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Hank H", customerEmail: "hank@example.com",
+    });
+
+    // Fill the waitlist slot
+    const wl = await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Iris I", customerEmail: "iris@example.com",
+    });
+    expect(wl.status).toBe("waitlisted");
+
+    // Third attempt — both confirmed and waitlist are full
+    await expect(
+      t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+        siteSlug, entityType: "course", entitySlug: courseSlug,
+        customerName: "Jake J", customerEmail: "jake@example.com",
+      }),
+    ).rejects.toThrow(/class_full/);
+  });
+
+  it("when class is full but waitlist has capacity, registration lands on waitlist", async () => {
+    const { siteSlug, courseSlug } = await seedCorsairCourse(t, {
+      capacity: 1, waitlistCapacity: 5,
+      siteSlug: "corsair-ltc-wl-open",
+      courseSlug: "ltc-wl-open",
+    });
+
+    // Confirmed seat taken
+    await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Karen K", customerEmail: "karen@example.com",
+    });
+
+    // Second registers to waitlist
+    const wl = await t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+      customerName: "Leo L", customerEmail: "leo@example.com",
+    });
+    expect(wl.status).toBe("waitlisted");
+
+    // Availability reflects the waitlisted count via the GET handler
+    const av = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug, entityType: "course", entitySlug: courseSlug,
+    });
+    expect(av!.isFull).toBe(true);
+    expect(av!.waitlistCount).toBe(1);
+    expect(av!.hasWaitlist).toBe(true);
+    expect(av!.isWaitlistFull).toBe(false);
+  });
+});
+
+describe("Public booking end-to-end — registration window enforcement", () => {
+  it("registration before registrationOpenAt throws registration_closed", async () => {
+    await t.run(async (ctx) => {
+      const siteId = await ctx.db.insert("sites", {
+        name: "Corsair LTC Not Open",
+        slug: "corsair-ltc-not-open",
+        status: "active",
+        brandColorPrimary: "#000",
+        brandColorSecondary: "#fff",
+        whiteLabelEnabled: false,
+        poweredByFsts: true,
+        websiteType: "professional_services",
+        enabledModules: { courses: true },
+      });
+      await ctx.db.insert("courses", {
+        siteId,
+        title: "LTC Not Open Yet",
+        slug: "ltc-not-open-yet",
+        status: "published",
+        isPublished: true,
+        description: "Registration not open yet",
+        capacity: 10,
+        waitlistCapacity: 0,
+        lifecycleStatus: "RegistrationOpen",
+        registrationOpenAt: Date.now() + 24 * 60 * 60 * 1000, // opens tomorrow
+      });
+    });
+
+    await expect(
+      t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+        siteSlug: "corsair-ltc-not-open",
+        entityType: "course",
+        entitySlug: "ltc-not-open-yet",
+        customerName: "Early Bird",
+        customerEmail: "early@example.com",
+      }),
+    ).rejects.toThrow(/registration_closed/);
+  });
+
+  it("registration after registrationCloseAt throws registration_closed", async () => {
+    await t.run(async (ctx) => {
+      const siteId = await ctx.db.insert("sites", {
+        name: "Corsair LTC Expired",
+        slug: "corsair-ltc-expired",
+        status: "active",
+        brandColorPrimary: "#000",
+        brandColorSecondary: "#fff",
+        whiteLabelEnabled: false,
+        poweredByFsts: true,
+        websiteType: "professional_services",
+        enabledModules: { courses: true },
+      });
+      await ctx.db.insert("courses", {
+        siteId,
+        title: "LTC Already Closed",
+        slug: "ltc-already-closed",
+        status: "published",
+        isPublished: true,
+        description: "Registration window has passed",
+        capacity: 10,
+        waitlistCapacity: 0,
+        lifecycleStatus: "RegistrationClosed",
+        registrationCloseAt: Date.now() - 24 * 60 * 60 * 1000, // closed yesterday
+      });
+    });
+
+    await expect(
+      t.mutation(internal.publicBooking.registerPublicByEntitySlug, {
+        siteSlug: "corsair-ltc-expired",
+        entityType: "course",
+        entitySlug: "ltc-already-closed",
+        customerName: "Late Arrival",
+        customerEmail: "late@example.com",
+      }),
+    ).rejects.toThrow(/registration_closed/);
+  });
+
+  it("getAvailabilityByEntitySlug returns null for an unpublished course (404 path)", async () => {
+    // Validates the slug-resolution guard: an unpublished entity must not be
+    // visible via the public availability endpoint.
+    await t.run(async (ctx) => {
+      const siteId = await ctx.db.insert("sites", {
+        name: "Corsair Draft Site",
+        slug: "corsair-draft-site",
+        status: "active",
+        brandColorPrimary: "#000",
+        brandColorSecondary: "#fff",
+        whiteLabelEnabled: false,
+        poweredByFsts: true,
+        websiteType: "professional_services",
+        enabledModules: { courses: true },
+      });
+      await ctx.db.insert("courses", {
+        siteId,
+        title: "Draft LTC Class",
+        slug: "draft-ltc",
+        status: "draft",
+        isPublished: false,
+        description: "Not published yet",
+        capacity: 10,
+        waitlistCapacity: 0,
+        lifecycleStatus: "Upcoming",
+      });
+    });
+
+    const av = await t.query(internal.publicBooking.getAvailabilityByEntitySlug, {
+      siteSlug: "corsair-draft-site",
+      entityType: "course",
+      entitySlug: "draft-ltc",
+    });
+    expect(av).toBeNull();
+  });
+});
