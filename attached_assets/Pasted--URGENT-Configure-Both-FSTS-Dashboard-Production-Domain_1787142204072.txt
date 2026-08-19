@@ -1,0 +1,171 @@
+# URGENT — Configure Both FSTS Dashboard Production Domains
+
+Priority: **P0 / ASAP**
+
+The FSTS Client Dashboard must be accessible through BOTH production domains:
+
+* `fstsclientsystem.com`
+* `www.fstsclientsystem.com`
+
+Right now I only see `fstsclientsystem.com` working. Fix and production-verify the `www` domain immediately.
+
+## Required Configuration
+
+Use:
+
+**Canonical dashboard domain:**
+`https://fstsclientsystem.com`
+
+**Alternate domain:**
+`https://www.fstsclientsystem.com`
+
+Configure `www.fstsclientsystem.com` to permanently redirect to:
+
+`https://fstsclientsystem.com`
+
+Use the appropriate permanent redirect supported by the current Vercel configuration.
+
+## 1. Vercel
+
+Verify both domains are attached to the correct production Vercel project:
+
+* `fstsclientsystem.com`
+* `www.fstsclientsystem.com`
+
+Confirm:
+
+* Both domains show valid configuration
+* Both resolve to the production deployment
+* SSL certificates are active for both
+* HTTPS works
+* `www` redirects to the canonical apex domain
+* No redirect loop exists
+* No Vercel deployment/domain error appears
+
+## 2. DNS
+
+Inspect the actual DNS configuration.
+
+Verify the records required by Vercel for:
+
+* Apex/root domain
+* `www` subdomain
+
+If Cloudflare manages DNS, confirm the records and proxy configuration are compatible with Vercel and Clerk.
+
+Do not make assumptions from documentation alone. Verify actual production resolution.
+
+## 3. Clerk Authentication
+
+This is critical.
+
+Verify Clerk production configuration recognizes the required dashboard domains/origins.
+
+Test authentication beginning from:
+
+`https://fstsclientsystem.com`
+
+and:
+
+`https://www.fstsclientsystem.com`
+
+A user entering the `www` URL must be redirected safely to the canonical dashboard and still be able to sign in without:
+
+* Origin errors
+* Redirect URI errors
+* Cookie/session problems
+* Infinite redirects
+* Cross-domain authentication failures
+
+## 4. Application URLs
+
+Audit the dashboard for hardcoded production URLs.
+
+Check:
+
+* Welcome emails
+* Invitation emails
+* Password/account links
+* Portal links
+* Dashboard links
+* Open Graph URLs
+* Canonical URLs
+* Redirect URLs
+* Clerk callbacks
+* Email templates
+* `NEXT_PUBLIC_SITE_URL`
+* Any other production URL environment variables
+
+Internal generated links should consistently use:
+
+`https://fstsclientsystem.com`
+
+Do not randomly mix www and non-www URLs.
+
+## 5. Production Verification
+
+After configuration, perform real HTTP/browser tests.
+
+Required:
+
+`https://fstsclientsystem.com`
+→ HTTP 200
+
+`https://www.fstsclientsystem.com`
+→ permanent redirect to `https://fstsclientsystem.com`
+
+Then verify:
+
+* SSL valid on apex
+* SSL valid on www
+* Dashboard loads
+* Sign-in works
+* Sign-out works
+* Session survives refresh
+* Protected dashboard routes work after authentication
+* No browser certificate warnings
+* No redirect loops
+* No Clerk origin errors
+* No significant console errors caused by domain configuration
+
+Also test on mobile if possible.
+
+## 6. Do Not Disturb Client Domains
+
+This task concerns the **FSTS dashboard domains only**.
+
+Do not change Corsair's website domain or other client-site DNS as part of this task.
+
+Client websites must remain independently configured.
+
+## Definition of Done
+
+Do not mark this complete merely because `www` was added to Vercel.
+
+Return production evidence showing:
+
+1. Apex domain status
+2. WWW domain status
+3. DNS records/status
+4. SSL status for both
+5. Redirect status/code
+6. Final redirect destination
+7. Clerk authentication test
+8. Desktop browser test
+9. Mobile test if available
+10. Any environment/configuration changes
+11. Files changed, if any
+12. Commit hash, if code changes were required
+
+Final expected behavior:
+
+**User enters:**
+`https://fstsclientsystem.com`
+→ Dashboard loads securely.
+
+**User enters:**
+`https://www.fstsclientsystem.com`
+→ Redirects securely to `https://fstsclientsystem.com`
+→ Dashboard loads normally.
+
+Treat this as a P0 production-domain requirement and complete it ASAP before Corsair owner QA.
