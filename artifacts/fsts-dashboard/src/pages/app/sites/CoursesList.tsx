@@ -44,13 +44,18 @@ import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import { LifecycleAlertList } from "@/components/LifecycleAlert";
 import type { LifecycleAlertType } from "@/components/LifecycleAlert";
-
-// Course/Event Thumb preset (16:9, 800×450)
-const COURSE_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
+import {
+  ClientEmptyState,
+  ClientLoadingList,
+  ClientPageHeader,
+  ClientSection,
+  ClientToolbar,
+} from "@/components/ClientPage";
 import { NEARLY_FULL_THRESHOLD, LIFECYCLE_STATUS_LABELS } from "@/lib/constants";
 import { formatPrice } from "@/lib/formatPrice";
 
-// Common IANA timezones for the picker
+const COURSE_IMAGE_PRESET = SITE_PRESETS.find((p) => p.label === "Course/Event Thumb");
+
 const COMMON_TIMEZONES = [
   "America/New_York",
   "America/Chicago",
@@ -69,8 +74,6 @@ const COMMON_TIMEZONES = [
   "Australia/Sydney",
   "UTC",
 ];
-
-// ── Filter tabs ──────────────────────────────────────────────────────────────
 
 const FILTER_TABS = [
   { value: "upcoming", label: "Upcoming" },
@@ -123,8 +126,6 @@ function filterCourses(data: any[], filter: FilterValue): any[] {
   }
 }
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
 type CourseStatus = "draft" | "published" | "archived";
 
 type CourseFormState = {
@@ -136,7 +137,6 @@ type CourseFormState = {
   priceCents: string;
   imageUrl: string;
   squareItemId: string;
-  // Capacity & scheduling
   capacity: string;
   waitlistCapacity: string;
   startDateTime: string;
@@ -200,8 +200,6 @@ function statusVariant(status: string) {
   return "outline";
 }
 
-// ── Capacity components ───────────────────────────────────────────────────────
-
 function CapacityBar({ entityId, siteId }: { entityId: string; siteId: Id<"sites"> }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const counts = useQuery((api as any).registrations.getCount, {
@@ -210,10 +208,10 @@ function CapacityBar({ entityId, siteId }: { entityId: string; siteId: Id<"sites
     entityId,
   });
   return counts ? (
-    <span className="text-xs text-slate-500 flex items-center gap-1">
+    <span className="flex items-center gap-1 text-xs text-slate-500">
       <Users className="h-3 w-3" />
       {counts.confirmedCount}
-      {counts.waitlistCount > 0 && <span className="text-amber-600">+{counts.waitlistCount}w</span>}
+      {counts.waitlistCount > 0 && <span className="font-medium text-amber-600">+{counts.waitlistCount}w</span>}
     </span>
   ) : null;
 }
@@ -245,7 +243,7 @@ function CapacityPanel({
   const isFull = confirmedCount >= capacity;
 
   return (
-    <div className="space-y-1.5 p-3 bg-slate-50 rounded-md border border-slate-200">
+    <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-slate-700">Registrations</span>
         <span className={`font-semibold ${isFull ? "text-red-600" : isNearlyFull ? "text-amber-600" : "text-slate-700"}`}>
@@ -264,8 +262,6 @@ function CapacityPanel({
     </div>
   );
 }
-
-// ── Lifecycle alerts for the edit dialog ─────────────────────────────────────
 
 function CourseAlerts({ entity, siteId }: { entity: any; siteId: Id<"sites"> }) {
   const now = Date.now();
@@ -295,8 +291,6 @@ function CourseAlerts({ entity, siteId }: { entity: any; siteId: Id<"sites"> }) 
   return <LifecycleAlertList alerts={alerts} />;
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
-
 export default function CoursesList({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
@@ -306,7 +300,6 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
   const updateCourse = useMutation(api.courses.update);
   const deleteCourse = useMutation(api.courses.remove);
 
-  // ── Filter state (URL-persisted) ─────────────────────────────────────────
   const search = useSearch();
   const [location, navigate] = useLocation();
   const activeFilter = (new URLSearchParams(search).get("filter") ?? "upcoming") as FilterValue;
@@ -376,8 +369,6 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
       };
 
       if (editing) {
-        // For update: empty price field = null (explicitly clear any stored price).
-        // For create: empty price field = undefined (no price; field simply omitted).
         const updatePriceCents = form.priceCents !== "" ? parseInt(form.priceCents, 10) : null;
         await updateCourse({
           siteId,
@@ -458,287 +449,322 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
   const filteredData = Array.isArray(data) ? filterCourses(data, activeFilter) : data;
 
   return (
-    <AppLayout siteId={params.siteId}>
+    <AppLayout siteId={params.siteId} pageContext="Courses & Classes">
       <LivePreviewPanel siteId={siteId} section="courses">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Courses</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Manage training courses offered on this site.</p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Course
-        </Button>
-      </div>
-
-      {/* ── Filter tabs ── */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
-        {FILTER_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setFilter(tab.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
-              activeFilter === tab.value
-                ? "bg-primary text-white border-primary shadow-sm"
-                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {data === undefined ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
-        </div>
-      ) : data === null ? (
-        <ModuleAccessDenied message="Unable to load Courses — you may not have access to this site or the courses module is disabled." />
-      ) : filteredData!.length === 0 ? (
-        <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
-          <BookOpen className="mx-auto h-10 w-10 text-slate-300 mb-3" />
-          {data.length === 0 ? (
-            <>
-              <h3 className="text-lg font-medium text-slate-900">No courses yet</h3>
-              <p className="text-slate-500 mt-1">Add your first course to get started.</p>
-            </>
-          ) : (
-            <>
-              <h3 className="text-lg font-medium text-slate-900">No courses match this filter</h3>
-              <p className="text-slate-500 mt-1">
-                <button onClick={() => setFilter("all")} className="text-primary underline">View all courses</button>
-              </p>
-            </>
+        <ClientPageHeader
+          eyebrow="Courses & Classes"
+          title="Course Management"
+          description="Create, publish, schedule, and monitor classes from one place. Capacity, waitlists, registration windows, and lifecycle automation stay connected to the live site."
+          actions={(
+            <Button onClick={openCreate} className="shadow-sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Course
+            </Button>
           )}
-        </div>
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Title</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Lifecycle</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Registrations</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Duration</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Price</th>
-                <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredData!.map((c: any) => (
-                <tr key={c._id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">{c.title}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={statusVariant(c.status)}>{c.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.lifecycleStatus ? (
-                      <Badge variant={lifecycleBadgeVariant(c.lifecycleStatus)}>
-                        {LIFECYCLE_STATUS_LABELS[c.lifecycleStatus] ?? c.lifecycleStatus}
-                      </Badge>
-                    ) : (
-                      <span className="text-slate-400 text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.capacity ? (
-                      <CapacityBar entityId={c._id} siteId={siteId} />
-                    ) : (
-                      <span className="text-slate-400 text-xs">Unlimited</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-500">{c.durationLabel || "—"}</td>
-                  <td className="px-4 py-3 text-slate-500">
-                    {c.priceCents != null ? formatPrice(c.priceCents) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right space-x-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(c)}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+          meta={data && Array.isArray(data) ? (
+            <>
+              <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
+                {data.length} total
+              </span>
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                {data.filter((course: any) => course.status === "published").length} published
+              </span>
+            </>
+          ) : undefined}
+        />
+
+        <ClientToolbar className="overflow-x-auto">
+          <div className="flex min-w-max flex-wrap gap-1.5">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setFilter(tab.value)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                  activeFilter === tab.value
+                    ? "border-primary bg-primary text-white shadow-sm"
+                    : "border-transparent bg-slate-50 text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-900"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </ClientToolbar>
+
+        {data === undefined ? (
+          <ClientLoadingList rows={5} />
+        ) : data === null ? (
+          <ModuleAccessDenied message="Unable to load Courses — you may not have access to this site or the courses module is disabled." />
+        ) : filteredData!.length === 0 ? (
+          <ClientSection>
+            {data.length === 0 ? (
+              <ClientEmptyState
+                icon={BookOpen}
+                title="No courses yet"
+                description="Create your first course or class. You can add capacity, scheduling, waitlist limits, and automatic registration rules during setup."
+                action={(
+                  <Button onClick={openCreate}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add First Course
+                  </Button>
+                )}
+              />
+            ) : (
+              <ClientEmptyState
+                icon={BookOpen}
+                title="No courses match this filter"
+                description="Try another lifecycle view or return to the complete course list."
+                action={(
+                  <Button variant="outline" onClick={() => setFilter("all")}>View All Courses</Button>
+                )}
+              />
+            )}
+          </ClientSection>
+        ) : (
+          <ClientSection
+            title="Course Catalog"
+            description={`${filteredData!.length} course${filteredData!.length === 1 ? "" : "s"} in this view`}
+          >
+            <div className="overflow-x-auto">
+              <table className="min-w-[900px] w-full text-sm">
+                <thead className="border-b border-slate-200 bg-slate-50/80">
+                  <tr>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Title</th>
+                    <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
+                    <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Lifecycle</th>
+                    <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Registrations</th>
+                    <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Duration</th>
+                    <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Price</th>
+                    <th className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredData!.map((course: any) => (
+                    <tr key={course._id} className="transition-colors hover:bg-slate-50/80">
+                      <td className="px-5 py-4">
+                        <div className="font-semibold text-slate-900">{course.title}</div>
+                        {course.slug && <div className="mt-0.5 text-xs text-slate-400">/{course.slug}</div>}
+                      </td>
+                      <td className="px-4 py-4">
+                        <Badge variant={statusVariant(course.status)} className="capitalize">{course.status}</Badge>
+                      </td>
+                      <td className="px-4 py-4">
+                        {course.lifecycleStatus ? (
+                          <Badge variant={lifecycleBadgeVariant(course.lifecycleStatus)}>
+                            {LIFECYCLE_STATUS_LABELS[course.lifecycleStatus] ?? course.lifecycleStatus}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">
+                        {course.capacity ? (
+                          <CapacityBar entityId={course._id} siteId={siteId} />
+                        ) : (
+                          <span className="text-xs text-slate-400">Unlimited</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-slate-500">{course.durationLabel || "—"}</td>
+                      <td className="px-4 py-4 font-medium text-slate-600">
+                        {course.priceCents != null ? formatPrice(course.priceCents) : "—"}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => openEdit(course)} title={`Edit ${course.title}`}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-red-50" onClick={() => setDeleteTarget(course)} title={`Delete ${course.title}`}>
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </ClientSection>
+        )}
       </LivePreviewPanel>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editing ? "Edit Course" : "New Course"}</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto rounded-2xl p-0">
+          <div className="sticky top-0 z-10 border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
+            <DialogHeader>
+              <DialogTitle className="text-xl tracking-tight">{editing ? "Edit Course" : "New Course"}</DialogTitle>
+              <p className="text-sm text-slate-500">
+                {editing ? "Update course content, registration rules, capacity, and schedule." : "Create a course and configure how registration behaves on the live website."}
+              </p>
+            </DialogHeader>
+          </div>
 
-          {/* Lifecycle alerts when editing an existing course */}
-          {editing && <CourseAlerts entity={editing} siteId={siteId} />}
+          <div className="space-y-4 px-5 pb-6 sm:px-6">
+            {editing && <CourseAlerts entity={editing} siteId={siteId} />}
 
-          {/* Live capacity panel when editing */}
-          {editing && editing.capacity && (
-            <CapacityPanel
-              entityId={editing._id}
-              siteId={siteId}
-              capacity={editing.capacity}
-              waitlistCapacity={editing.waitlistCapacity}
-            />
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* ── Basic Info ── */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Title</Label>
-                <Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Slug</Label>
-                <Input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Description</Label>
-              <Textarea
-                required
-                rows={3}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+            {editing && editing.capacity && (
+              <CapacityPanel
+                entityId={editing._id}
+                siteId={siteId}
+                capacity={editing.capacity}
+                waitlistCapacity={editing.waitlistCapacity}
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as CourseStatus })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Duration Label</Label>
-                <Input placeholder="e.g. 6 weeks" value={form.durationLabel} onChange={(e) => setForm({ ...form, durationLabel: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Price (cents)</Label>
-                <Input type="number" placeholder="e.g. 9900 for $99" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Timezone</Label>
-                <Select value={form.timezone} onValueChange={(v) => setForm({ ...form, timezone: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {COMMON_TIMEZONES.map((tz) => (
-                      <SelectItem key={tz} value={tz}>{tz}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            )}
 
-            {/* ── Scheduling ── */}
-            <div className="border-t border-slate-100 pt-4">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Schedule</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Start Date &amp; Time</Label>
-                  <Input type="datetime-local" value={form.startDateTime} onChange={(e) => setForm({ ...form, startDateTime: e.target.value })} />
+                  <Label>Title</Label>
+                  <Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>End Date &amp; Time</Label>
-                  <Input type="datetime-local" value={form.endDateTime} onChange={(e) => setForm({ ...form, endDateTime: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Registration Opens</Label>
-                  <Input type="datetime-local" value={form.registrationOpenAt} onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Registration Closes</Label>
-                  <Input type="datetime-local" value={form.registrationCloseAt} onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })} />
+                  <Label>Slug</Label>
+                  <Input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
                 </div>
               </div>
-            </div>
-
-            {/* ── Capacity ── */}
-            <div className="border-t border-slate-100 pt-4">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Capacity</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Max Capacity <span className="text-slate-400 font-normal">(leave blank for unlimited)</span></Label>
-                  <Input type="number" min={1} placeholder="e.g. 20" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Waitlist Capacity <span className="text-slate-400 font-normal">(0 = no waitlist)</span></Label>
-                  <Input type="number" min={0} placeholder="e.g. 5" value={form.waitlistCapacity} onChange={(e) => setForm({ ...form, waitlistCapacity: e.target.value })} />
-                </div>
-              </div>
-              <div className="flex gap-6 mt-3">
-                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.autoCloseRegistration}
-                    onChange={(e) => setForm({ ...form, autoCloseRegistration: e.target.checked })}
-                    className="rounded border-slate-300"
-                  />
-                  Auto-close registration at capacity
-                </label>
-                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.autoArchive}
-                    onChange={(e) => setForm({ ...form, autoArchive: e.target.checked })}
-                    className="rounded border-slate-300"
-                  />
-                  Auto-archive when completed
-                </label>
-              </div>
-            </div>
-
-            {/* ── Media ── */}
-            <div className="border-t border-slate-100 pt-4">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Media &amp; Integrations</h3>
-              <div className="space-y-4">
-                <ImagePickerField
-                  siteId={siteId}
-                  value={form.imageUrl}
-                  onChange={(url) => setForm({ ...form, imageUrl: url })}
-                  initialPreset={COURSE_IMAGE_PRESET}
-                  label="Course Image"
+              <div className="space-y-1.5">
+                <Label>Description</Label>
+                <Textarea
+                  required
+                  rows={4}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Square Catalog Item <span className="text-slate-400 font-normal">(for checkout pricing)</span></Label>
-                  <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Not linked" />
-                    </SelectTrigger>
+                  <Label>Status</Label>
+                  <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as CourseStatus })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">Not linked</SelectItem>
-                      {(catalogItems ?? []).map((item: any) => (
-                        <SelectItem key={item.squareItemId} value={item.squareItemId}>
-                          {item.name}{item.priceCents != null ? ` — ${formatPrice(item.priceCents)}` : ""}
-                        </SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Duration Label</Label>
+                  <Input placeholder="e.g. 6 weeks" value={form.durationLabel} onChange={(e) => setForm({ ...form, durationLabel: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Price (cents)</Label>
+                  <Input type="number" placeholder="e.g. 9900 for $99" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Timezone</Label>
+                  <Select value={form.timezone} onValueChange={(v) => setForm({ ...form, timezone: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {COMMON_TIMEZONES.map((tz) => (
+                        <SelectItem key={tz} value={tz}>{tz}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {(catalogItems ?? []).length === 0 && (
-                    <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
-                  )}
                 </div>
               </div>
-            </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save"}</Button>
-            </DialogFooter>
-          </form>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                <h3 className="mb-3 text-sm font-semibold text-slate-800">Schedule</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Start Date &amp; Time</Label>
+                    <Input type="datetime-local" value={form.startDateTime} onChange={(e) => setForm({ ...form, startDateTime: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>End Date &amp; Time</Label>
+                    <Input type="datetime-local" value={form.endDateTime} onChange={(e) => setForm({ ...form, endDateTime: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Registration Opens</Label>
+                    <Input type="datetime-local" value={form.registrationOpenAt} onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Registration Closes</Label>
+                    <Input type="datetime-local" value={form.registrationCloseAt} onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                <h3 className="mb-3 text-sm font-semibold text-slate-800">Capacity &amp; Automation</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Max Capacity <span className="font-normal text-slate-400">(blank = unlimited)</span></Label>
+                    <Input type="number" min={1} placeholder="e.g. 20" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Waitlist Capacity <span className="font-normal text-slate-400">(0 = none)</span></Label>
+                    <Input type="number" min={0} placeholder="e.g. 5" value={form.waitlistCapacity} onChange={(e) => setForm({ ...form, waitlistCapacity: e.target.value })} />
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={form.autoCloseRegistration}
+                      onChange={(e) => setForm({ ...form, autoCloseRegistration: e.target.checked })}
+                      className="mt-0.5 rounded border-slate-300"
+                    />
+                    <span>
+                      <span className="block font-medium text-slate-800">Auto-close at capacity</span>
+                      <span className="mt-0.5 block text-xs leading-5 text-slate-500">Stop new confirmed registrations automatically when the class is full.</span>
+                    </span>
+                  </label>
+                  <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={form.autoArchive}
+                      onChange={(e) => setForm({ ...form, autoArchive: e.target.checked })}
+                      className="mt-0.5 rounded border-slate-300"
+                    />
+                    <span>
+                      <span className="block font-medium text-slate-800">Auto-archive when completed</span>
+                      <span className="mt-0.5 block text-xs leading-5 text-slate-500">Move the course out of upcoming views after its lifecycle is complete.</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                <h3 className="mb-3 text-sm font-semibold text-slate-800">Media &amp; Integrations</h3>
+                <div className="space-y-4">
+                  <ImagePickerField
+                    siteId={siteId}
+                    value={form.imageUrl}
+                    onChange={(url) => setForm({ ...form, imageUrl: url })}
+                    initialPreset={COURSE_IMAGE_PRESET}
+                    label="Course Image"
+                  />
+                  <div className="space-y-1.5">
+                    <Label>Square Catalog Item <span className="font-normal text-slate-400">(for checkout pricing)</span></Label>
+                    <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Not linked" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Not linked</SelectItem>
+                        {(catalogItems ?? []).map((item: any) => (
+                          <SelectItem key={item.squareItemId} value={item.squareItemId}>
+                            {item.name}{item.priceCents != null ? ` — ${formatPrice(item.priceCents)}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {(catalogItems ?? []).length === 0 && (
+                      <p className="text-xs text-slate-400">No catalog items synced yet. Sync from Commerce → Catalog first.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="sticky bottom-0 border-t border-slate-200 bg-white pt-4">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save Course"}</Button>
+              </DialogFooter>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
 
