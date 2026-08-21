@@ -58,55 +58,50 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-@layer base {
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
-}
-
 /* TACTICAL / CONTROL ROOM LIGHT MODE */
 :root {
-  --background: 210 40% 98%; /* slate-50 */
-  --foreground: 222 47% 11%; /* slate-900 */
-  
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
-  --card-border: 214 32% 91%; /* slate-200 */
+  --card-border: 214 32% 91%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
   --popover-border: 214 32% 91%;
 
-  /* Tactical Olive Green */
   --primary: 84 65% 25%;
   --primary-foreground: 0 0% 100%;
-  
-  --secondary: 214 32% 91%; /* slate-200 */
+
+  --secondary: 214 32% 91%;
   --secondary-foreground: 222 47% 11%;
-  
-  --muted: 210 40% 96%; /* slate-100 */
-  --muted-foreground: 215 16% 47%; /* slate-500 */
-  
+
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
   --accent: 210 40% 96%;
   --accent-foreground: 222 47% 11%;
-  
+
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  
+
   --border: 214 32% 91%;
   --input: 214 32% 91%;
   --ring: 84 65% 25%;
-  
-  --sidebar: 222 47% 11%; /* Deep Slate */
+
+  --sidebar: 222 47% 11%;
   --sidebar-foreground: 210 40% 98%;
   --sidebar-border: 222 47% 11%;
   --sidebar-primary: 84 65% 25%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 217 33% 17%; /* slate-800 */
+  --sidebar-accent: 217 33% 17%;
   --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-ring: 84 65% 25%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-mono: 'Space Mono', monospace;
-  --radius: 0.25rem; /* Sharp edges */
+  --radius: 0.25rem;
 
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0,0,0, .03);
@@ -116,7 +111,7 @@
 .dark {
   --background: 222 47% 11%;
   --foreground: 210 40% 98%;
-  
+
   --card: 217 33% 17%;
   --card-foreground: 210 40% 98%;
   --card-border: 215 28% 22%;
@@ -127,19 +122,19 @@
 
   --primary: 84 65% 40%;
   --primary-foreground: 0 0% 100%;
-  
+
   --secondary: 215 28% 22%;
   --secondary-foreground: 210 40% 98%;
-  
+
   --muted: 215 28% 22%;
   --muted-foreground: 215 20% 65%;
-  
+
   --accent: 215 28% 22%;
   --accent-foreground: 210 40% 98%;
-  
+
   --destructive: 0 62% 30%;
   --destructive-foreground: 0 0% 100%;
-  
+
   --border: 215 28% 22%;
   --input: 215 28% 22%;
   --ring: 84 65% 40%;
@@ -149,7 +144,108 @@
   * {
     @apply border-border;
   }
+
+  html {
+    min-height: 100%;
+    background: hsl(var(--background));
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    min-height: 100dvh;
+  }
+}
+
+/* Client authentication polish. Clerk retains ownership of auth behavior;
+   these styles only establish the FSTS visual system around its components. */
+.cl-rootBox {
+  position: relative;
+  z-index: 1;
+}
+
+.cl-cardBox {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(203 213 225 / 0.95) !important;
+  border-radius: 1rem !important;
+  box-shadow:
+    0 24px 70px -32px rgb(15 23 42 / 0.45),
+    0 10px 30px -18px rgb(15 23 42 / 0.3) !important;
+}
+
+.cl-cardBox::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  z-index: 2;
+  background: linear-gradient(90deg, hsl(84 65% 25%), hsl(84 65% 38%), hsl(84 65% 25%));
+}
+
+.cl-card {
+  padding-top: 0.5rem !important;
+}
+
+.cl-header {
+  padding-bottom: 0.25rem;
+}
+
+.cl-headerTitle {
+  letter-spacing: -0.025em !important;
+}
+
+.cl-headerSubtitle {
+  line-height: 1.5 !important;
+}
+
+.cl-formFieldInput {
+  min-height: 2.75rem !important;
+  border-radius: 0.625rem !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.cl-formFieldInput:hover {
+  border-color: rgb(148 163 184) !important;
+}
+
+.cl-formFieldInput:focus {
+  border-color: hsl(84 65% 32%) !important;
+  box-shadow: 0 0 0 3px hsl(84 65% 35% / 0.14) !important;
+}
+
+.cl-formButtonPrimary {
+  min-height: 2.75rem !important;
+  border-radius: 0.625rem !important;
+  box-shadow: 0 8px 18px -12px hsl(84 65% 20% / 0.75) !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease !important;
+}
+
+.cl-formButtonPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px -13px hsl(84 65% 20% / 0.8) !important;
+}
+
+.cl-socialButtonsBlockButton {
+  min-height: 2.65rem !important;
+  border-radius: 0.625rem !important;
+}
+
+.cl-footer {
+  background: linear-gradient(180deg, rgb(248 250 252 / 0.55), rgb(248 250 252)) !important;
+}
+
+.cl-footerAction {
+  border-radius: 0 0 0.95rem 0.95rem !important;
+}
+
+@media (max-width: 640px) {
+  .cl-cardBox {
+    width: min(100%, 28rem) !important;
+    border-radius: 0.875rem !important;
+    box-shadow: 0 18px 45px -28px rgb(15 23 42 / 0.45) !important;
+  }
+
+  .cl-main {
+    padding: 1.25rem !important;
   }
 }
