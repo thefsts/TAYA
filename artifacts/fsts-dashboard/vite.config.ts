@@ -73,36 +73,6 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          // Heavy chart library
-          if (id.includes("node_modules/recharts") || id.includes("node_modules/d3-")) {
-            return "vendor-recharts";
-          }
-          // Clerk auth SDK
-          if (id.includes("node_modules/@clerk")) {
-            return "vendor-clerk";
-          }
-          // Convex client
-          if (id.includes("node_modules/convex")) {
-            return "vendor-convex";
-          }
-          // Radix UI primitives (Shadcn dependency)
-          if (id.includes("node_modules/@radix-ui")) {
-            return "vendor-radix";
-          }
-          // React core
-          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/scheduler")) {
-            return "vendor-react";
-          }
-          // Everything else in node_modules goes into a general vendor chunk
-          if (id.includes("node_modules")) {
-            return "vendor-misc";
-          }
-        },
-      },
-    },
   },
   server: {
     port,
