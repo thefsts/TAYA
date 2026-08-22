@@ -3,13 +3,13 @@ import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Building2, Clock3, Mail, MapPin, Phone, Plus, Trash2 } from "lucide-react";
+import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 
 type Hours = { day: string; hours: string };
 
@@ -66,81 +66,129 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
   if (data === undefined) {
     return (
       <AppLayout siteId={params.siteId}>
-        <Skeleton className="h-64" />
+        <ClientLoadingList rows={3} />
       </AppLayout>
     );
   }
 
   return (
     <AppLayout siteId={params.siteId}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Contact Info</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Contact details shown across the public site.</p>
-        </div>
-        <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? "Saving…" : "Save Changes"}
-        </Button>
-      </div>
+      <ClientPageHeader
+        eyebrow="Website Details"
+        title="Contact Information"
+        description="Keep the public phone number, email address, location, map link, and business hours accurate across your website."
+        actions={
+          <Button onClick={handleSave} disabled={isPending} className="shadow-sm">
+            {isPending ? "Saving…" : "Save Changes"}
+          </Button>
+        }
+      />
 
-      <div className="space-y-6 max-w-2xl">
-        <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Address</Label>
-            <Textarea rows={2} value={address} onChange={(e) => setAddress(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Map Embed URL</Label>
-            <Input value={mapEmbedUrl} onChange={(e) => setMapEmbedUrl(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-medium text-slate-900">Business Hours</h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => setHours([...hours, { day: "", hours: "" }])}>
-              <Plus className="h-4 w-4 mr-1" /> Add Row
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {hours.map((h, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <Input
-                  placeholder="Day (e.g. Mon-Fri)"
-                  value={h.day}
-                  onChange={(e) => {
-                    const next = [...hours];
-                    next[i] = { ...h, day: e.target.value };
-                    setHours(next);
-                  }}
-                />
-                <Input
-                  placeholder="Hours (e.g. 9am-5pm)"
-                  value={h.hours}
-                  onChange={(e) => {
-                    const next = [...hours];
-                    next[i] = { ...h, hours: e.target.value };
-                    setHours(next);
-                  }}
-                />
-                <Button type="button" variant="ghost" size="sm" onClick={() => setHours(hours.filter((_, idx) => idx !== i))}>
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.8fr)]">
+        <div className="space-y-6">
+          <ClientSection title="Public Contact Details" description="These details can appear in your footer, contact page, forms, and other enabled website sections.">
+            <div className="space-y-5 p-4 sm:p-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-slate-400" />Email</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@yourdomain.com" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-slate-400" />Phone</Label>
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-0123" />
+                </div>
               </div>
-            ))}
-            {hours.length === 0 && <p className="text-sm text-slate-500">No hours configured.</p>}
-          </div>
+
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-slate-400" />Address</Label>
+                <Textarea rows={3} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Business or public mailing address" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Map Embed URL</Label>
+                <Input value={mapEmbedUrl} onChange={(e) => setMapEmbedUrl(e.target.value)} placeholder="Paste the approved map embed URL" />
+                <p className="text-xs leading-5 text-slate-400">Use the map/embed link supplied by your map provider. Leave blank if the website should not display a map.</p>
+              </div>
+            </div>
+          </ClientSection>
+
+          <ClientSection
+            title="Business Hours"
+            description="Add the schedule visitors should see on the public website."
+            actions={
+              <Button type="button" variant="outline" size="sm" onClick={() => setHours([...hours, { day: "", hours: "" }])}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                Add Hours
+              </Button>
+            }
+          >
+            {hours.length === 0 ? (
+              <ClientEmptyState
+                icon={Clock3}
+                compact
+                title="No business hours configured"
+                description="Add your regular hours, appointment availability, or a note such as “By appointment only.”"
+                action={
+                  <Button type="button" variant="outline" onClick={() => setHours([{ day: "", hours: "" }])}>
+                    <Plus className="mr-2 h-4 w-4" />Add First Row
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {hours.map((h, i) => (
+                  <div key={i} className="grid gap-3 p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto] sm:items-center sm:px-5">
+                    <Input
+                      placeholder="Day (e.g. Mon–Fri)"
+                      value={h.day}
+                      onChange={(e) => {
+                        const next = [...hours];
+                        next[i] = { ...h, day: e.target.value };
+                        setHours(next);
+                      }}
+                    />
+                    <Input
+                      placeholder="Hours (e.g. 9:00 AM–5:00 PM)"
+                      value={h.hours}
+                      onChange={(e) => {
+                        const next = [...hours];
+                        next[i] = { ...h, hours: e.target.value };
+                        setHours(next);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-self-start text-slate-400 hover:bg-red-50 hover:text-red-600 sm:h-9 sm:w-9 sm:justify-self-auto sm:p-0"
+                      onClick={() => setHours(hours.filter((_, idx) => idx !== i))}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4 sm:mr-0" />
+                      <span className="sm:hidden">Remove row</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ClientSection>
         </div>
+
+        <aside>
+          <div className="sticky top-24 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+              <Building2 className="h-5 w-5 text-lime-300" />
+            </div>
+            <h2 className="text-base font-semibold">What this controls</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              These are content settings only. Your website layout and design remain protected by FSTS while your approved contact details stay editable here.
+            </p>
+            <div className="mt-5 space-y-3 border-t border-slate-800 pt-4 text-xs text-slate-400">
+              <div className="flex items-start gap-2"><Mail className="mt-0.5 h-3.5 w-3.5 text-slate-500" /><span>Email and phone displayed publicly</span></div>
+              <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-3.5 w-3.5 text-slate-500" /><span>Address and optional map destination</span></div>
+              <div className="flex items-start gap-2"><Clock3 className="mt-0.5 h-3.5 w-3.5 text-slate-500" /><span>Business hours shown to website visitors</span></div>
+            </div>
+          </div>
+        </aside>
       </div>
     </AppLayout>
   );
