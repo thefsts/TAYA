@@ -238,6 +238,73 @@
   border-radius: 0 0 0.95rem 0.95rem !important;
 }
 
+/* Shared polish for legacy client CMS managers while they are migrated to the
+   ClientPage primitives. These selectors intentionally target semantic form and
+   table surfaces inside the authenticated workspace without changing behavior. */
+main table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+main table thead th {
+  letter-spacing: 0.04em;
+}
+
+main table tbody tr {
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+
+main table tbody tr:hover {
+  background: rgb(248 250 252 / 0.9);
+}
+
+main input,
+main textarea,
+main button[role="combobox"] {
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+main input:focus,
+main textarea:focus,
+main button[role="combobox"]:focus-visible {
+  box-shadow: 0 0 0 3px hsl(84 65% 35% / 0.11);
+}
+
+main [role="dialog"] {
+  box-shadow: 0 30px 80px -35px rgb(15 23 42 / 0.45);
+}
+
+main [role="tablist"] {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+main [role="tab"] {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  main table {
+    min-width: 42rem;
+  }
+
+  main [role="dialog"] {
+    width: calc(100vw - 1.5rem);
+    max-width: calc(100vw - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    border-radius: 0.875rem;
+  }
+
+  main [role="dialog"] form .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  main [role="dialog"] form .gap-6 {
+    gap: 0.75rem;
+  }
+}
+
 @media (max-width: 640px) {
   .cl-cardBox {
     width: min(100%, 28rem) !important;
