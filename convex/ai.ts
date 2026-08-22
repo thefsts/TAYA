@@ -28,6 +28,59 @@ TONE: Friendly, clear, encouraging. Non-technical. Use plain language. Be concis
 
 When you don't know something specific about the client's site, offer general best-practice advice and remind them they can contact their FSTS support team for site-specific technical questions.`;
 
+function getAIConfig() {
+  const rawBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL ?? process.env.OPENAI_BASE_URL ?? "";
+  const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY ?? process.env.OPENAI_API_KEY ?? "";
+  const model = process.env.AI_INTEGRATIONS_OPENAI_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
+  const baseUrl = rawBaseUrl.replace(/\/+$/, "");
+  return { baseUrl, apiKey, model, configured: Boolean(baseUrl && apiKey) };
+}
+
+async function requireSiteAccess(ctx: any, siteId: any) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthenticated");
+  const hasAccess = await ctx.runQuery(internal.lib.siteAccessInternal.check, {
+    clerkUserId: identity.subject,
+    siteId,
+  });
+  if (!hasAccess) throw new Error("Forbidden: site access required");
+}
+
+async function requestAI(config: ReturnType<typeof getAIConfig>, body: unknown) {
+  if (!config.configured) {
+    throw new Error("AI_NOT_CONFIGURED");
+  }
+
+  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("FSTS AI provider request failed", { status: response.status, body: text.slice(0, 500) });
+    throw new Error(`AI_PROVIDER_ERROR_${response.status}`);
+  }
+
+  return await response.json() as any;
+}
+
+export const status = action({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    await requireSiteAccess(ctx, siteId);
+    const config = getAIConfig();
+    return {
+      configured: config.configured,
+      model: config.model,
+    };
+  },
+});
+
 export const chat = action({
   args: {
     siteId: v.id("sites"),
@@ -41,20 +94,8 @@ export const chat = action({
     pageContext: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, messages, section, pageContext }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-    const hasAccess = await ctx.runQuery(internal.lib.siteAccessInternal.check, {
-      clerkUserId: identity.subject,
-      siteId,
-    });
-    if (!hasAccess) throw new Error("Forbidden: site access required");
-
-    const baseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
-    const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-
-    if (!baseUrl || !apiKey) {
-      throw new Error("AI service not configured");
-    }
+    await requireSiteAccess(ctx, siteId);
+    const config = getAIConfig();
 
     const sectionContext = section
       ? `\n\nThe user is currently viewing the "${section}" section of their dashboard.`
@@ -69,26 +110,14 @@ export const chat = action({
       content: SYSTEM_PROMPT + sectionContext + pageContentContext,
     };
 
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-5.4-mini",
-        max_completion_tokens: 1024,
-        messages: [systemMessage, ...messages],
-      }),
+    const data = await requestAI(config, {
+      model: config.model,
+      max_completion_tokens: 1024,
+      messages: [systemMessage, ...messages.slice(-12)],
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`AI API error ${response.status}: ${text}`);
-    }
-
-    const data = await response.json() as any;
-    const content = data.choices?.[0]?.message?.content ?? "Sorry, I couldn't generate a response. Please try again.";
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error("AI_EMPTY_RESPONSE");
     return { content };
   },
 });
@@ -100,57 +129,32 @@ export const generateAltText = action({
     context: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, imageUrl, context }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-    const hasAccess = await ctx.runQuery(internal.lib.siteAccessInternal.check, {
-      clerkUserId: identity.subject,
-      siteId,
-    });
-    if (!hasAccess) throw new Error("Forbidden: site access required");
-
-    const baseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
-    const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-
-    if (!baseUrl || !apiKey) {
-      throw new Error("AI service not configured");
-    }
-
+    await requireSiteAccess(ctx, siteId);
+    const config = getAIConfig();
     const contextHint = context ? ` The image is used for: ${context}.` : "";
 
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-5.4-mini",
-        max_completion_tokens: 150,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Write a concise, descriptive alt text for this image (max 125 characters, no quotes, no "image of" prefix).${contextHint}`,
-              },
-              {
-                type: "image_url",
-                image_url: { url: imageUrl },
-              },
-            ],
-          },
-        ],
-      }),
+    const data = await requestAI(config, {
+      model: config.model,
+      max_completion_tokens: 150,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Write a concise, descriptive alt text for this image (max 125 characters, no quotes, no "image of" prefix).${contextHint}`,
+            },
+            {
+              type: "image_url",
+              image_url: { url: imageUrl },
+            },
+          ],
+        },
+      ],
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`AI API error ${response.status}: ${text}`);
-    }
-
-    const data = await response.json() as any;
     const altText = (data.choices?.[0]?.message?.content ?? "").trim().replace(/^["']|["']$/g, "");
+    if (!altText) throw new Error("AI_EMPTY_RESPONSE");
     return { altText };
   },
 });
@@ -162,50 +166,26 @@ export const generateMetaDescription = action({
     pageContent: v.string(),
   },
   handler: async (ctx, { siteId, pageTitle, pageContent }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-    const hasAccess = await ctx.runQuery(internal.lib.siteAccessInternal.check, {
-      clerkUserId: identity.subject,
-      siteId,
-    });
-    if (!hasAccess) throw new Error("Forbidden: site access required");
+    await requireSiteAccess(ctx, siteId);
+    const config = getAIConfig();
 
-    const baseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
-    const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-
-    if (!baseUrl || !apiKey) {
-      throw new Error("AI service not configured");
-    }
-
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-5.4-mini",
-        max_completion_tokens: 200,
-        messages: [
-          {
-            role: "system",
-            content: "You write SEO meta descriptions. Output only the description — no quotes, no labels. Keep it between 140-160 characters.",
-          },
-          {
-            role: "user",
-            content: `Page title: "${pageTitle}"\n\nPage content excerpt: "${pageContent.slice(0, 500)}"`,
-          },
-        ],
-      }),
+    const data = await requestAI(config, {
+      model: config.model,
+      max_completion_tokens: 200,
+      messages: [
+        {
+          role: "system",
+          content: "You write SEO meta descriptions. Output only the description — no quotes, no labels. Keep it between 140-160 characters.",
+        },
+        {
+          role: "user",
+          content: `Page title: "${pageTitle}"\n\nPage content excerpt: "${pageContent.slice(0, 500)}"`,
+        },
+      ],
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`AI API error ${response.status}: ${text}`);
-    }
-
-    const data = await response.json() as any;
     const description = (data.choices?.[0]?.message?.content ?? "").trim();
+    if (!description) throw new Error("AI_EMPTY_RESPONSE");
     return { description };
   },
 });
