@@ -48,6 +48,12 @@ export default defineSchema({
         role: v.string(),
       }),
     ),
+    // Clerk invitation metadata. No invitation ticket, session token, password,
+    // or other secret is ever persisted in Convex.
+    inviteStatus: v.optional(v.string()),
+    invitedAt: v.optional(v.number()),
+    clerkInvitationId: v.optional(v.string()),
+    invitationLastError: v.optional(v.string()),
     // Phase 10 — Agency Edition™
     agencyId: v.optional(v.id("agencies")),
     isAgencyAdmin: v.optional(v.boolean()),
@@ -258,290 +264,41 @@ export default defineSchema({
     /** 1400px wide WebP for large display contexts */
     largeStorageId: v.optional(v.id("_storage")),
     /** 2400px wide WebP for hero / full-bleed slots */
-    heroStorageId: v.optional(v.id("_storage")),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_archived", ["siteId", "archived"])
-    .index("by_site_category", ["siteId", "category"]),
-
-  squareConfig: defineTable({
-    siteId: v.id("sites"),
-    connected: v.boolean(),
-    environment: v.string(),
-    applicationId: v.optional(v.string()),
-    locationId: v.optional(v.string()),
-    accessToken: v.optional(v.string()),
-    checkoutEnabled: v.boolean(),
-    lastCatalogSyncAt: v.optional(v.number()),
-    webhookSignatureKey: v.optional(v.string()),
+    large2xStorageId: v.optional(v.id("_storage")),
+    /** When derivatives were generated (ms since epoch) */
+    derivativesGeneratedAt: v.optional(v.number()),
+    /** Processing state for derivative generation */
+    processingStatus: v.optional(v.string()),
+    /** Last derivative generation error, if any */
+    processingError: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
-  squareCatalogItems: defineTable({
+  siteSettings: defineTable({
     siteId: v.id("sites"),
-    squareItemId: v.string(),
-    squareVariationId: v.optional(v.string()),
-    name: v.string(),
-    description: v.optional(v.string()),
-    priceCents: v.optional(v.number()),
-    category: v.optional(v.string()),
-    imageUrl: v.optional(v.string()),
-    lastSyncedAt: v.number(),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_squareItemId", ["siteId", "squareItemId"]),
-
-  squareOrders: defineTable({
-    siteId: v.id("sites"),
-    squareOrderId: v.string(),
-    squarePaymentId: v.optional(v.string()),
-    customerName: v.optional(v.string()),
-    customerEmail: v.optional(v.string()),
-    itemName: v.optional(v.string()),
-    amountCents: v.number(),
-    status: v.string(),
-    refundStatus: v.optional(v.string()),
-    createdAt: v.number(),
-    // ── Payment Pipeline Hardening fields ────────────────────────────────
-    /** Square webhook event_id — used for idempotency dedup */
-    squareEventId: v.optional(v.string()),
-    /** When the webhook was first received (ms epoch) */
-    webhookReceivedAt: v.optional(v.number()),
-    /** When the webhook was fully processed — set atomically with order write */
-    webhookProcessedAt: v.optional(v.number()),
-    /** Email delivery state machine for customer confirmation email.
-     *  pending → processing → sent | failed → retryScheduled → permanentlyFailed */
-    customerEmailStatus: v.optional(v.string()),
-    /** Email delivery state machine for business notification email */
-    businessEmailStatus: v.optional(v.string()),
-    /** Total number of email send attempts (customer + business combined) */
-    emailAttemptCount: v.optional(v.number()),
-    /** Timestamp of the most recent email send attempt */
-    lastEmailAttemptAt: v.optional(v.number()),
-    /** Last error message from a failed email send */
-    lastEmailError: v.optional(v.string()),
-    /** When the next retry should be attempted */
-    nextRetryAt: v.optional(v.number()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_squareOrderId", ["siteId", "squareOrderId"])
-    .index("by_squareEventId", ["siteId", "squareEventId"]),
-
-  squareDiscounts: defineTable({
-    siteId: v.id("sites"),
-    squareDiscountId: v.string(),
-    name: v.string(),
-    code: v.optional(v.string()),
-    discountType: v.string(),
-    amount: v.optional(v.number()),
-    percentage: v.optional(v.number()),
-    expiresAt: v.optional(v.number()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_squareDiscountId", ["siteId", "squareDiscountId"]),
-
-  squareCatalogMappings: defineTable({
-    siteId: v.id("sites"),
-    entityType: v.string(),
-    entityId: v.string(),
-    squareItemId: v.string(),
-    squareVariationId: v.optional(v.string()),
-  }).index("by_site", ["siteId"]),
-
-  emailSettings: defineTable({
-    siteId: v.id("sites"),
-    fromName: v.string(),
-    fromEmail: v.string(),
-    replyToEmail: v.string(),
+    businessName: v.string(),
+    tagline: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
+    faviconUrl: v.optional(v.string()),
+    primaryColor: v.optional(v.string()),
+    accentColor: v.optional(v.string()),
     notificationEmail: v.optional(v.string()),
-    notifyOnNewLead: v.boolean(),
-    notifyOnBooking: v.boolean(),
-    // Per-site Resend API key. When set, all email delivery for this site uses
-    // this key instead of the platform-level RESEND_API_KEY environment variable.
-    // Stored as plaintext in Convex (encrypted at rest). Never returned by the
-    // public `email.get` query — only a boolean presence flag is exposed there.
-    resendApiKey: v.optional(v.string()),
+    senderName: v.optional(v.string()),
+    replyToEmail: v.optional(v.string()),
+    googlePlaceId: v.optional(v.string()),
+    timezone: v.optional(v.string()),
+    locale: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
-
-  contentVersions: defineTable({
-    siteId: v.id("sites"),
-    entityType: v.string(),
-    entityId: v.string(),
-    snapshot: v.any(),
-    createdByName: v.string(),
-  }).index("by_site", ["siteId"]),
-
-  activityLog: defineTable({
-    siteId: v.id("sites"),
-    actorName: v.string(),
-    action: v.string(),
-    entityType: v.optional(v.string()),
-    entityId: v.optional(v.string()),
-    page: v.optional(v.string()),
-    previousValue: v.optional(v.string()),
-    newValue: v.optional(v.string()),
-    details: v.optional(v.string()),
-  }).index("by_site", ["siteId"]),
-
-  backups: defineTable({
-    siteId: v.id("sites"),
-    label: v.string(),
-    sizeBytes: v.number(),
-    snapshot: v.any(),
-  }).index("by_site", ["siteId"]),
-
-  crmConnections: defineTable({
-    siteId: v.id("sites"),
-    provider: v.string(),
-    status: v.string(),
-    authMethod: v.string(),
-    accountName: v.optional(v.string()),
-    orgId: v.optional(v.string()),
-    apiKeyEncrypted: v.optional(v.string()),
-    apiKeyLast4: v.optional(v.string()),
-    ssoEnabled: v.boolean(),
-    apiHealth: v.string(),
-    lastHealthCheckAt: v.optional(v.number()),
-    lastSyncAt: v.optional(v.number()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_provider", ["siteId", "provider"]),
-
-  crmEntitySyncSettings: defineTable({
-    siteId: v.id("sites"),
-    provider: v.string(),
-    entityType: v.string(),
-    direction: v.string(),
-    enabled: v.boolean(),
-    lastSyncAt: v.optional(v.number()),
-    lastSyncStatus: v.optional(v.string()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_provider_entity", ["siteId", "provider", "entityType", "direction"]),
-
-  crmSyncLogs: defineTable({
-    siteId: v.id("sites"),
-    provider: v.string(),
-    entityType: v.string(),
-    direction: v.string(),
-    status: v.string(),
-    entityRef: v.optional(v.string()),
-    message: v.optional(v.string()),
-    attempt: v.number(),
-    syncPayload: v.optional(v.any()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_status", ["siteId", "status"])
-    .index("by_site_entity", ["siteId", "entityType"]),
-
-  // Inbound records written back from CRM → dashboard during polling
-  crmInboundRecords: defineTable({
-    siteId: v.id("sites"),
-    provider: v.string(),
-    entityType: v.string(),
-    crmRecordId: v.optional(v.string()),
-    entityRef: v.optional(v.string()),
-    payload: v.any(),
-    appliedAt: v.number(),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_entity", ["siteId", "entityType"]),
-
-  faqs: defineTable({
-    siteId: v.id("sites"),
-    question: v.string(),
-    answer: v.string(),
-    order: v.number(),
-    isActive: v.boolean(),
-  }).index("by_site", ["siteId"]),
-
-  testimonials: defineTable({
-    siteId: v.id("sites"),
-    name: v.string(),
-    role: v.optional(v.string()),
-    company: v.optional(v.string()),
-    rating: v.optional(v.number()),
-    text: v.string(),
-    avatarUrl: v.optional(v.string()),
-    isActive: v.boolean(),
-    order: v.number(),
-  }).index("by_site", ["siteId"]),
-
-  pricingTiers: defineTable({
-    siteId: v.id("sites"),
-    planName: v.string(),
-    price: v.optional(v.string()),
-    interval: v.optional(v.string()),
-    description: v.optional(v.string()),
-    features: v.any(),
-    isHighlighted: v.boolean(),
-    ctaLabel: v.string(),
-    ctaUrl: v.optional(v.string()),
-    isActive: v.boolean(),
-    order: v.number(),
-  }).index("by_site", ["siteId"]),
-
-  // Phase 3 — Form Builder
-  forms: defineTable({
-    siteId: v.id("sites"),
-    name: v.string(),
-    slug: v.string(),
-    status: v.string(),
-    fields: v.any(),
-    settings: v.any(),
-    templateType: v.optional(v.string()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_slug", ["siteId", "slug"]),
-
-  formSubmissions: defineTable({
-    siteId: v.id("sites"),
-    formId: v.optional(v.id("forms")),
-    formType: v.string(),
-    submitterName: v.optional(v.string()),
-    submitterEmail: v.optional(v.string()),
-    submitterPhone: v.optional(v.string()),
-    message: v.optional(v.string()),
-    data: v.any(),
-    status: v.string(),
-    submittedAt: v.number(),
-    readAt: v.optional(v.number()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_status", ["siteId", "status"])
-    .index("by_form", ["formId"]),
-
-  siteHealthLogs: defineTable({
-    siteId: v.id("sites"),
-    url: v.string(),
-    statusCode: v.optional(v.number()),
-    responseMs: v.optional(v.number()),
-    isUp: v.boolean(),
-    error: v.optional(v.string()),
-    checkedAt: v.number(),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_checkedAt", ["siteId", "checkedAt"]),
-
-  // Phase 2 — Content Modules
-  policyPages: defineTable({
-    siteId: v.id("sites"),
-    policyType: v.string(),
-    content: v.string(),
-    updatedAt: v.number(),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_type", ["siteId", "policyType"]),
 
   navigationItems: defineTable({
     siteId: v.id("sites"),
     label: v.string(),
     href: v.string(),
-    isVisible: v.boolean(),
     order: v.number(),
+    isVisible: v.boolean(),
     openInNewTab: v.optional(v.boolean()),
   }).index("by_site", ["siteId"]),
 
-  announcementBanner: defineTable({
+  announcementBanners: defineTable({
     siteId: v.id("sites"),
     text: v.string(),
     bgColor: v.string(),
@@ -549,7 +306,7 @@ export default defineSchema({
     isEnabled: v.boolean(),
   }).index("by_site", ["siteId"]),
 
-  siteCtaConfig: defineTable({
+  ctaSettings: defineTable({
     siteId: v.id("sites"),
     primaryLabel: v.string(),
     primaryUrl: v.string(),
@@ -566,18 +323,6 @@ export default defineSchema({
     sizeLabel: v.optional(v.string()),
     category: v.optional(v.string()),
     isActive: v.boolean(),
-    order: v.number(),
-  }).index("by_site", ["siteId"]),
-
-  teamMembers: defineTable({
-    siteId: v.id("sites"),
-    name: v.string(),
-    role: v.optional(v.string()),
-    bio: v.optional(v.string()),
-    photoUrl: v.optional(v.string()),
-    credentials: v.optional(v.string()),
-    isActive: v.boolean(),
-    order: v.number(),
   }).index("by_site", ["siteId"]),
 
   jobPostings: defineTable({
@@ -590,7 +335,7 @@ export default defineSchema({
     isActive: v.boolean(),
   }).index("by_site", ["siteId"]),
 
-  popupConfig: defineTable({
+  popupSettings: defineTable({
     siteId: v.id("sites"),
     title: v.string(),
     body: v.string(),
@@ -601,392 +346,79 @@ export default defineSchema({
     isEnabled: v.boolean(),
   }).index("by_site", ["siteId"]),
 
-  // WOS Phase 2 — Website Settings™
-  siteSettings: defineTable({
+  faqs: defineTable({
     siteId: v.id("sites"),
-    // Identity
-    businessName: v.optional(v.string()),
-    tagline: v.optional(v.string()),
-    logoUrl: v.optional(v.string()),
-    faviconUrl: v.optional(v.string()),
-    websiteType: v.optional(v.string()),
-    timezone: v.optional(v.string()),
-    // Branding
-    brandColorPrimary: v.optional(v.string()),
-    brandColorSecondary: v.optional(v.string()),
-    brandColorAccent: v.optional(v.string()),
-    fontHeading: v.optional(v.string()),
-    fontBody: v.optional(v.string()),
-    // Contact
-    phone: v.optional(v.string()),
-    email: v.optional(v.string()),
-    address: v.optional(v.string()),
-    businessHours: v.optional(v.any()),
-    // Social links
-    socialLinks: v.optional(v.any()),
-    // SEO defaults
-    seoGlobalTitle: v.optional(v.string()),
-    seoGlobalDescription: v.optional(v.string()),
-    seoOgImageUrl: v.optional(v.string()),
-    // Integrations / Analytics
-    analyticsGa4: v.optional(v.string()),
-    analyticsGtm: v.optional(v.string()),
-    analyticsPixel: v.optional(v.string()),
-    cookieConsentEnabled: v.optional(v.boolean()),
-    cookiePolicyUrl: v.optional(v.string()),
-    // Legal
-    privacyPolicyUrl: v.optional(v.string()),
-    termsOfServiceUrl: v.optional(v.string()),
-    // Per-section save timestamps
-    identityUpdatedAt: v.optional(v.number()),
-    brandingUpdatedAt: v.optional(v.number()),
-    contactUpdatedAt: v.optional(v.number()),
-    seoUpdatedAt: v.optional(v.number()),
-    integrationsUpdatedAt: v.optional(v.number()),
-    legalUpdatedAt: v.optional(v.number()),
-    // Events display preferences
-    showCancelledEvents: v.optional(v.boolean()),
-    eventsUpdatedAt: v.optional(v.number()),
-  }).index("by_site", ["siteId"]),
-
-  // Phase 9 — Client Permissions™
-  siteRoleOverrides: defineTable({
-    siteId: v.id("sites"),
-    role: v.string(),
-    module: v.string(),
-    level: v.string(),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_role", ["siteId", "role"]),
-
-  websiteHealthScans: defineTable({
-    siteId: v.id("sites"),
-    overallScore: v.number(),
-    status: v.string(),
-    categoryScores: v.any(),
-    scannedAt: v.number(),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_scannedAt", ["siteId", "scannedAt"]),
-
-  healthNotifications: defineTable({
-    siteId: v.id("sites"),
-    type: v.string(),
-    severity: v.string(),
-    message: v.string(),
-    category: v.optional(v.string()),
-    readAt: v.optional(v.number()),
-    dismissedAt: v.optional(v.number()),
-  }).index("by_site", ["siteId"]),
-
-  // ── WOS Phase 1 — Payment Connector Framework™ ─────────────────────────────
-
-  paymentConnectors: defineTable({
-    siteId: v.id("sites"),
-    provider: v.string(),
+    question: v.string(),
+    answer: v.string(),
+    order: v.number(),
     isActive: v.boolean(),
-    status: v.string(),
-    environment: v.optional(v.string()),
-    credentialsCiphertext: v.optional(v.string()),
-    credentialsMeta: v.optional(v.any()),
-    hasWebhookKey: v.boolean(),
-    checkoutEnabled: v.boolean(),
-    healthStatus: v.optional(v.string()),
-    healthMessage: v.optional(v.string()),
-    lastHealthCheckAt: v.optional(v.number()),
-    lastSyncAt: v.optional(v.number()),
-    settings: v.optional(v.any()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_provider", ["siteId", "provider"])
-    .index("by_site_active", ["siteId", "isActive"]),
-
-  paymentEvents: defineTable({
-    siteId: v.id("sites"),
-    provider: v.string(),
-    eventType: v.string(),
-    entityType: v.optional(v.string()),
-    entityId: v.optional(v.string()),
-    status: v.string(),
-    amountCents: v.optional(v.number()),
-    currency: v.optional(v.string()),
-    metadata: v.optional(v.any()),
-    errorMessage: v.optional(v.string()),
-    retryCount: v.optional(v.number()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_provider", ["siteId", "provider"]),
-
-  // Website Reviews Module™
-  reviewSources: defineTable({
-    siteId: v.id("sites"),
-    provider: v.string(),
-    config: v.any(),
-    credentialsCiphertext: v.optional(v.string()),
-    autoRefresh: v.boolean(),
-    refreshIntervalHours: v.optional(v.number()),
-    lastSyncedAt: v.optional(v.number()),
-    status: v.string(),
-    errorMessage: v.optional(v.string()),
-    lastSyncStats: v.optional(
-      v.object({
-        inserted: v.number(),
-        updated: v.number(),
-        removed: v.number(),
-      })
-    ),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_provider", ["siteId", "provider"]),
-
-  importedReviews: defineTable({
-    siteId: v.id("sites"),
-    sourceId: v.id("reviewSources"),
-    provider: v.string(),
-    externalId: v.string(),
-    reviewerName: v.string(),
-    reviewerPhotoUrl: v.optional(v.string()),
-    rating: v.number(),
-    text: v.optional(v.string()),
-    reviewDate: v.number(),
-    status: v.string(),
-    pinned: v.boolean(),
-    category: v.optional(v.string()),
-    cachedAt: v.number(),
-    updatedAt: v.optional(v.number()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_status", ["siteId", "status"])
-    .index("by_source", ["sourceId"])
-    .index("by_site_external", ["siteId", "externalId"])
-    .index("by_site_updatedAt", ["siteId", "updatedAt"]),
-
-  reviewDisplaySettings: defineTable({
-    siteId: v.id("sites"),
-    layout: v.string(),
-    minRating: v.number(),
-    maxPerPage: v.number(),
-    featuredOnly: v.boolean(),
-    showProviderBadge: v.boolean(),
-    categoryFilter: v.optional(v.string()),
-    updatedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
 
-  // WOS Phase 8 — Automation Engine™
-  automationRules: defineTable({
+  testimonials: defineTable({
     siteId: v.id("sites"),
     name: v.string(),
+    role: v.optional(v.string()),
+    quote: v.string(),
+    rating: v.optional(v.number()),
+    imageUrl: v.optional(v.string()),
+    isActive: v.boolean(),
+  }).index("by_site", ["siteId"]),
+
+  formDefinitions: defineTable({
+    siteId: v.id("sites"),
+    name: v.string(),
+    slug: v.string(),
     description: v.optional(v.string()),
-    triggerType: v.string(),
-    conditions: v.array(
-      v.object({
-        field: v.string(),
-        operator: v.string(),
-        value: v.string(),
-      })
-    ),
-    actions: v.array(
-      v.object({
-        type: v.string(),
-        order: v.number(),
-        config: v.any(),
-      })
-    ),
-    enabled: v.boolean(),
-    lastRunAt: v.optional(v.number()),
-    lastRunStatus: v.optional(v.string()),
+    fields: v.any(),
+    submitLabel: v.optional(v.string()),
+    successMessage: v.optional(v.string()),
+    isActive: v.boolean(),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_trigger", ["siteId", "triggerType"]),
+    .index("by_site_slug", ["siteId", "slug"]),
 
-  automationRunLog: defineTable({
+  formSubmissions: defineTable({
     siteId: v.id("sites"),
-    ruleId: v.id("automationRules"),
-    ruleName: v.string(),
-    triggerType: v.string(),
-    triggerPayload: v.any(),
+    formId: v.id("formDefinitions"),
+    values: v.any(),
+    submittedAt: v.number(),
     status: v.string(),
-    actionResults: v.array(
-      v.object({
-        actionType: v.string(),
-        order: v.number(),
-        status: v.string(),
-        message: v.optional(v.string()),
-      })
-    ),
-    completedAt: v.number(),
+    notes: v.optional(v.string()),
   })
     .index("by_site", ["siteId"])
-    .index("by_rule", ["ruleId"])
-    .index("by_site_status", ["siteId", "status"]),
+    .index("by_form", ["formId"]),
 
-  // Phase 80 — Client Portal™ / Multi-Portal Authentication System™
-  portalConfigs: defineTable({
+  activityLog: defineTable({
     siteId: v.id("sites"),
-    enabled: v.boolean(),
-    logoUrl: v.optional(v.string()),
-    welcomeMessage: v.optional(v.string()),
-    primaryColor: v.optional(v.string()),
-    registrationOpen: v.boolean(),
-    requireApproval: v.boolean(),
-    enabledFeatures: v.any(),
+    actorName: v.string(),
+    action: v.string(),
+    entityType: v.string(),
+    entityId: v.optional(v.string()),
+    page: v.optional(v.string()),
+    previousValue: v.optional(v.string()),
+    newValue: v.optional(v.string()),
+    details: v.optional(v.string()),
+    createdAt: v.number(),
   }).index("by_site", ["siteId"]),
 
   portalUsers: defineTable({
     siteId: v.id("sites"),
     email: v.string(),
-    firstName: v.string(),
-    lastName: v.string(),
+    name: v.string(),
     passwordHash: v.string(),
-    passwordSalt: v.string(),
-    role: v.string(),
-    status: v.string(),
-    emailVerified: v.boolean(),
-    notes: v.optional(v.string()),
-    profileData: v.optional(v.any()),
-    failedLoginCount: v.optional(v.number()),
-    lockedUntil: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_email", ["siteId", "email"])
-    .index("by_email", ["email"]),
+    .index("by_site_email", ["siteId", "email"]),
 
   portalSessions: defineTable({
+    siteId: v.id("sites"),
     portalUserId: v.id("portalUsers"),
-    siteId: v.id("sites"),
-    token: v.string(),
+    tokenHash: v.string(),
     expiresAt: v.number(),
-    lastActiveAt: v.number(),
-  })
-    .index("by_token", ["token"])
-    .index("by_user", ["portalUserId"]),
-
-  // ── Website Onboarding Wizard ──────────────────────────────────────────
-  // Persists step-by-step wizard progress so sessions can be resumed after
-  // a page refresh or across browser tabs.
-  onboardingProgress: defineTable({
-    sessionKey: v.string(),          // UUID, stored in localStorage
-    createdBy: v.optional(v.string()), // Clerk userId of initiating admin
-    agencyId: v.optional(v.id("agencies")),
-    siteId: v.optional(v.id("sites")), // set after successful launch
-    currentStep: v.number(),         // 0-9
-    stepData: v.any(),               // JSON blob keyed by step index
-    status: v.string(),              // "in_progress" | "completed" | "abandoned"
-  })
-    .index("by_session", ["sessionKey"])
-    .index("by_creator", ["createdBy"])
-    .index("by_site", ["siteId"]),
-
-  // ── Services Manager ──────────────────────────────────────────────────
-  siteServices: defineTable({
-    siteId: v.id("sites"),
-    title: v.string(),
-    slug: v.string(),
-    description: v.string(),
-    shortDescription: v.optional(v.string()),
-    imageUrl: v.optional(v.string()),
-    price: v.optional(v.string()),
-    duration: v.optional(v.string()),
-    category: v.optional(v.string()),
-    order: v.number(),
-    isVisible: v.boolean(),
-    ctaLabel: v.optional(v.string()),
-    ctaUrl: v.optional(v.string()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_slug", ["siteId", "slug"]),
-
-  // ── Products / Offerings Manager ─────────────────────────────────────
-  siteProducts: defineTable({
-    siteId: v.id("sites"),
-    title: v.string(),
-    slug: v.string(),
-    description: v.string(),
-    shortDescription: v.optional(v.string()),
-    imageUrl: v.optional(v.string()),
-    priceCents: v.optional(v.number()),
-    priceLabel: v.optional(v.string()),  // e.g. "Starting at $99/mo"
-    category: v.optional(v.string()),
-    order: v.number(),
-    isVisible: v.boolean(),
-    isFeatured: v.optional(v.boolean()),
-    ctaLabel: v.optional(v.string()),
-    ctaUrl: v.optional(v.string()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_slug", ["siteId", "slug"]),
-
-  // ── Flyer Manager ────────────────────────────────────────────────────
-  flyers: defineTable({
-    siteId: v.id("sites"),
-    title: v.string(),
-    description: v.optional(v.string()),
-    imageUrl: v.optional(v.string()),
-    buttonLabel: v.optional(v.string()),
-    buttonDestination: v.optional(v.string()),
-    startDate: v.optional(v.number()),       // epoch ms; null = no start restriction
-    expirationDate: v.optional(v.number()),  // epoch ms; null = never expires
-    associatedEntityType: v.optional(v.union(
-      v.literal("class"),
-      v.literal("event"),
-      v.literal("service"),
-      v.literal("general"),
-    )),
-    associatedEntityId: v.optional(v.string()),
-    status: v.union(
-      v.literal("draft"),
-      v.literal("scheduled"),
-      v.literal("published"),
-      v.literal("archived"),
-    ),
-    publishedAt: v.optional(v.number()),
-    archivedAt: v.optional(v.number()),
-    archivedReason: v.optional(v.string()),
-  })
-    .index("by_site", ["siteId"])
-    .index("by_site_status", ["siteId", "status"]),
-
-  // ── Add-on Catalog ────────────────────────────────────────────────────
-  // Master list of available premium add-ons managed by FSTS staff.
-  // Seeded once via addons:seedCatalog; pricing is backend-managed.
-  addOnCatalog: defineTable({
-    slug: v.string(),               // e.g. "social-publisher-pro"
-    name: v.string(),
-    description: v.string(),
-    category: v.string(),           // "marketing" | "content" | "seo" | "health" | "accessibility" | "forms"
-    iconName: v.optional(v.string()), // lucide icon name for UI
-    pricingTier: v.string(),        // "starter" | "professional" | "enterprise"
-    monthlyPriceUsd: v.optional(v.number()),  // null = contact for pricing
-    annualPriceUsd: v.optional(v.number()),
-    billingProviderId: v.optional(v.string()), // future: Stripe price ID
-    isActive: v.boolean(),
-    isBeta: v.boolean(),
-    features: v.array(v.string()), // 3–5 bullet points shown in wizard/dashboard
-    eligiblePlans: v.array(v.string()), // site plan tiers that can activate this
-    trialDays: v.number(),          // default trial length
-    sortOrder: v.number(),
-  }).index("by_slug", ["slug"]),
-
-  // ── Site Add-on Assignments ───────────────────────────────────────────
-  // Per-site activation records for each add-on.
-  siteAddOns: defineTable({
-    siteId: v.id("sites"),
-    addOnId: v.id("addOnCatalog"),
-    status: v.union(
-      v.literal("enabled"),
-      v.literal("disabled"),
-      v.literal("trial"),
-      v.literal("pending"),   // client requested, awaiting superAdmin approval
-    ),
-    enabledAt: v.optional(v.number()),
-    trialEndsAt: v.optional(v.number()),
-    enabledByUserId: v.optional(v.id("users")),
-    billingSubscriptionId: v.optional(v.string()), // future billing reference
-    overriddenPriceUsd: v.optional(v.number()),    // superAdmin price override
-    notes: v.optional(v.string()),                  // superAdmin notes
     createdAt: v.number(),
-    updatedAt: v.number(),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_addon", ["siteId", "addOnId"]),
+    .index("by_token_hash", ["tokenHash"]),
 });
