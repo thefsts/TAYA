@@ -1,0 +1,162 @@
+/* FSTS dashboard authentication shell.
+   Clerk owns the authentication behavior; this file only styles the public
+   sign-in/sign-up surfaces so they visually match the client dashboard. */
+
+.cl-rootBox {
+  position: relative;
+  z-index: 20;
+}
+
+.cl-rootBox::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(132, 204, 22, 0.18), transparent 30%),
+    radial-gradient(circle at 86% 78%, rgba(100, 116, 139, 0.18), transparent 28%),
+    linear-gradient(135deg, #07111f 0%, #0f172a 48%, #172033 100%);
+}
+
+.cl-rootBox::after {
+  content: "FSTS WEBSITE OPERATING SYSTEM™";
+  position: fixed;
+  left: 50%;
+  top: 2rem;
+  transform: translateX(-50%);
+  z-index: -1;
+  width: min(90vw, 72rem);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.cl-cardBox {
+  width: min(100%, 460px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  border-radius: 1.25rem !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, 0.985) !important;
+  box-shadow:
+    0 40px 90px -42px rgba(2, 6, 23, 0.9),
+    0 20px 50px -30px rgba(2, 6, 23, 0.7) !important;
+}
+
+.cl-cardBox::before {
+  content: "";
+  display: block;
+  height: 5px;
+  background: linear-gradient(90deg, #4d7c0f, #84cc16, #4d7c0f);
+}
+
+.cl-card {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.cl-logoBox {
+  margin-bottom: 1.25rem !important;
+}
+
+.cl-logoImage {
+  height: 3.4rem !important;
+  width: auto !important;
+}
+
+.cl-headerTitle {
+  color: #0f172a !important;
+  font-size: 1.75rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.cl-headerSubtitle {
+  color: #64748b !important;
+  line-height: 1.6 !important;
+}
+
+.cl-formFieldLabel {
+  color: #1e293b !important;
+  font-weight: 650 !important;
+}
+
+.cl-formFieldInput {
+  min-height: 2.9rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #fff !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+}
+
+.cl-formFieldInput:focus {
+  border-color: #65a30d !important;
+  box-shadow: 0 0 0 4px rgba(101, 163, 13, 0.13) !important;
+}
+
+.cl-formButtonPrimary {
+  min-height: 2.9rem !important;
+  border-radius: 0.75rem !important;
+  background: linear-gradient(180deg, #4d7c0f, #3f6212) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  box-shadow: 0 12px 28px -16px rgba(63, 98, 18, 0.9) !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background: linear-gradient(180deg, #5c8f13, #4d7c0f) !important;
+  transform: translateY(-1px);
+}
+
+.cl-socialButtonsBlockButton {
+  min-height: 2.75rem !important;
+  border-radius: 0.75rem !important;
+  border-color: #cbd5e1 !important;
+  background: #fff !important;
+}
+
+.cl-footer,
+.cl-footerAction {
+  background: #f8fafc !important;
+}
+
+.cl-footerAction {
+  border-top: 1px solid #e2e8f0 !important;
+  padding-block: 1rem !important;
+}
+
+.cl-footerActionLink {
+  color: #4d7c0f !important;
+  font-weight: 700 !important;
+}
+
+.cl-alert {
+  border-radius: 0.75rem !important;
+}
+
+.cl-identityPreview {
+  border-radius: 0.75rem !important;
+}
+
+@media (max-width: 640px) {
+  .cl-rootBox::after {
+    top: 1rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.13em;
+  }
+
+  .cl-cardBox {
+    width: min(100%, calc(100vw - 1.5rem)) !important;
+    border-radius: 1rem !important;
+  }
+
+  .cl-main {
+    padding: 1.35rem !important;
+  }
+
+  .cl-headerTitle {
+    font-size: 1.5rem !important;
+  }
+}
