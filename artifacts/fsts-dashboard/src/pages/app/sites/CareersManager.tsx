@@ -3,32 +3,17 @@ import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Pencil, Plus, Trash2, MapPin, ExternalLink } from "lucide-react";
+import { Briefcase, Eye, EyeOff, ExternalLink, MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 
 const JOB_TYPES = ["Full-Time", "Part-Time", "Contract", "Internship", "Volunteer"];
 
@@ -48,7 +33,6 @@ const emptyForm: JobForm = {
 export default function CareersManager({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const { toast } = useToast();
-
   const items = useQuery(api.careers.list, { siteId });
   const create = useMutation(api.careers.create);
   const update = useMutation(api.careers.update);
@@ -123,125 +107,91 @@ export default function CareersManager({ params }: { params: { siteId: string } 
   }
 
   if (items === undefined) {
-    return <AppLayout siteId={params.siteId}><Skeleton className="h-64" /></AppLayout>;
+    return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
   }
+
+  const activeCount = items.filter((job) => job.isActive).length;
+  const typeCount = new Set(items.map((job) => job.jobType).filter(Boolean)).size;
 
   return (
     <AppLayout siteId={params.siteId}>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Careers</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Manage open positions and job postings shown on your website.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" /> Post Job
-        </Button>
+      <ClientPageHeader
+        eyebrow="Hiring"
+        title="Careers"
+        description="Manage open positions and job postings shown on your public website."
+        actions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Post Job</Button>}
+      />
+
+      <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><Briefcase className="h-3.5 w-3.5" />Total postings</div><p className="mt-1 text-2xl font-semibold text-slate-900">{items.length}</p></div>
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><Eye className="h-3.5 w-3.5" />Visible</div><p className="mt-1 text-2xl font-semibold text-slate-900">{activeCount}</p></div>
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><Users className="h-3.5 w-3.5" />Job types</div><p className="mt-1 text-2xl font-semibold text-slate-900">{typeCount}</p></div>
       </div>
 
-      {items.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-xl">
-          <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500 font-medium">No job postings yet</p>
-          <p className="text-slate-400 text-sm mt-1">Post your first open position to attract candidates.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {items.map((job: NonNullable<typeof items>[number]) => (
-            <div key={job.id} className="bg-white border border-slate-200 rounded-xl p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
+      <ClientSection title="Open Positions" description="Inactive positions remain saved in the dashboard but are not shown to website visitors.">
+        {items.length === 0 ? (
+          <ClientEmptyState
+            icon={Briefcase}
+            title="No job postings yet"
+            description="Post your first open position when you are ready to recruit candidates."
+            action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Post First Job</Button>}
+          />
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {items.map((job: NonNullable<typeof items>[number]) => (
+              <article key={job.id} className="flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-start sm:p-5">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                  <Briefcase className="h-5 w-5 text-slate-500" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-slate-900">{job.title}</p>
                     <Badge variant="outline" className="text-xs">{job.jobType}</Badge>
-                    {!job.isActive && <Badge variant="secondary">Archived</Badge>}
+                    {job.isActive ? (
+                      <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700"><Eye className="mr-1 h-3 w-3" />Visible</Badge>
+                    ) : (
+                      <Badge variant="secondary"><EyeOff className="mr-1 h-3 w-3" />Hidden</Badge>
+                    )}
                   </div>
-                  {job.location && (
-                    <div className="flex items-center gap-1 text-xs text-slate-500 mb-2">
-                      <MapPin className="w-3 h-3" />
-                      {job.location}
-                    </div>
-                  )}
-                  <p className="text-sm text-slate-600 line-clamp-2">{job.description}</p>
+                  {job.location && <div className="mt-1.5 flex items-center gap-1 text-xs text-slate-500"><MapPin className="h-3.5 w-3.5" />{job.location}</div>}
+                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{job.description}</p>
                   {job.applyUrl && (
-                    <a href={job.applyUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
-                      <ExternalLink className="w-3 h-3" /> Apply link
+                    <a href={job.applyUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                      <ExternalLink className="h-3 w-3" />Open application destination
                     </a>
                   )}
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <Button size="sm" variant="outline" onClick={() => openEdit(job)}>
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(job.id)}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                <div className="flex flex-shrink-0 gap-2">
+                  <Button size="sm" variant="outline" onClick={() => openEdit(job)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
+                  <Button size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(job.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+              </article>
+            ))}
+          </div>
+        )}
+      </ClientSection>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{editing ? "Edit Job Posting" : "New Job Posting"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label>Job Title *</Label>
-              <Input className="mt-1" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Firearms Instructor" />
+          <DialogHeader><DialogTitle>{editing ? "Edit Job Posting" : "New Job Posting"}</DialogTitle></DialogHeader>
+          <div className="space-y-5 py-2">
+            <div className="space-y-1.5"><Label>Job Title *</Label><Input value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="e.g. Security Officer" /></div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5"><Label>Type</Label><select className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm" value={form.jobType} onChange={(e) => setForm((current) => ({ ...current, jobType: e.target.value }))}>{JOB_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}</select></div>
+              <div className="space-y-1.5"><Label>Location</Label><Input value={form.location} onChange={(e) => setForm((current) => ({ ...current, location: e.target.value }))} placeholder="e.g. Dallas, TX" /></div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Type</Label>
-                <select
-                  className="mt-1 w-full h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                  value={form.jobType}
-                  onChange={(e) => setForm((f) => ({ ...f, jobType: e.target.value }))}
-                >
-                  {JOB_TYPES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label>Location</Label>
-                <Input className="mt-1" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} placeholder="e.g. Austin, TX" />
-              </div>
-            </div>
-            <div>
-              <Label>Description *</Label>
-              <Textarea className="mt-1" rows={5} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Role overview, responsibilities, and requirements…" />
-            </div>
-            <div>
-              <Label>Apply URL</Label>
-              <Input className="mt-1" value={form.applyUrl} onChange={(e) => setForm((f) => ({ ...f, applyUrl: e.target.value }))} placeholder="https://…/apply or mailto:hr@example.com" />
-            </div>
-            <div className="flex items-center gap-3">
-              <Switch checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} />
-              <Label>Active (visible on website)</Label>
-            </div>
+            <div className="space-y-1.5"><Label>Description *</Label><Textarea rows={6} value={form.description} onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))} placeholder="Role overview, responsibilities, qualifications, and next steps…" /></div>
+            <div className="space-y-1.5"><Label>Application URL</Label><Input value={form.applyUrl} onChange={(e) => setForm((current) => ({ ...current, applyUrl: e.target.value }))} placeholder="https://…/apply or mailto:hr@example.com" /><p className="text-xs leading-5 text-slate-400">Optional. Add the approved application page or recruiting email destination.</p></div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><Label>Visible on website</Label><p className="mt-0.5 text-xs text-slate-500">Turn this off to keep the posting saved without showing it publicly.</p></div><Switch checked={form.isActive} onCheckedChange={(value) => setForm((current) => ({ ...current, isActive: value }))} /></div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={isPending}>{isPending ? "Saving…" : editing ? "Save Changes" : "Post Job"}</Button>
-          </DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button onClick={handleSave} disabled={isPending}>{isPending ? "Saving…" : editing ? "Save Changes" : "Post Job"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete job posting?</AlertDialogTitle>
-            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
-          </AlertDialogFooter>
+          <AlertDialogHeader><AlertDialogTitle>Delete job posting?</AlertDialogTitle><AlertDialogDescription>This permanently removes the posting from the dashboard and website. This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete Posting</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </AppLayout>
