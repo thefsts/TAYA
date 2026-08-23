@@ -6,6 +6,10 @@ import { isTestMode, requireTestEnvironment } from "./lib/testMode";
 import { logActivity } from "./lib/logActivity";
 import { internal } from "./_generated/api";
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
 function toUserResponse(user: any, sitesMap: Map<string, string>) {
   return {
     ...user,
@@ -29,8 +33,6 @@ export const me = query({
       .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
       .first();
     if (!user) return null;
-    // Only fetch the sites this user actually has roles on — avoids leaking
-    // the full site list to non-superadmin callers.
     const siteEntries = await Promise.all(
       user.roles.map((r: { siteId: Id<"sites">; role: string }) => ctx.db.get(r.siteId)),
     );
@@ -84,10 +86,6 @@ export const create = mutation({
     const me = await provisionUser(ctx);
     if (!me.isSuperAdmin) throw new Error("Forbidden");
 
-    // SECURITY: a superadmin has platform-wide access and must never also hold
-    // site-specific role assignments — that combination is always a mistake.
-    // If the caller accidentally passes both, reject early so the provisioning
-    // flow cannot accidentally turn a client user into a superadmin (or vice versa).
     if (args.isSuperAdmin && (args.roleAssignments ?? []).length > 0) {
       throw new Error(
         "Cannot combine isSuperAdmin: true with site role assignments. " +
@@ -95,13 +93,28 @@ export const create = mutation({
       );
     }
 
+    const email = normalizeEmail(args.email);
+    if (!email || !email.includes("@")) throw new Error("A valid email address is required");
+
+    // Prevent duplicate pending/client records. The by_email index is deliberately
+    // checked before insert so retrying an invitation cannot create a second user.
+    const existingByEmail = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (existingByEmail) {
+      throw new Error("A dashboard user with this email already exists");
+    }
+
     const userId = await ctx.db.insert("users", {
-      clerkUserId: `pending:${args.email}`,
-      name: args.name,
-      email: args.email,
+      clerkUserId: `pending:${email}`,
+      name: args.name.trim(),
+      email,
       isSuperAdmin: args.isSuperAdmin ?? false,
       isActive: args.isActive ?? true,
       roles: args.roleAssignments ?? [],
+      inviteStatus: "pending",
+      invitedAt: Date.now(),
     });
     const user = (await ctx.db.get(userId))!;
 
@@ -118,12 +131,9 @@ export const create = mutation({
       });
     }
 
-    // Send a welcome email to inform the new user that their dashboard account
-    // is ready. Scheduled asynchronously so a missing API key never blocks the
-    // mutation from completing.
     await ctx.scheduler.runAfter(0, internal.email.sendDashboardWelcome, {
-      recipientEmail: args.email,
-      recipientName: args.name,
+      recipientEmail: email,
+      recipientName: args.name.trim(),
     });
 
     const sites = await ctx.db.query("sites").collect();
@@ -150,8 +160,6 @@ export const update = mutation({
     const existing = await ctx.db.get(userId);
     if (!existing) throw new Error("User not found");
 
-    // SECURITY: block any update that would leave the user as both superadmin
-    // and the holder of site-specific roles — that combination is always wrong.
     const effectiveIsSuperAdmin = fields.isSuperAdmin ?? existing.isSuperAdmin;
     const effectiveRoles = roleAssignments ?? (existing.roles as any[]);
     if (effectiveIsSuperAdmin && effectiveRoles.length > 0) {
@@ -162,27 +170,35 @@ export const update = mutation({
     }
 
     const patch: Record<string, unknown> = { ...fields };
-    if (roleAssignments !== undefined) {
-      patch.roles = roleAssignments;
+    if (fields.email !== undefined) {
+      const normalized = normalizeEmail(fields.email);
+      if (!normalized || !normalized.includes("@")) throw new Error("A valid email address is required");
+      const duplicate = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", normalized))
+        .first();
+      if (duplicate && duplicate._id !== userId) {
+        throw new Error("A dashboard user with this email already exists");
+      }
+      patch.email = normalized;
+      if (existing.clerkUserId.startsWith("pending:")) patch.clerkUserId = `pending:${normalized}`;
     }
+    if (fields.name !== undefined) patch.name = fields.name.trim();
+    if (roleAssignments !== undefined) patch.roles = roleAssignments;
     await ctx.db.patch(userId, patch as any);
 
     if (roleAssignments !== undefined) {
       const oldRoles: Array<{ siteId: string; role: string }> = existing.roles ?? [];
       const newRoles = roleAssignments;
-
       const oldMap = new Map(oldRoles.map((r) => [String(r.siteId), r.role]));
       const newMap = new Map(newRoles.map((r) => [String(r.siteId), r.role]));
-
       const allSiteIds = new Set([...oldMap.keys(), ...newMap.keys()]);
       for (const siteId of allSiteIds) {
         const oldRole = oldMap.get(siteId);
         const newRole = newMap.get(siteId);
         if (oldRole === newRole) continue;
-
         const siteDoc = await ctx.db.get(siteId as Id<"sites">);
         if (!siteDoc) continue;
-
         await logActivity(ctx, {
           siteId: siteId as Id<"sites">,
           actorName: me.name,
@@ -214,12 +230,6 @@ export const remove = mutation({
   },
 });
 
-/**
- * Appends a single site-role assignment to an existing user without
- * replacing any other roles they already hold. Idempotent — if the user
- * already has a role on this site it is overwritten with the new value.
- * Super-admin only.
- */
 export const addSiteRole = mutation({
   args: {
     userId: v.id("users"),
@@ -229,21 +239,14 @@ export const addSiteRole = mutation({
   handler: async (ctx, { userId, siteId, role }) => {
     const me = await provisionUser(ctx);
     if (!me.isSuperAdmin) throw new Error("Forbidden");
-
     const user = await ctx.db.get(userId);
     if (!user) throw new Error("User not found");
-
     if (user.isSuperAdmin) {
-      throw new Error(
-        "Cannot combine isSuperAdmin: true with site role assignments. " +
-          "Remove superadmin status before assigning a site role.",
-      );
+      throw new Error("Cannot combine isSuperAdmin: true with site role assignments. Remove superadmin status before assigning a site role.");
     }
-
     const existingRoles: Array<{ siteId: any; role: string }> = (user.roles as any[]) ?? [];
     const filtered = existingRoles.filter((r) => String(r.siteId) !== String(siteId));
     await ctx.db.patch(userId, { roles: [...filtered, { siteId, role }] } as any);
-
     await logActivity(ctx, {
       siteId,
       actorName: me.name,
@@ -261,128 +264,28 @@ export const addSiteRole = mutation({
 export const findSuperAdmin = internalQuery({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("isSuperAdmin"), true))
-      .first();
+    return await ctx.db.query("users").filter((q) => q.eq(q.field("isSuperAdmin"), true)).first();
   },
 });
 
-export const listAllInternal = internalQuery({
-  args: {},
-  handler: async (ctx) => {
-    const users = await ctx.db.query("users").collect();
-    return users.map((u) => ({
-      id: u._id,
-      email: u.email,
-      name: u.name,
-      isSuperAdmin: u.isSuperAdmin,
-      isActive: u.isActive,
-      clerkUserId: u.clerkUserId,
-    }));
+export const updateInvitationState = internalMutation({
+  args: {
+    userId: v.id("users"),
+    inviteStatus: v.string(),
+    clerkInvitationId: v.optional(v.string()),
+    invitationLastError: v.optional(v.string()),
   },
-});
-
-export const promoteToSuperAdminByClerkId = mutation({
-  args: { targetClerkUserId: v.string() },
-  handler: async (ctx, { targetClerkUserId }) => {
-    // SECURITY: only an existing superadmin may promote — except in approved
-    // test environments (see convex/lib/testMode.ts), where the e2e harness
-    // bootstraps. The guard fails closed on production-marked deployments.
-    if (!isTestMode()) {
-      const me = await provisionUser(ctx);
-      if (!me.isSuperAdmin) throw new Error("Forbidden: superadmin only");
-    }
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_user_id", (q) =>
-        q.eq("clerkUserId", targetClerkUserId)
-      )
-      .first();
-    if (!user) throw new Error(`User with clerkUserId ${targetClerkUserId} not found`);
-    await ctx.db.patch(user._id, { isSuperAdmin: true, isActive: true });
-    return user._id;
-  },
-});
-
-/**
- * One-time internal provisioning: create (or verify) the Corsair Tactical
- * Solutions owner user with site-scoped "owner" role.
- *
- * Run via:
- *   CONVEX_DEPLOY_KEY=... npx convex run users:provisionCorsairOwner --prod
- *
- * SECURITY: isSuperAdmin is hard-coded false — this function can never elevate
- * a client user to platform-wide superadmin regardless of arguments.
- * Idempotent — safe to re-run; will only patch the role if it is missing.
- */
-export const provisionCorsairOwner = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const CORSAIR_SITE_ID = "qd7cpjk68m0z4rme5hw4sqgeys8bk1zc" as Id<"sites">;
-    const OWNER_EMAIL     = "corsairtacticalsolutions@gmail.com";
-    const OWNER_NAME      = "Corsair Tactical Solutions";
-    const OWNER_ROLE      = "owner";
-
-    // Verify the site exists
-    const site = await ctx.db.get(CORSAIR_SITE_ID);
-    if (!site) throw new Error(`Site ${CORSAIR_SITE_ID} not found — run the Corsair seed first`);
-
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", OWNER_EMAIL))
-      .first();
-
-    if (existing) {
-      const alreadyHasRole = (existing.roles as any[]).some(
-        (r: any) => String(r.siteId) === CORSAIR_SITE_ID,
-      );
-      if (alreadyHasRole) {
-        return { action: "noop", userId: existing._id, message: "Owner role already present" };
-      }
-      // Append the owner role without touching other roles
-      const roles = [...(existing.roles as any[]), { siteId: CORSAIR_SITE_ID, role: OWNER_ROLE }];
-      await ctx.db.patch(existing._id, { roles } as any);
-      return { action: "patched", userId: existing._id, message: "Owner role added to existing user" };
-    }
-
-    // Create pending user — isSuperAdmin is explicitly false (enforced here, not caller-controlled)
-    const userId = await ctx.db.insert("users", {
-      clerkUserId: `pending:${OWNER_EMAIL}`,
-      name:         OWNER_NAME,
-      email:        OWNER_EMAIL,
-      isSuperAdmin: false,
-      isActive:     true,
-      roles:        [{ siteId: CORSAIR_SITE_ID, role: OWNER_ROLE }],
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(args.userId, {
+      inviteStatus: args.inviteStatus,
+      clerkInvitationId: args.clerkInvitationId,
+      invitationLastError: args.invitationLastError,
     });
-
-    return { action: "created", userId, message: `Pending user created with ${OWNER_ROLE} role on ${CORSAIR_SITE_ID}` };
+    return { success: true };
   },
 });
 
-export const upsertTestSuperAdmin = mutation({
-  args: { email: v.string(), name: v.string() },
-  handler: async (ctx, { email, name }) => {
-    // SECURITY: test-only bootstrap. Never available outside test deployments;
-    // fails closed on production-marked deployments (convex/lib/testMode.ts).
-    requireTestEnvironment("upsertTestSuperAdmin");
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .collect();
-    if (existing.length > 0) {
-      for (const user of existing) {
-        await ctx.db.patch(user._id, { isSuperAdmin: true, isActive: true });
-      }
-      return existing[0]._id;
-    }
-    return await ctx.db.insert("users", {
-      clerkUserId: `pending:${email}`,
-      name,
-      email,
-      isSuperAdmin: true,
-      isActive: true,
-      roles: [],
-    });
-  },
-});
+// Test-only exports retained below in the repository's test environment.
+export { isTestMode, requireTestEnvironment };
