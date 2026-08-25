@@ -13,6 +13,11 @@ import {
  * All roles that can perform write mutations on a site by default.
  * Legacy roles kept for backward compat; new Phase 9 roles derived from
  * the capability matrix (any role with at least one edit/manage module).
+ *
+ * internal_qa is an FSTS-only operational role. It is deliberately NOT a
+ * client Owner role, but receives owner-equivalent site-tool access so FSTS
+ * can run controlled QA against a client tenant without impersonating the
+ * client's Clerk account. Design-tier mutations remain superadmin-only.
  */
 const WRITE_ROLES = new Set([
   // Legacy roles
@@ -24,6 +29,8 @@ const WRITE_ROLES = new Set([
   "manager",
   "marketing_manager",
   "training_manager",
+  // FSTS operational role
+  "internal_qa",
   // Phase 9 roles with write capabilities
   "owner",
   "marketing",
@@ -53,7 +60,11 @@ async function effectiveLevel(
     .collect();
   const override = overrideRows.find((r) => r.module === module);
   if (override) return override.level as PermissionLevel;
-  const caps = ROLE_CAPABILITIES[role as Role];
+
+  // FSTS Internal QA uses the same client-facing module capability level as
+  // Owner, but stays a distinct role in user records and audit logs.
+  const capabilityRole = role === "internal_qa" ? "owner" : role;
+  const caps = ROLE_CAPABILITIES[capabilityRole as Role];
   if (!caps) return "none";
   return caps[module] ?? "none";
 }
@@ -216,6 +227,9 @@ export async function requireModuleEnabled(
  * design-tier capabilities (navigation, footer, email config, integrations,
  * system settings, and branding). Client-role users are blocked even if they
  * have write access to the site.
+ *
+ * This intentionally includes internal_qa: QA can exercise normal client
+ * workflows but cannot silently cross the FSTS design/engineering boundary.
  */
 export async function requireDesignCapability(
   ctx: MutationCtx,
