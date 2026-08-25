@@ -1,0 +1,19 @@
+FSTS WEBSITE OPERATING SYSTEM PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2026 Full Stack Tech & Solutions LLC. All Rights Reserved.
+
+The FSTS Website Operating System (FSTS-WOS), including the FSTS Client Dashboard for Sites and its proprietary source code, architecture, multi-tenant systems, CMS functionality, onboarding systems, dashboards, editors, managers, APIs, schemas, workflows, AI-assisted features, media systems, forms systems, health/monitoring systems, integrations, documentation, designs, and related original materials (collectively, the "Software"), is proprietary technology owned by Full Stack Tech & Solutions LLC ("FSTS"), except for identified third-party materials.
+
+NO OPEN-SOURCE LICENSE IS GRANTED FOR FSTS PROPRIETARY CODE.
+
+Access to this repository does not grant ownership or a license except as expressly authorized in a separate written agreement executed by FSTS.
+
+FSTS may use the Software to power websites and services built for its own customers and may commercially license the Software through SaaS, enterprise, agency/reseller, white-label, OEM, or other authorized arrangements. Customer branding, content, configuration, and data do not transfer ownership of the underlying Software.
+
+A white-label, reseller, agency, enterprise, or OEM customer receives only the rights expressly stated in its executed agreement. White-label rights do not by themselves include source-code ownership, repository access, sublicensing rights, or an assignment of FSTS intellectual property.
+
+Without prior written authorization from FSTS, no person or entity may copy, publish, distribute, sublicense, sell, transfer, disclose, create unauthorized derivative products from, reverse engineer, decompile, disassemble, commercially exploit, or use the Software to develop or assist a competing platform, except where a restriction is prohibited by applicable law.
+
+Third-party libraries, packages, services, trademarks, and other materials remain subject to their respective licenses and ownership rights.
+
+All Rights Reserved.
