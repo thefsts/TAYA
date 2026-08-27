@@ -7,6 +7,7 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 // On Vercel, `vite build` runs without PORT/BASE_PATH (those only matter for
 // the Replit dev/preview server) and the app is served from the domain root.
 const isVercelBuild = process.env.VERCEL === "1";
+const isProduction = process.env.NODE_ENV === "production";
 
 const rawPort = process.env.PORT ?? (isVercelBuild ? "0" : undefined);
 
@@ -35,8 +36,11 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
+    // Runtime error overlays are useful during development but should never be
+    // shipped in the production client bundle, where they can expose internal
+    // implementation details to end users.
+    ...(!isProduction ? [runtimeErrorOverlay()] : []),
+    ...(!isProduction &&
     process.env.REPL_ID !== undefined
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
@@ -73,6 +77,9 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    // Browser-delivered JavaScript can always be inspected, but production
+    // source maps unnecessarily expose original source structure and names.
+    sourcemap: false,
   },
   server: {
     port,
