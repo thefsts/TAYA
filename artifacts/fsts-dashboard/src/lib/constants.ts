@@ -1,10 +1,10 @@
 /**
- * Shared frontend constants for the FSTS Client Dashboard.
+ * Shared frontend constants for the TAYA Website Operating System.
  */
 
 /**
  * Fraction of capacity at which a class/event is considered "Nearly Full".
- * Mirrors the value in convex/lib/constants.ts — keep them in sync.
+ * Mirrors the value in convex/lib/constants.ts - keep them in sync.
  */
 export const NEARLY_FULL_THRESHOLD = 0.9;
 
