@@ -29,3 +29,7 @@ importers:
       vite:
         specifier: 7.3.3
         version: 7.3.3
+
+packages: {}
+
+snapshots: {}
