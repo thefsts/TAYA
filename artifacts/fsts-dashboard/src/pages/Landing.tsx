@@ -1,16 +1,17 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { useUser } from "@clerk/react";
 
-/** TAYA marketing is deployed separately; the system root is an auth gate. */
+/**
+ * TAYA marketing is deployed separately; the system root is an auth gate.
+ * Route immediately instead of waiting on Clerk initialization so a frontend
+ * API problem cannot trap users forever on the opening spinner.
+ */
 export default function Landing() {
   const [, setLocation] = useLocation();
-  const { isLoaded, isSignedIn } = useUser();
 
   useEffect(() => {
-    if (!isLoaded) return;
-    setLocation(isSignedIn ? "/app" : "/sign-in");
-  }, [isLoaded, isSignedIn, setLocation]);
+    setLocation("/sign-in", { replace: true });
+  }, [setLocation]);
 
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
