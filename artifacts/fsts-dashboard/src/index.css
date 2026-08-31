@@ -58,86 +58,98 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* TACTICAL / CONTROL ROOM LIGHT MODE */
+/* TAYA BRAND SYSTEM
+   Logo palette: hot pink -> magenta -> violet -> electric blue -> cyan -> orange -> yellow.
+   Navy remains the structural base so the logo spectrum stays bright and legible. */
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
+  --taya-pink: #ff1493;
+  --taya-magenta: #ec0dc6;
+  --taya-violet: #7c3cff;
+  --taya-blue: #246bfe;
+  --taya-cyan: #00c8ff;
+  --taya-orange: #ff6b1a;
+  --taya-yellow: #ffc928;
+  --taya-navy: #071126;
+  --taya-navy-soft: #0d1830;
+
+  --background: 220 33% 98%;
+  --foreground: 222 54% 12%;
 
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --card-border: 214 32% 91%;
+  --card-foreground: 222 54% 12%;
+  --card-border: 220 24% 89%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --popover-border: 214 32% 91%;
+  --popover-foreground: 222 54% 12%;
+  --popover-border: 220 24% 89%;
 
-  --primary: 84 65% 25%;
+  --primary: 318 86% 49%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 214 32% 91%;
-  --secondary-foreground: 222 47% 11%;
+  --secondary: 224 100% 57%;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
+  --muted: 220 33% 96%;
+  --muted-foreground: 218 15% 43%;
 
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 191 100% 50%;
+  --accent-foreground: 222 54% 12%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 84 65% 25%;
+  --border: 220 24% 89%;
+  --input: 220 24% 89%;
+  --ring: 224 100% 57%;
 
-  --sidebar: 222 47% 11%;
+  --sidebar: 222 69% 9%;
   --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 222 47% 11%;
-  --sidebar-primary: 84 65% 25%;
+  --sidebar-border: 222 47% 16%;
+  --sidebar-primary: 318 86% 49%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 217 33% 17%;
+  --sidebar-accent: 255 45% 19%;
   --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-ring: 84 65% 25%;
+  --sidebar-ring: 191 100% 50%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-mono: 'Space Mono', monospace;
-  --radius: 0.25rem;
+  --radius: 0.55rem;
 
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(6, 17, 38, .04);
+  --elevate-2: rgba(6, 17, 38, .10);
 }
 
 .dark {
-  --background: 222 47% 11%;
+  --background: 222 69% 7%;
   --foreground: 210 40% 98%;
 
-  --card: 217 33% 17%;
+  --card: 222 58% 11%;
   --card-foreground: 210 40% 98%;
-  --card-border: 215 28% 22%;
+  --card-border: 222 39% 21%;
 
-  --popover: 217 33% 17%;
+  --popover: 222 58% 11%;
   --popover-foreground: 210 40% 98%;
-  --popover-border: 215 28% 22%;
+  --popover-border: 222 39% 21%;
 
-  --primary: 84 65% 40%;
+  --primary: 318 91% 56%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 215 28% 22%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 224 100% 62%;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 215 28% 22%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 222 39% 18%;
+  --muted-foreground: 215 20% 70%;
 
-  --accent: 215 28% 22%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 191 100% 50%;
+  --accent-foreground: 222 69% 8%;
 
-  --destructive: 0 62% 30%;
+  --destructive: 0 67% 39%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 215 28% 22%;
-  --input: 215 28% 22%;
-  --ring: 84 65% 40%;
+  --border: 222 39% 21%;
+  --input: 222 39% 21%;
+  --ring: 224 100% 62%;
 }
 
 @layer base {
@@ -154,10 +166,56 @@
     @apply font-sans antialiased bg-background text-foreground;
     min-height: 100dvh;
   }
+
+  ::selection {
+    background: rgb(236 13 198 / 0.28);
+  }
 }
 
-/* Client authentication polish. Clerk retains ownership of auth behavior;
-   these styles only establish the FSTS visual system around its components. */
+/* TAYA spectrum utility for brand surfaces. */
+.taya-spectrum {
+  background: linear-gradient(90deg, var(--taya-pink), var(--taya-magenta), var(--taya-violet), var(--taya-blue), var(--taya-cyan), var(--taya-orange), var(--taya-yellow));
+}
+
+/* Authentication branding. The old FSTS logo is intentionally suppressed here;
+   FSTS remains the owner/security identity while TAYA is the product identity. */
+img[alt="Full Stack Tech Solutions"] {
+  display: none;
+}
+
+img[alt="Full Stack Tech Solutions"] + p {
+  margin: 0 0 0.75rem;
+  font-size: 0 !important;
+  line-height: 1;
+  text-align: center;
+}
+
+img[alt="Full Stack Tech Solutions"] + p::before {
+  content: "TAYA";
+  display: block;
+  font-size: clamp(2.75rem, 8vw, 4.75rem);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  padding-left: 0.18em;
+  line-height: 1;
+  color: transparent;
+  background: linear-gradient(90deg, var(--taya-pink) 0%, var(--taya-violet) 35%, var(--taya-cyan) 64%, var(--taya-orange) 84%, var(--taya-yellow) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 8px 22px rgb(36 107 254 / 0.18));
+}
+
+img[alt="Full Stack Tech Solutions"] + p::after {
+  content: "TOOLS. AUTOMATION. YOUR ADVANTAGE.";
+  display: block;
+  margin-top: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #64748b;
+}
+
+/* Clerk remains responsible for authentication behavior; these styles only apply TAYA visuals. */
 .cl-rootBox {
   position: relative;
   z-index: 1;
@@ -166,11 +224,12 @@
 .cl-cardBox {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgb(203 213 225 / 0.95) !important;
-  border-radius: 1rem !important;
+  border: 1px solid rgb(51 65 85 / 0.9) !important;
+  border-radius: 1.1rem !important;
+  background: linear-gradient(180deg, rgb(13 24 48 / 0.98), rgb(7 17 38 / 0.99)) !important;
   box-shadow:
-    0 24px 70px -32px rgb(15 23 42 / 0.45),
-    0 10px 30px -18px rgb(15 23 42 / 0.3) !important;
+    0 34px 90px -38px rgb(36 107 254 / 0.45),
+    0 18px 45px -30px rgb(236 13 198 / 0.6) !important;
 }
 
 .cl-cardBox::before {
@@ -179,11 +238,13 @@
   inset: 0 0 auto 0;
   height: 4px;
   z-index: 2;
-  background: linear-gradient(90deg, hsl(84 65% 25%), hsl(84 65% 38%), hsl(84 65% 25%));
+  background: linear-gradient(90deg, var(--taya-pink), var(--taya-magenta), var(--taya-violet), var(--taya-blue), var(--taya-cyan), var(--taya-orange), var(--taya-yellow));
 }
 
 .cl-card {
   padding-top: 0.5rem !important;
+  background: transparent !important;
+  color: #f8fafc !important;
 }
 
 .cl-header {
@@ -192,55 +253,102 @@
 
 .cl-headerTitle {
   letter-spacing: -0.025em !important;
+  color: #f8fafc !important;
 }
 
-.cl-headerSubtitle {
-  line-height: 1.5 !important;
+.cl-headerSubtitle,
+.cl-footerActionText,
+.cl-dividerText {
+  color: #94a3b8 !important;
+}
+
+.cl-formFieldLabel,
+.cl-socialButtonsBlockButtonText,
+.cl-identityPreviewText {
+  color: #e2e8f0 !important;
 }
 
 .cl-formFieldInput {
   min-height: 2.75rem !important;
-  border-radius: 0.625rem !important;
+  border-radius: 0.7rem !important;
+  border-color: rgb(51 65 85) !important;
+  background: rgb(8 18 39 / 0.9) !important;
+  color: #f8fafc !important;
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
 .cl-formFieldInput:hover {
-  border-color: rgb(148 163 184) !important;
+  border-color: rgb(80 102 143) !important;
 }
 
 .cl-formFieldInput:focus {
-  border-color: hsl(84 65% 32%) !important;
-  box-shadow: 0 0 0 3px hsl(84 65% 35% / 0.14) !important;
+  border-color: var(--taya-blue) !important;
+  box-shadow: 0 0 0 3px rgb(36 107 254 / 0.18), 0 0 24px rgb(236 13 198 / 0.08) !important;
 }
 
 .cl-formButtonPrimary {
-  min-height: 2.75rem !important;
-  border-radius: 0.625rem !important;
-  box-shadow: 0 8px 18px -12px hsl(84 65% 20% / 0.75) !important;
-  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease !important;
+  min-height: 2.8rem !important;
+  border: 0 !important;
+  border-radius: 0.7rem !important;
+  color: white !important;
+  background: linear-gradient(90deg, var(--taya-magenta), var(--taya-pink) 35%, var(--taya-violet) 62%, var(--taya-blue) 100%) !important;
+  box-shadow: 0 12px 24px -14px rgb(236 13 198 / 0.9) !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease !important;
 }
 
 .cl-formButtonPrimary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 22px -13px hsl(84 65% 20% / 0.8) !important;
+  filter: brightness(1.08);
+  box-shadow: 0 16px 30px -15px rgb(36 107 254 / 0.9) !important;
 }
 
 .cl-socialButtonsBlockButton {
   min-height: 2.65rem !important;
-  border-radius: 0.625rem !important;
+  border-radius: 0.7rem !important;
+  border-color: rgb(51 65 85) !important;
+  background: rgb(8 18 39 / 0.7) !important;
+  color: #f8fafc !important;
 }
 
 .cl-footer {
-  background: linear-gradient(180deg, rgb(248 250 252 / 0.55), rgb(248 250 252)) !important;
+  background: rgb(8 18 39 / 0.7) !important;
 }
 
 .cl-footerAction {
-  border-radius: 0 0 0.95rem 0.95rem !important;
+  border-radius: 0 0 1rem 1rem !important;
+  border-color: rgb(51 65 85) !important;
 }
 
-/* Shared polish for legacy client CMS managers while they are migrated to the
-   ClientPage primitives. These selectors intentionally target semantic form and
-   table surfaces inside the authenticated workspace without changing behavior. */
+.cl-footerActionLink,
+.cl-identityPreviewEditButton {
+  color: #38bdf8 !important;
+}
+
+/* Give the actual system a restrained TAYA spectrum rather than painting every control rainbow. */
+aside,
+[data-sidebar="sidebar"] {
+  background: linear-gradient(180deg, #071126 0%, #0b1530 56%, #071126 100%) !important;
+}
+
+aside::before,
+[data-sidebar="sidebar"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--taya-pink), var(--taya-violet), var(--taya-blue), var(--taya-cyan), var(--taya-orange));
+  pointer-events: none;
+}
+
+main a:focus-visible,
+main button:focus-visible,
+main input:focus,
+main textarea:focus,
+main button[role="combobox"]:focus-visible {
+  box-shadow: 0 0 0 3px rgb(36 107 254 / 0.16);
+}
+
+/* Shared polish for legacy client CMS managers while they are migrated to ClientPage primitives. */
 main table {
   border-collapse: separate;
   border-spacing: 0;
@@ -264,14 +372,8 @@ main button[role="combobox"] {
   transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
-main input:focus,
-main textarea:focus,
-main button[role="combobox"]:focus-visible {
-  box-shadow: 0 0 0 3px hsl(84 65% 35% / 0.11);
-}
-
 main [role="dialog"] {
-  box-shadow: 0 30px 80px -35px rgb(15 23 42 / 0.45);
+  box-shadow: 0 30px 80px -35px rgb(7 17 38 / 0.48);
 }
 
 main [role="tablist"] {
@@ -306,10 +408,19 @@ main [role="tab"] {
 }
 
 @media (max-width: 640px) {
+  img[alt="Full Stack Tech Solutions"] + p::before {
+    font-size: 2.8rem;
+  }
+
+  img[alt="Full Stack Tech Solutions"] + p::after {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+
   .cl-cardBox {
     width: min(100%, 28rem) !important;
-    border-radius: 0.875rem !important;
-    box-shadow: 0 18px 45px -28px rgb(15 23 42 / 0.45) !important;
+    border-radius: 0.9rem !important;
+    box-shadow: 0 18px 45px -28px rgb(36 107 254 / 0.45) !important;
   }
 
   .cl-main {
