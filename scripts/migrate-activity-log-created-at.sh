@@ -42,19 +42,53 @@ function replaceTable(name, nextName, replacement) {
   source = source.slice(0, start) + block + source.slice(end);
 }
 
-{
-  const start = source.indexOf('  siteSettings: defineTable({');
-  const end = source.indexOf('  }).index("by_site", ["siteId"]),', start);
-  if (start < 0 || end < 0) throw new Error('siteSettings not found');
-  let block = source.slice(start, end);
-  if (!block.includes('websiteType:')) {
-    block = block.replace(
-      '    faviconUrl: v.optional(v.string()),',
-      '    faviconUrl: v.optional(v.string()),\n    websiteType: v.optional(v.string()),'
-    );
-  }
-  source = source.slice(0, start) + block + source.slice(end);
-}
+// Canonical siteSettings contract. Every field written by siteSettings.ts is
+// represented here. Fields are optional because settings are saved in groups
+// and legacy tenants may not have every group yet.
+replaceTable('siteSettings', 'navigationItems', `  siteSettings: defineTable({
+    siteId: v.id("sites"),
+    businessName: v.optional(v.string()),
+    tagline: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
+    faviconUrl: v.optional(v.string()),
+    websiteType: v.optional(v.string()),
+    timezone: v.optional(v.string()),
+    locale: v.optional(v.string()),
+    primaryColor: v.optional(v.string()),
+    accentColor: v.optional(v.string()),
+    brandColorPrimary: v.optional(v.string()),
+    brandColorSecondary: v.optional(v.string()),
+    brandColorAccent: v.optional(v.string()),
+    fontHeading: v.optional(v.string()),
+    fontBody: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    address: v.optional(v.string()),
+    businessHours: v.optional(v.any()),
+    socialLinks: v.optional(v.any()),
+    seoGlobalTitle: v.optional(v.string()),
+    seoGlobalDescription: v.optional(v.string()),
+    seoOgImageUrl: v.optional(v.string()),
+    analyticsGa4: v.optional(v.string()),
+    analyticsGtm: v.optional(v.string()),
+    analyticsPixel: v.optional(v.string()),
+    cookieConsentEnabled: v.optional(v.boolean()),
+    cookiePolicyUrl: v.optional(v.string()),
+    privacyPolicyUrl: v.optional(v.string()),
+    termsOfServiceUrl: v.optional(v.string()),
+    notificationEmail: v.optional(v.string()),
+    senderName: v.optional(v.string()),
+    replyToEmail: v.optional(v.string()),
+    googlePlaceId: v.optional(v.string()),
+    showCancelledEvents: v.optional(v.boolean()),
+    identityUpdatedAt: v.optional(v.number()),
+    brandingUpdatedAt: v.optional(v.number()),
+    contactUpdatedAt: v.optional(v.number()),
+    seoUpdatedAt: v.optional(v.number()),
+    integrationsUpdatedAt: v.optional(v.number()),
+    legalUpdatedAt: v.optional(v.number()),
+    eventsUpdatedAt: v.optional(v.number()),
+  }).index("by_site", ["siteId"]),`);
 
 replaceTable('portalUsers', 'portalSessions', `  portalUsers: defineTable({
     siteId: v.id("sites"),
@@ -96,13 +130,13 @@ fs.writeFileSync(path, source);
 NODE
 }
 
-echo "[1/5] Preparing migration-safe schema..."
+echo "[1/5] Preparing migration-safe complete schema contract..."
 patch_schema optional
 echo "[2/5] Deploying migration-safe production schema..."
 pnpm exec convex deploy --yes
 echo "[3/5] Backfilling activityLog.createdAt..."
 pnpm exec convex run migrations/activityLogCreatedAt:backfill
-echo "[4/5] Restoring strict activityLog schema..."
+echo "[4/5] Restoring strict activityLog while retaining corrected contracts..."
 cp "$BACKUP_FILE" "$SCHEMA_FILE"
 patch_schema strict
 rm -f "$BACKUP_FILE"
@@ -110,3 +144,4 @@ trap - EXIT
 echo "[5/5] Deploying corrected strict production schema..."
 pnpm exec convex deploy --yes
 echo "SUCCESS: production migration completed."
+echo "NOTE: convex/schema.ts now contains the corrected production contract and must be committed."
