@@ -1,0 +1,45 @@
+name: TAYA System Quality Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.1
+          run_install: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TAYA runtime and branding audit
+        run: bash scripts/check-taya-system-audit.sh
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Convex unit tests
+        run: pnpm run test:convex-unit
+
+      - name: Design Lock tests
+        run: pnpm run test:design-lock
+
+      - name: Production build
+        run: pnpm run build
