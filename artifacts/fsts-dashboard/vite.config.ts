@@ -17,6 +17,13 @@ const basePath = process.env.BASE_PATH ?? "/";
 export default defineConfig({
   base: basePath,
   plugins: [react(), tailwindcss()],
+  // TAYA production uses Clerk's verified custom domain directly. This
+  // intentionally neutralizes the retired proxy variable even if an old value
+  // still exists in Vercel, preventing the client bundle from re-enabling the
+  // legacy proxy flow.
+  define: {
+    "import.meta.env.VITE_CLERK_PROXY_URL": "undefined",
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
