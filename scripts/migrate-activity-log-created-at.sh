@@ -13,6 +13,7 @@ esac
 
 SCHEMA_FILE="convex/schema.ts"
 BACKUP_FILE="convex/schema.ts.taya-migration-backup"
+[ -f "$SCHEMA_FILE" ] || { echo "ERROR: $SCHEMA_FILE not found." >&2; exit 1; }
 cp "$SCHEMA_FILE" "$BACKUP_FILE"
 restore_schema() { [ ! -f "$BACKUP_FILE" ] || mv "$BACKUP_FILE" "$SCHEMA_FILE"; }
 trap restore_schema EXIT
@@ -28,24 +29,63 @@ let source = fs.readFileSync(path, 'utf8');
 function replaceTable(name, nextName, replacement) {
   const start = source.indexOf(`  ${name}: defineTable({`);
   const end = source.indexOf(`  ${nextName}: defineTable({`, start);
-  if (start < 0 || end < 0) throw new Error(`Could not locate ${name}`);
+  if (start < 0 || end < 0) throw new Error(`Could not locate ${name} before ${nextName}`);
   source = source.slice(0, start) + replacement + '\n\n' + source.slice(end);
 }
 
+// Preserve the full production schema while adding the four Clerk invitation
+// metadata fields introduced after the last complete schema snapshot.
+{
+  const start = source.indexOf('  users: defineTable({');
+  const end = source.indexOf('  homepageContent: defineTable({', start);
+  if (start < 0 || end < 0) throw new Error('users not found');
+  let block = source.slice(start, end);
+  if (!block.includes('inviteStatus:')) {
+    block = block.replace(
+      '    // Phase 10 — Agency Edition™',
+      '    // Clerk invitation metadata. No invitation secret is persisted in Convex.\n    inviteStatus: v.optional(v.string()),\n    invitedAt: v.optional(v.number()),\n    clerkInvitationId: v.optional(v.string()),\n    invitationLastError: v.optional(v.string()),\n    // Phase 10 — Agency Edition™'
+    );
+  }
+  source = source.slice(0, start) + block + source.slice(end);
+}
+
+// Keep both historical heroStorageId and the current derivative fields so
+// existing media records and the current media pipeline validate together.
+{
+  const start = source.indexOf('  mediaAssets: defineTable({');
+  const end = source.indexOf('  squareConfig: defineTable({', start);
+  if (start < 0 || end < 0) throw new Error('mediaAssets not found');
+  let block = source.slice(start, end);
+  if (!block.includes('large2xStorageId:')) {
+    block = block.replace(
+      '    heroStorageId: v.optional(v.id("_storage")),',
+      '    heroStorageId: v.optional(v.id("_storage")),\n    large2xStorageId: v.optional(v.id("_storage")),\n    derivativesGeneratedAt: v.optional(v.number()),\n    processingStatus: v.optional(v.string()),\n    processingError: v.optional(v.string()),'
+    );
+  }
+  source = source.slice(0, start) + block + source.slice(end);
+}
+
+// Legacy activity rows predate createdAt. Make it optional for the first deploy,
+// backfill from Convex _creationTime, then require it in the final schema.
 {
   const start = source.indexOf('  activityLog: defineTable({');
   const end = source.indexOf('  }).index("by_site", ["siteId"]),', start);
   if (start < 0 || end < 0) throw new Error('activityLog not found');
   let block = source.slice(start, end);
+  if (!block.includes('createdAt:')) {
+    block = block.replace(
+      '    details: v.optional(v.string()),',
+      '    details: v.optional(v.string()),\n    createdAt: v.number(),'
+    );
+  }
   block = block.replace('createdAt: v.optional(v.number()),', 'createdAt: v.number(),');
   if (mode === 'optional') block = block.replace('createdAt: v.number(),', 'createdAt: v.optional(v.number()),');
   source = source.slice(0, start) + block + source.slice(end);
 }
 
-// Canonical siteSettings contract. Every field written by siteSettings.ts is
-// represented here. Fields are optional because settings are saved in groups
-// and legacy tenants may not have every group yet.
-replaceTable('siteSettings', 'navigationItems', `  siteSettings: defineTable({
+// Canonical Website Settings contract. All fields are optional because settings
+// are saved in independent groups and legacy tenants may not have every group.
+replaceTable('siteSettings', 'siteRoleOverrides', `  siteSettings: defineTable({
     siteId: v.id("sites"),
     businessName: v.optional(v.string()),
     tagline: v.optional(v.string()),
@@ -90,6 +130,8 @@ replaceTable('siteSettings', 'navigationItems', `  siteSettings: defineTable({
     eventsUpdatedAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),`);
 
+// Portal compatibility: preserve fields written by the active portal code while
+// accepting legacy rows created by earlier portal implementations.
 replaceTable('portalUsers', 'portalSessions', `  portalUsers: defineTable({
     siteId: v.id("sites"),
     email: v.string(),
@@ -102,17 +144,17 @@ replaceTable('portalUsers', 'portalSessions', `  portalUsers: defineTable({
     role: v.optional(v.string()),
     status: v.optional(v.string()),
     emailVerified: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
+    profileData: v.optional(v.any()),
     failedLoginCount: v.optional(v.number()),
     lockedUntil: v.optional(v.number()),
     createdAt: v.optional(v.number()),
   })
     .index("by_site", ["siteId"])
-    .index("by_site_email", ["siteId", "email"]),`);
+    .index("by_site_email", ["siteId", "email"])
+    .index("by_email", ["email"]),`);
 
-const sessionStart = source.indexOf('  portalSessions: defineTable({');
-const schemaEnd = source.lastIndexOf('\n});');
-if (sessionStart < 0 || schemaEnd < sessionStart) throw new Error('portalSessions not found');
-const sessions = `  portalSessions: defineTable({
+replaceTable('portalSessions', 'onboardingProgress', `  portalSessions: defineTable({
     siteId: v.id("sites"),
     portalUserId: v.id("portalUsers"),
     token: v.optional(v.string()),
@@ -124,8 +166,8 @@ const sessions = `  portalSessions: defineTable({
     .index("by_site", ["siteId"])
     .index("by_user", ["portalUserId"])
     .index("by_token", ["token"])
-    .index("by_token_hash", ["tokenHash"]),`;
-source = source.slice(0, sessionStart) + sessions + source.slice(schemaEnd);
+    .index("by_token_hash", ["tokenHash"]),`);
+
 fs.writeFileSync(path, source);
 NODE
 }
