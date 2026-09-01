@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { useClerk } from "@clerk/react";
-import { Building2, Settings, Users, LogOut, ChevronRight, Globe, ShieldX, ShieldCheck, Landmark, SlidersHorizontal, Rocket, BookOpen, KeyRound, LayoutDashboard, Sparkles, FlaskConical } from "lucide-react";
+import { useAuth, useClerk } from "@clerk/react";
+import { Building2, Settings, Users, LogOut, ChevronRight, Globe, ShieldX, ShieldCheck, Landmark, SlidersHorizontal, Rocket, BookOpen, KeyRound, LayoutDashboard, Sparkles, FlaskConical, RefreshCw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -12,28 +12,38 @@ const ACCOUNT_PORTAL = "https://accounts.app.fstsclientsystem.com";
 export default function SitesList() {
   const [, setLocation] = useLocation();
   const { signOut } = useClerk();
+  const { sessionId } = useAuth();
+  const { isAuthenticated: convexAuthenticated, isLoading: convexAuthLoading } = useConvexAuth();
   const [signingOut, setSigningOut] = useState(false);
+  const [authTimedOut, setAuthTimedOut] = useState(false);
   const me = useQuery(api.users.me);
   const sites = useQuery(api.sites.list);
   const loadingMe = me === undefined;
   const loadingSites = sites === undefined;
   const isInternalQa = !!me?.roles?.some((role: any) => role.role === "internal_qa");
 
+  useEffect(() => {
+    if (convexAuthenticated) {
+      setAuthTimedOut(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setAuthTimedOut(true), 8000);
+    return () => window.clearTimeout(timer);
+  }, [convexAuthenticated]);
+
   const handleSignOut = async () => {
     if (signingOut) return;
     setSigningOut(true);
-    const appHome = `${window.location.origin}/`;
-    const hostedSignIn = `${ACCOUNT_PORTAL}/sign-in?redirect_url=${encodeURIComponent(appHome)}`;
+    const returnTo = `${window.location.origin}/`;
+    const hostedSignIn = `${ACCOUNT_PORTAL}/sign-in?redirect_url=${encodeURIComponent(returnTo)}`;
+
     try {
-      await signOut({ redirectUrl: hostedSignIn });
+      await signOut({ sessionId: sessionId ?? undefined, redirectUrl: hostedSignIn });
     } catch (error) {
-      console.error("TAYA sign-out failed; falling back to Clerk Account Portal", error);
-      window.location.replace(hostedSignIn);
-      return;
+      console.error("TAYA sign-out failed", error);
+      setSigningOut(false);
+      window.alert("TAYA could not close the Clerk session. Please retry Sign Out.");
     }
-    // Clerk normally navigates after signOut. This fallback prevents a stale
-    // SPA screen from trapping the user if client-side navigation is blocked.
-    window.setTimeout(() => window.location.replace(hostedSignIn), 1200);
   };
 
   useEffect(() => {
@@ -43,6 +53,35 @@ export default function SitesList() {
   }, [loadingMe, loadingSites, me?.isSuperAdmin, isInternalQa, sites, setLocation]);
 
   if (!loadingMe && !loadingSites && !me?.isSuperAdmin && !isInternalQa && sites?.length === 1) return null;
+
+  if (authTimedOut && !convexAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        <header className="border-b border-slate-800/80 bg-[#071126] text-white">
+          <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-violet-500 to-cyan-400" />
+          <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div><div className="text-sm font-black tracking-[0.18em] bg-gradient-to-r from-pink-400 via-violet-400 to-cyan-300 bg-clip-text text-transparent">TAYA™</div><div className="text-[11px] text-slate-400">Tools • Automation • Your Advantage</div></div>
+            <Button variant="ghost" size="sm" disabled={signingOut} className="text-slate-300 hover:bg-slate-900 hover:text-white" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />{signingOut ? "Signing Out…" : "Sign Out"}</Button>
+          </div>
+        </header>
+        <main className="flex flex-1 items-center justify-center px-4 py-12">
+          <div className="w-full max-w-xl rounded-2xl border border-amber-200 bg-white p-8 shadow-xl">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50"><TriangleAlert className="h-6 w-6 text-amber-600" /></div>
+            <h1 className="text-2xl font-bold text-slate-950">TAYA backend authentication is not connected yet</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600">Your Clerk session is active, but Convex has not accepted the session token. Until that connection succeeds, TAYA cannot load your Platform Admin role or the Corsair workspace.</p>
+            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              <p><strong>Clerk:</strong> signed in</p>
+              <p><strong>Convex:</strong> {convexAuthLoading ? "still checking authentication" : "not authenticated"}</p>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button onClick={() => window.location.reload()}><RefreshCw className="h-4 w-4 mr-2" />Retry Connection</Button>
+              <Button variant="outline" disabled={signingOut} onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />{signingOut ? "Signing Out…" : "Sign Out"}</Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!loadingMe && me !== null && me?.isActive === false) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4"><div className="max-w-md w-full rounded-2xl border border-red-100 bg-white p-8 text-center shadow-xl"><div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100"><ShieldX className="h-7 w-7 text-red-600" /></div><h1 className="text-2xl font-bold text-slate-950 mb-2">Account Deactivated</h1><p className="text-slate-500 text-sm mb-6">Your TAYA dashboard access is currently disabled. Please contact your administrator for assistance.</p><Button variant="outline" className="w-full" disabled={signingOut} onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />{signingOut ? "Signing Out…" : "Sign Out"}</Button></div></div>;
