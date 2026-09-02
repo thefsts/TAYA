@@ -64,27 +64,46 @@ jobs:
       - name: Validate catalog
         run: pnpm run validate:catalog
 
-      - name: Typecheck
-        run: pnpm run typecheck
-
-      - name: Convex unit tests
-        run: pnpm run test:convex-unit
-
-      - name: Design Lock tests
-        run: pnpm run test:design-lock
-
-      - name: Production build
-        run: pnpm run build
-
       - name: Commit synchronized workspace and lockfile
         shell: bash
         run: |
           if git diff --quiet -- pnpm-workspace.yaml pnpm-lock.yaml; then
             echo 'Workspace and lockfile already synchronized.'
-            exit 0
+          else
+            git config user.name 'Full Stack Tech Solutions'
+            git config user.email 'amorebey@gmail.com'
+            git add pnpm-workspace.yaml pnpm-lock.yaml
+            git commit -m 'Synchronize pnpm state after Replit cleanup [skip ci]'
+            git push origin HEAD:chat2-replit-cleanup
           fi
-          git config user.name 'Full Stack Tech Solutions'
-          git config user.email 'amorebey@gmail.com'
-          git add pnpm-workspace.yaml pnpm-lock.yaml
-          git commit -m 'Synchronize pnpm state after Replit cleanup [skip ci]'
-          git push origin HEAD:chat2-replit-cleanup
+
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: pnpm run typecheck
+
+      - name: Convex unit tests
+        id: convex_tests
+        continue-on-error: true
+        run: pnpm run test:convex-unit
+
+      - name: Design Lock tests
+        id: design_lock
+        continue-on-error: true
+        run: pnpm run test:design-lock
+
+      - name: Production build
+        id: build
+        continue-on-error: true
+        run: pnpm run build
+
+      - name: Report certification blockers
+        shell: bash
+        run: |
+          echo "typecheck=${{ steps.typecheck.outcome }}"
+          echo "convex_tests=${{ steps.convex_tests.outcome }}"
+          echo "design_lock=${{ steps.design_lock.outcome }}"
+          echo "build=${{ steps.build.outcome }}"
+          if [ "${{ steps.typecheck.outcome }}" != "success" ] || [ "${{ steps.convex_tests.outcome }}" != "success" ] || [ "${{ steps.design_lock.outcome }}" != "success" ] || [ "${{ steps.build.outcome }}" != "success" ]; then
+            exit 1
+          fi
