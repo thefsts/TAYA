@@ -71,7 +71,7 @@ export const validate = query({
       ctx.db.query("importedReviews").withIndex("by_site", (q) => q.eq("siteId", corsair._id)).collect(),
       ctx.db.query("automationRules").withIndex("by_site", (q) => q.eq("siteId", corsair._id)).collect(),
       ctx.db.query("contentVersions").withIndex("by_site", (q) => q.eq("siteId", corsair._id)).collect(),
-      ctx.db.query("siteBackups").withIndex("by_site", (q) => q.eq("siteId", corsair._id)).collect(),
+      ctx.db.query("backups").withIndex("by_site", (q) => q.eq("siteId", corsair._id)).collect(),
       ctx.db.query("siteHealthLogs").withIndex("by_site", (q) => q.eq("siteId", corsair._id)).collect(),
     ]);
 
@@ -85,7 +85,7 @@ export const validate = query({
       );
     }
 
-    const result = {
+    return {
       site: {
         id: corsair._id,
         slug: corsair.slug,
@@ -126,7 +126,5 @@ export const validate = query({
         schemaAcceptedAllQueriedTables: true,
       },
     };
-
-    return result;
   },
 });
