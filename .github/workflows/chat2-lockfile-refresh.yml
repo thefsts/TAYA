@@ -70,8 +70,12 @@ jobs:
           if git diff --quiet -- pnpm-workspace.yaml pnpm-lock.yaml; then
             echo 'Workspace and lockfile already synchronized.'
           else
-            git config user.name 'Full Stack Tech Solutions'
+            git config user.name 'thefsts'
             git config user.email 'amorebey@gmail.com'
+            export GIT_AUTHOR_NAME='thefsts'
+            export GIT_AUTHOR_EMAIL='amorebey@gmail.com'
+            export GIT_COMMITTER_NAME='thefsts'
+            export GIT_COMMITTER_EMAIL='amorebey@gmail.com'
             git add pnpm-workspace.yaml pnpm-lock.yaml
             git commit -m 'Synchronize pnpm state after Replit cleanup [skip ci]'
             git push origin HEAD:chat2-replit-cleanup
