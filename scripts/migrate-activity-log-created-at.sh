@@ -174,8 +174,8 @@ NODE
 
 echo "[1/5] Preparing migration-safe complete schema contract..."
 patch_schema optional
-echo "[2/5] Deploying migration-safe production schema..."
-pnpm exec convex deploy --yes
+echo "[2/5] Deploying migration-safe production schema through environment guard..."
+bash scripts/deploy-convex.sh
 echo "[3/5] Backfilling activityLog.createdAt..."
 pnpm exec convex run migrations/activityLogCreatedAt:backfill
 echo "[4/5] Restoring strict activityLog while retaining corrected contracts..."
@@ -183,7 +183,7 @@ cp "$BACKUP_FILE" "$SCHEMA_FILE"
 patch_schema strict
 rm -f "$BACKUP_FILE"
 trap - EXIT
-echo "[5/5] Deploying corrected strict production schema..."
-pnpm exec convex deploy --yes
+echo "[5/5] Deploying corrected strict production schema through environment guard..."
+bash scripts/deploy-convex.sh
 echo "SUCCESS: production migration completed."
 echo "NOTE: convex/schema.ts now contains the corrected production contract and must be committed."
