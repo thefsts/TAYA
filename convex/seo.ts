@@ -27,6 +27,10 @@ export const create = mutation({
     description: v.string(),
     ogImageUrl: v.optional(v.string()),
     canonicalUrl: v.optional(v.string()),
+    noindex: v.optional(v.boolean()),
+    ogTitle: v.optional(v.string()),
+    ogDescription: v.optional(v.string()),
+    twitterCardType: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_CREATE);
@@ -48,6 +52,10 @@ export const update = mutation({
     description: v.optional(v.string()),
     ogImageUrl: v.optional(v.string()),
     canonicalUrl: v.optional(v.string()),
+    noindex: v.optional(v.boolean()),
+    ogTitle: v.optional(v.string()),
+    ogDescription: v.optional(v.string()),
+    twitterCardType: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, seoSettingId, ...fields }) => {
     const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);

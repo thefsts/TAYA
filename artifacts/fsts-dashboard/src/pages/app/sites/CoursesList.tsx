@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearch, useLocation } from "wouter";
+import { useSearch, useLocation, Link } from "wouter";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -37,7 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { BookOpen, Pencil, Plus, Trash2, Users, History } from "lucide-react";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
@@ -586,6 +586,15 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
           </ClientSection>
         )}
       </LivePreviewPanel>
+
+      <div className="mt-4 flex justify-end">
+        <Link href={`/app/sites/${siteId}/history`}>
+          <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
+            <History className="mr-1.5 h-4 w-4" />
+            Revision History
+          </Button>
+        </Link>
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto rounded-2xl p-0">

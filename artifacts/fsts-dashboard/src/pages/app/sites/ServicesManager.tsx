@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Pencil, Plus, Trash2, GripVertical } from "lucide-react";
+import { Briefcase, Pencil, Plus, Trash2, GripVertical, Search } from "lucide-react";
 
 type ServiceForm = {
   title: string;
@@ -81,6 +81,20 @@ export default function ServicesManager({ params }: { params: { siteId: string }
   const [isPending, setIsPending] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredItems = items
+    ? items.filter((s: NonNullable<typeof items>[number]) => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return true;
+        return (
+          s.title.toLowerCase().includes(q) ||
+          (s.category ?? "").toLowerCase().includes(q) ||
+          (s.shortDescription ?? "").toLowerCase().includes(q) ||
+          (s.description ?? "").toLowerCase().includes(q)
+        );
+      })
+    : [];
 
   function openCreate() {
     setEditing(null);
@@ -172,7 +186,10 @@ export default function ServicesManager({ params }: { params: { siteId: string }
 
   async function handleDrop(targetIndex: number) {
     if (dragIndex === null || dragIndex === targetIndex || !items) return;
-    const reordered = [...items];
+    // When searching, reorder operates on filtered results
+    const source = searchQuery.trim() ? filteredItems : items;
+    if (!source) return;
+    const reordered = [...source];
     const [moved] = reordered.splice(dragIndex, 1);
     reordered.splice(targetIndex, 0, moved);
     setDragIndex(null);
@@ -205,7 +222,26 @@ export default function ServicesManager({ params }: { params: { siteId: string }
         </Button>
       </div>
 
-      {items.length === 0 ? (
+      {items.length > 0 && (
+        <div className="mb-4 relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            aria-label="Search services"
+            placeholder="Search services…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
+
+      {filteredItems.length === 0 && items.length > 0 ? (
+        <div className="text-center py-16 border border-slate-200 rounded-xl bg-slate-50/50">
+          <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+          <p className="text-slate-500 font-medium">No services match your search</p>
+          <Button variant="link" size="sm" onClick={() => setSearchQuery("")} className="mt-1 text-slate-400">Clear search</Button>
+        </div>
+      ) : items.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-xl">
           <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-500 font-medium">No services yet</p>
@@ -216,7 +252,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((service: NonNullable<typeof items>[number], index: number) => (
+          {filteredItems.map((service: NonNullable<typeof items>[number], index: number) => (
             <div
               key={service.id}
               draggable

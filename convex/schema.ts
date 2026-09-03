@@ -222,6 +222,10 @@ export default defineSchema({
     description: v.string(),
     ogImageUrl: v.optional(v.string()),
     canonicalUrl: v.optional(v.string()),
+    noindex: v.optional(v.boolean()),
+    ogTitle: v.optional(v.string()),
+    ogDescription: v.optional(v.string()),
+    twitterCardType: v.optional(v.string()),
   })
     .index("by_site", ["siteId"])
     .index("by_site_path", ["siteId", "pagePath"]),
@@ -373,7 +377,9 @@ export default defineSchema({
     entityId: v.string(),
     snapshot: v.any(),
     createdByName: v.string(),
-  }).index("by_site", ["siteId"]),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_entity", ["siteId", "entityType"]),
 
   activityLog: defineTable({
     siteId: v.id("sites"),

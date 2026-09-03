@@ -64,6 +64,7 @@ import type * as migrations_activityLogCreatedAt from "../migrations/activityLog
 import type * as migrations_productionValidation from "../migrations/productionValidation.js";
 import type * as navigation from "../navigation.js";
 import type * as onboarding from "../onboarding.js";
+import type * as pages from "../pages.js";
 import type * as paymentConnectors from "../paymentConnectors.js";
 import type * as policies from "../policies.js";
 import type * as popup from "../popup.js";
@@ -152,6 +153,7 @@ declare const fullApi: ApiFromModules<{
   "migrations/productionValidation": typeof migrations_productionValidation;
   navigation: typeof navigation;
   onboarding: typeof onboarding;
+  pages: typeof pages;
   paymentConnectors: typeof paymentConnectors;
   policies: typeof policies;
   popup: typeof popup;

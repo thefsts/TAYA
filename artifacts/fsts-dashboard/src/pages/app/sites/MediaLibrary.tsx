@@ -32,7 +32,7 @@ import {
   CheckCircle2, AlertTriangle, BarChart3, XCircle, Upload,
   Search, X, Filter, Tag, FolderOpen, ChevronDown, ChevronUp,
   Archive, ArchiveRestore, RefreshCw, Layers, Edit2, Save,
-  MapPin, FileImage,
+  MapPin, FileImage, Copy, Link as LinkIcon,
 } from "lucide-react";
 import { SmartImageUploader } from "@/components/SmartImageUploader";
 import { UploadQueue } from "@/components/UploadQueue";
@@ -483,6 +483,33 @@ function AssetDetailPanel({
           {asset.archived && <Badge className="bg-slate-200 text-slate-600 border-0 text-[10px]">Archived</Badge>}
         </div>
 
+        {/* Copy URL */}
+        {asset.url && !broken && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-slate-700 mb-1.5">Image URL</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0 flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5">
+                <LinkIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                <span className="text-xs text-slate-500 truncate">{asset.url}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-shrink-0"
+                onClick={() => {
+                  navigator.clipboard.writeText(asset.url).then(
+                    () => toast({ title: "URL copied to clipboard" }),
+                    () => toast({ title: "Couldn't copy URL", variant: "destructive" }),
+                  );
+                }}
+              >
+                <Copy className="mr-1.5 h-3.5 w-3.5" />
+                Copy
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Usage */}
         <div className="mb-4">
           <p className="text-xs font-semibold text-slate-700 mb-1.5">Usage</p>
@@ -723,6 +750,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
   const [isPurging, setIsPurging] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Upload queue
   const [queueItems, queueActions] = useUploadQueue();
@@ -1187,7 +1215,33 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
       {/* Filter bar */}
       <MediaFilterBar filters={filters} onChange={updateFilters} taxonomy={taxonomy} />
 
-      {/* Grid */}
+      {/* View mode toggle */}
+      {data && data.length > 0 && (
+        <div className="flex justify-end mb-3">
+          <div className="inline-flex rounded-md border border-slate-200 bg-white p-0.5">
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setViewMode("grid")}
+              aria-label="Grid view"
+            >
+              <Layers className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setViewMode("list")}
+              aria-label="List view"
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Grid or List */}
       {data === undefined ? (
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
@@ -1211,7 +1265,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
             </Button>
           )}
         </div>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {data.map((m: any) => {
             const displaySrc = m.thumbUrl ?? m.thumbnailUrl ?? m.url;
@@ -1289,6 +1343,84 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
               </button>
             );
           })}
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-slate-200 bg-slate-50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-slate-500">Preview</th>
+                  <th className="px-4 py-3 text-left font-medium text-slate-500">Filename</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-slate-500 md:table-cell">Dimensions</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-slate-500 sm:table-cell">Size</th>
+                  <th className="hidden px-4 py-3 text-left font-medium text-slate-500 lg:table-cell">Alt Text</th>
+                  <th className="px-4 py-3 text-left font-medium text-slate-500">Usage</th>
+                  <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {data.map((m: any) => {
+                  const displaySrc = m.thumbUrl ?? m.thumbnailUrl ?? m.url;
+                  return (
+                    <tr
+                      key={m._id}
+                      className={`cursor-pointer transition-colors hover:bg-slate-50 ${m.archived ? "opacity-60" : ""}`}
+                      onClick={() => setSelected(selected?._id === m._id ? null : m)}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden">
+                          {isBroken(m) ? (
+                            <XCircle className="h-6 w-6 text-red-400" />
+                          ) : m.mimeType?.startsWith("image/") ? (
+                            <img src={displaySrc} alt={m.altText ?? m.fileName} className="h-full w-full object-cover" />
+                          ) : (
+                            <ImageIcon className="h-6 w-6 text-slate-300" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="min-w-0 truncate font-medium text-slate-800">{m.fileName}</span>
+                          {isBroken(m) && <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]">Broken</Badge>}
+                          {m.archived && <Badge className="bg-slate-200 text-slate-600 border-0 text-[10px]">Archived</Badge>}
+                          {!isBroken(m) && !m.altText && m.mimeType?.startsWith("image/") && !m.archived && (
+                            <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]">No alt</Badge>
+                          )}
+                        </div>
+                        {m.category && (
+                          <span className="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 px-1 rounded mt-1 inline-block">{m.category}</span>
+                        )}
+                      </td>
+                      <td className="hidden px-4 py-3 text-slate-500 md:table-cell font-mono text-xs">
+                        {m.width && m.height ? `${m.width}\u00d7${m.height}` : "\u2014"}
+                      </td>
+                      <td className="hidden px-4 py-3 text-slate-500 sm:table-cell text-xs">
+                        {formatBytes(m.optimizedSizeBytes ?? m.sizeBytes)}
+                      </td>
+                      <td className="hidden px-4 py-3 text-slate-500 lg:table-cell text-xs max-w-32 truncate" title={m.altText ?? ""}>
+                        {m.altText ?? <span className="text-amber-600 italic">Missing</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <UsageBadge siteId={siteId} asset={m} />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          aria-label="Delete"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => { e.stopPropagation(); initiateDelete(m); }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

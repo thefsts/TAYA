@@ -21,10 +21,18 @@ import {
   ScrollText,
   CheckCircle2,
   CalendarX2,
+  LayoutGrid,
+  Lock,
 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
-import { WEBSITE_TYPE_OPTIONS } from "@/lib/siteModules";
+import {
+  WEBSITE_TYPE_OPTIONS,
+  MODULE_KEYS,
+  MODULE_LABELS,
+  defaultModulesForWebsiteType,
+  type ModuleKey,
+} from "@/lib/siteModules";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -173,8 +181,15 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
   const saveIntegrations = useMutation(api.siteSettings.updateIntegrations);
   const saveLegal = useMutation(api.siteSettings.updateLegal);
   const saveEventDisplay = useMutation(api.siteSettings.updateEventDisplay);
+  const updateSite = useMutation(api.sites.update);
+
+  const me = useQuery(api.users.me, {});
+  const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId });
+
+  const isSuperAdmin = !!(me as any)?.isSuperAdmin;
 
   const [pending, setPending] = useState<string | null>(null);
+  const [moduleState, setModuleState] = useState<Record<string, boolean>>({});
 
   const [businessName, setBusinessName] = useState("");
   const [tagline, setTagline] = useState("");
@@ -250,6 +265,12 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
 
     setShowCancelledEvents((data as any).showCancelledEvents ?? false);
   }, [data]);
+
+  // Load effective modules into local toggle state
+  useEffect(() => {
+    if (!effectiveModules) return;
+    setModuleState({ ...effectiveModules });
+  }, [effectiveModules]);
 
   function updateHour(index: number, field: keyof BusinessHourRow, value: string | boolean) {
     setBusinessHours((prev) => {
@@ -337,6 +358,12 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
             <CalendarX2 className="h-3.5 w-3.5" />
             Events
           </TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="modules" className="flex items-center gap-1.5 text-xs font-medium">
+              <LayoutGrid className="h-3.5 w-3.5" />
+              Modules
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── Identity ── */}
@@ -889,6 +916,77 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
             </div>
           </div>
         </TabsContent>
+
+        {/* ── Modules (Design Lock — SuperAdmin only) ── */}
+        {isSuperAdmin && (
+          <TabsContent value="modules">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
+              <SectionHeader
+                title="Modules"
+                description="Enable or disable CMS modules for this site. Changes take effect immediately in the sidebar."
+              >
+                <Button
+                  size="sm"
+                  disabled={pending === "modules" || !effectiveModules}
+                  onClick={() =>
+                    handleSave("modules", () =>
+                      updateSite({
+                        siteId,
+                        enabledModules: moduleState,
+                      })
+                    )
+                  }
+                >
+                  {pending === "modules" ? "Saving…" : "Save Modules"}
+                </Button>
+              </SectionHeader>
+
+              <div className="flex items-center gap-2 rounded-md border border-violet-200 bg-violet-50 p-3 mb-5">
+                <Lock className="h-4 w-4 text-violet-600 flex-shrink-0" />
+                <p className="text-xs text-violet-700">
+                  Design Lock — only SuperAdmin can modify which modules are enabled for this site.
+                  Client admins see the sidebar filtered by these settings.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {MODULE_KEYS.map((key: ModuleKey) => (
+                  <div
+                    key={key}
+                    className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
+                  >
+                    <div className="min-w-0">
+                      <Label className="text-sm font-medium text-slate-800">{MODULE_LABELS[key]}</Label>
+                      <p className="text-xs text-slate-500 mt-0.5 truncate">{key}</p>
+                    </div>
+                    <Switch
+                      checked={moduleState[key] ?? false}
+                      onCheckedChange={(checked) =>
+                        setModuleState((prev) => ({ ...prev, [key]: checked }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const defaults = defaultModulesForWebsiteType(websiteType);
+                    setModuleState({ ...defaults });
+                  }}
+                >
+                  Reset to Defaults
+                </Button>
+                <span className="text-xs text-slate-500">
+                  Resets modules to the recommended set for "{websiteType}" website type.
+                </span>
+              </div>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </AppLayout>
   );

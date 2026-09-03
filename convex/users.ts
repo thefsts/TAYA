@@ -72,6 +72,46 @@ export const list = query({
   },
 });
 
+/**
+ * List users assigned to a specific site.
+ * Accessible by SuperAdmins and users with a manage-level role on the site
+ * (client_admin, site_admin, owner, admin).
+ */
+export const listForSite = query({
+  args: { siteId: v.id("sites") },
+  handler: async (ctx, { siteId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!me?.isActive) return null;
+
+    // SuperAdmin sees all users for this site
+    // Site-level admins (owner, admin, site_admin, client_admin, manager) can view
+    const mySiteRole = me.roles?.find((r: any) => String(r.siteId) === String(siteId));
+    const canView = me.isSuperAdmin || !!mySiteRole;
+    if (!canView) return null;
+
+    const allUsers = await ctx.db.query("users").collect();
+    const siteUsers = allUsers
+      .filter((u) => u.isActive && u.roles?.some((r: any) => String(r.siteId) === String(siteId)))
+      .map((u) => ({
+        _id: u._id,
+        name: u.name,
+        email: u.email,
+        isSuperAdmin: u.isSuperAdmin,
+        isActive: u.isActive,
+        role: u.roles?.find((r: any) => String(r.siteId) === String(siteId))?.role ?? null,
+        inviteStatus: u.inviteStatus ?? null,
+        clerkUserId: u.clerkUserId,
+      }));
+
+    return siteUsers;
+  },
+});
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -256,6 +296,74 @@ export const addSiteRole = mutation({
       page: "onboarding",
       newValue: role,
       details: `Assigned role '${role}' to ${user.name} during site onboarding`,
+    });
+    return { success: true };
+  },
+});
+
+/**
+ * Update a user's role on a specific site (SuperAdmin only).
+ * Only modifies the role for this site; preserves other site assignments.
+ */
+export const updateSiteRole = mutation({
+  args: {
+    userId: v.id("users"),
+    siteId: v.id("sites"),
+    role: v.string(),
+  },
+  handler: async (ctx, { userId, siteId, role }) => {
+    const me = await provisionUser(ctx);
+    if (!me.isSuperAdmin) throw new Error("Forbidden: superadmin only");
+    const user = await ctx.db.get(userId);
+    if (!user) throw new Error("User not found");
+    if (user.isSuperAdmin) {
+      throw new Error("Cannot assign site roles to a superadmin. Remove superadmin status first.");
+    }
+    const existingRoles: Array<{ siteId: any; role: string }> = (user.roles as any[]) ?? [];
+    const filtered = existingRoles.filter((r) => String(r.siteId) !== String(siteId));
+    await ctx.db.patch(userId, { roles: [...filtered, { siteId, role }] } as any);
+    const siteDoc = await ctx.db.get(siteId);
+    await logActivity(ctx, {
+      siteId,
+      actorName: me.name,
+      action: "changed role",
+      entityType: "user",
+      entityId: String(userId),
+      page: "Site Users",
+      newValue: role,
+      details: `Role for ${user.name} on ${siteDoc?.name ?? "site"} changed to ${role}`,
+    });
+    return { success: true };
+  },
+});
+
+/**
+ * Remove a user's role on a specific site (SuperAdmin only).
+ * Removes only this site assignment; preserves other site assignments.
+ */
+export const removeSiteRole = mutation({
+  args: {
+    userId: v.id("users"),
+    siteId: v.id("sites"),
+  },
+  handler: async (ctx, { userId, siteId }) => {
+    const me = await provisionUser(ctx);
+    if (!me.isSuperAdmin) throw new Error("Forbidden: superadmin only");
+    const user = await ctx.db.get(userId);
+    if (!user) throw new Error("User not found");
+    const existingRoles: Array<{ siteId: any; role: string }> = (user.roles as any[]) ?? [];
+    const filtered = existingRoles.filter((r) => String(r.siteId) !== String(siteId));
+    await ctx.db.patch(userId, { roles: filtered } as any);
+    const siteDoc = await ctx.db.get(siteId);
+    await logActivity(ctx, {
+      siteId,
+      actorName: me.name,
+      action: "removed role",
+      entityType: "user",
+      entityId: String(userId),
+      page: "Site Users",
+      newValue: "(removed)",
+      details: `Removed ${user.name} from ${siteDoc?.name ?? "site"}`,
     });
     return { success: true };
   },

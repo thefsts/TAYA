@@ -35,6 +35,56 @@ export const list = query({
   },
 });
 
+/**
+ * Returns the site list enriched with the latest health-scan score and
+ * last-activity timestamp for each site.  Used by the Platform Admin home
+ * (SitesList) so every site card can show a health indicator and "last
+ * updated" without N+1 client-side queries.
+ */
+export const listWithHealth = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user || !user.isActive) return [];
+    const all = await ctx.db.query("sites").collect();
+    let sites = user.isSuperAdmin
+      ? all
+      : user.isAgencyAdmin && user.agencyId
+        ? all.filter((s) => String(s.agencyId) === String(user.agencyId))
+        : all.filter((s) => user.roles.some((r: any) => r.siteId === s._id));
+
+    // Enrich each site with its latest health scan + last activity
+    const enriched = await Promise.all(
+      sites.map(async (site) => {
+        const [latestScan, lastActivity] = await Promise.all([
+          ctx.db
+            .query("websiteHealthScans")
+            .withIndex("by_site_scannedAt", (q: any) => q.eq("siteId", site._id))
+            .order("desc")
+            .first(),
+          ctx.db
+            .query("activityLog")
+            .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
+            .order("desc")
+            .first(),
+        ]);
+        return {
+          ...toSiteResponse(site),
+          healthScore: latestScan?.overallScore ?? null,
+          lastScannedAt: latestScan ? new Date(latestScan.scannedAt).toISOString() : null,
+          lastActivityAt: lastActivity ? new Date(lastActivity._creationTime).toISOString() : null,
+        };
+      }),
+    );
+    return enriched;
+  },
+});
+
 export const get = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
@@ -240,7 +290,9 @@ export const getDashboardSummary = query({
     if (!user || !user.isActive) return null;
     if (!user.isSuperAdmin && !user.roles.some((r: any) => r.siteId === siteId)) return null;
 
-    const [site, courses, events, articles, media, backups, squareConfig, contactInfo, emailSettings, recentActivity] =
+    const now = Date.now();
+
+    const [site, courses, events, articles, media, backups, squareConfig, contactInfo, emailSettings, recentActivity, recentSubmissions, seoSettings, recentMedia] =
       await Promise.all([
         ctx.db.get(siteId),
         ctx.db.query("courses").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
@@ -252,15 +304,67 @@ export const getDashboardSummary = query({
         ctx.db.query("contactInfo").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
         ctx.db.query("emailSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
         ctx.db.query("activityLog").withIndex("by_site", (q) => q.eq("siteId", siteId)).order("desc").take(10),
+        ctx.db.query("formSubmissions").withIndex("by_site", (q) => q.eq("siteId", siteId)).order("desc").take(5),
+        ctx.db.query("seoSettings").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+        ctx.db.query("mediaAssets").withIndex("by_site", (q) => q.eq("siteId", siteId)).order("desc").take(6),
       ]);
 
     if (!site) return null;
+
+    // Compute article status counts
+    const publishedArticles = articles.filter((a) => a.status === "published").length;
+    const draftArticles = articles.filter((a) => a.status === "draft").length;
+
+    // Compute upcoming events (startAt >= now, sorted ascending)
+    const upcomingEvents = events
+      .filter((e) => e.startAt >= now && e.status !== "archived")
+      .sort((a, b) => a.startAt - b.startAt)
+      .slice(0, 5)
+      .map((e) => ({
+        id: e._id,
+        title: e.title,
+        startAt: new Date(e.startAt).toISOString(),
+        location: e.location ?? null,
+      }));
+
+    // Compute upcoming courses (startDateTime >= now if present)
+    const upcomingCourses = courses
+      .filter((c) => c.startDateTime && c.startDateTime >= now && c.status !== "archived")
+      .sort((a, b) => (a.startDateTime ?? 0) - (b.startDateTime ?? 0))
+      .slice(0, 5)
+      .map((c) => ({
+        id: c._id,
+        title: c.title,
+        startDateTime: c.startDateTime ? new Date(c.startDateTime).toISOString() : null,
+      }));
+
+    // Count unread form submissions
+    const allSubmissions = await ctx.db
+      .query("formSubmissions")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .collect();
+    const unreadCount = allSubmissions.filter((s) => !s.readAt).length;
+
+    // SEO pages with at least a title set
+    const seoPagesConfigured = seoSettings.filter((s) => s.title).length;
+
+    // Recent media (latest 6)
+    const recentMediaItems = recentMedia.map((m) => ({
+      id: m._id,
+      fileName: m.fileName,
+      url: m.url ?? null,
+      thumbnailUrl: m.thumbnailUrl ?? null,
+      altText: m.altText ?? null,
+      createdAt: new Date(m._creationTime).toISOString(),
+    }));
 
     return {
       siteId,
       courseCount: courses.length,
       eventCount: events.length,
       articleCount: articles.length,
+      publishedArticles,
+      draftArticles,
       mediaCount: media.length,
       lastBackupAt: backups[0] ? new Date(backups[0]._creationTime).toISOString() : null,
       squareConnected: squareConfig?.connected ?? false,
@@ -274,6 +378,20 @@ export const getDashboardSummary = query({
         id: a._id,
         createdAt: new Date(a._creationTime).toISOString(),
       })),
+      recentSubmissions: recentSubmissions.map((s) => ({
+        id: s._id,
+        formType: s.formType,
+        submitterName: s.submitterName ?? null,
+        submitterEmail: s.submitterEmail ?? null,
+        status: s.status,
+        submittedAt: new Date(s.submittedAt).toISOString(),
+        readAt: s.readAt ? new Date(s.readAt).toISOString() : null,
+      })),
+      unreadSubmissionCount: unreadCount,
+      upcomingEvents,
+      upcomingCourses,
+      seoPagesConfigured,
+      recentMedia: recentMediaItems,
     };
   },
 });

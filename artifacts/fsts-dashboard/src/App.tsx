@@ -16,6 +16,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const Landing = lazy(() => import("@/pages/Landing"));
 const SitesList = lazy(() => import("@/pages/app/SitesList"));
 const SiteDashboard = lazy(() => import("@/pages/app/SiteDashboard"));
+const Pages = lazy(() => import("@/pages/app/sites/Pages"));
 
 const AdminUsers = lazy(() => import("@/pages/app/admin/AdminUsers"));
 const AdminSites = lazy(() => import("@/pages/app/admin/AdminSites"));
@@ -42,6 +43,7 @@ const EmailConfig = lazy(() => import("@/pages/app/sites/EmailConfig"));
 const CrmConnectionConfig = lazy(() => import("@/pages/app/sites/CrmConnectionConfig"));
 const VersionHistory = lazy(() => import("@/pages/app/sites/VersionHistory"));
 const ActivityLog = lazy(() => import("@/pages/app/sites/ActivityLog"));
+const SiteUsers = lazy(() => import("@/pages/app/sites/SiteUsers"));
 const BackupsList = lazy(() => import("@/pages/app/sites/BackupsList"));
 const HelpCenter = lazy(() => import("@/pages/app/sites/HelpCenter"));
 const FaqManager = lazy(() => import("@/pages/app/sites/FaqManager"));
@@ -370,6 +372,7 @@ function AppRouter() {
           <Route path="/app/admin/roadmap" component={AdminRoadmap} />
 
           <Route path="/app/sites/:siteId" component={SiteDashboard} />
+          <Route path="/app/sites/:siteId/pages" component={Pages} />
           <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />
           <Route path="/app/sites/:siteId/courses" component={CoursesList} />
           <Route path="/app/sites/:siteId/events" component={EventsList} />
@@ -397,6 +400,7 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/popup" component={PopupManager} />
           <Route path="/app/sites/:siteId/history" component={VersionHistoryGuarded} />
           <Route path="/app/sites/:siteId/activity" component={ActivityLogGuarded} />
+          <Route path="/app/sites/:siteId/users" component={SiteUsers} />
           <Route path="/app/sites/:siteId/backups" component={BackupsListGuarded} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
 

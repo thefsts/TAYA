@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, MessageSquareQuote, Pencil, Plus, Star, Trash2, Users } from "lucide-react";
+import { Eye, EyeOff, MessageSquareQuote, Pencil, Plus, Star, Trash2, Users, Search } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
@@ -43,6 +43,7 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
   const [form, setForm] = useState<TestimonialFormState>(emptyForm);
   const [isPending, setIsPending] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   function openCreate() { setEditing(null); setForm(emptyForm); setDialogOpen(true); }
   function openEdit(t: any) {
@@ -75,6 +76,17 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
   const visibleCount = items.filter((item: NonNullable<typeof items>[number]) => item.isActive).length;
   const averageRating = items.length ? (items.reduce((sum: number, item: NonNullable<typeof items>[number]) => sum + (item.rating ?? 0), 0) / items.length).toFixed(1) : "—";
 
+  const filteredItems = items.filter((item: NonNullable<typeof items>[number]) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      item.name.toLowerCase().includes(q) ||
+      (item.role ?? "").toLowerCase().includes(q) ||
+      (item.company ?? "").toLowerCase().includes(q) ||
+      (item.text ?? "").toLowerCase().includes(q)
+    );
+  });
+
   return (
     <AppLayout siteId={params.siteId}>
       <ClientPageHeader
@@ -90,12 +102,21 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><Star className="h-3.5 w-3.5" />Avg. rating</div><p className="mt-1 text-2xl font-semibold text-slate-900">{averageRating}</p></div>
       </div>
 
+      {items.length > 0 && (
+        <div className="mb-5 relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input aria-label="Search testimonials" placeholder="Search testimonials…" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+        </div>
+      )}
+
       <ClientSection title="Client Testimonials" description="Hidden testimonials remain saved in the dashboard but are not shown publicly.">
-        {items.length === 0 ? (
+        {filteredItems.length === 0 && items.length > 0 ? (
+          <ClientEmptyState icon={Search} title="No testimonials match your search" description="Try a different name, company, or keyword." action={<Button variant="link" size="sm" onClick={() => setSearchQuery("")}>Clear search</Button>} />
+        ) : items.length === 0 ? (
           <ClientEmptyState icon={MessageSquareQuote} title="No testimonials yet" description="Add approved customer feedback to build trust and social proof on your website." action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First Testimonial</Button>} />
         ) : (
           <div className="grid gap-4 p-4 md:grid-cols-2 sm:p-5">
-            {items.map((item: NonNullable<typeof items>[number]) => (
+            {filteredItems.map((item: NonNullable<typeof items>[number]) => (
               <article key={item.id} className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md">
                 <div className="flex items-start gap-3">
                   {item.avatarUrl ? <img src={item.avatarUrl} alt={item.name} className="h-11 w-11 rounded-full border border-slate-200 object-cover" /> : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 font-semibold text-slate-500">{item.name.charAt(0)}</div>}
