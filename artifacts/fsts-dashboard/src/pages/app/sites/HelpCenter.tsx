@@ -138,11 +138,11 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
             <CardContent className="text-sm text-slate-500">
               {agency ? (
                 <>
-                  This dashboard is managed by <span className="font-medium text-slate-700">{agencyName}</span>, powered by the FSTS Website Operating System™. Every account activity is recorded in your Activity Log for full transparency.
+                  This dashboard is managed by <span className="font-medium text-slate-700">{agencyName}</span>, powered by the TAYA System™. Every account activity is recorded in your Activity Log for full transparency.
                 </>
               ) : (
                 <>
-                  This dashboard is the FSTS Website Operating System™, built and maintained by Full Stack Tech Solutions. Every account activity is recorded in your Activity Log for full transparency.
+                  This dashboard is the TAYA System™, built and maintained by Full Stack Tech Solutions. Every account activity is recorded in your Activity Log for full transparency.
                 </>
               )}
             </CardContent>

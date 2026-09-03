@@ -28,8 +28,8 @@ export function LockedField({
   }
 
   const tooltip = capabilityLabel
-    ? `"${capabilityLabel}" is managed by FSTS administrators and cannot be edited.`
-    : "This setting is managed by FSTS administrators and cannot be edited.";
+    ? `"${capabilityLabel}" is managed by TAYA administrators and cannot be edited.`
+    : "This setting is managed by TAYA administrators and cannot be edited.";
 
   return (
     <Tooltip>
@@ -69,8 +69,8 @@ export function DesignLockBanner({ label }: { label: string }) {
     <div className="flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-6">
       <Lock className="h-4 w-4 flex-shrink-0 text-amber-500" />
       <span>
-        <strong>{label}</strong> is controlled by FSTS administrators.
-        Contact your FSTS representative to request changes.
+        <strong>{label}</strong> is controlled by TAYA administrators.
+        Contact your TAYA representative to request changes.
       </span>
     </div>
   );

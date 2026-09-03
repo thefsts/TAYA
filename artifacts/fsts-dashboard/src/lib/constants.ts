@@ -1,5 +1,5 @@
 /**
- * Shared frontend constants for the TAYA Website Operating System.
+ * Shared frontend constants for the TAYA System.
  */
 
 /**

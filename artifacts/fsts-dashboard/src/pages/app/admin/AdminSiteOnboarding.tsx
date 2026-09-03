@@ -248,7 +248,7 @@ export default function AdminSiteOnboarding() {
           <h1 className="text-2xl font-bold text-slate-900">New Site Onboarding</h1>
         </div>
         <p className="text-sm text-slate-500 ml-11">
-          Walk through each step to fully provision a new FSTS-WOS™ client site.
+          Walk through each step to fully provision a new TAYA™ client site.
         </p>
       </div>
 
@@ -506,7 +506,7 @@ export default function AdminSiteOnboarding() {
           <div>
             <h2 className="font-semibold text-slate-900">Module Configuration</h2>
             <p className="text-sm text-slate-500 mt-0.5">
-              Choose which FSTS-WOS™ modules are available to this site. Pre-set based on "{details.websiteType}".
+              Choose which TAYA™ modules are available to this site. Pre-set based on "{details.websiteType}".
             </p>
           </div>
 

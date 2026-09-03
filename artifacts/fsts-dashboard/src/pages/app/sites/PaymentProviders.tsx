@@ -210,7 +210,7 @@ function ProviderCard({
 
       {!def.live && (
         <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-500 text-center">
-          This provider will be available in a future WOS release.
+          This provider will be available in a future TAYA release.
         </div>
       )}
 

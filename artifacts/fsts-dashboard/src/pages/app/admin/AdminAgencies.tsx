@@ -189,7 +189,7 @@ export default function AdminAgencies() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Agencies</h1>
-          <p className="text-sm text-slate-500 mt-0.5">White-label agency partners on the FSTS-WOS™ platform.</p>
+          <p className="text-sm text-slate-500 mt-0.5">White-label agency partners on the TAYA™ platform.</p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="h-4 w-4 mr-2" /> Create Agency

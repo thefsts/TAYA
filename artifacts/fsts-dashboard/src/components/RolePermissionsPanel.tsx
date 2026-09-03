@@ -151,7 +151,7 @@ export function RolePermissionsPanel({
                 {cat.adminOnly && (
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                     <Lock className="h-2.5 w-2.5" />
-                    FSTS Admin only
+                    TAYA Admin only
                   </span>
                 )}
               </div>
@@ -203,7 +203,7 @@ export function RolePermissionsPanel({
       {!compact && (
         <p className="text-[11px] text-slate-400 border-t border-slate-100 pt-2">
           <Lock className="h-2.5 w-2.5 inline mr-0.5 text-amber-400" />
-          Design &amp; Integrations permissions are reserved for FSTS admin
+          Design &amp; Integrations permissions are reserved for TAYA admin
           accounts and cannot be granted to site roles.
         </p>
       )}

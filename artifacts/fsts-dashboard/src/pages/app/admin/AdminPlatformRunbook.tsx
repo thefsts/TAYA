@@ -211,7 +211,7 @@ const MODULES: ModuleDoc[] = [
     clientCanChange: ["All testimonial content, photos, ratings", "Active/inactive state"],
     clientCannotChange: ["Testimonials cannot be fetched from Google/Yelp here — that is an Operon CRM™ feature"],
     accessLevel: "client",
-    notes: "FSTS-WOS™ provides display-only review import. Active review workflows (requesting, responding, campaigning) are Operon CRM™ features, not available here.",
+    notes: "TAYA™ provides display-only review import. Active review workflows (requesting, responding, campaigning) are Operon CRM™ features, not available here.",
   },
   {
     key: "forms",
@@ -471,8 +471,8 @@ const MODULES: ModuleDoc[] = [
     label: "Operon Connector™",
     icon: Building2,
     section: "Marketing & CRM",
-    description: "Bi-directional sync connector between FSTS-WOS™ and Operon CRM™. Configure credentials, entity sync settings, and monitor API health.",
-    purpose: "The sole sanctioned integration point between FSTS-WOS™ and Operon CRM™. Supports per-entity sync toggles and an activity log with retry.",
+    description: "Bi-directional sync connector between TAYA™ and Operon CRM™. Configure credentials, entity sync settings, and monitor API health.",
+    purpose: "The sole sanctioned integration point between TAYA™ and Operon CRM™. Supports per-entity sync toggles and an activity log with retry.",
     configSteps: [
       "Navigate to Site → Marketing & CRM.",
       "Enter Operon CRM™ API credentials (API key or SSO).",
@@ -796,7 +796,7 @@ export default function AdminPlatformRunbook() {
 
       {/* Product Boundary Callout */}
       <div className="bg-blue-50 border border-blue-200 rounded-md px-4 py-3 mb-6 text-sm text-blue-800">
-        <strong>Product Boundary:</strong> FSTS-WOS™ manages website operations only. Features that act on customers or leads
+        <strong>Product Boundary:</strong> TAYA™ manages website operations only. Features that act on customers or leads
         (customer outreach, active review workflows, appointment management, lead intelligence, advanced ecommerce)
         belong in <strong>Operon CRM™</strong>, connected exclusively via the <strong>Operon Connector™</strong>.
         See <code className="font-mono text-xs bg-blue-100 px-1 rounded">docs/product-boundaries.md</code> for the full spec.
@@ -894,7 +894,7 @@ export default function AdminPlatformRunbook() {
       <div className="mt-8 border-t border-slate-200 pt-6 text-xs text-slate-400">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <p>FSTS Website Operating System™ — Internal Platform Runbook</p>
+            <p>TAYA System™ — Internal Platform Runbook</p>
             <p className="mt-1">This document is for FSTS team members only. Do not share with clients.</p>
           </div>
           <a
