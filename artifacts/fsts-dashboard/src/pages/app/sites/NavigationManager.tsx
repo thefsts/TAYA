@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Navigation, Pencil, Plus, Trash2, ChevronUp, ChevronDown, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { LockedField, DesignLockBanner } from "@/components/LockedField";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 
 type NavFormState = { label: string; href: string; isVisible: boolean; openInNewTab: boolean };
@@ -68,12 +69,20 @@ export default function NavigationManager({ params }: { params: { siteId: string
   return (
     <AppLayout siteId={params.siteId}>
       <DesignLockBanner label="Navigation Structure" />
-      <ClientPageHeader
-        eyebrow="Website Structure"
+      <VisualEditorShell
+        siteId={siteId}
         title="Navigation Manager"
-        description="Review your website menu, visibility, destinations, and link order while FSTS protects the approved navigation structure."
-        actions={<LockedField capabilityLabel="Navigation Structure"><Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Navigation Item</Button></LockedField>}
-      />
+        subtitle="Edit your website menu while previewing the live site."
+        moduleId="navigation"
+        isDirty={false}
+        previewPath="/"
+        toolbarActions={<LockedField capabilityLabel="Navigation Structure"><Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Navigation Item</Button></LockedField>}
+      >
+        <ClientPageHeader
+          eyebrow="Website Structure"
+          title="Navigation Manager"
+          description="Review your website menu, visibility, destinations, and link order while FSTS protects the approved navigation structure."
+        />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:max-w-xl">
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><Navigation className="h-3.5 w-3.5" />Total links</div><p className="mt-1 text-2xl font-semibold text-slate-900">{items.length}</p></div>
@@ -108,6 +117,7 @@ export default function NavigationManager({ params }: { params: { siteId: string
           </div>
         )}
       </ClientSection>
+      </VisualEditorShell>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">

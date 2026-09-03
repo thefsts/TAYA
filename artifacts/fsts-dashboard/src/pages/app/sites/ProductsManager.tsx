@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -275,20 +276,22 @@ export default function ProductsManager({ params }: { params: { siteId: string }
 
   return (
     <AppLayout siteId={params.siteId}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Products</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Showcase your offerings — drag to reorder, toggle to feature or hide.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product
-        </Button>
-      </div>
-
-      {data !== undefined && data !== null && data.length > 0 && (
+      <VisualEditorShell
+        siteId={siteId}
+        title="Products"
+        subtitle="Showcase your offerings — drag to reorder, toggle to feature or hide."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="products"
+        previewPath="/products"
+        toolbarActions={
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
+          </Button>
+        }
+      >
+        {data !== undefined && data !== null && data.length > 0 && (
         <div className="mb-5 relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
@@ -450,6 +453,8 @@ export default function ProductsManager({ params }: { params: { siteId: string }
       )}
 
       {/* Create / Edit Dialog */}
+      </VisualEditorShell>
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

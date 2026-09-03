@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, History } from "lucide-react";
 import { Link } from "wouter";
-import { LivePreviewPanel } from "@/components/LivePreviewPanel";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
@@ -34,6 +34,14 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
   const [sections, setSections] = useState<Section[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [validationOpen, setValidationOpen] = useState(false);
+
+  // Track unsaved changes by comparing current state to loaded data
+  const isDirty = !!(data && (
+    heroHeadline !== (data.heroHeadline ?? "") ||
+    heroSubheadline !== (data.heroSubheadline ?? "") ||
+    heroImageUrl !== (data.heroImageUrl ?? "") ||
+    JSON.stringify(sections) !== JSON.stringify(asSections((data.sections as unknown[]) ?? []))
+  ));
 
   useEffect(() => {
     if (data) {
@@ -63,6 +71,15 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
       });
     } finally {
       setIsPending(false);
+    }
+  }
+
+  function handleDiscard() {
+    if (data) {
+      setHeroHeadline(data.heroHeadline ?? "");
+      setHeroSubheadline(data.heroSubheadline ?? "");
+      setHeroImageUrl(data.heroImageUrl ?? "");
+      setSections(asSections((data.sections as unknown[]) ?? []));
     }
   }
 
@@ -106,23 +123,19 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
 
   return (
     <AppLayout siteId={params.siteId} pageContext={pageContext}>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Homepage Editor</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Edit the hero section and content sections shown on the homepage.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSave} disabled={isPending}>
-            {isPending ? "Saving…" : "Save Draft"}
-          </Button>
-          <Button onClick={() => setValidationOpen(true)} disabled={isPending}>
-            Publish
-          </Button>
-        </div>
-      </div>
-
-      <LivePreviewPanel siteId={siteId} section="homepage">
-        <div className="space-y-6 max-w-3xl">
+      <VisualEditorShell
+        siteId={siteId}
+        title="Homepage Editor"
+        subtitle="Edit the hero section and content sections shown on the homepage."
+        isDirty={isDirty}
+        onSave={handleSave}
+        onPublish={() => setValidationOpen(true)}
+        onDiscard={handleDiscard}
+        isSaving={isPending}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="homepage"
+      >
+        <div className="space-y-6">
           <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm">
             <h2 className="text-lg font-medium mb-4 text-slate-900">Hero Section</h2>
             <div className="space-y-4">
@@ -192,16 +205,7 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
             </div>
           </div>
         </div>
-      </LivePreviewPanel>
-
-      <div className="mt-4 flex justify-end">
-        <Link href={`/app/sites/${params.siteId}/history`}>
-          <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
-            <History className="mr-1.5 h-4 w-4" />
-            Revision History
-          </Button>
-        </Link>
-      </div>
+      </VisualEditorShell>
 
       <PublishValidationModal
         open={validationOpen}
