@@ -38,7 +38,6 @@ const MediaLibrary = lazy(() => import("@/pages/app/sites/MediaLibrary"));
 const FooterEditor = lazy(() => import("@/pages/app/sites/FooterEditor"));
 const ContactInfo = lazy(() => import("@/pages/app/sites/ContactInfo"));
 const PaymentsConfig = lazy(() => import("@/pages/app/sites/PaymentsConfig"));
-const Commerce = lazy(() => import("@/pages/app/sites/Commerce"));
 const EmailConfig = lazy(() => import("@/pages/app/sites/EmailConfig"));
 const CrmConnectionConfig = lazy(() => import("@/pages/app/sites/CrmConnectionConfig"));
 const VersionHistory = lazy(() => import("@/pages/app/sites/VersionHistory"));
@@ -320,8 +319,6 @@ function withDesignLock<P extends object>(Component: React.ComponentType<P>) {
 
 const FooterEditorGuarded = withDesignLock(FooterEditor);
 const PaymentsConfigGuarded = withDesignLock(PaymentsConfig);
-// CommerceGuarded wraps the legacy Commerce component; SquareCommerceGuarded wraps the live route.
-const CommerceGuarded = withDesignLock(Commerce);
 const SquareCommerceGuarded = withDesignLock(SquareCommerce);
 const EmailConfigGuarded = withDesignLock(EmailConfig);
 const CrmConnectionConfigGuarded = withDesignLock(CrmConnectionConfig);
