@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Pencil, Plus, Trash2, Star, Eye, EyeOff, GripVertical, X, Sparkles } from "lucide-react";
+import { Package, Pencil, Plus, Trash2, Star, Eye, EyeOff, GripVertical, X, Sparkles, Search } from "lucide-react";
 
 type ProductFormState = {
   title: string;
@@ -95,6 +95,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
   // Drag-and-drop state
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   function openCreate() {
     setEditing(null);
@@ -259,6 +260,19 @@ export default function ProductsManager({ params }: { params: { siteId: string }
     ? [...data].sort((a: any, b: any) => a.order - b.order)
     : null;
 
+  const filteredSorted = sorted
+    ? sorted.filter((p: any) => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return true;
+        return (
+          p.title.toLowerCase().includes(q) ||
+          (p.category ?? "").toLowerCase().includes(q) ||
+          (p.shortDescription ?? "").toLowerCase().includes(q) ||
+          (p.description ?? "").toLowerCase().includes(q)
+        );
+      })
+    : sorted;
+
   return (
     <AppLayout siteId={params.siteId}>
       <div className="flex items-center justify-between mb-6">
@@ -273,6 +287,19 @@ export default function ProductsManager({ params }: { params: { siteId: string }
           Add Product
         </Button>
       </div>
+
+      {data !== undefined && data !== null && data.length > 0 && (
+        <div className="mb-5 relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            aria-label="Search products"
+            placeholder="Search products…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
 
       {/* Placeholder nudge banner — shown when every product is hidden */}
       {!nudgeDismissed &&
@@ -307,6 +334,12 @@ export default function ProductsManager({ params }: { params: { siteId: string }
         </div>
       ) : data === null ? (
         <ModuleAccessDenied message="Unable to load Products — you may not have access to this site." />
+      ) : sorted!.length > 0 && filteredSorted!.length === 0 ? (
+        <div className="text-center py-16 bg-white border border-slate-200 rounded-md">
+          <Search className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+          <h3 className="text-lg font-medium text-slate-900">No products match your search</h3>
+          <Button variant="link" size="sm" onClick={() => setSearchQuery("")} className="mt-1 text-slate-400">Clear search</Button>
+        </div>
       ) : sorted!.length === 0 ? (
         <div className="text-center py-20 bg-white border border-slate-200 rounded-md">
           <Package className="mx-auto h-10 w-10 text-slate-300 mb-3" />
@@ -332,7 +365,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {sorted!.map((p: any, idx: number) => (
+              {filteredSorted!.map((p: any, idx: number) => (
                 <tr
                   key={p._id}
                   draggable
