@@ -156,7 +156,7 @@ export const seedNavigation = internalMutation({
       { label: "Events", href: "/events", order: 3 },
       { label: "Blog", href: "/blog", order: 4 },
       { label: "Contact", href: "/contact", order: 5 },
-      { label: "Member Portal", href: "/portal/corsair-tactical/login", order: 6 },
+      { label: "Member Portal", href: "/portal/corsair-tactical-solutions/login", order: 6 },
     ];
 
     for (const item of navItems) {
