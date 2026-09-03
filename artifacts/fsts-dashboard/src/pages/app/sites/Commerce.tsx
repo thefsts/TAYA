@@ -221,7 +221,7 @@ function CatalogTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-xs text-slate-400 mt-1">Click "Sync Now" to pull items from your Square catalog, or create a new item.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
               <tr>
@@ -343,7 +343,7 @@ function PaymentsTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-xs text-slate-400 mt-1">Click "Sync Payments" to pull transactions from Square, or payments will appear here when the webhook receives events.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
               <tr>
@@ -463,7 +463,7 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-xs text-slate-400 mt-1">Create a discount or sync existing ones from your Square catalog.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
               <tr>

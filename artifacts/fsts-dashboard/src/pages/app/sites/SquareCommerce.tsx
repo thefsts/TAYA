@@ -137,7 +137,7 @@ function CatalogTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-sm text-slate-400 mt-1">Click "Sync Now" to pull items from your Square catalog</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 text-xs uppercase tracking-wide">
               <tr>
@@ -208,7 +208,7 @@ function OrdersTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-sm text-slate-400 mt-1">Orders will appear here as Square processes payments via webhook</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 text-xs uppercase tracking-wide">
               <tr>

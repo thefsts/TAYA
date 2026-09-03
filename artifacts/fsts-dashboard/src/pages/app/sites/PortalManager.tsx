@@ -407,6 +407,7 @@ export default function PortalManager() {
           ) : (
             <Card>
               <CardContent className="p-0">
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-200">
@@ -498,6 +499,7 @@ export default function PortalManager() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </CardContent>
             </Card>
           )}

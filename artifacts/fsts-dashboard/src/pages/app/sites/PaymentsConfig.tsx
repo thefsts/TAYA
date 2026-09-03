@@ -250,7 +250,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
           No catalog mappings yet. Link a course or event to a Square item.
         </p>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500">
               <tr>

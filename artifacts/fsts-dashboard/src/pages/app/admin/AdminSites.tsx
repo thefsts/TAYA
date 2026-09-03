@@ -191,7 +191,7 @@ export default function AdminSites() {
       ) : sites === null ? (
         <ModuleAccessDenied message="Unable to load sites list — you may not have sufficient access." />
       ) : (
-        <div className="bg-white border border-slate-200 rounded-md shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>

@@ -318,7 +318,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
           </Button>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>

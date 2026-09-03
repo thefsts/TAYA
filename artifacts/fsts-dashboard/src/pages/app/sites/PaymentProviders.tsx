@@ -602,7 +602,7 @@ function TransactionLogTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-sm text-slate-400 mt-1">Events appear here as your connector processes payments and webhooks.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 text-xs uppercase tracking-wide">
               <tr>

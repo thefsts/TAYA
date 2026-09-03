@@ -101,7 +101,7 @@ export default function MyPermissions() {
                 <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">
                   {section.label}
                 </h2>
-                <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
+                <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-x-auto">
                   <table className="w-full text-sm">
                     <tbody className="divide-y divide-slate-100">
                       {sectionModules.map((mod) => {
