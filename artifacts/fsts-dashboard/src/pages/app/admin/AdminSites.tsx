@@ -219,8 +219,8 @@ export default function AdminSites() {
                   </td>
                   <td className="px-4 py-3 text-slate-500">{site.domain ?? "—"}</td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(site)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(site)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(site)}><Pencil className="h-4 w-4" /></Button>
+                    <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(site)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
                   </td>
                 </tr>
               ))}
@@ -242,11 +242,11 @@ export default function AdminSites() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Name</Label>
-              <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>Slug</Label>
-              <Input required disabled={!!editing} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+              <Input aria-label="slug" required disabled={!!editing} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>Status</Label>
@@ -261,7 +261,7 @@ export default function AdminSites() {
             </div>
             <div className="space-y-1.5">
               <Label>Domain</Label>
-              <Input placeholder="example.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
+              <Input aria-label="example.com" placeholder="example.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>Website Type</Label>
@@ -294,11 +294,11 @@ export default function AdminSites() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Primary Brand Color</Label>
-                <Input type="color" value={form.brandColorPrimary} onChange={(e) => setForm({ ...form, brandColorPrimary: e.target.value })} />
+                <Input aria-label="brand color primary" type="color" value={form.brandColorPrimary} onChange={(e) => setForm({ ...form, brandColorPrimary: e.target.value })} />
               </div>
               <div className="space-y-1.5">
                 <Label>Secondary Brand Color</Label>
-                <Input type="color" value={form.brandColorSecondary} onChange={(e) => setForm({ ...form, brandColorSecondary: e.target.value })} />
+                <Input aria-label="brand color secondary" type="color" value={form.brandColorSecondary} onChange={(e) => setForm({ ...form, brandColorSecondary: e.target.value })} />
               </div>
             </div>
             <div className="flex items-center justify-between py-1">

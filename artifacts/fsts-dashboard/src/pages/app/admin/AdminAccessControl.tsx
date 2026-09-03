@@ -68,7 +68,7 @@ function LevelSelect({
         onValueChange={(v) => onChange(v as PermissionLevel)}
         disabled={pending}
       >
-        <SelectTrigger className={`h-7 text-xs w-28 ${isOverridden ? "border-amber-400 bg-amber-50" : ""}`}>
+        <SelectTrigger aria-label="value" className={`h-7 text-xs w-28 ${isOverridden ? "border-amber-400 bg-amber-50" : ""}`}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -83,7 +83,7 @@ function LevelSelect({
       {isOverridden && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
+            <Button aria-label="Reset"
               variant="ghost"
               size="sm"
               className="h-6 w-6 p-0 text-amber-600 hover:text-amber-800"

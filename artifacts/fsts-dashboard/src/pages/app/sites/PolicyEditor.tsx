@@ -72,6 +72,7 @@ function PolicyTab({
         </Button>
       </div>
       <Textarea
+        aria-label="Enter your  content here. Markdown is supported."
         className="min-h-[480px] font-mono text-sm"
         value={content}
         onChange={(e) => setContent(e.target.value)}

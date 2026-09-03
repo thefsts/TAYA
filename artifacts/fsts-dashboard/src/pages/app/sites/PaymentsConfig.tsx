@@ -198,15 +198,15 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
           </div>
           <div className="space-y-1.5">
             <Label>Application ID {config?.applicationIdLast4 && <span className="text-slate-400">(current: …{config.applicationIdLast4})</span>}</Label>
-            <Input placeholder="sq0idp-…" value={applicationId} onChange={(e) => setApplicationId(e.target.value)} />
+            <Input aria-label="sq0idp-…" placeholder="sq0idp-…" value={applicationId} onChange={(e) => setApplicationId(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>Location ID</Label>
-            <Input value={locationId} onChange={(e) => setLocationId(e.target.value)} />
+            <Input aria-label="location id" value={locationId} onChange={(e) => setLocationId(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>Access Token</Label>
-            <Input type="password" placeholder="Leave blank to keep current" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} />
+            <Input aria-label="Leave blank to keep current" type="password" placeholder="Leave blank to keep current" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
                 <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Not set</span>
               )}
             </div>
-            <Input type="password" placeholder="Enter to set or update" value={webhookSignatureKey} onChange={(e) => setWebhookSignatureKey(e.target.value)} />
+            <Input aria-label="Enter to set or update" type="password" placeholder="Enter to set or update" value={webhookSignatureKey} onChange={(e) => setWebhookSignatureKey(e.target.value)} />
             <p className="text-xs text-slate-400">
               Found in your Square Developer Dashboard → Webhooks → signature key. Required for Square to accept webhook events.
             </p>
@@ -269,8 +269,8 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
                   <td className="px-4 py-2 font-mono text-xs">{m.squareItemId}</td>
                   <td className="px-4 py-2 font-mono text-xs">{m.squareVariationId}</td>
                   <td className="px-4 py-2 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(m)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
+                    <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(m)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
                   </td>
                 </tr>
               ))}
@@ -300,17 +300,17 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
                 </div>
                 <div className="space-y-1.5">
                   <Label>Entity ID</Label>
-                  <Input required value={form.entityId} onChange={(e) => setForm({ ...form, entityId: e.target.value })} />
+                  <Input aria-label="entity id" required value={form.entityId} onChange={(e) => setForm({ ...form, entityId: e.target.value })} />
                 </div>
               </>
             )}
             <div className="space-y-1.5">
               <Label>Square Item ID</Label>
-              <Input required value={form.squareItemId} onChange={(e) => setForm({ ...form, squareItemId: e.target.value })} />
+              <Input aria-label="square item id" required value={form.squareItemId} onChange={(e) => setForm({ ...form, squareItemId: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>Square Variation ID</Label>
-              <Input required value={form.squareVariationId} onChange={(e) => setForm({ ...form, squareVariationId: e.target.value })} />
+              <Input aria-label="square variation id" required value={form.squareVariationId} onChange={(e) => setForm({ ...form, squareVariationId: e.target.value })} />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>

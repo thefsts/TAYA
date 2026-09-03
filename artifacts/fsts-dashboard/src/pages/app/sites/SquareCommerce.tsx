@@ -345,7 +345,7 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(d._id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                <Button aria-label="Delete" size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(d._id)}><Trash2 className="w-3.5 h-3.5" /></Button>
               </div>
             </div>
           ))}
@@ -356,12 +356,12 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Add Discount</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-            <div><Label>Name</Label><Input className="mt-1" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Spring Sale" /></div>
-            <div><Label>Code <span className="text-slate-400 text-xs font-normal">(optional)</span></Label><Input className="mt-1 font-mono uppercase" value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="SPRING25" /></div>
+            <div><Label>Name</Label><Input aria-label="Name" className="mt-1" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Spring Sale" /></div>
+            <div><Label>Code <span className="text-slate-400 text-xs font-normal">(optional)</span></Label><Input aria-label="Code (optional)" className="mt-1 font-mono uppercase" value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="SPRING25" /></div>
             <div>
               <Label>Discount Type</Label>
               <Select value={form.discountType} onValueChange={(v) => setForm((f) => ({ ...f, discountType: v }))}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="discount type" className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="FIXED_PERCENTAGE">Percentage Off</SelectItem>
                   <SelectItem value="FIXED_AMOUNT">Fixed Amount Off</SelectItem>
@@ -369,11 +369,11 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
               </Select>
             </div>
             {form.discountType === "FIXED_PERCENTAGE" ? (
-              <div><Label>Percentage (%)</Label><Input type="number" className="mt-1" value={form.percentage} onChange={(e) => setForm((f) => ({ ...f, percentage: e.target.value }))} placeholder="10" /></div>
+              <div><Label>Percentage (%)</Label><Input aria-label="Percentage (%)" type="number" className="mt-1" value={form.percentage} onChange={(e) => setForm((f) => ({ ...f, percentage: e.target.value }))} placeholder="10" /></div>
             ) : (
-              <div><Label>Amount ($)</Label><Input type="number" className="mt-1" step="0.01" value={form.amountCents} onChange={(e) => setForm((f) => ({ ...f, amountCents: e.target.value }))} placeholder="25.00" /></div>
+              <div><Label>Amount ($)</Label><Input aria-label="Amount ($)" type="number" className="mt-1" step="0.01" value={form.amountCents} onChange={(e) => setForm((f) => ({ ...f, amountCents: e.target.value }))} placeholder="25.00" /></div>
             )}
-            <div><Label>Expiration Date <span className="text-slate-400 text-xs font-normal">(optional)</span></Label><Input type="date" className="mt-1" value={form.expiresAt} onChange={(e) => setForm((f) => ({ ...f, expiresAt: e.target.value }))} /></div>
+            <div><Label>Expiration Date <span className="text-slate-400 text-xs font-normal">(optional)</span></Label><Input aria-label="Expiration Date (optional)" type="date" className="mt-1" value={form.expiresAt} onChange={(e) => setForm((f) => ({ ...f, expiresAt: e.target.value }))} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>

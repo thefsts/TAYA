@@ -69,7 +69,7 @@ export default function AdminPlatformControls() {
           <div className="text-sm text-slate-500 py-2">No agencies configured yet. <a href="/app/admin/agencies" className="text-primary hover:underline">Create one first.</a></div>
         ) : (
           <Select value={selectedAgencyId} onValueChange={setSelectedAgencyId}>
-            <SelectTrigger className="max-w-sm">
+            <SelectTrigger aria-label="Choose an agency…" className="max-w-sm">
               <SelectValue placeholder="Choose an agency…" />
             </SelectTrigger>
             <SelectContent>
@@ -301,7 +301,7 @@ function PlatformLicensingPanel({
       <div className="space-y-1.5">
         <Label>Licensing Status</Label>
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="max-w-xs">
+          <SelectTrigger aria-label="status" className="max-w-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -318,6 +318,7 @@ function PlatformLicensingPanel({
       <div className="space-y-1.5">
         <Label>Billing Notes</Label>
         <Textarea
+          aria-label="Billing Notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={5}

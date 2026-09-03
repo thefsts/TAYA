@@ -124,9 +124,9 @@ export function LivePreviewPanel({ siteId, children, section }: Props) {
         </button>
 
         <div className="flex items-center gap-1">
-          <button onClick={zoomOut} className={`p-1.5 rounded transition-colors ${expanded ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}><ZoomOut className="h-3.5 w-3.5" /></button>
+          <button aria-label="Zoom out" onClick={zoomOut} className={`p-1.5 rounded transition-colors ${expanded ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}><ZoomOut className="h-3.5 w-3.5" /></button>
           <span className={`text-xs font-mono w-10 text-center ${expanded ? "text-slate-300" : "text-slate-600"}`}>{Math.round(zoom * 100)}%</span>
-          <button onClick={zoomIn} className={`p-1.5 rounded transition-colors ${expanded ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}><ZoomIn className="h-3.5 w-3.5" /></button>
+          <button aria-label="Zoom in" onClick={zoomIn} className={`p-1.5 rounded transition-colors ${expanded ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}><ZoomIn className="h-3.5 w-3.5" /></button>
         </div>
 
         <button onClick={refresh} title="Refresh" className={`p-1.5 rounded transition-colors ${expanded ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}><RefreshCw className="h-3.5 w-3.5" /></button>
@@ -141,7 +141,7 @@ export function LivePreviewPanel({ siteId, children, section }: Props) {
         >
           {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
         </button>
-        <button
+        <button aria-label="Hide preview"
           onClick={() => setShowPreview(false)}
           className={`p-1.5 rounded transition-colors ${expanded ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:bg-slate-100"}`}
         >

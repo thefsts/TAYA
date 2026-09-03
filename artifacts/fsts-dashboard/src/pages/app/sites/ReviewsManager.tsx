@@ -177,6 +177,7 @@ function ConnectDialog({
             <div key={field.key} className="space-y-1.5">
               <Label>{field.label}</Label>
               <Input
+                aria-label={field.label}
                 placeholder={field.placeholder}
                 value={config[field.key] ?? ""}
                 onChange={(e) => handleField(field.key, e.target.value)}
@@ -251,6 +252,7 @@ function CategoryDialog({
         <div className="py-2">
           <Label>Category / Tag</Label>
           <Input
+            aria-label="Category / Tag"
             className="mt-1.5"
             placeholder="e.g. Service, Quality, Value"
             value={value}
@@ -968,7 +970,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
                       value={(displaySettings as any).layout ?? "grid"}
                       onValueChange={(v) => handleDisplaySetting("layout", v)}
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger aria-label="layout" className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -984,7 +986,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
                       value={String((displaySettings as any).minRating ?? 4)}
                       onValueChange={(v) => handleDisplaySetting("minRating", Number(v))}
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger aria-label="min rating" className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1000,7 +1002,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
                       value={String((displaySettings as any).maxPerPage ?? 12)}
                       onValueChange={(v) => handleDisplaySetting("maxPerPage", Number(v))}
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger aria-label="max per page" className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1029,6 +1031,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
                   <div className="space-y-1.5 md:col-span-2 lg:col-span-4">
                     <Label className="text-xs text-slate-500">Category filter <span className="text-slate-400 font-normal">(optional)</span></Label>
                     <Input
+                      aria-label="Category filter (optional)"
                       className="h-9 text-sm max-w-sm"
                       placeholder="e.g. Service, Quality, Value"
                       value={(displaySettings as any).categoryFilter ?? ""}
@@ -1050,7 +1053,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
             <h2 className="text-base font-semibold text-slate-800">Imported Reviews</h2>
             <div className="flex items-center gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-8 w-32 text-xs">
+                <SelectTrigger aria-label="status filter" className="h-8 w-32 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1061,7 +1064,7 @@ export default function ReviewsManager({ params: routeParams }: { params?: { sit
                 </SelectContent>
               </Select>
               <Select value={providerFilter} onValueChange={setProviderFilter}>
-                <SelectTrigger className="h-8 w-32 text-xs">
+                <SelectTrigger aria-label="provider filter" className="h-8 w-32 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -106,11 +106,11 @@ export default function PopupManager({ params }: { params: { siteId: string } })
                 <div><Label className="text-sm font-semibold text-slate-900">Show popup on website</Label><p className="mt-0.5 text-xs leading-5 text-slate-500">Turn this off to keep the popup saved without showing it publicly.</p></div>
                 <Switch checked={form.isEnabled} onCheckedChange={(value) => setForm((current) => ({ ...current, isEnabled: value }))} />
               </div>
-              <div className="space-y-1.5"><Label>Popup Title *</Label><Input value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="e.g. Registration is now open" /></div>
-              <div className="space-y-1.5"><Label>Body Text *</Label><Textarea rows={4} value={form.body} onChange={(e) => setForm((current) => ({ ...current, body: e.target.value }))} placeholder="Add a short message explaining what visitors should know or do." /></div>
+              <div className="space-y-1.5"><Label>Popup Title *</Label><Input aria-label="Popup Title" value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="e.g. Registration is now open" /></div>
+              <div className="space-y-1.5"><Label>Body Text *</Label><Textarea aria-label="Body Text" rows={4} value={form.body} onChange={(e) => setForm((current) => ({ ...current, body: e.target.value }))} placeholder="Add a short message explaining what visitors should know or do." /></div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5"><Label>CTA Button Label</Label><Input value={form.ctaLabel} onChange={(e) => setForm((current) => ({ ...current, ctaLabel: e.target.value }))} placeholder="e.g. Register Now" /></div>
-                <div className="space-y-1.5"><Label>CTA Button URL</Label><Input value={form.ctaUrl} onChange={(e) => setForm((current) => ({ ...current, ctaUrl: e.target.value }))} placeholder="/register or https://…" /></div>
+                <div className="space-y-1.5"><Label>CTA Button Label</Label><Input aria-label="CTA Button Label" value={form.ctaLabel} onChange={(e) => setForm((current) => ({ ...current, ctaLabel: e.target.value }))} placeholder="e.g. Register Now" /></div>
+                <div className="space-y-1.5"><Label>CTA Button URL</Label><Input aria-label="CTA Button URL" value={form.ctaUrl} onChange={(e) => setForm((current) => ({ ...current, ctaUrl: e.target.value }))} placeholder="/register or https://…" /></div>
               </div>
               {(form.ctaLabel && !form.ctaUrl) || (!form.ctaLabel && form.ctaUrl) ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">For a working action button, enter both the button label and destination URL.</p> : null}
             </div>
@@ -124,7 +124,7 @@ export default function PopupManager({ params }: { params: { siteId: string } })
                   <option value="timed">Timed (after delay)</option><option value="exit">Exit Intent</option><option value="scroll">Scroll (50% page)</option>
                 </select>
               </div>
-              {form.triggerType === "timed" && <div className="space-y-1.5"><Label>Delay (seconds)</Label><Input type="number" min="1" max="60" value={form.delaySecs} onChange={(e) => setForm((current) => ({ ...current, delaySecs: e.target.value }))} /><p className="text-xs text-slate-400">Recommended: 3–10 seconds.</p></div>}
+              {form.triggerType === "timed" && <div className="space-y-1.5"><Label>Delay (seconds)</Label><Input aria-label="Delay (seconds)" type="number" min="1" max="60" value={form.delaySecs} onChange={(e) => setForm((current) => ({ ...current, delaySecs: e.target.value }))} /><p className="text-xs text-slate-400">Recommended: 3–10 seconds.</p></div>}
             </div>
           </ClientSection>
         </div>

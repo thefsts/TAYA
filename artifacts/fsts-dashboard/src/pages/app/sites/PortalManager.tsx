@@ -431,7 +431,7 @@ export default function PortalManager() {
                             value={member.role}
                             onValueChange={(v) => handleUpdateRole(member._id as Id<"portalUsers">, v)}
                           >
-                            <SelectTrigger className="h-7 w-32 text-xs border-slate-200">
+                            <SelectTrigger aria-label="Member role" className="h-7 w-32 text-xs border-slate-200">
                               <SelectValue />
                               <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
                             </SelectTrigger>
@@ -485,7 +485,7 @@ export default function PortalManager() {
                                 Re-activate
                               </Button>
                             )}
-                            <Button
+                            <Button aria-label="Delete"
                               size="sm"
                               variant="ghost"
                               className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"

@@ -263,6 +263,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Site Name <span className="text-red-500">*</span></Label>
               <Input
+                aria-label="Site Name"
                 value={details.name}
                 onChange={(e) => {
                   const name = e.target.value;
@@ -274,6 +275,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>URL Slug <span className="text-red-500">*</span></Label>
               <Input
+                aria-label="URL Slug"
                 value={details.slug}
                 onChange={(e) => setDetails((d) => ({ ...d, slug: e.target.value }))}
                 placeholder="acme-corp"
@@ -297,6 +299,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Domain</Label>
               <Input
+                aria-label="Domain"
                 value={details.domain}
                 onChange={(e) => setDetails((d) => ({ ...d, domain: e.target.value }))}
                 placeholder="example.com"
@@ -321,15 +324,15 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Primary Brand Color</Label>
               <div className="flex items-center gap-2">
-                <Input type="color" value={details.brandColorPrimary} onChange={(e) => setDetails((d) => ({ ...d, brandColorPrimary: e.target.value }))} className="h-10 w-14 p-1" />
-                <Input value={details.brandColorPrimary} onChange={(e) => setDetails((d) => ({ ...d, brandColorPrimary: e.target.value }))} className="font-mono text-sm" />
+                <Input aria-label="brand color primary" type="color" value={details.brandColorPrimary} onChange={(e) => setDetails((d) => ({ ...d, brandColorPrimary: e.target.value }))} className="h-10 w-14 p-1" />
+                <Input aria-label="brand color primary" value={details.brandColorPrimary} onChange={(e) => setDetails((d) => ({ ...d, brandColorPrimary: e.target.value }))} className="font-mono text-sm" />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label>Secondary Brand Color</Label>
               <div className="flex items-center gap-2">
-                <Input type="color" value={details.brandColorSecondary} onChange={(e) => setDetails((d) => ({ ...d, brandColorSecondary: e.target.value }))} className="h-10 w-14 p-1" />
-                <Input value={details.brandColorSecondary} onChange={(e) => setDetails((d) => ({ ...d, brandColorSecondary: e.target.value }))} className="font-mono text-sm" />
+                <Input aria-label="brand color secondary" type="color" value={details.brandColorSecondary} onChange={(e) => setDetails((d) => ({ ...d, brandColorSecondary: e.target.value }))} className="h-10 w-14 p-1" />
+                <Input aria-label="brand color secondary" value={details.brandColorSecondary} onChange={(e) => setDetails((d) => ({ ...d, brandColorSecondary: e.target.value }))} className="font-mono text-sm" />
               </div>
             </div>
           </div>
@@ -372,6 +375,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Business Name</Label>
               <Input
+                aria-label="Business Name"
                 value={siteSettings.businessName}
                 onChange={(e) => setSiteSettings((s) => ({ ...s, businessName: e.target.value }))}
                 placeholder={details.name || "e.g. Acme Corp"}
@@ -381,6 +385,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Tagline</Label>
               <Input
+                aria-label="Tagline"
                 value={siteSettings.tagline}
                 onChange={(e) => setSiteSettings((s) => ({ ...s, tagline: e.target.value }))}
                 placeholder="e.g. Quality you can trust"
@@ -408,6 +413,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Logo URL</Label>
               <Input
+                aria-label="Logo URL"
                 value={siteSettings.logoUrl}
                 onChange={(e) => setSiteSettings((s) => ({ ...s, logoUrl: e.target.value }))}
                 placeholder="https://example.com/logo.png"
@@ -607,6 +613,7 @@ export default function AdminSiteOnboarding() {
                     </Select>
                   ) : (
                     <Input
+                      aria-label="user@example.com"
                       value={row.email}
                       onChange={(e) => setUserRows((rows) => rows.map((r, j) => j === i ? { ...r, email: e.target.value } : r))}
                       placeholder="user@example.com"

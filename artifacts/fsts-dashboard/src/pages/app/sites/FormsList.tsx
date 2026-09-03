@@ -99,7 +99,7 @@ function EmbedDialog({ form, siteSlug, onClose }: { form: any; siteSlug: string;
                 value={iframeCode}
                 className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded px-3 py-2 font-mono text-slate-700 resize-none h-20"
               />
-              <Button size="icon" variant="outline" onClick={() => copy(iframeCode)}>
+              <Button aria-label="Copy to clipboard" size="icon" variant="outline" onClick={() => copy(iframeCode)}>
                 <ClipboardCopy className="h-4 w-4" />
               </Button>
             </div>
@@ -114,7 +114,7 @@ function EmbedDialog({ form, siteSlug, onClose }: { form: any; siteSlug: string;
                 value={scriptCode}
                 className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded px-3 py-2 font-mono text-slate-700 resize-none h-24"
               />
-              <Button size="icon" variant="outline" onClick={() => copy(scriptCode)}>
+              <Button aria-label="Copy to clipboard" size="icon" variant="outline" onClick={() => copy(scriptCode)}>
                 <ClipboardCopy className="h-4 w-4" />
               </Button>
             </div>
@@ -261,7 +261,7 @@ export default function FormsList({ params }: { params: { siteId: string } }) {
                 >
                   <Inbox className="h-3.5 w-3.5" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => handleDuplicate(form.id)}>
+                <Button aria-label="Duplicate" size="sm" variant="outline" onClick={() => handleDuplicate(form.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
                 <Button
@@ -282,7 +282,7 @@ export default function FormsList({ params }: { params: { siteId: string } }) {
                     <Archive className="h-3.5 w-3.5" />
                   </Button>
                 )}
-                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(form.id)}>
+                <Button aria-label="Delete" size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(form.id)}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -312,7 +312,7 @@ export default function FormsList({ params }: { params: { siteId: string } }) {
             <div>
               <Label>Starting Template</Label>
               <Select value={createTemplate} onValueChange={setCreateTemplate}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger aria-label="create template" className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

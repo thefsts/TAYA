@@ -127,11 +127,11 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label>Headline</Label>
-                <Input value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} />
+                <Input aria-label="hero headline" value={heroHeadline} onChange={(e) => setHeroHeadline(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label>Subheadline</Label>
-                <Input value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} />
+                <Input aria-label="hero subheadline" value={heroSubheadline} onChange={(e) => setHeroSubheadline(e.target.value)} />
               </div>
               <ImagePickerField
                 siteId={params.siteId}
@@ -161,6 +161,7 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
                 <div key={i} className="border border-slate-200 rounded-md p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <Input
+                      aria-label="Section heading"
                       placeholder="Section heading"
                       value={s.heading}
                       onChange={(e) => {
@@ -169,11 +170,12 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
                         setSections(next);
                       }}
                     />
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setSections(sections.filter((_, idx) => idx !== i))}>
+                    <Button aria-label="Delete" type="button" variant="ghost" size="sm" onClick={() => setSections(sections.filter((_, idx) => idx !== i))}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </div>
                   <Textarea
+                    aria-label="Section body"
                     rows={3}
                     placeholder="Section body"
                     value={s.body}

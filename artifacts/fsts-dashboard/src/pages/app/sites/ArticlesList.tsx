@@ -335,6 +335,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
+            aria-label="Search articles…"
             className="pl-9"
             placeholder="Search articles…"
             value={searchQuery}
@@ -342,7 +343,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
           />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger aria-label="filter status" className="w-36">
             <Filter className="h-4 w-4 mr-2 text-slate-400" />
             <SelectValue />
           </SelectTrigger>
@@ -419,10 +420,10 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                       : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(a)}>
+                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(a)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(a)}>
+                    <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(a)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </td>
@@ -468,6 +469,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   <div className="space-y-1.5">
                     <Label>Title <span className="text-red-500">*</span></Label>
                     <Input
+                      aria-label="Title"
                       required
                       value={form.title}
                       onChange={(e) => setField("title", e.target.value)}
@@ -477,6 +479,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   <div className="space-y-1.5">
                     <Label>Slug <span className="text-red-500">*</span></Label>
                     <Input
+                      aria-label="Slug"
                       required
                       value={form.slug}
                       onChange={(e) => setField("slug", e.target.value)}
@@ -488,6 +491,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>Excerpt</Label>
                   <Textarea
+                    aria-label="Excerpt"
                     rows={2}
                     value={form.excerpt}
                     onChange={(e) => setField("excerpt", e.target.value)}
@@ -498,6 +502,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>Body <span className="text-red-500">*</span></Label>
                   <Textarea
+                    aria-label="Body"
                     required
                     rows={12}
                     value={form.body}
@@ -555,6 +560,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   <div className="space-y-1.5">
                     <Label>Author</Label>
                     <Input
+                      aria-label="Author"
                       value={form.author}
                       onChange={(e) => setField("author", e.target.value)}
                       placeholder="e.g. John Smith"
@@ -563,6 +569,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   <div className="space-y-1.5">
                     <Label>Reading Time</Label>
                     <Input
+                      aria-label="Reading Time"
                       value={form.readingTime}
                       onChange={(e) => setField("readingTime", e.target.value)}
                       placeholder="e.g. 5 min read"
@@ -582,6 +589,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>Tags</Label>
                   <Input
+                    aria-label="Tags"
                     value={form.tagsRaw}
                     onChange={(e) => setField("tagsRaw", e.target.value)}
                     placeholder="church security, firearms, safety (comma-separated)"
@@ -593,6 +601,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                   <div className="space-y-1.5">
                     <Label>Publish Date</Label>
                     <Input
+                      aria-label="Publish Date"
                       type="datetime-local"
                       value={form.scheduledAt}
                       onChange={(e) => setField("scheduledAt", e.target.value)}
@@ -623,6 +632,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>SEO Title</Label>
                   <Input
+                    aria-label="SEO Title"
                     value={form.seoTitle}
                     onChange={(e) => setField("seoTitle", e.target.value)}
                     placeholder={form.title || "Article title for search engines"}
@@ -633,6 +643,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>Meta Description</Label>
                   <Textarea
+                    aria-label="Meta Description"
                     rows={3}
                     value={form.metaDescription}
                     onChange={(e) => setField("metaDescription", e.target.value)}
@@ -653,6 +664,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>Canonical URL</Label>
                   <Input
+                    aria-label="Canonical URL"
                     value={form.canonicalUrl}
                     onChange={(e) => setField("canonicalUrl", e.target.value)}
                     placeholder={`https://yourdomain.com/blog/${form.slug || "slug"}`}
@@ -669,6 +681,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>Social Title</Label>
                   <Input
+                    aria-label="Social Title"
                     value={form.socialTitle}
                     onChange={(e) => setField("socialTitle", e.target.value)}
                     placeholder={form.seoTitle || form.title || "Title for social posts"}
@@ -678,6 +691,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                 <div className="space-y-1.5">
                   <Label>Social Description</Label>
                   <Textarea
+                    aria-label="Social Description"
                     rows={3}
                     value={form.socialDescription}
                     onChange={(e) => setField("socialDescription", e.target.value)}

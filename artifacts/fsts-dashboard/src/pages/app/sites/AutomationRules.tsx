@@ -167,6 +167,7 @@ function ActionConfigForm({
           <div>
             <Label className="text-xs text-slate-500">To</Label>
             <Input
+              aria-label="To"
               className="h-7 text-sm mt-0.5"
               placeholder="e.g. admin@example.com"
               value={cfg.to ?? ""}
@@ -176,6 +177,7 @@ function ActionConfigForm({
           <div>
             <Label className="text-xs text-slate-500">Subject</Label>
             <Input
+              aria-label="Subject"
               className="h-7 text-sm mt-0.5"
               placeholder="Email subject"
               value={cfg.subject ?? ""}
@@ -189,6 +191,7 @@ function ActionConfigForm({
         <div className="mt-2 pl-2 border-l-2 border-slate-100">
           <Label className="text-xs text-slate-500">Log Message</Label>
           <Input
+            aria-label="Log Message"
             className="h-7 text-sm mt-0.5"
             placeholder="Custom activity log message"
             value={cfg.message ?? ""}
@@ -202,6 +205,7 @@ function ActionConfigForm({
           <div>
             <Label className="text-xs text-slate-500">Webhook URL (https://)</Label>
             <Input
+              aria-label="Webhook URL (https://)"
               className="h-7 text-sm mt-0.5"
               placeholder="https://hooks.example.com/..."
               value={cfg.url ?? ""}
@@ -215,6 +219,7 @@ function ActionConfigForm({
         <div className="mt-2 pl-2 border-l-2 border-slate-100">
           <Label className="text-xs text-slate-500">Entity Type (optional)</Label>
           <Input
+            aria-label="Entity Type (optional)"
             className="h-7 text-sm mt-0.5"
             placeholder="e.g. contact_form"
             value={cfg.entityType ?? ""}
@@ -228,6 +233,7 @@ function ActionConfigForm({
           <div>
             <Label className="text-xs text-slate-500">Platform</Label>
             <Input
+              aria-label="Platform"
               className="h-7 text-sm mt-0.5"
               placeholder="e.g. twitter, linkedin"
               value={cfg.platform ?? ""}
@@ -237,6 +243,7 @@ function ActionConfigForm({
           <div>
             <Label className="text-xs text-slate-500">Task Description</Label>
             <Input
+              aria-label="Task Description"
               className="h-7 text-sm mt-0.5"
               placeholder="What to post"
               value={cfg.taskDescription ?? ""}
@@ -342,6 +349,7 @@ function RuleEditorDialog({
             <div>
               <Label>Rule Name</Label>
               <Input
+                aria-label="Rule Name"
                 className="mt-1"
                 placeholder="e.g. Notify CRM on new contact form"
                 value={form.name}
@@ -351,6 +359,7 @@ function RuleEditorDialog({
             <div>
               <Label>Description (optional)</Label>
               <Textarea
+                aria-label="Description (optional)"
                 className="mt-1 text-sm resize-none"
                 rows={2}
                 placeholder="What does this rule do?"
@@ -366,7 +375,7 @@ function RuleEditorDialog({
               <Zap className="h-3.5 w-3.5 text-amber-500" /> Trigger
             </Label>
             <Select value={form.triggerType} onValueChange={(v) => setField("triggerType", v)}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Trigger type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -395,7 +404,7 @@ function RuleEditorDialog({
                 {form.conditions.map((c, i) => (
                   <div key={i} className="flex gap-2 items-start">
                     <Select value={c.field} onValueChange={(v) => updateCondition(i, { field: v })}>
-                      <SelectTrigger className="h-8 text-sm flex-1">
+                      <SelectTrigger aria-label="Condition field" className="h-8 text-sm flex-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -405,7 +414,7 @@ function RuleEditorDialog({
                       </SelectContent>
                     </Select>
                     <Select value={c.operator} onValueChange={(v) => updateCondition(i, { operator: v })}>
-                      <SelectTrigger className="h-8 text-sm w-36">
+                      <SelectTrigger aria-label="Condition operator" className="h-8 text-sm w-36">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -416,13 +425,14 @@ function RuleEditorDialog({
                     </Select>
                     {!["is_empty", "is_not_empty"].includes(c.operator) && (
                       <Input
+                        aria-label="value"
                         className="h-8 text-sm flex-1"
                         placeholder="value"
                         value={c.value}
                         onChange={(e) => updateCondition(i, { value: e.target.value })}
                       />
                     )}
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500" onClick={() => removeCondition(i)}>
+                    <Button aria-label="Delete" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500" onClick={() => removeCondition(i)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -453,7 +463,7 @@ function RuleEditorDialog({
                       <div className="flex gap-2 items-center">
                         <span className="text-xs text-slate-400 font-mono w-5">{i + 1}.</span>
                         <Select value={a.type} onValueChange={(v) => updateAction(i, { type: v, config: {} })}>
-                          <SelectTrigger className="h-8 text-sm flex-1">
+                          <SelectTrigger aria-label="Action type" className="h-8 text-sm flex-1">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -467,13 +477,13 @@ function RuleEditorDialog({
                           </SelectContent>
                         </Select>
                         <div className="flex gap-0.5">
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400" onClick={() => moveAction(i, -1)} disabled={i === 0}>
+                          <Button aria-label="Move up" variant="ghost" size="icon" className="h-7 w-7 text-slate-400" onClick={() => moveAction(i, -1)} disabled={i === 0}>
                             <ChevronUp className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400" onClick={() => moveAction(i, 1)} disabled={i === form.actions.length - 1}>
+                          <Button aria-label="Move down" variant="ghost" size="icon" className="h-7 w-7 text-slate-400" onClick={() => moveAction(i, 1)} disabled={i === form.actions.length - 1}>
                             <ChevronDown className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-500" onClick={() => removeAction(i)}>
+                          <Button aria-label="Delete" variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-500" onClick={() => removeAction(i)}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -851,7 +861,7 @@ export default function AutomationRules({ params }: { params: { siteId: string }
                     >
                       Edit
                     </Button>
-                    <Button
+                    <Button aria-label="Delete"
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 text-slate-400 hover:text-red-500 p-0"

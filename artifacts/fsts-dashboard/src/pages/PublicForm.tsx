@@ -267,7 +267,7 @@ function FormFieldRenderer({
       )}
       {field.type === "dropdown" && (
         <Select value={value ?? ""} onValueChange={onChange}>
-          <SelectTrigger className={`mt-1 ${error ? "border-red-400" : ""}`}>
+          <SelectTrigger aria-label={field.label} className={`mt-1 ${error ? "border-red-400" : ""}`}>
             <SelectValue placeholder={field.placeholder || "Select an option"} />
           </SelectTrigger>
           <SelectContent>

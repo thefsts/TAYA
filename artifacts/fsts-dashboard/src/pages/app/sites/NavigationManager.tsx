@@ -101,7 +101,7 @@ export default function NavigationManager({ params }: { params: { siteId: string
                 </div>
                 <LockedField capabilityLabel="Navigation Structure" className="flex flex-shrink-0 gap-2">
                   <Button size="sm" variant="outline" onClick={() => openEdit(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
-                  <Button size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                 </LockedField>
               </div>
             ))}
@@ -113,8 +113,8 @@ export default function NavigationManager({ params }: { params: { siteId: string
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>{editing ? "Edit Navigation Item" : "New Navigation Item"}</DialogTitle></DialogHeader>
           <div className="space-y-5 py-2">
-            <div className="space-y-1.5"><Label>Label *</Label><Input value={form.label} onChange={(e) => setForm((current) => ({ ...current, label: e.target.value }))} placeholder="e.g. About Us" /></div>
-            <div className="space-y-1.5"><Label>Destination URL *</Label><Input value={form.href} onChange={(e) => setForm((current) => ({ ...current, href: e.target.value }))} placeholder="/about or https://…" /><p className="text-xs leading-5 text-slate-400">Use a website path for internal pages or a complete https:// URL for an external destination.</p></div>
+            <div className="space-y-1.5"><Label>Label *</Label><Input aria-label="Label" value={form.label} onChange={(e) => setForm((current) => ({ ...current, label: e.target.value }))} placeholder="e.g. About Us" /></div>
+            <div className="space-y-1.5"><Label>Destination URL *</Label><Input aria-label="Destination URL" value={form.href} onChange={(e) => setForm((current) => ({ ...current, href: e.target.value }))} placeholder="/about or https://…" /><p className="text-xs leading-5 text-slate-400">Use a website path for internal pages or a complete https:// URL for an external destination.</p></div>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><span className="block text-sm font-medium text-slate-900">Visible</span><span className="text-xs text-slate-500">Show in website menu</span></div><Switch checked={form.isVisible} onCheckedChange={(value) => setForm((current) => ({ ...current, isVisible: value }))} /></label>
               <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><span className="block text-sm font-medium text-slate-900">New tab</span><span className="text-xs text-slate-500">Useful for external links</span></div><Switch checked={form.openInNewTab} onCheckedChange={(value) => setForm((current) => ({ ...current, openInNewTab: value }))} /></label>

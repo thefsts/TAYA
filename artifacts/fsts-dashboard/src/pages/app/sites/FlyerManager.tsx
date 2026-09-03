@@ -521,7 +521,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                   {/* Actions */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
+                      <Button aria-label="More options" variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -577,6 +577,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
               <div>
                 <Label>Title *</Label>
                 <Input
+                  aria-label="Title"
                   className="mt-1"
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
@@ -587,6 +588,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
               <div>
                 <Label>Description</Label>
                 <Textarea
+                  aria-label="Description"
                   className="mt-1"
                   rows={3}
                   value={form.description}
@@ -606,6 +608,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                 <div>
                   <Label>Button Label</Label>
                   <Input
+                    aria-label="Button Label"
                     className="mt-1"
                     value={form.buttonLabel}
                     onChange={(e) => setForm((f) => ({ ...f, buttonLabel: e.target.value }))}
@@ -615,6 +618,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                 <div>
                   <Label>Button URL</Label>
                   <Input
+                    aria-label="Button URL"
                     className="mt-1"
                     value={form.buttonDestination}
                     onChange={(e) => setForm((f) => ({ ...f, buttonDestination: e.target.value }))}
@@ -627,6 +631,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                 <div>
                   <Label>Start Date</Label>
                   <Input
+                    aria-label="Start Date"
                     className="mt-1"
                     type="date"
                     value={form.startDate}
@@ -636,6 +641,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                 <div>
                   <Label>Expiration Date</Label>
                   <Input
+                    aria-label="Expiration Date"
                     className="mt-1"
                     type="date"
                     value={form.expirationDate}
@@ -656,7 +662,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                     }))
                   }
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger aria-label="None / General" className="mt-1">
                     <SelectValue placeholder="None / General" />
                   </SelectTrigger>
                   <SelectContent>
@@ -690,7 +696,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
                         }))
                       }
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger aria-label="Select…" className="mt-1">
                         <SelectValue placeholder="Select…" />
                       </SelectTrigger>
                       <SelectContent>
@@ -738,6 +744,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
           <div className="py-2">
             <Label>Start Date *</Label>
             <Input
+              aria-label="Start Date"
               type="date"
               className="mt-1"
               value={scheduleDate}

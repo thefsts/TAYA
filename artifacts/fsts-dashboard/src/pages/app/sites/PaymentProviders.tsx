@@ -226,7 +226,7 @@ function ProviderCard({
             </Button>
           )}
           {connected && (
-            <Button size="sm" variant="ghost" className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={onDisconnect}>
+            <Button aria-label="Disconnect" size="sm" variant="ghost" className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={onDisconnect}>
               <Plug2 className="w-3.5 h-3.5" />
             </Button>
           )}
@@ -345,6 +345,7 @@ function CredentialDialog({
               </Label>
               <Input
                 type={f.secret ? "password" : "text"}
+                aria-label={f.label}
                 placeholder={f.placeholder ?? ""}
                 value={fields[f.key] ?? ""}
                 onChange={(e) => setFields((prev) => ({ ...prev, [f.key]: e.target.value }))}

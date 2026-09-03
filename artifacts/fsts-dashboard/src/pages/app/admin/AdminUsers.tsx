@@ -223,8 +223,8 @@ export default function AdminUsers() {
           <DialogHeader><DialogTitle>{editing ? "Edit User" : "Invite Dashboard User"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5"><Label>Name</Label><Input required value={name} onChange={(event) => setName(event.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Email</Label><Input required type="email" disabled={!!editing} value={email} onChange={(event) => setEmail(event.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Name</Label><Input aria-label="Name" required value={name} onChange={(event) => setName(event.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Email</Label><Input aria-label="Email" required type="email" disabled={!!editing} value={email} onChange={(event) => setEmail(event.target.value)} /></div>
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4"><div><Label>Super Admin</Label><p className="mt-0.5 text-xs text-slate-500">Platform-wide FSTS access. Do not enable for client users.</p></div><Switch checked={isSuperAdmin} onCheckedChange={setIsSuperAdmin} /></div>
@@ -235,9 +235,9 @@ export default function AdminUsers() {
                 <div className="flex items-center justify-between"><div><Label>Site Role Assignments</Label><p className="mt-0.5 text-xs text-slate-500">Client access stays limited to the selected website.</p></div><Button type="button" variant="outline" size="sm" onClick={() => setAssignments([...assignments, { siteId: "", role: "content_editor" }])}><Plus className="mr-1 h-4 w-4" />Add</Button></div>
                 {assignments.map((assignment, index) => (
                   <div key={index} className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_180px_auto]">
-                    <Select value={assignment.siteId} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, siteId: value }; setAssignments(next); }}><SelectTrigger className="bg-white"><SelectValue placeholder="Choose website" /></SelectTrigger><SelectContent>{sites?.map((site: any) => <SelectItem key={site._id} value={site._id}>{site.name}</SelectItem>)}</SelectContent></Select>
-                    <Select value={assignment.role} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, role: value }; setAssignments(next); }}><SelectTrigger className="bg-white"><SelectValue /></SelectTrigger><SelectContent>{ROLES.map((role) => <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>)}</SelectContent></Select>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setAssignments(assignments.filter((_, itemIndex) => itemIndex !== index))}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                    <Select value={assignment.siteId} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, siteId: value }; setAssignments(next); }}><SelectTrigger aria-label="Choose website" className="bg-white"><SelectValue placeholder="Choose website" /></SelectTrigger><SelectContent>{sites?.map((site: any) => <SelectItem key={site._id} value={site._id}>{site.name}</SelectItem>)}</SelectContent></Select>
+                    <Select value={assignment.role} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, role: value }; setAssignments(next); }}><SelectTrigger aria-label="assignments" className="bg-white"><SelectValue /></SelectTrigger><SelectContent>{ROLES.map((role) => <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>)}</SelectContent></Select>
+                    <Button aria-label="Delete" type="button" variant="ghost" size="sm" onClick={() => setAssignments(assignments.filter((_, itemIndex) => itemIndex !== index))}><Trash2 className="h-4 w-4 text-red-500" /></Button>
                   </div>
                 ))}
                 {assignments.length === 0 && <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">Add a website role before inviting a client. For Corsair testing, select Corsair and assign the Owner role.</div>}

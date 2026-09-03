@@ -96,11 +96,11 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
             <div className="space-y-5 p-4 sm:p-5">
               <div className="space-y-1.5">
                 <Label>Button Label *</Label>
-                <Input value={form.primaryLabel} onChange={(e) => setForm((f) => ({ ...f, primaryLabel: e.target.value }))} placeholder="e.g. Book a Class" />
+                <Input aria-label="primary label" value={form.primaryLabel} onChange={(e) => setForm((f) => ({ ...f, primaryLabel: e.target.value }))} placeholder="e.g. Book a Class" />
               </div>
               <div className="space-y-1.5">
                 <Label>Destination URL *</Label>
-                <Input value={form.primaryUrl} onChange={(e) => setForm((f) => ({ ...f, primaryUrl: e.target.value }))} placeholder="/register or https://…" />
+                <Input aria-label="primary url" value={form.primaryUrl} onChange={(e) => setForm((f) => ({ ...f, primaryUrl: e.target.value }))} placeholder="/register or https://…" />
                 <p className="text-xs leading-5 text-slate-400">Use a website path for an internal page or a full https:// link for an external destination.</p>
               </div>
             </div>
@@ -110,11 +110,11 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
             <div className="space-y-5 p-4 sm:p-5">
               <div className="space-y-1.5">
                 <Label>Button Label</Label>
-                <Input value={form.secondaryLabel} onChange={(e) => setForm((f) => ({ ...f, secondaryLabel: e.target.value }))} placeholder="e.g. Learn More" />
+                <Input aria-label="secondary label" value={form.secondaryLabel} onChange={(e) => setForm((f) => ({ ...f, secondaryLabel: e.target.value }))} placeholder="e.g. Learn More" />
               </div>
               <div className="space-y-1.5">
                 <Label>Destination URL</Label>
-                <Input value={form.secondaryUrl} onChange={(e) => setForm((f) => ({ ...f, secondaryUrl: e.target.value }))} placeholder="/about or https://…" />
+                <Input aria-label="secondary url" value={form.secondaryUrl} onChange={(e) => setForm((f) => ({ ...f, secondaryUrl: e.target.value }))} placeholder="/about or https://…" />
               </div>
             </div>
           </ClientSection>

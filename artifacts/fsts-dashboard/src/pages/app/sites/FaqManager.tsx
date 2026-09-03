@@ -90,7 +90,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <Button size="sm" variant="outline" onClick={() => openEdit(faq)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
-                  <Button size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(faq.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(faq.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
               </div>
             ))}
@@ -102,8 +102,8 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{editing ? "Edit FAQ" : "Add FAQ"}</DialogTitle></DialogHeader>
           <div className="space-y-5 py-2">
-            <div className="space-y-1.5"><Label>Question</Label><Input value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} placeholder="e.g. What areas do you serve?" /></div>
-            <div className="space-y-1.5"><Label>Answer</Label><Textarea rows={6} value={form.answer} onChange={(e) => setForm((f) => ({ ...f, answer: e.target.value }))} placeholder="Provide a clear, helpful answer…" /></div>
+            <div className="space-y-1.5"><Label>Question</Label><Input aria-label="Question" value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} placeholder="e.g. What areas do you serve?" /></div>
+            <div className="space-y-1.5"><Label>Answer</Label><Textarea aria-label="Answer" rows={6} value={form.answer} onChange={(e) => setForm((f) => ({ ...f, answer: e.target.value }))} placeholder="Provide a clear, helpful answer…" /></div>
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><Label>Visible on website</Label><p className="mt-0.5 text-xs text-slate-500">Turn this off to save the FAQ without showing it publicly.</p></div><Switch checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} /></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button onClick={handleSave} disabled={isPending}>{isPending ? "Saving…" : editing ? "Save Changes" : "Add FAQ"}</Button></DialogFooter>

@@ -68,19 +68,20 @@ export default function EmailConfig({ params }: { params: { siteId: string } }) 
           <div className="bg-white p-6 border border-slate-200 rounded-md shadow-sm max-w-xl space-y-4">
             <div className="space-y-1.5">
               <Label>From Name</Label>
-              <Input value={fromName} onChange={(e) => setFromName(e.target.value)} />
+              <Input aria-label="from name" value={fromName} onChange={(e) => setFromName(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label>From Email</Label>
-              <Input type="email" value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} />
+              <Input aria-label="from email" type="email" value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label>Reply To</Label>
-              <Input type="email" value={replyToEmail} onChange={(e) => setReplyToEmail(e.target.value)} />
+              <Input aria-label="reply to email" type="email" value={replyToEmail} onChange={(e) => setReplyToEmail(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label>Lead Alert Recipient</Label>
               <Input
+                aria-label="Lead Alert Recipient"
                 type="email"
                 placeholder={fromEmail || "Where should lead alerts be sent?"}
                 value={notificationEmail}

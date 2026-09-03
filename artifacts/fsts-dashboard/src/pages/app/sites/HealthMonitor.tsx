@@ -215,7 +215,7 @@ function NotificationItem({ notification, siteId, onDismiss }: { notification: a
           </Link>
         )}
       </div>
-      <button onClick={onDismiss} className="text-slate-400 hover:text-slate-600 flex-shrink-0 ml-1">
+      <button aria-label="Dismiss" onClick={onDismiss} className="text-slate-400 hover:text-slate-600 flex-shrink-0 ml-1">
         <XCircle className="h-3.5 w-3.5" />
       </button>
     </div>

@@ -265,11 +265,11 @@ function Step0({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>Business Name <span className="text-red-500">*</span></Label>
-          <Input value={data.businessName} onChange={(e) => set({ businessName: e.target.value })} placeholder="Acme Corp" />
+          <Input aria-label="Business Name" value={data.businessName} onChange={(e) => set({ businessName: e.target.value })} placeholder="Acme Corp" />
         </div>
         <div className="space-y-1.5">
           <Label>Website Name <span className="text-red-500">*</span></Label>
-          <Input value={data.websiteName} onChange={(e) => set({ websiteName: e.target.value })} placeholder="Acme Corp Website" />
+          <Input aria-label="Website Name" value={data.websiteName} onChange={(e) => set({ websiteName: e.target.value })} placeholder="Acme Corp Website" />
         </div>
       </div>
       <div className="space-y-1.5">
@@ -286,6 +286,7 @@ function Step0({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
       <div className="space-y-1.5">
         <Label>Business Description</Label>
         <Textarea
+          aria-label="Business Description"
           value={data.description}
           onChange={(e) => set({ description: e.target.value })}
           placeholder="Briefly describe what this business does and who it serves…"
@@ -295,16 +296,16 @@ function Step0({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>Phone Number</Label>
-          <Input value={data.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="+1 (555) 000-0000" />
+          <Input aria-label="Phone Number" value={data.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="+1 (555) 000-0000" />
         </div>
         <div className="space-y-1.5">
           <Label>Business Email</Label>
-          <Input type="email" value={data.email} onChange={(e) => set({ email: e.target.value })} placeholder="hello@example.com" />
+          <Input aria-label="Business Email" type="email" value={data.email} onChange={(e) => set({ email: e.target.value })} placeholder="hello@example.com" />
         </div>
       </div>
       <div className="space-y-1.5">
         <Label>Business Address</Label>
-        <Input value={data.address} onChange={(e) => set({ address: e.target.value })} placeholder="123 Main St, City, State ZIP" />
+        <Input aria-label="Business Address" value={data.address} onChange={(e) => set({ address: e.target.value })} placeholder="123 Main St, City, State ZIP" />
       </div>
       <div className="space-y-1.5">
         <Label>Time Zone</Label>
@@ -386,6 +387,7 @@ function Step3({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
               className="h-9 w-14 rounded border border-slate-200 cursor-pointer p-0.5 bg-white"
             />
             <Input
+              aria-label="brand color primary"
               value={data.brandColorPrimary}
               onChange={(e) => set({ brandColorPrimary: e.target.value })}
               className="font-mono text-sm"
@@ -402,6 +404,7 @@ function Step3({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
               className="h-9 w-14 rounded border border-slate-200 cursor-pointer p-0.5 bg-white"
             />
             <Input
+              aria-label="brand color secondary"
               value={data.brandColorSecondary}
               onChange={(e) => set({ brandColorSecondary: e.target.value })}
               className="font-mono text-sm"
@@ -525,6 +528,7 @@ function Step5({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
               <div key={idx} className="space-y-1">
                 <Label className="text-xs text-slate-500">{placeholder}</Label>
                 <Input
+                  aria-label={placeholder}
                   value={tiers[idx]}
                   onChange={(e) => setTier(idx, e.target.value)}
                   placeholder={["Starter", "Professional", "Enterprise"][idx]}
@@ -569,6 +573,7 @@ function Step6({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
           <div className="space-y-1.5">
             <Label>Domain Name</Label>
             <Input
+              aria-label="Domain Name"
               value={data.customDomain}
               onChange={(e) => set({ customDomain: e.target.value })}
               placeholder="yourdomain.com"

@@ -128,7 +128,7 @@ function SortableField({
       }`}
       onClick={onClick}
     >
-      <button
+      <button aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 flex-shrink-0"
@@ -156,7 +156,7 @@ function SortableField({
           {field.type === "hidden" && field.hiddenValue && ` — "${field.hiddenValue}"`}
         </p>
       </div>
-      <button
+      <button aria-label="Delete"
         className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-destructive transition-opacity flex-shrink-0"
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
       >
@@ -197,7 +197,7 @@ function FieldEditor({
     <div className="w-72 flex-shrink-0 border-l border-slate-200 bg-white flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
         <h3 className="font-semibold text-slate-800 text-sm">Field Properties</h3>
-        <button onClick={onClose} className="text-slate-400 hover:text-slate-700">
+        <button aria-label="Close" onClick={onClose} className="text-slate-400 hover:text-slate-700">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -206,6 +206,7 @@ function FieldEditor({
         <div>
           <Label className="text-xs font-medium text-slate-600">Label</Label>
           <Input
+            aria-label="Label"
             value={field.label}
             onChange={(e) => onChange({ label: e.target.value })}
             className="mt-1 text-sm"
@@ -217,6 +218,7 @@ function FieldEditor({
           <div>
             <Label className="text-xs font-medium text-slate-600">Placeholder</Label>
             <Input
+              aria-label="Placeholder"
               value={field.placeholder ?? ""}
               onChange={(e) => onChange({ placeholder: e.target.value })}
               className="mt-1 text-sm"
@@ -228,6 +230,7 @@ function FieldEditor({
         <div>
           <Label className="text-xs font-medium text-slate-600">Help Text</Label>
           <Input
+            aria-label="Help Text"
             value={field.helpText ?? ""}
             onChange={(e) => onChange({ helpText: e.target.value })}
             className="mt-1 text-sm"
@@ -249,6 +252,7 @@ function FieldEditor({
           <div>
             <Label className="text-xs font-medium text-slate-600">Hidden Value</Label>
             <Input
+              aria-label="Hidden Value"
               value={field.hiddenValue ?? ""}
               onChange={(e) => onChange({ hiddenValue: e.target.value })}
               className="mt-1 text-sm font-mono"
@@ -264,11 +268,12 @@ function FieldEditor({
               {(field.options ?? []).map((opt, idx) => (
                 <div key={idx} className="flex gap-1">
                   <Input
+                    aria-label="opt"
                     value={opt}
                     onChange={(e) => updateOption(idx, e.target.value)}
                     className="text-sm flex-1"
                   />
-                  <Button
+                  <Button aria-label="Remove"
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8 flex-shrink-0 text-slate-400 hover:text-destructive"
@@ -291,6 +296,7 @@ function FieldEditor({
             <div>
               <Label className="text-xs font-medium text-slate-600">Regex Pattern</Label>
               <Input
+                aria-label="Regex Pattern"
                 value={field.validationRegex ?? ""}
                 onChange={(e) => onChange({ validationRegex: e.target.value })}
                 className="mt-1 text-sm font-mono"
@@ -300,6 +306,7 @@ function FieldEditor({
             <div>
               <Label className="text-xs font-medium text-slate-600">Validation Error Message</Label>
               <Input
+                aria-label="Validation Error Message"
                 value={field.validationMessage ?? ""}
                 onChange={(e) => onChange({ validationMessage: e.target.value })}
                 className="mt-1 text-sm"
@@ -336,7 +343,7 @@ function FieldEditor({
                   value={field.condition.sourceFieldId}
                   onValueChange={(v) => onChange({ condition: { ...field.condition!, sourceFieldId: v } })}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger aria-label="Source field" className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -349,7 +356,7 @@ function FieldEditor({
                   value={field.condition.operator}
                   onValueChange={(v: any) => onChange({ condition: { ...field.condition!, operator: v } })}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger aria-label="Condition operator" className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -360,6 +367,7 @@ function FieldEditor({
                   </SelectContent>
                 </Select>
                 <Input
+                  aria-label="value…"
                   value={field.condition.value}
                   onChange={(e) => onChange({ condition: { ...field.condition!, value: e.target.value } })}
                   className="h-8 text-xs"
@@ -412,13 +420,13 @@ function PreviewField({ field }: { field: FormField }) {
       </Label>
       {field.helpText && <p className="text-xs text-slate-400">{field.helpText}</p>}
       {(field.type === "short_text" || field.type === "email" || field.type === "phone" || field.type === "number") && (
-        <Input placeholder={field.placeholder} type={field.type === "email" ? "email" : field.type === "phone" ? "tel" : field.type === "number" ? "number" : "text"} disabled className="bg-slate-50" />
+        <Input aria-label={field.placeholder} placeholder={field.placeholder} type={field.type === "email" ? "email" : field.type === "phone" ? "tel" : field.type === "number" ? "number" : "text"} disabled className="bg-slate-50" />
       )}
       {field.type === "long_text" && (
-        <Textarea placeholder={field.placeholder} disabled className="bg-slate-50 resize-none" rows={3} />
+        <Textarea aria-label={field.placeholder} placeholder={field.placeholder} disabled className="bg-slate-50 resize-none" rows={3} />
       )}
       {field.type === "date" && (
-        <Input type="date" disabled className="bg-slate-50" />
+        <Input aria-label="date" type="date" disabled className="bg-slate-50" />
       )}
       {field.type === "file_upload" && (
         <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 text-center text-sm text-slate-400">
@@ -427,7 +435,7 @@ function PreviewField({ field }: { field: FormField }) {
       )}
       {field.type === "dropdown" && (
         <Select disabled>
-          <SelectTrigger className="bg-slate-50">
+          <SelectTrigger aria-label={field.placeholder || "Select an option"} className="bg-slate-50">
             <SelectValue placeholder={field.placeholder || "Select an option"} />
           </SelectTrigger>
         </Select>
@@ -469,6 +477,7 @@ function SettingsTab({ settings, onChange }: { settings: FormSettings; onChange:
         <div>
           <Label className="text-xs font-medium text-slate-600">Submit Button Label</Label>
           <Input
+            aria-label="Submit Button Label"
             value={settings.submitLabel}
             onChange={(e) => onChange({ ...settings, submitLabel: e.target.value })}
             className="mt-1"
@@ -478,6 +487,7 @@ function SettingsTab({ settings, onChange }: { settings: FormSettings; onChange:
         <div>
           <Label className="text-xs font-medium text-slate-600">Success Message</Label>
           <Textarea
+            aria-label="Success Message"
             value={settings.successMessage}
             onChange={(e) => onChange({ ...settings, successMessage: e.target.value })}
             className="mt-1 resize-none"
@@ -489,6 +499,7 @@ function SettingsTab({ settings, onChange }: { settings: FormSettings; onChange:
         <div>
           <Label className="text-xs font-medium text-slate-600">Redirect URL (optional)</Label>
           <Input
+            aria-label="Redirect URL (optional)"
             value={settings.redirectUrl}
             onChange={(e) => onChange({ ...settings, redirectUrl: e.target.value })}
             className="mt-1"
@@ -504,6 +515,7 @@ function SettingsTab({ settings, onChange }: { settings: FormSettings; onChange:
           <Label className="text-xs font-medium text-slate-600">Email Notification Recipients</Label>
           <div className="flex gap-2 mt-1">
             <Input
+              aria-label="admin@example.com"
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addEmail()}
@@ -517,7 +529,7 @@ function SettingsTab({ settings, onChange }: { settings: FormSettings; onChange:
               {settings.notificationEmails.map((email) => (
                 <Badge key={email} variant="secondary" className="flex items-center gap-1">
                   {email}
-                  <button onClick={() => removeEmail(email)} className="ml-1 hover:text-destructive">
+                  <button aria-label="Close" onClick={() => removeEmail(email)} className="ml-1 hover:text-destructive">
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>

@@ -163,7 +163,7 @@ export default function CareersManager({ params }: { params: { siteId: string } 
                 </div>
                 <div className="flex flex-shrink-0 gap-2">
                   <Button size="sm" variant="outline" onClick={() => openEdit(job)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
-                  <Button size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(job.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(job.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
               </article>
             ))}
@@ -175,13 +175,13 @@ export default function CareersManager({ params }: { params: { siteId: string } 
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{editing ? "Edit Job Posting" : "New Job Posting"}</DialogTitle></DialogHeader>
           <div className="space-y-5 py-2">
-            <div className="space-y-1.5"><Label>Job Title *</Label><Input value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="e.g. Security Officer" /></div>
+            <div className="space-y-1.5"><Label>Job Title *</Label><Input aria-label="Job Title" value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="e.g. Security Officer" /></div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5"><Label>Type</Label><select className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm" value={form.jobType} onChange={(e) => setForm((current) => ({ ...current, jobType: e.target.value }))}>{JOB_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}</select></div>
-              <div className="space-y-1.5"><Label>Location</Label><Input value={form.location} onChange={(e) => setForm((current) => ({ ...current, location: e.target.value }))} placeholder="e.g. Dallas, TX" /></div>
+              <div className="space-y-1.5"><Label>Location</Label><Input aria-label="Location" value={form.location} onChange={(e) => setForm((current) => ({ ...current, location: e.target.value }))} placeholder="e.g. Dallas, TX" /></div>
             </div>
-            <div className="space-y-1.5"><Label>Description *</Label><Textarea rows={6} value={form.description} onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))} placeholder="Role overview, responsibilities, qualifications, and next steps…" /></div>
-            <div className="space-y-1.5"><Label>Application URL</Label><Input value={form.applyUrl} onChange={(e) => setForm((current) => ({ ...current, applyUrl: e.target.value }))} placeholder="https://…/apply or mailto:hr@example.com" /><p className="text-xs leading-5 text-slate-400">Optional. Add the approved application page or recruiting email destination.</p></div>
+            <div className="space-y-1.5"><Label>Description *</Label><Textarea aria-label="Description" rows={6} value={form.description} onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))} placeholder="Role overview, responsibilities, qualifications, and next steps…" /></div>
+            <div className="space-y-1.5"><Label>Application URL</Label><Input aria-label="Application URL" value={form.applyUrl} onChange={(e) => setForm((current) => ({ ...current, applyUrl: e.target.value }))} placeholder="https://…/apply or mailto:hr@example.com" /><p className="text-xs leading-5 text-slate-400">Optional. Add the approved application page or recruiting email destination.</p></div>
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><Label>Visible on website</Label><p className="mt-0.5 text-xs text-slate-500">Turn this off to keep the posting saved without showing it publicly.</p></div><Switch checked={form.isActive} onCheckedChange={(value) => setForm((current) => ({ ...current, isActive: value }))} /></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button onClick={handleSave} disabled={isPending}>{isPending ? "Saving…" : editing ? "Save Changes" : "Post Job"}</Button></DialogFooter>

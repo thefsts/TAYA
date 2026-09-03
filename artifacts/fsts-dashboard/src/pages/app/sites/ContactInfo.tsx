@@ -91,22 +91,22 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-slate-400" />Email</Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@yourdomain.com" />
+                  <Input aria-label="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@yourdomain.com" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-slate-400" />Phone</Label>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-0123" />
+                  <Input aria-label="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-0123" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-slate-400" />Address</Label>
-                <Textarea rows={3} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Business or public mailing address" />
+                <Textarea aria-label="address" rows={3} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Business or public mailing address" />
               </div>
 
               <div className="space-y-1.5">
                 <Label>Map Embed URL</Label>
-                <Input value={mapEmbedUrl} onChange={(e) => setMapEmbedUrl(e.target.value)} placeholder="Paste the approved map embed URL" />
+                <Input aria-label="map embed url" value={mapEmbedUrl} onChange={(e) => setMapEmbedUrl(e.target.value)} placeholder="Paste the approved map embed URL" />
                 <p className="text-xs leading-5 text-slate-400">Use the map/embed link supplied by your map provider. Leave blank if the website should not display a map.</p>
               </div>
             </div>
@@ -139,6 +139,7 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
                 {hours.map((h, i) => (
                   <div key={i} className="grid gap-3 p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto] sm:items-center sm:px-5">
                     <Input
+                      aria-label="Day (e.g. Mon–Fri)"
                       placeholder="Day (e.g. Mon–Fri)"
                       value={h.day}
                       onChange={(e) => {
@@ -148,6 +149,7 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
                       }}
                     />
                     <Input
+                      aria-label="Hours (e.g. 9:00 AM–5:00 PM)"
                       placeholder="Hours (e.g. 9:00 AM–5:00 PM)"
                       value={h.hours}
                       onChange={(e) => {
