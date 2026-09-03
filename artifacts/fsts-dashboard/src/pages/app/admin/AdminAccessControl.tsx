@@ -181,7 +181,7 @@ export default function AdminAccessControl() {
       <div className="flex items-center gap-4 mb-6">
         <div className="w-72">
           <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
-            <SelectTrigger>
+            <SelectTrigger aria-label="Select a site to configure…">
               <SelectValue placeholder="Select a site to configure…" />
             </SelectTrigger>
             <SelectContent>

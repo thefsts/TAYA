@@ -288,7 +288,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Status</Label>
               <Select value={details.status} onValueChange={(v) => setDetails((d) => ({ ...d, status: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="staging">Staging</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
@@ -310,7 +310,7 @@ export default function AdminSiteOnboarding() {
           <div className="space-y-1.5">
             <Label>Website Type</Label>
             <Select value={details.websiteType} onValueChange={handleWebsiteTypeChange}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Website Type"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {WEBSITE_TYPE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -397,7 +397,7 @@ export default function AdminSiteOnboarding() {
             <div className="space-y-1.5">
               <Label>Timezone</Label>
               <Select value={siteSettings.timezone} onValueChange={(v) => setSiteSettings((s) => ({ ...s, timezone: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Timezone"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="America/New_York">Eastern (ET)</SelectItem>
                   <SelectItem value="America/Chicago">Central (CT)</SelectItem>
@@ -602,7 +602,7 @@ export default function AdminSiteOnboarding() {
                       value={row.email}
                       onValueChange={(v) => setUserRows((rows) => rows.map((r, j) => j === i ? { ...r, email: v } : r))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Email">
                         <SelectValue placeholder="Select existing user…" />
                       </SelectTrigger>
                       <SelectContent>
@@ -626,7 +626,7 @@ export default function AdminSiteOnboarding() {
                     value={row.role}
                     onValueChange={(v) => setUserRows((rows) => rows.map((r, j) => j === i ? { ...r, role: v } : r))}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label="Role"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {ROLES.map((r) => (
                         <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>

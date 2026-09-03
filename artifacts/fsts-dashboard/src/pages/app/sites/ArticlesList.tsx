@@ -531,7 +531,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                       value={form.status}
                       onValueChange={(v) => setField("status", v as ArticleStatus)}
                     >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="draft">Draft</SelectItem>
                         <SelectItem value="published">Published</SelectItem>
@@ -545,7 +545,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                       value={form.category || "__none__"}
                       onValueChange={(v) => setField("category", v === "__none__" ? "" : v)}
                     >
-                      <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
+                      <SelectTrigger aria-label="Category"><SelectValue placeholder="Select category…" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">No category</SelectItem>
                         {ARTICLE_CATEGORIES.map((c) => (

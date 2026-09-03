@@ -189,7 +189,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
           <div className="space-y-1.5">
             <Label>Environment</Label>
             <Select value={environment} onValueChange={(v) => setEnvironment(v as SquareEnv)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Environment"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="sandbox">Sandbox</SelectItem>
                 <SelectItem value="production">Production</SelectItem>
@@ -291,7 +291,7 @@ export default function PaymentsConfig({ params }: { params: { siteId: string } 
                 <div className="space-y-1.5">
                   <Label>Entity Type</Label>
                   <Select value={form.entityType} onValueChange={(v) => setForm({ ...form, entityType: v as "course" | "event" })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label="Entity Type"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="course">Course</SelectItem>
                       <SelectItem value="event">Event</SelectItem>

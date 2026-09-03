@@ -635,7 +635,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                 <div className="space-y-1.5">
                   <Label>Status</Label>
                   <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as CourseStatus })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">Draft</SelectItem>
                       <SelectItem value="published">Published</SelectItem>
@@ -656,7 +656,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                 <div className="space-y-1.5">
                   <Label>Timezone</Label>
                   <Select value={form.timezone} onValueChange={(v) => setForm({ ...form, timezone: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label="Timezone"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {COMMON_TIMEZONES.map((tz) => (
                         <SelectItem key={tz} value={tz}>{tz}</SelectItem>
@@ -741,7 +741,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                   <div className="space-y-1.5">
                     <Label>Square Catalog Item <span className="font-normal text-slate-400">(for checkout pricing)</span></Label>
                     <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Square Catalog Item">
                         <SelectValue placeholder="Not linked" />
                       </SelectTrigger>
                       <SelectContent>

@@ -239,7 +239,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
           <div className="space-y-1.5">
             <Label>Authentication Method</Label>
             <Select value={authMethod} onValueChange={(v) => setAuthMethod(v as AuthMethod)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Authentication Method"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="api_key">API Key</SelectItem>
                 <SelectItem value="oauth">OAuth</SelectItem>

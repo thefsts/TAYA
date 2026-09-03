@@ -384,7 +384,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 <div className="space-y-1.5">
                   <Label>Website Type</Label>
                   <Select value={websiteType} onValueChange={setWebsiteType}>
-                    <SelectTrigger>
+                    <SelectTrigger aria-label="Website Type">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,7 +399,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 <div className="space-y-1.5">
                   <Label>Timezone</Label>
                   <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger>
+                    <SelectTrigger aria-label="Timezone">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
@@ -478,7 +478,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Heading Font</Label>
                     <Select value={fontHeading} onValueChange={setFontHeading}>
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Heading Font">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -493,7 +493,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Body Font</Label>
                     <Select value={fontBody} onValueChange={setFontBody}>
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Body Font">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

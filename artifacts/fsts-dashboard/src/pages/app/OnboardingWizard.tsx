@@ -275,7 +275,7 @@ function Step0({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
       <div className="space-y-1.5">
         <Label>Industry <span className="text-red-500">*</span></Label>
         <Select value={data.industry} onValueChange={(v) => set({ industry: v })}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Industry"><SelectValue /></SelectTrigger>
           <SelectContent>
             {WEBSITE_TYPE_OPTIONS.map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -310,7 +310,7 @@ function Step0({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
       <div className="space-y-1.5">
         <Label>Time Zone</Label>
         <Select value={data.timezone} onValueChange={(v) => set({ timezone: v })}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Time Zone"><SelectValue /></SelectTrigger>
           <SelectContent>
             {TIMEZONES.map((tz) => (
               <SelectItem key={tz} value={tz}>{tz.replace(/_/g, " ")}</SelectItem>
@@ -426,7 +426,7 @@ function Step3({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
         <div className="space-y-1.5">
           <Label>Heading Font</Label>
           <Select value={data.fontHeading} onValueChange={(v) => set({ fontHeading: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label="Heading Font"><SelectValue /></SelectTrigger>
             <SelectContent>
               {FONTS_HEADING.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
             </SelectContent>
@@ -435,7 +435,7 @@ function Step3({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
         <div className="space-y-1.5">
           <Label>Body Font</Label>
           <Select value={data.fontBody} onValueChange={(v) => set({ fontBody: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label="Body Font"><SelectValue /></SelectTrigger>
             <SelectContent>
               {FONTS_BODY.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
             </SelectContent>

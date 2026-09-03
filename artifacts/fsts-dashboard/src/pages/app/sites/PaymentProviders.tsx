@@ -326,7 +326,7 @@ function CredentialDialog({
             <div className="space-y-1.5">
               <Label>Environment</Label>
               <Select value={env} onValueChange={setEnv}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Environment"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="sandbox">Sandbox</SelectItem>
                   <SelectItem value="production">Production</SelectItem>

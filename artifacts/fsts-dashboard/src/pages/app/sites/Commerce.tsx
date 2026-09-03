@@ -512,7 +512,7 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
             <div className="space-y-1.5">
               <Label>Discount Type</Label>
               <Select value={form.discountType} onValueChange={(v) => setForm({ ...form, discountType: v as any })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Discount Type"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="FIXED_AMOUNT">Fixed Amount ($)</SelectItem>
                   <SelectItem value="FIXED_PERCENTAGE">Percentage (%)</SelectItem>

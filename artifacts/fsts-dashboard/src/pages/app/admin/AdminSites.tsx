@@ -251,7 +251,7 @@ export default function AdminSites() {
             <div className="space-y-1.5">
               <Label>Status</Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as SiteStatus })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="staging">Staging</SelectItem>
@@ -266,7 +266,7 @@ export default function AdminSites() {
             <div className="space-y-1.5">
               <Label>Website Type</Label>
               <Select value={form.websiteType} onValueChange={handleWebsiteTypeChange}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Website Type"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {WEBSITE_TYPE_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
