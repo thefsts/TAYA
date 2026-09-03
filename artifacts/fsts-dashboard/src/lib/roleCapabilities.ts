@@ -6,6 +6,7 @@
 import { PERMISSIONS, type Permission, SUPERADMIN_ONLY_PERMISSIONS } from "./permissions";
 
 export const ROLES = [
+  "internal_qa",
   "owner",
   "manager",
   "marketing",
@@ -20,6 +21,7 @@ export const ROLES = [
 export type Role = (typeof ROLES)[number];
 
 export const ROLE_LABELS: Record<Role, string> = {
+  internal_qa: "FSTS Internal QA",
   owner: "Owner",
   manager: "Manager",
   marketing: "Marketing",
@@ -32,6 +34,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
+  internal_qa: "FSTS internal QA — owner-equivalent for client-facing workflow testing. Cannot bypass the Global Design Lock or platform administration.",
   owner: "Full control over all site modules — equivalent to a site administrator.",
   manager: "Can edit most content and configuration; read-only for payments and email.",
   marketing: "Manages marketing content, CRM, SEO, and announcements.",
@@ -163,6 +166,7 @@ const VIEW_ALL: RoleCapabilityMap = Object.fromEntries(
 ) as RoleCapabilityMap;
 
 export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
+  internal_qa: MANAGE_ALL,
   owner: MANAGE_ALL,
 
   manager: {
@@ -261,6 +265,24 @@ export function permissionAtLeast(a: PermissionLevel, b: PermissionLevel): boole
  * Any divergence creates a split-brain where the UI allows actions the server rejects.
  */
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  /** Internal QA — FSTS owner-equivalent for client-facing workflow testing.
+   *  No SUPERADMIN_ONLY permission; cannot bypass the Global Design Lock or
+   *  platform administration boundaries. Mirrors convex/lib/rolePermissions.ts. */
+  internal_qa: [
+    PERMISSIONS.CONTENT_VIEW,
+    PERMISSIONS.CONTENT_CREATE,
+    PERMISSIONS.CONTENT_UPDATE,
+    PERMISSIONS.CONTENT_DELETE,
+    PERMISSIONS.MEDIA_VIEW,
+    PERMISSIONS.MEDIA_UPLOAD,
+    PERMISSIONS.MEDIA_DELETE,
+    PERMISSIONS.FLYERS_CREATE,
+    PERMISSIONS.FLYERS_UPDATE,
+    PERMISSIONS.FLYERS_PUBLISH,
+    PERMISSIONS.FLYERS_ARCHIVE,
+    PERMISSIONS.EVENTS_MANAGE,
+    PERMISSIONS.CLASSES_MANAGE,
+  ],
   /** Owner — full content, media, flyers, events, and courses. No design-tier. */
   owner: [
     PERMISSIONS.CONTENT_VIEW,
