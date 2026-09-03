@@ -41,6 +41,7 @@ const ROLE_BADGE_COLORS: Record<Role, string> = {
   finance:         "bg-teal-100 text-teal-800 border-teal-200",
   support:         "bg-orange-100 text-orange-800 border-orange-200",
   read_only:       "bg-slate-100 text-slate-600 border-slate-200",
+  internal_qa:     "bg-rose-100 text-rose-800 border-rose-200",
 };
 
 /** Cell for a single role × permission intersection */
