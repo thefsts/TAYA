@@ -16,6 +16,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const Landing = lazy(() => import("@/pages/Landing"));
 const SitesList = lazy(() => import("@/pages/app/SitesList"));
 const SiteDashboard = lazy(() => import("@/pages/app/SiteDashboard"));
+const Pages = lazy(() => import("@/pages/app/sites/Pages"));
 
 const AdminUsers = lazy(() => import("@/pages/app/admin/AdminUsers"));
 const AdminSites = lazy(() => import("@/pages/app/admin/AdminSites"));
@@ -370,6 +371,7 @@ function AppRouter() {
           <Route path="/app/admin/roadmap" component={AdminRoadmap} />
 
           <Route path="/app/sites/:siteId" component={SiteDashboard} />
+          <Route path="/app/sites/:siteId/pages" component={Pages} />
           <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />
           <Route path="/app/sites/:siteId/courses" component={CoursesList} />
           <Route path="/app/sites/:siteId/events" component={EventsList} />

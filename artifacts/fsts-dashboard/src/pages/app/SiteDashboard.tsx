@@ -50,6 +50,7 @@ import {
   User as UserIcon,
   FlaskConical,
   LayoutDashboard,
+  FileStack,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -392,6 +393,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
 
           {/* Content */}
           <NavSection title="Content">
+            <NavItem icon={FileStack} label="All Pages" href={`/app/sites/${siteId}/pages`} isSuperAdmin={isSuperAdmin} />
             {isEnabled("homepage") && <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} isSuperAdmin={isSuperAdmin} />}
             {isEnabled("articles") && <NavItem icon={FileText} label="Blog & Articles" href={`/app/sites/${siteId}/articles`} isSuperAdmin={isSuperAdmin} />}
             <NavItem icon={Newspaper} label="Flyers" href={`/app/sites/${siteId}/flyers`} isSuperAdmin={isSuperAdmin} />
