@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -26,7 +26,7 @@ import {
   MessageSquareQuote,
   Inbox,
   HeartPulse,
-  Navigation,
+  Navigation as NavIcon,
   Megaphone,
   MousePointerClick,
   Download,
@@ -45,6 +45,11 @@ import {
   Newspaper,
   Menu,
   X,
+  ChevronDown,
+  LogOut,
+  User as UserIcon,
+  FlaskConical,
+  LayoutDashboard,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -108,6 +113,122 @@ function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin, badge 
   );
 }
 
+function NavSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-1">
+      <div className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{title}</div>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isSuperAdmin = me?.isSuperAdmin ?? false;
+  const isInternalQa = !!me?.roles?.some((r: any) => r.role === "internal_qa");
+  const clientRole = me?.roles?.find((r: any) => r.siteId === siteId)?.role;
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const roleLabel = isSuperAdmin
+    ? "Super Admin"
+    : isInternalQa
+      ? "Internal QA"
+      : clientRole === "owner"
+        ? "Owner"
+        : clientRole === "client_admin"
+          ? "Admin"
+          : clientRole
+            ? clientRole.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
+            : "User";
+
+  const roleBadgeClass = isSuperAdmin
+    ? "bg-violet-100 text-violet-700 border-violet-200"
+    : isInternalQa
+      ? "bg-rose-100 text-rose-700 border-rose-200"
+      : "bg-primary/10 text-primary border-primary/20";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition-colors hover:bg-slate-50"
+      >
+        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+          {me?.name?.charAt(0)?.toUpperCase() ?? "?"}
+        </div>
+        <div className="hidden text-left sm:block">
+          <div className="max-w-[120px] truncate text-xs font-semibold text-slate-800">{me?.name ?? "User"}</div>
+          <div className="text-[10px] text-slate-400">{roleLabel}</div>
+        </div>
+        <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+          <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
+            <div className="truncate text-sm font-semibold text-slate-800">{me?.name ?? "User"}</div>
+            <div className="truncate text-xs text-slate-500">{me?.email ?? ""}</div>
+            <span className={`mt-2 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold ${roleBadgeClass}`}>
+              {isInternalQa && <FlaskConical className="mr-1 h-3 w-3" />}
+              {roleLabel}
+            </span>
+          </div>
+          <div className="py-1">
+            <Link
+              href={`/app/sites/${siteId}/permissions`}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              <ShieldCheckIcon className="h-4 w-4 text-slate-400" />
+              My Permissions
+            </Link>
+            <Link
+              href={`/app/sites/${siteId}/help`}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              <HelpCircle className="h-4 w-4 text-slate-400" />
+              Help Center
+            </Link>
+            <Link
+              href="https://accounts.app.fstsclientsystem.com"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              <UserIcon className="h-4 w-4 text-slate-400" />
+              Account Settings
+            </Link>
+            <div className="my-1 border-t border-slate-100" />
+            <Link
+              href="/app"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              onClick={() => setOpen(false)}
+            >
+              <ArrowLeft className="h-4 w-4 text-slate-400" />
+              {isSuperAdmin || isInternalQa ? "All Websites" : "My Websites"}
+            </Link>
+            <a
+              href="https://accounts.app.fstsclientsystem.com/user/logout"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AppLayout({ children, siteId, pageContext }: { children: React.ReactNode, siteId: string, pageContext?: string }) {
   const site = useQuery(api.sites.get, { siteId: siteId as Id<"sites"> });
   const me = useQuery(api.users.me);
@@ -118,6 +239,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const mediaHealth = useQuery(api.media.healthStats, { siteId: siteId as Id<"sites"> });
   const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
   const isSuperAdmin = me?.isSuperAdmin ?? false;
+  const isInternalQa = !!me?.roles?.some((r: any) => r.role === "internal_qa");
 
   const agencyId = (site as any)?.agencyId as Id<"agencies"> | undefined;
   const agency = useQuery(
@@ -128,7 +250,9 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const pageTitle = location.split("/").pop()?.replace("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Dashboard";
+  const pageTitle = location.split("/").pop()?.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Dashboard";
+  const siteStatus = site?.status ?? "active";
+  const isArchived = siteStatus === "archived";
 
   return (
     <div className="relative flex min-h-screen bg-slate-50">
@@ -206,13 +330,33 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                 <div className="min-w-0 flex-1 overflow-hidden">
                   <h2 className="truncate font-bold tracking-tight text-slate-950" title={site?.name}>{site?.name}</h2>
                   <div className="truncate text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                    {agency ? `${agency.name} Dashboard` : "TAYA System™"}
+                    {agency ? `${agency.name} Dashboard` : "TAYA System\u2122"}
                   </div>
                 </div>
                 {sites && sites.length > 1 && (
                   <ChevronsUpDown className="h-4 w-4 flex-shrink-0 text-slate-400" />
                 )}
               </button>
+
+              {/* Domain + status display under site name */}
+              {site && (
+                <div className="mt-2 flex items-center gap-2 px-1.5">
+                  {site.domain && (
+                    <a
+                      href={`https://${site.domain}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 truncate text-[11px] font-medium text-slate-500 hover:text-primary hover:underline"
+                    >
+                      <Globe className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{site.domain}</span>
+                    </a>
+                  )}
+                  <span className={`inline-flex flex-shrink-0 items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${isArchived ? "bg-slate-100 text-slate-500" : "bg-green-100 text-green-700"}`}>
+                    {isArchived ? "Archived" : "Live"}
+                  </span>
+                </div>
+              )}
 
               {switcherOpen && sites && sites.length > 1 && (
                 <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
@@ -231,7 +375,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                     >
                       <Globe className="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
                       <span className="flex-1 truncate">{listedSite.name}</span>
-                      {listedSite._id === siteId && <span className="text-[10px] font-bold text-primary">●</span>}
+                      {listedSite._id === siteId && <span className="text-[10px] font-bold text-primary">\u25cf</span>}
                     </Link>
                   ))}
                 </div>
@@ -241,55 +385,91 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
         </div>
 
         <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto px-3 py-4" onClick={() => setMobileNavOpen(false)}>
-          <div className="mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Daily Work</div>
-          <NavItem icon={Activity} label="Dashboard" href={`/app/sites/${siteId}`} isSuperAdmin={isSuperAdmin} />
-          {isEnabled("homepage") && <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("courses") && <NavItem icon={BookOpen} label="Courses & Classes" href={`/app/sites/${siteId}/courses`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("articles") && <NavItem icon={FileText} label="Blog & Articles" href={`/app/sites/${siteId}/articles`} isSuperAdmin={isSuperAdmin} />}
-          <NavItem icon={Newspaper} label="Flyers" href={`/app/sites/${siteId}/flyers`} isSuperAdmin={isSuperAdmin} />
-          {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} isSuperAdmin={isSuperAdmin} badge={mediaHealth?.broken} />}
-          {isEnabled("forms") && <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("contact") && <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} isSuperAdmin={isSuperAdmin} />}
+          {/* Overview */}
+          <NavSection title="Overview">
+            <NavItem icon={Activity} label="Dashboard" href={`/app/sites/${siteId}`} isSuperAdmin={isSuperAdmin} />
+          </NavSection>
 
-          <div className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Website Content</div>
-          <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} isSuperAdmin={isSuperAdmin} />
-          <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} isSuperAdmin={isSuperAdmin} />
-          {isEnabled("reviews") && <NavItem icon={Star} label="Reviews" href={`/app/sites/${siteId}/reviews`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("products") && <NavItem icon={Package} label="Products" href={`/app/sites/${siteId}/products`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("services") && <NavItem icon={Briefcase} label="Services" href={`/app/sites/${siteId}/services`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("team") && <NavItem icon={Users} label="Team" href={`/app/sites/${siteId}/team`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("careers") && <NavItem icon={Briefcase} label="Careers" href={`/app/sites/${siteId}/careers`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("downloads") && <NavItem icon={Download} label="Downloads" href={`/app/sites/${siteId}/downloads`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("announcement") && <NavItem icon={Megaphone} label="Announcement Banner" href={`/app/sites/${siteId}/announcement`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("cta") && <NavItem icon={MousePointerClick} label="CTA Buttons" href={`/app/sites/${siteId}/cta`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("popup") && <NavItem icon={Bell} label="Popup" href={`/app/sites/${siteId}/popup`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policies`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("portal") && <NavItem icon={UserCog} label="Portal Manager™" href={`/app/sites/${siteId}/portal`} isSuperAdmin={isSuperAdmin} />}
+          {/* Content */}
+          <NavSection title="Content">
+            {isEnabled("homepage") && <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("articles") && <NavItem icon={FileText} label="Blog & Articles" href={`/app/sites/${siteId}/articles`} isSuperAdmin={isSuperAdmin} />}
+            <NavItem icon={Newspaper} label="Flyers" href={`/app/sites/${siteId}/flyers`} isSuperAdmin={isSuperAdmin} />
+            <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} isSuperAdmin={isSuperAdmin} />
+            {isEnabled("announcement") && <NavItem icon={Megaphone} label="Announcement Banner" href={`/app/sites/${siteId}/announcement`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("cta") && <NavItem icon={MousePointerClick} label="CTA Buttons" href={`/app/sites/${siteId}/cta`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("popup") && <NavItem icon={Bell} label="Popup" href={`/app/sites/${siteId}/popup`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policies`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("team") && <NavItem icon={Users} label="Team" href={`/app/sites/${siteId}/team`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("careers") && <NavItem icon={Briefcase} label="Careers" href={`/app/sites/${siteId}/careers`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("downloads") && <NavItem icon={Download} label="Downloads" href={`/app/sites/${siteId}/downloads`} isSuperAdmin={isSuperAdmin} />}
+          </NavSection>
 
-          <div className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Settings & Tools</div>
-          {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} isSuperAdmin={isSuperAdmin} />}
-          <NavItem icon={Zap} label="Automation Engine™" href={`/app/sites/${siteId}/automation`} isSuperAdmin={isSuperAdmin} />
-          <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} isSuperAdmin={isSuperAdmin} />
-          <NavItem icon={ShieldCheckIcon} label="My Permissions" href={`/app/sites/${siteId}/permissions`} isSuperAdmin={isSuperAdmin} />
+          {/* Media */}
+          <NavSection title="Media">
+            {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} isSuperAdmin={isSuperAdmin} badge={mediaHealth?.broken} />}
+          </NavSection>
 
-          <div className="mb-2 mt-6 flex items-center gap-2 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
-            <Lock className="h-3 w-3" />
-            TAYA Managed
-          </div>
-          <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-          {isEnabled("navigation") && <NavItem icon={Navigation} label="Navigation" href={`/app/sites/${siteId}/nav`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer Structure" href={`/app/sites/${siteId}/footer`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          <NavItem icon={CreditCard} label="Payment Providers" href={`/app/sites/${siteId}/payment-providers`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-          {isEnabled("payments") && <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("commerce") && <NavItem icon={ShoppingBag} label="Commerce" href={`/app/sites/${siteId}/commerce`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("email") && <NavItem icon={Mail} label="Email Configuration" href={`/app/sites/${siteId}/email`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          {isEnabled("crm") && <NavItem icon={Building2} label="Marketing & CRM" href={`/app/sites/${siteId}/crm`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-          {isEnabled("history") && <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-          {isEnabled("backups") && <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+          {/* Navigation */}
+          <NavSection title="Navigation">
+            {isEnabled("navigation") && <NavItem icon={NavIcon} label="Menu Builder" href={`/app/sites/${siteId}/nav`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer Structure" href={`/app/sites/${siteId}/footer`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+          </NavSection>
+
+          {/* Forms & Inbox */}
+          <NavSection title="Forms & Inbox">
+            {isEnabled("forms") && <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("contact") && <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} isSuperAdmin={isSuperAdmin} />}
+          </NavSection>
+
+          {/* Business */}
+          <NavSection title="Business">
+            {isEnabled("services") && <NavItem icon={Briefcase} label="Services" href={`/app/sites/${siteId}/services`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("products") && <NavItem icon={Package} label="Products" href={`/app/sites/${siteId}/products`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("courses") && <NavItem icon={BookOpen} label="Courses & Classes" href={`/app/sites/${siteId}/courses`} isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} isSuperAdmin={isSuperAdmin} />}
+          </NavSection>
+
+          {/* Marketing */}
+          <NavSection title="Marketing">
+            {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} isSuperAdmin={isSuperAdmin} />}
+            <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} isSuperAdmin={isSuperAdmin} />
+            {isEnabled("reviews") && <NavItem icon={Star} label="Reviews" href={`/app/sites/${siteId}/reviews`} isSuperAdmin={isSuperAdmin} />}
+          </NavSection>
+
+          {/* Site */}
+          <NavSection title="Site">
+            <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+            {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} isSuperAdmin={isSuperAdmin} />}
+            <NavItem icon={ShieldCheckIcon} label="My Permissions" href={`/app/sites/${siteId}/permissions`} isSuperAdmin={isSuperAdmin} />
+            <NavItem icon={Zap} label="Automation Engine\u2122" href={`/app/sites/${siteId}/automation`} isSuperAdmin={isSuperAdmin} />
+            {isEnabled("portal") && <NavItem icon={UserCog} label="Portal Manager\u2122" href={`/app/sites/${siteId}/portal`} isSuperAdmin={isSuperAdmin} />}
+            {isSuperAdmin && (
+              <Link href="/app/admin/users" className="block">
+                <Button
+                  variant={location === "/app/admin/users" ? "secondary" : "ghost"}
+                  className={`h-10 w-full justify-start rounded-lg px-3 ${location === "/app/admin/users" ? "bg-primary/10 font-semibold text-primary hover:bg-primary/15" : "font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950"}`}
+                >
+                  <Users className="mr-3 h-4 w-4 text-slate-500" />
+                  <span className="flex-1 text-left">User Management</span>
+                </Button>
+              </Link>
+            )}
+            <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} isSuperAdmin={isSuperAdmin} />
+          </NavSection>
+
+          {/* TAYA Managed (Design-Locked advanced tools) */}
+          <NavSection title="TAYA Managed">
+            <NavItem icon={CreditCard} label="Payment Providers" href={`/app/sites/${siteId}/payment-providers`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+            {isEnabled("payments") && <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("commerce") && <NavItem icon={ShoppingBag} label="Commerce" href={`/app/sites/${siteId}/commerce`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("email") && <NavItem icon={Mail} label="Email Configuration" href={`/app/sites/${siteId}/email`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+            {isEnabled("crm") && <NavItem icon={Building2} label="Marketing & CRM" href={`/app/sites/${siteId}/crm`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+            <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+            {isEnabled("history") && <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+            <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} isDesignLocked isSuperAdmin={isSuperAdmin} />
+            {isEnabled("backups") && <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
+          </NavSection>
         </nav>
 
         {(site?.poweredByFsts ?? true) && !agency && (
@@ -297,7 +477,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             <p className="text-[11px] leading-tight text-slate-400">
               Powered by <span className="font-semibold text-slate-600">Full Stack Tech Solutions</span>
             </p>
-            <p className="mt-0.5 text-[10px] leading-tight text-slate-400">TAYA System™</p>
+            <p className="mt-0.5 text-[10px] leading-tight text-slate-400">TAYA System\u2122</p>
           </div>
         )}
         {agency && (
@@ -322,11 +502,56 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           >
             <Menu className="h-5 w-5" />
           </Button>
+
+          {/* Page title + domain/status context */}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-sm font-semibold text-slate-900 sm:text-base">{pageTitle}</h1>
-            <p className="hidden truncate text-[11px] text-slate-400 sm:block">{site?.name ?? "Website workspace"}</p>
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-sm font-semibold text-slate-900 sm:text-base">{pageTitle}</h1>
+              {isInternalQa && (
+                <span className="hidden items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700 sm:inline-flex">
+                  <FlaskConical className="h-3 w-3" />
+                  QA Mode
+                </span>
+              )}
+              {isArchived && (
+                <span className="hidden items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500 sm:inline-flex">
+                  Archived
+                </span>
+              )}
+            </div>
+            <div className="hidden items-center gap-2 truncate text-[11px] text-slate-400 sm:flex">
+              {site?.domain && (
+                <a
+                  href={`https://${site.domain}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-primary hover:underline"
+                >
+                  <Globe className="h-3 w-3" />
+                  <span className="truncate">{site.domain}</span>
+                </a>
+              )}
+              {site?.domain && !isArchived && (
+                <span className="inline-flex items-center gap-1 text-green-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                  Live
+                </span>
+              )}
+            </div>
           </div>
+
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* SuperAdmin / Internal QA: Return to Platform Admin */}
+            {(isSuperAdmin || isInternalQa) && (
+              <Link href="/app" className="hidden md:block">
+                <Button variant="outline" size="sm" className="h-9 bg-white text-slate-600">
+                  <LayoutDashboard className="mr-2 h-3.5 w-3.5" />
+                  Platform Admin
+                </Button>
+              </Link>
+            )}
+
+            {/* View Website (Preview/Live) */}
             {site?.domain && (
               <a href={`https://${site.domain}`} target="_blank" rel="noreferrer" className="hidden sm:block">
                 <Button variant="outline" size="sm" className="h-9 bg-white text-slate-600">
@@ -335,6 +560,8 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                 </Button>
               </a>
             )}
+
+            {/* Health notification bell */}
             <Link href={`/app/sites/${siteId}/health`}>
               <Button
                 variant="ghost"
@@ -351,6 +578,9 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                 )}
               </Button>
             </Link>
+
+            {/* Account menu */}
+            <AccountMenu me={me} siteId={siteId} />
           </div>
         </header>
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -450,7 +680,7 @@ export default function SiteDashboard() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-lg font-semibold text-slate-900">Website Health Command Center™</p>
+                <p className="text-lg font-semibold text-slate-900">Website Health Command Center\u2122</p>
                 {activeNotifications.length > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
                     {activeNotifications.length} alert{activeNotifications.length > 1 ? "s" : ""}
@@ -459,10 +689,10 @@ export default function SiteDashboard() {
               </div>
               <p className={`mt-0.5 text-sm font-medium ${healthColor}`}>
                 {healthScore == null
-                  ? "No scan yet — click to run your first health scan"
-                  : healthScore >= 75 ? "Excellent — your site is healthy"
-                    : healthScore >= 50 ? "Needs attention — some issues detected"
-                      : "Critical issues — immediate action recommended"
+                  ? "No scan yet \u2014 click to run your first health scan"
+                  : healthScore >= 75 ? "Excellent \u2014 your site is healthy"
+                    : healthScore >= 50 ? "Needs attention \u2014 some issues detected"
+                      : "Critical issues \u2014 immediate action recommended"
                 }
               </p>
               {activeNotifications.length > 0 && (
@@ -472,7 +702,7 @@ export default function SiteDashboard() {
               )}
             </div>
             <div className="flex-shrink-0 text-xs text-slate-400">
-              {latestScan ? `Last scan ${new Date(latestScan.scannedAt).toLocaleDateString()}` : "Click to scan →"}
+              {latestScan ? `Last scan ${new Date(latestScan.scannedAt).toLocaleDateString()}` : "Click to scan \u2192"}
             </div>
           </div>
         </div>
@@ -537,7 +767,7 @@ export default function SiteDashboard() {
                           <span className="whitespace-nowrap rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs text-amber-700">{item.reason}</span>
                           <Link href={item.href}>
                             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-primary whitespace-nowrap">
-                              View →
+                              View \u2192
                             </Button>
                           </Link>
                         </div>
@@ -563,7 +793,7 @@ export default function SiteDashboard() {
                           <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
                           <div className="min-w-0">
                             <p className="text-slate-900">
-                              <span className="font-semibold">{activity.actorName}</span> {activity.action} {activity.entityType} {activity.details && <span className="text-slate-500">— {activity.details}</span>}
+                              <span className="font-semibold">{activity.actorName}</span> {activity.action} {activity.entityType} {activity.details && <span className="text-slate-500">\u2014 {activity.details}</span>}
                             </p>
                             <p className="mt-1 font-mono text-xs text-slate-400">
                               {new Date(activity._creationTime).toLocaleString()}
@@ -607,7 +837,7 @@ export default function SiteDashboard() {
                   <div className="flex items-center justify-between gap-3 text-sm">
                     <span className="text-slate-600">Performance</span>
                     <span className="font-mono text-xs text-slate-900">
-                      {summary.responseTimeMs != null ? `${summary.responseTimeMs}ms` : "—"}
+                      {summary.responseTimeMs != null ? `${summary.responseTimeMs}ms` : "\u2014"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-3 text-sm">

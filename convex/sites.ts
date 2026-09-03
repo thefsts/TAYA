@@ -35,6 +35,56 @@ export const list = query({
   },
 });
 
+/**
+ * Returns the site list enriched with the latest health-scan score and
+ * last-activity timestamp for each site.  Used by the Platform Admin home
+ * (SitesList) so every site card can show a health indicator and "last
+ * updated" without N+1 client-side queries.
+ */
+export const listWithHealth = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!user || !user.isActive) return [];
+    const all = await ctx.db.query("sites").collect();
+    let sites = user.isSuperAdmin
+      ? all
+      : user.isAgencyAdmin && user.agencyId
+        ? all.filter((s) => String(s.agencyId) === String(user.agencyId))
+        : all.filter((s) => user.roles.some((r: any) => r.siteId === s._id));
+
+    // Enrich each site with its latest health scan + last activity
+    const enriched = await Promise.all(
+      sites.map(async (site) => {
+        const [latestScan, lastActivity] = await Promise.all([
+          ctx.db
+            .query("websiteHealthScans")
+            .withIndex("by_site_scannedAt", (q: any) => q.eq("siteId", site._id))
+            .order("desc")
+            .first(),
+          ctx.db
+            .query("activityLog")
+            .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
+            .order("desc")
+            .first(),
+        ]);
+        return {
+          ...toSiteResponse(site),
+          healthScore: latestScan?.overallScore ?? null,
+          lastScannedAt: latestScan ? new Date(latestScan.scannedAt).toISOString() : null,
+          lastActivityAt: lastActivity ? new Date(lastActivity._creationTime).toISOString() : null,
+        };
+      }),
+    );
+    return enriched;
+  },
+});
+
 export const get = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
