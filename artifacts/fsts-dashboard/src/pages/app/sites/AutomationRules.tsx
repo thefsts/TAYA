@@ -534,7 +534,7 @@ function RunLogDrawer({
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-[560px] sm:max-w-[560px] overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-[560px] overflow-y-auto">
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-slate-500" />
