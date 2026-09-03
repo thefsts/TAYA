@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, History } from "lucide-react";
+import { Link } from "wouter";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
@@ -192,6 +193,15 @@ export default function HomepageEditor({ params }: { params: { siteId: string } 
           </div>
         </div>
       </LivePreviewPanel>
+
+      <div className="mt-4 flex justify-end">
+        <Link href={`/app/sites/${params.siteId}/history`}>
+          <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
+            <History className="mr-1.5 h-4 w-4" />
+            Revision History
+          </Button>
+        </Link>
+      </div>
 
       <PublishValidationModal
         open={validationOpen}

@@ -47,7 +47,9 @@ import {
   Share2,
   Search,
   Filter,
+  History,
 } from "lucide-react";
+import { Link } from "wouter";
 import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
@@ -434,6 +436,15 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
         </div>
       )}
       </LivePreviewPanel>
+
+      <div className="mt-4 flex justify-end">
+        <Link href={`/app/sites/${siteId}/history`}>
+          <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
+            <History className="mr-1.5 h-4 w-4" />
+            Revision History
+          </Button>
+        </Link>
+      </div>
 
       {/* ── Article Editor Dialog ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
