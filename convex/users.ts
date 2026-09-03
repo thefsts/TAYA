@@ -287,5 +287,63 @@ export const updateInvitationState = internalMutation({
   },
 });
 
+/**
+ * Promote an existing user to superadmin by Clerk ID.
+ * SECURITY: only an existing superadmin may promote — except in approved test
+ * environments (convex/lib/testMode.ts), where the test harness bootstraps.
+ * Fails closed on production-marked deployments. Restored from 834c931^ after
+ * it was removed without updating the convex-unit test suite.
+ */
+export const promoteToSuperAdminByClerkId = mutation({
+  args: { targetClerkUserId: v.string() },
+  handler: async (ctx, { targetClerkUserId }) => {
+    if (!isTestMode()) {
+      const me = await provisionUser(ctx);
+      if (!me.isSuperAdmin) throw new Error("Forbidden: superadmin only");
+    }
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) =>
+        q.eq("clerkUserId", targetClerkUserId)
+      )
+      .first();
+    if (!user) throw new Error(`User with clerkUserId ${targetClerkUserId} not found`);
+    await ctx.db.patch(user._id, { isSuperAdmin: true, isActive: true });
+    return user._id;
+  },
+});
+
 // Test-only exports retained below in the repository's test environment.
 export { isTestMode, requireTestEnvironment };
+
+/**
+ * Test-only superadmin bootstrap.
+ * SECURITY: fails closed on production deployments via requireTestEnvironment.
+ * The convex-unit test suite uses this to provision an authenticated superadmin
+ * identity; it was removed in 834c931 without updating the tests, breaking 40+
+ * tenant-isolation / RBAC tests. Restored here gated behind CONVEX_TEST_MODE.
+ */
+export const upsertTestSuperAdmin = mutation({
+  args: { email: v.string(), name: v.string() },
+  handler: async (ctx, { email, name }) => {
+    requireTestEnvironment("upsertTestSuperAdmin");
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    if (existing.length > 0) {
+      for (const user of existing) {
+        await ctx.db.patch(user._id, { isSuperAdmin: true, isActive: true });
+      }
+      return existing[0]._id;
+    }
+    return await ctx.db.insert("users", {
+      clerkUserId: `pending:${email}`,
+      name,
+      email,
+      isSuperAdmin: true,
+      isActive: true,
+      roles: [],
+    });
+  },
+});
