@@ -43,6 +43,7 @@ const EmailConfig = lazy(() => import("@/pages/app/sites/EmailConfig"));
 const CrmConnectionConfig = lazy(() => import("@/pages/app/sites/CrmConnectionConfig"));
 const VersionHistory = lazy(() => import("@/pages/app/sites/VersionHistory"));
 const ActivityLog = lazy(() => import("@/pages/app/sites/ActivityLog"));
+const SiteUsers = lazy(() => import("@/pages/app/sites/SiteUsers"));
 const BackupsList = lazy(() => import("@/pages/app/sites/BackupsList"));
 const HelpCenter = lazy(() => import("@/pages/app/sites/HelpCenter"));
 const FaqManager = lazy(() => import("@/pages/app/sites/FaqManager"));
@@ -399,6 +400,7 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/popup" component={PopupManager} />
           <Route path="/app/sites/:siteId/history" component={VersionHistoryGuarded} />
           <Route path="/app/sites/:siteId/activity" component={ActivityLogGuarded} />
+          <Route path="/app/sites/:siteId/users" component={SiteUsers} />
           <Route path="/app/sites/:siteId/backups" component={BackupsListGuarded} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
 

@@ -444,6 +444,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isDesignLocked isSuperAdmin={isSuperAdmin} />
             {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} isSuperAdmin={isSuperAdmin} />}
             <NavItem icon={ShieldCheckIcon} label="My Permissions" href={`/app/sites/${siteId}/permissions`} isSuperAdmin={isSuperAdmin} />
+            <NavItem icon={Users} label="Site Users" href={`/app/sites/${siteId}/users`} isSuperAdmin={isSuperAdmin} />
             <NavItem icon={Zap} label="Automation Engine\u2122" href={`/app/sites/${siteId}/automation`} isSuperAdmin={isSuperAdmin} />
             {isEnabled("portal") && <NavItem icon={UserCog} label="Portal Manager\u2122" href={`/app/sites/${siteId}/portal`} isSuperAdmin={isSuperAdmin} />}
             {isSuperAdmin && (
