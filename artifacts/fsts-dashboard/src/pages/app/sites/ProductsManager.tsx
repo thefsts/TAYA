@@ -318,7 +318,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
           </Button>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -402,10 +402,10 @@ export default function ProductsManager({ params }: { params: { siteId: string }
                     </button>
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(p)}>
+                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(p)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(p)}>
+                    <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(p)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </td>
@@ -427,6 +427,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Title *</Label>
                 <Input
+                  aria-label="Title"
                   required
                   value={form.title}
                   onChange={(e) => handleTitleChange(e.target.value)}
@@ -436,6 +437,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Slug *</Label>
                 <Input
+                  aria-label="Slug"
                   required
                   value={form.slug}
                   onChange={(e) => setForm({ ...form, slug: e.target.value })}
@@ -447,6 +449,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
             <div className="space-y-1.5">
               <Label>Short Description</Label>
               <Input
+                aria-label="Short Description"
                 value={form.shortDescription}
                 onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
                 placeholder="One-line summary shown on cards"
@@ -456,6 +459,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
             <div className="space-y-1.5">
               <Label>Full Description *</Label>
               <Textarea
+                aria-label="Full Description"
                 required
                 rows={4}
                 value={form.description}
@@ -468,6 +472,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Price (cents)</Label>
                 <Input
+                  aria-label="Price (cents)"
                   type="number"
                   min={0}
                   value={form.priceCents}
@@ -479,6 +484,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Price Label</Label>
                 <Input
+                  aria-label="Price Label"
                   value={form.priceLabel}
                   onChange={(e) => setForm({ ...form, priceLabel: e.target.value })}
                   placeholder="Starting at $99/mo"
@@ -488,6 +494,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Category</Label>
                 <Input
+                  aria-label="Category"
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                   placeholder="e.g. Consulting"
@@ -498,6 +505,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
             <div className="space-y-1.5">
               <Label>Image URL</Label>
               <Input
+                aria-label="Image URL"
                 value={form.imageUrl}
                 onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
                 placeholder="https://…"
@@ -516,6 +524,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>CTA Button Label</Label>
                 <Input
+                  aria-label="CTA Button Label"
                   value={form.ctaLabel}
                   onChange={(e) => setForm({ ...form, ctaLabel: e.target.value })}
                   placeholder="e.g. Get Started"
@@ -524,6 +533,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>CTA Button URL</Label>
                 <Input
+                  aria-label="CTA Button URL"
                   value={form.ctaUrl}
                   onChange={(e) => setForm({ ...form, ctaUrl: e.target.value })}
                   placeholder="https://… or /contact"

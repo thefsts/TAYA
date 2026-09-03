@@ -221,7 +221,7 @@ function CatalogTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-xs text-slate-400 mt-1">Click "Sync Now" to pull items from your Square catalog, or create a new item.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
               <tr>
@@ -249,7 +249,7 @@ function CatalogTab({ siteId }: { siteId: Id<"sites"> }) {
                   <td className="px-4 py-2.5 font-mono text-xs text-slate-400">{item.squareItemId}</td>
                   <td className="px-4 py-2.5 text-slate-500">{formatDate(item.lastSyncedAt)}</td>
                   <td className="px-4 py-2.5 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
+                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(item)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   </td>
@@ -268,19 +268,19 @@ function CatalogTab({ siteId }: { siteId: Id<"sites"> }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Name</Label>
-              <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Basic Handgun Course" />
+              <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Basic Handgun Course" />
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
-              <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Optional" />
+              <Input aria-label="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Optional" />
             </div>
             <div className="space-y-1.5">
               <Label>Price (USD)</Label>
-              <Input required type="number" min="0" step="0.01" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} placeholder="99.00" />
+              <Input aria-label="price cents" required type="number" min="0" step="0.01" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} placeholder="99.00" />
             </div>
             <div className="space-y-1.5">
               <Label>Category</Label>
-              <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Optional — creates category in Square if new" />
+              <Input aria-label="category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Optional — creates category in Square if new" />
             </div>
             <div className="space-y-1.5">
               <ImagePickerField
@@ -343,7 +343,7 @@ function PaymentsTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-xs text-slate-400 mt-1">Click "Sync Payments" to pull transactions from Square, or payments will appear here when the webhook receives events.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
               <tr>
@@ -463,7 +463,7 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-xs text-slate-400 mt-1">Create a discount or sync existing ones from your Square catalog.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
               <tr>
@@ -503,16 +503,16 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Name</Label>
-              <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Summer Sale" />
+              <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Summer Sale" />
             </div>
             <div className="space-y-1.5">
               <Label>Promo Code (optional)</Label>
-              <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SUMMER25" />
+              <Input aria-label="code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SUMMER25" />
             </div>
             <div className="space-y-1.5">
               <Label>Discount Type</Label>
               <Select value={form.discountType} onValueChange={(v) => setForm({ ...form, discountType: v as any })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Discount Type"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="FIXED_AMOUNT">Fixed Amount ($)</SelectItem>
                   <SelectItem value="FIXED_PERCENTAGE">Percentage (%)</SelectItem>
@@ -522,17 +522,17 @@ function DiscountsTab({ siteId }: { siteId: Id<"sites"> }) {
             {form.discountType === "FIXED_AMOUNT" ? (
               <div className="space-y-1.5">
                 <Label>Amount (USD)</Label>
-                <Input required type="number" min="0" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="25.00" />
+                <Input aria-label="amount" required type="number" min="0" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="25.00" />
               </div>
             ) : (
               <div className="space-y-1.5">
                 <Label>Percentage</Label>
-                <Input required type="number" min="0" max="100" step="0.1" value={form.percentage} onChange={(e) => setForm({ ...form, percentage: e.target.value })} placeholder="15" />
+                <Input aria-label="percentage" required type="number" min="0" max="100" step="0.1" value={form.percentage} onChange={(e) => setForm({ ...form, percentage: e.target.value })} placeholder="15" />
               </div>
             )}
             <div className="space-y-1.5">
               <Label>Expiry Date <span className="text-slate-400 font-normal">(optional, stored in FSTS)</span></Label>
-              <Input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} />
+              <Input aria-label="expires at" type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} />
               <p className="text-xs text-slate-400">Square catalog discounts don't expire natively. Delete the discount in Square to disable it.</p>
             </div>
             <DialogFooter>

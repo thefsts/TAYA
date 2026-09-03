@@ -614,16 +614,17 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label>Title</Label>
-                  <Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                  <Input aria-label="title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Slug</Label>
-                  <Input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+                  <Input aria-label="slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Description</Label>
                 <Textarea
+                  aria-label="Description"
                   required
                   rows={4}
                   value={form.description}
@@ -634,7 +635,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                 <div className="space-y-1.5">
                   <Label>Status</Label>
                   <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as CourseStatus })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">Draft</SelectItem>
                       <SelectItem value="published">Published</SelectItem>
@@ -644,18 +645,18 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                 </div>
                 <div className="space-y-1.5">
                   <Label>Duration Label</Label>
-                  <Input placeholder="e.g. 6 weeks" value={form.durationLabel} onChange={(e) => setForm({ ...form, durationLabel: e.target.value })} />
+                  <Input aria-label="6 weeks" placeholder="e.g. 6 weeks" value={form.durationLabel} onChange={(e) => setForm({ ...form, durationLabel: e.target.value })} />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label>Price (cents)</Label>
-                  <Input type="number" placeholder="e.g. 9900 for $99" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} />
+                  <Input aria-label="9900 for $99" type="number" placeholder="e.g. 9900 for $99" value={form.priceCents} onChange={(e) => setForm({ ...form, priceCents: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Timezone</Label>
                   <Select value={form.timezone} onValueChange={(v) => setForm({ ...form, timezone: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label="Timezone"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {COMMON_TIMEZONES.map((tz) => (
                         <SelectItem key={tz} value={tz}>{tz}</SelectItem>
@@ -670,19 +671,19 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label>Start Date &amp; Time</Label>
-                    <Input type="datetime-local" value={form.startDateTime} onChange={(e) => setForm({ ...form, startDateTime: e.target.value })} />
+                    <Input aria-label="start date time" type="datetime-local" value={form.startDateTime} onChange={(e) => setForm({ ...form, startDateTime: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>End Date &amp; Time</Label>
-                    <Input type="datetime-local" value={form.endDateTime} onChange={(e) => setForm({ ...form, endDateTime: e.target.value })} />
+                    <Input aria-label="end date time" type="datetime-local" value={form.endDateTime} onChange={(e) => setForm({ ...form, endDateTime: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Registration Opens</Label>
-                    <Input type="datetime-local" value={form.registrationOpenAt} onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })} />
+                    <Input aria-label="registration open at" type="datetime-local" value={form.registrationOpenAt} onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Registration Closes</Label>
-                    <Input type="datetime-local" value={form.registrationCloseAt} onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })} />
+                    <Input aria-label="registration close at" type="datetime-local" value={form.registrationCloseAt} onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })} />
                   </div>
                 </div>
               </div>
@@ -692,11 +693,11 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label>Max Capacity <span className="font-normal text-slate-400">(blank = unlimited)</span></Label>
-                    <Input type="number" min={1} placeholder="e.g. 20" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
+                    <Input aria-label="20" type="number" min={1} placeholder="e.g. 20" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Waitlist Capacity <span className="font-normal text-slate-400">(0 = none)</span></Label>
-                    <Input type="number" min={0} placeholder="e.g. 5" value={form.waitlistCapacity} onChange={(e) => setForm({ ...form, waitlistCapacity: e.target.value })} />
+                    <Input aria-label="5" type="number" min={0} placeholder="e.g. 5" value={form.waitlistCapacity} onChange={(e) => setForm({ ...form, waitlistCapacity: e.target.value })} />
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -740,7 +741,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                   <div className="space-y-1.5">
                     <Label>Square Catalog Item <span className="font-normal text-slate-400">(for checkout pricing)</span></Label>
                     <Select value={form.squareItemId || "__none__"} onValueChange={(v) => setForm({ ...form, squareItemId: v === "__none__" ? "" : v })}>
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Square Catalog Item">
                         <SelectValue placeholder="Not linked" />
                       </SelectTrigger>
                       <SelectContent>

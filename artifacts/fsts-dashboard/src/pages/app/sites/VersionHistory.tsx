@@ -69,7 +69,7 @@ export default function VersionHistory({ params }: { params: { siteId: string } 
           <p className="text-slate-500 mt-1">Content snapshots will appear here as edits are made.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500">
               <tr>

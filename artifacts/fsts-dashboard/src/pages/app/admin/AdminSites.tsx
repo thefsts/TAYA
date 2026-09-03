@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
 
 type SiteStatus = "active" | "staging" | "archived";
 type WebsiteType = string;
@@ -176,6 +176,9 @@ export default function AdminSites() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
+          <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
           <h1 className="text-2xl font-bold text-slate-900">Global Sites</h1>
           <p className="text-sm text-slate-500 mt-0.5">Client sites managed on this platform.</p>
         </div>
@@ -191,7 +194,7 @@ export default function AdminSites() {
       ) : sites === null ? (
         <ModuleAccessDenied message="Unable to load sites list — you may not have sufficient access." />
       ) : (
-        <div className="bg-white border border-slate-200 rounded-md shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -216,8 +219,8 @@ export default function AdminSites() {
                   </td>
                   <td className="px-4 py-3 text-slate-500">{site.domain ?? "—"}</td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(site)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(site)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(site)}><Pencil className="h-4 w-4" /></Button>
+                    <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(site)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
                   </td>
                 </tr>
               ))}
@@ -239,16 +242,16 @@ export default function AdminSites() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Name</Label>
-              <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>Slug</Label>
-              <Input required disabled={!!editing} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+              <Input aria-label="slug" required disabled={!!editing} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>Status</Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as SiteStatus })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="staging">Staging</SelectItem>
@@ -258,12 +261,12 @@ export default function AdminSites() {
             </div>
             <div className="space-y-1.5">
               <Label>Domain</Label>
-              <Input placeholder="example.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
+              <Input aria-label="example.com" placeholder="example.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>Website Type</Label>
               <Select value={form.websiteType} onValueChange={handleWebsiteTypeChange}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Website Type"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {WEBSITE_TYPE_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -291,11 +294,11 @@ export default function AdminSites() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Primary Brand Color</Label>
-                <Input type="color" value={form.brandColorPrimary} onChange={(e) => setForm({ ...form, brandColorPrimary: e.target.value })} />
+                <Input aria-label="brand color primary" type="color" value={form.brandColorPrimary} onChange={(e) => setForm({ ...form, brandColorPrimary: e.target.value })} />
               </div>
               <div className="space-y-1.5">
                 <Label>Secondary Brand Color</Label>
-                <Input type="color" value={form.brandColorSecondary} onChange={(e) => setForm({ ...form, brandColorSecondary: e.target.value })} />
+                <Input aria-label="brand color secondary" type="color" value={form.brandColorSecondary} onChange={(e) => setForm({ ...form, brandColorSecondary: e.target.value })} />
               </div>
             </div>
             <div className="flex items-center justify-between py-1">

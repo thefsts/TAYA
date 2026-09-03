@@ -72,8 +72,8 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
   }
 
   if (items === undefined) return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
-  const visibleCount = items.filter((item) => item.isActive).length;
-  const averageRating = items.length ? (items.reduce((sum, item) => sum + (item.rating ?? 0), 0) / items.length).toFixed(1) : "—";
+  const visibleCount = items.filter((item: NonNullable<typeof items>[number]) => item.isActive).length;
+  const averageRating = items.length ? (items.reduce((sum: number, item: NonNullable<typeof items>[number]) => sum + (item.rating ?? 0), 0) / items.length).toFixed(1) : "—";
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -103,7 +103,7 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
                 </div>
                 {item.rating != null && <div className="mt-4 flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-4 w-4 ${i < item.rating! ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />)}</div>}
                 <blockquote className="mt-3 flex-1 text-sm leading-6 text-slate-600">“{item.text}”</blockquote>
-                <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-4"><Button size="sm" variant="outline" onClick={() => openEdit(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button><Button size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button></div>
+                <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-4"><Button size="sm" variant="outline" onClick={() => openEdit(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button><Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button></div>
               </article>
             ))}
           </div>
@@ -114,9 +114,9 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{editing ? "Edit Testimonial" : "Add Testimonial"}</DialogTitle></DialogHeader>
           <div className="space-y-5 py-2">
-            <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-1.5"><Label>Name *</Label><Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Jane Smith" /></div><div className="space-y-1.5"><Label>Rating (1–5)</Label><Input type="number" min="1" max="5" value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: e.target.value }))} /></div></div>
-            <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-1.5"><Label>Role / Title</Label><Input value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} placeholder="Director of Security" /></div><div className="space-y-1.5"><Label>Company</Label><Input value={form.company} onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))} placeholder="Acme Corp" /></div></div>
-            <div className="space-y-1.5"><Label>Testimonial Text *</Label><Textarea rows={5} value={form.text} onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))} placeholder="What did this client say?" /></div>
+            <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-1.5"><Label>Name *</Label><Input aria-label="Name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Jane Smith" /></div><div className="space-y-1.5"><Label>Rating (1–5)</Label><Input aria-label="Rating (1–5)" type="number" min="1" max="5" value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: e.target.value }))} /></div></div>
+            <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-1.5"><Label>Role / Title</Label><Input aria-label="Role / Title" value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} placeholder="Director of Security" /></div><div className="space-y-1.5"><Label>Company</Label><Input aria-label="Company" value={form.company} onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))} placeholder="Acme Corp" /></div></div>
+            <div className="space-y-1.5"><Label>Testimonial Text *</Label><Textarea aria-label="Testimonial Text" rows={5} value={form.text} onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))} placeholder="What did this client say?" /></div>
             <ImagePickerField siteId={params.siteId} label="Avatar" value={form.avatarUrl} onChange={(url) => setForm((f) => ({ ...f, avatarUrl: url }))} initialPreset={SITE_PRESETS.find((p) => p.label === "Testimonial Photo")} hint="Recommended: 200×200 px square." />
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><Label>Visible on website</Label><p className="mt-0.5 text-xs text-slate-500">Turn this off to keep the testimonial saved without displaying it publicly.</p></div><Switch checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} /></div>
           </div>

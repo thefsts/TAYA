@@ -190,7 +190,7 @@ export default function PortalManager() {
 
   const loading = config === undefined || site === undefined;
 
-  const pendingCount = (members ?? []).filter((m) => m.status === "pending_approval").length;
+  const pendingCount = (members ?? []).filter((m: NonNullable<typeof members>[number]) => m.status === "pending_approval").length;
 
   return (
     <AppLayout siteId={siteId} pageContext="Portal Manager™">
@@ -407,6 +407,7 @@ export default function PortalManager() {
           ) : (
             <Card>
               <CardContent className="p-0">
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-200">
@@ -419,7 +420,7 @@ export default function PortalManager() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {members.map((member) => (
+                    {members.map((member: NonNullable<typeof members>[number]) => (
                       <tr key={String(member._id)} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3 font-medium text-slate-900">
                           {member.firstName} {member.lastName}
@@ -430,7 +431,7 @@ export default function PortalManager() {
                             value={member.role}
                             onValueChange={(v) => handleUpdateRole(member._id as Id<"portalUsers">, v)}
                           >
-                            <SelectTrigger className="h-7 w-32 text-xs border-slate-200">
+                            <SelectTrigger aria-label="Member role" className="h-7 w-32 text-xs border-slate-200">
                               <SelectValue />
                               <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
                             </SelectTrigger>
@@ -484,7 +485,7 @@ export default function PortalManager() {
                                 Re-activate
                               </Button>
                             )}
-                            <Button
+                            <Button aria-label="Delete"
                               size="sm"
                               variant="ghost"
                               className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
@@ -498,6 +499,7 @@ export default function PortalManager() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -505,7 +507,7 @@ export default function PortalManager() {
           <div className="mt-4 flex items-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1.5">
               <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-              {(members ?? []).filter((m) => m.status === "active").length} active
+              {(members ?? []).filter((m: NonNullable<typeof members>[number]) => m.status === "active").length} active
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-amber-500" />
@@ -513,7 +515,7 @@ export default function PortalManager() {
             </span>
             <span className="flex items-center gap-1.5">
               <XCircle className="h-3.5 w-3.5 text-slate-400" />
-              {(members ?? []).filter((m) => m.status === "deactivated").length} deactivated
+              {(members ?? []).filter((m: NonNullable<typeof members>[number]) => m.status === "deactivated").length} deactivated
             </span>
           </div>
         </div>

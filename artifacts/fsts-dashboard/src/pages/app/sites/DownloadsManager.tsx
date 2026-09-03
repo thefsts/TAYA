@@ -105,8 +105,8 @@ export default function DownloadsManager({ params }: { params: { siteId: string 
     return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
   }
 
-  const visibleCount = items.filter((item) => item.isActive).length;
-  const categoryCount = new Set(items.map((item) => item.category).filter(Boolean)).size;
+  const visibleCount = items.filter((item: NonNullable<typeof items>[number]) => item.isActive).length;
+  const categoryCount = new Set(items.map((item: NonNullable<typeof items>[number]) => item.category).filter(Boolean)).size;
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -168,7 +168,7 @@ export default function DownloadsManager({ params }: { params: { siteId: string 
                 </div>
                 <div className="flex flex-shrink-0 gap-2 sm:justify-end">
                   <Button size="sm" variant="outline" onClick={() => openEdit(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
-                  <Button size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
               </div>
             ))}
@@ -180,13 +180,13 @@ export default function DownloadsManager({ params }: { params: { siteId: string 
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{editing ? "Edit Resource" : "Add Resource"}</DialogTitle></DialogHeader>
           <div className="space-y-5 py-2">
-            <div className="space-y-1.5"><Label>Title *</Label><Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Safety Guidelines PDF" /></div>
-            <div className="space-y-1.5"><Label>File URL *</Label><Input value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} placeholder="https://…/file.pdf" /><p className="text-xs leading-5 text-slate-400">Use the direct, approved URL where visitors can open or download this resource.</p></div>
-            <div className="space-y-1.5"><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Brief description of the file" /></div>
+            <div className="space-y-1.5"><Label>Title *</Label><Input aria-label="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Safety Guidelines PDF" /></div>
+            <div className="space-y-1.5"><Label>File URL *</Label><Input aria-label="File URL" value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} placeholder="https://…/file.pdf" /><p className="text-xs leading-5 text-slate-400">Use the direct, approved URL where visitors can open or download this resource.</p></div>
+            <div className="space-y-1.5"><Label>Description</Label><Textarea aria-label="Description" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Brief description of the file" /></div>
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-1.5"><Label>Format</Label><Input value={form.format} onChange={(e) => setForm((f) => ({ ...f, format: e.target.value }))} placeholder="PDF" /></div>
-              <div className="space-y-1.5"><Label>Size</Label><Input value={form.sizeLabel} onChange={(e) => setForm((f) => ({ ...f, sizeLabel: e.target.value }))} placeholder="2.4 MB" /></div>
-              <div className="space-y-1.5"><Label>Category</Label><Input value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Safety" /></div>
+              <div className="space-y-1.5"><Label>Format</Label><Input aria-label="Format" value={form.format} onChange={(e) => setForm((f) => ({ ...f, format: e.target.value }))} placeholder="PDF" /></div>
+              <div className="space-y-1.5"><Label>Size</Label><Input aria-label="Size" value={form.sizeLabel} onChange={(e) => setForm((f) => ({ ...f, sizeLabel: e.target.value }))} placeholder="2.4 MB" /></div>
+              <div className="space-y-1.5"><Label>Category</Label><Input aria-label="Category" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Safety" /></div>
             </div>
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
               <div><Label>Visible on website</Label><p className="mt-0.5 text-xs text-slate-500">Turn this off to keep the resource saved without displaying it publicly.</p></div>

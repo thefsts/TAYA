@@ -78,8 +78,8 @@ function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin, badge 
           <div className="flex items-start gap-2">
             <Lock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
             <span>
-              <strong>{label}</strong> is managed by FSTS administrators.
-              Contact your FSTS representative to make changes.
+              <strong>{label}</strong> is managed by TAYA administrators.
+              Contact your TAYA representative to make changes.
             </span>
           </div>
         </TooltipContent>
@@ -206,7 +206,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                 <div className="min-w-0 flex-1 overflow-hidden">
                   <h2 className="truncate font-bold tracking-tight text-slate-950" title={site?.name}>{site?.name}</h2>
                   <div className="truncate text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                    {agency ? `${agency.name} Dashboard` : "Website Operating System™"}
+                    {agency ? `${agency.name} Dashboard` : "TAYA System™"}
                   </div>
                 </div>
                 {sites && sites.length > 1 && (
@@ -219,7 +219,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                   <div className="border-b border-slate-100 bg-slate-50 px-3 py-1.5">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Switch Website</span>
                   </div>
-                  {sites.map((listedSite) => (
+                  {sites.map((listedSite: NonNullable<typeof sites>[number]) => (
                     <Link
                       key={listedSite._id}
                       href={`/app/sites/${listedSite._id}`}
@@ -276,7 +276,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
 
           <div className="mb-2 mt-6 flex items-center gap-2 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
             <Lock className="h-3 w-3" />
-            FSTS Managed
+            TAYA Managed
           </div>
           <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isDesignLocked isSuperAdmin={isSuperAdmin} />
           {isEnabled("navigation") && <NavItem icon={Navigation} label="Navigation" href={`/app/sites/${siteId}/nav`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
@@ -297,7 +297,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             <p className="text-[11px] leading-tight text-slate-400">
               Powered by <span className="font-semibold text-slate-600">Full Stack Tech Solutions</span>
             </p>
-            <p className="mt-0.5 text-[10px] leading-tight text-slate-400">FSTS Website Operating System™</p>
+            <p className="mt-0.5 text-[10px] leading-tight text-slate-400">TAYA System™</p>
           </div>
         )}
         {agency && (

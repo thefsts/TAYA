@@ -153,7 +153,7 @@ function UsageBadge({ siteId, asset }: { siteId: Id<"sites">; asset: any }) {
           <p className="text-xs text-slate-500">Not referenced in any content.</p>
         ) : (
           <ul className="space-y-1">
-            {usages.map((u, i) => (
+            {usages.map((u: { module: string; label: string }, i: number) => (
               <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
                 <FileImage className="h-3 w-3 text-blue-400 mt-0.5 flex-shrink-0" />
                 {u.label}
@@ -211,13 +211,14 @@ function MediaFilterBar({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
+            aria-label="Search by filename, alt text, tag…"
             value={filters.search}
             onChange={(e) => onChange({ search: e.target.value })}
             placeholder="Search by filename, alt text, tag…"
             className="pl-9 pr-8"
           />
           {filters.search && (
-            <button
+            <button aria-label="Close"
               type="button"
               onClick={() => onChange({ search: "" })}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -280,6 +281,7 @@ function MediaFilterBar({
               </Label>
               <div className="relative">
                 <Input
+                  aria-label="Filter by category…"
                   value={filters.category}
                   onChange={(e) => onChange({ category: e.target.value })}
                   placeholder="Filter by category…"
@@ -287,10 +289,10 @@ function MediaFilterBar({
                   className="text-sm"
                 />
                 <datalist id="category-suggestions">
-                  {taxonomy?.categories.map((c) => <option key={c} value={c} />)}
+                  {taxonomy?.categories.map((c: string) => <option key={c} value={c} />)}
                 </datalist>
                 {filters.category && (
-                  <button type="button" onClick={() => onChange({ category: "" })} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <button aria-label="Close" type="button" onClick={() => onChange({ category: "" })} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}
@@ -304,6 +306,7 @@ function MediaFilterBar({
               </Label>
               <div className="relative">
                 <Input
+                  aria-label="Filter by tag…"
                   value={filters.tag}
                   onChange={(e) => onChange({ tag: e.target.value })}
                   placeholder="Filter by tag…"
@@ -314,7 +317,7 @@ function MediaFilterBar({
                   {taxonomy?.tags.map((t) => <option key={t} value={t} />)}
                 </datalist>
                 {filters.tag && (
-                  <button type="button" onClick={() => onChange({ tag: "" })} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <button aria-label="Close" type="button" onClick={() => onChange({ tag: "" })} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}
@@ -325,6 +328,7 @@ function MediaFilterBar({
             <div className="space-y-1.5">
               <Label className="text-xs text-slate-600">Uploaded after</Label>
               <Input
+                aria-label="Uploaded after"
                 type="date"
                 value={filters.dateFrom}
                 onChange={(e) => onChange({ dateFrom: e.target.value })}
@@ -336,6 +340,7 @@ function MediaFilterBar({
             <div className="space-y-1.5">
               <Label className="text-xs text-slate-600">Uploaded before</Label>
               <Input
+                aria-label="Uploaded before"
                 type="date"
                 value={filters.dateTo}
                 onChange={(e) => onChange({ dateTo: e.target.value })}
@@ -487,7 +492,7 @@ function AssetDetailPanel({
             <p className="text-xs text-slate-400 italic">Not used in any content</p>
           ) : (
             <ul className="space-y-1">
-              {usages.map((u, i) => (
+              {usages.map((u: { module: string; label: string }, i: number) => (
                 <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
                   <FileImage className="h-3 w-3 text-blue-400 mt-0.5 flex-shrink-0" />
                   {u.label}
@@ -503,7 +508,7 @@ function AssetDetailPanel({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label className="text-xs">Filename</Label>
-            <Input value={fileName} onChange={(e) => { setFileName(e.target.value); markDirty(); }} className="text-sm" />
+            <Input aria-label="file name" value={fileName} onChange={(e) => { setFileName(e.target.value); markDirty(); }} className="text-sm" />
           </div>
 
           <div className="space-y-1.5">
@@ -512,6 +517,7 @@ function AssetDetailPanel({
               {!altText && <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200">Missing</Badge>}
             </Label>
             <Input
+              aria-label="Describe the image for accessibility…"
               value={altText}
               onChange={(e) => { setAltText(e.target.value); markDirty(); }}
               placeholder="Describe the image for accessibility…"
@@ -523,6 +529,7 @@ function AssetDetailPanel({
             <Label className="text-xs flex items-center gap-1"><FolderOpen className="h-3 w-3" /> Category</Label>
             <div className="relative">
               <Input
+                aria-label="Hero images, Team…"
                 value={category}
                 onChange={(e) => { setCategory(e.target.value); markDirty(); }}
                 placeholder="e.g. Hero images, Team…"
@@ -530,7 +537,7 @@ function AssetDetailPanel({
                 className="text-sm"
               />
               <datalist id="panel-category-suggestions">
-                {taxonomy?.categories.map((c) => <option key={c} value={c} />)}
+                {taxonomy?.categories.map((c: string) => <option key={c} value={c} />)}
               </datalist>
             </div>
           </div>
@@ -542,7 +549,7 @@ function AssetDetailPanel({
                 {tags.map((t) => (
                   <span key={t} className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
                     {t}
-                    <button type="button" onClick={() => removeTag(t)} className="hover:text-blue-900">
+                    <button aria-label="Close" type="button" onClick={() => removeTag(t)} className="hover:text-blue-900">
                       <X className="h-2.5 w-2.5" />
                     </button>
                   </span>
@@ -551,6 +558,7 @@ function AssetDetailPanel({
             )}
             <div className="flex gap-1.5">
               <Input
+                aria-label="Add tag, press Enter…"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(tagInput); } }}
@@ -559,7 +567,7 @@ function AssetDetailPanel({
                 className="text-sm"
               />
               <datalist id="panel-tag-suggestions">
-                {taxonomy?.tags.filter((t) => !tags.includes(t)).map((t) => <option key={t} value={t} />)}
+                {taxonomy?.tags.filter((t: string) => !tags.includes(t)).map((t: string) => <option key={t} value={t} />)}
               </datalist>
               <Button type="button" variant="outline" size="sm" onClick={() => addTag(tagInput)} disabled={!tagInput.trim()}>Add</Button>
             </div>
@@ -1271,7 +1279,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
                   )}
                   {m.altText && <p className="text-[10px] text-slate-400 truncate mt-0.5" title={m.altText}>{m.altText}</p>}
                 </div>
-                <button
+                <button aria-label="Delete"
                   type="button"
                   onClick={(e) => { e.stopPropagation(); initiateDelete(m); }}
                   className="absolute bottom-1.5 right-1.5 bg-white/90 rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"

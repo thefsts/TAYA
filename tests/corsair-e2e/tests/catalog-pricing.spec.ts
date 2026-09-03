@@ -4,13 +4,13 @@
  * Verifies that the Corsair Tactical public API endpoint returns the seeded
  * courses with valid price and slug data. Targets the Convex HTTP API directly.
  *
- * The reference site is `corsair-tactical` (seeded via `convex/seedCorsair.ts`).
+ * The reference site is `corsair-tactical-solutions` (seeded via `convex/seedCorsair.ts`).
  * The seed currently defines exactly 6 published courses. If additional courses
  * are added to the seed, update EXPECTED_COURSE_COUNT below.
  *
  * Environment variables:
  *   VITE_CONVEX_URL     — Convex deployment URL (*.convex.cloud or *.convex.site)
- *   CORSAIR_SITE_SLUG   — Override the site slug (default: "corsair-tactical")
+ *   CORSAIR_SITE_SLUG   — Override the site slug (default: "corsair-tactical-solutions")
  *
  * The entire suite is unconditionally skipped when VITE_CONVEX_URL is absent or
  * resolves to an empty site URL — these tests require live Convex credentials.
@@ -22,11 +22,11 @@ const RAW_CONVEX_URL = process.env.VITE_CONVEX_URL ?? "";
 // Convex HTTP actions are served from *.convex.site — swap the subdomain suffix.
 const CONVEX_URL = RAW_CONVEX_URL.replace(/\.cloud$/, ".site");
 
-const SITE_SLUG = process.env.CORSAIR_SITE_SLUG ?? "corsair-tactical";
+const SITE_SLUG = process.env.CORSAIR_SITE_SLUG ?? "corsair-tactical-solutions";
 const COURSES_ENDPOINT = `${CONVEX_URL}/api/public/courses?slug=${SITE_SLUG}`;
 
 /**
- * Number of published courses in the corsair-tactical seed.
+ * Number of published courses in the corsair-tactical-solutions seed.
  * Matches `convex/seedCorsair.ts` → seedCorsairCourses (6 entries).
  */
 const EXPECTED_COURSE_COUNT = 6;

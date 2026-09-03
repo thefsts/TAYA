@@ -96,11 +96,11 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
             <div className="space-y-5 p-4 sm:p-5">
               <div className="space-y-1.5">
                 <Label>Button Label *</Label>
-                <Input value={form.primaryLabel} onChange={(e) => setForm((f) => ({ ...f, primaryLabel: e.target.value }))} placeholder="e.g. Book a Class" />
+                <Input aria-label="primary label" value={form.primaryLabel} onChange={(e) => setForm((f) => ({ ...f, primaryLabel: e.target.value }))} placeholder="e.g. Book a Class" />
               </div>
               <div className="space-y-1.5">
                 <Label>Destination URL *</Label>
-                <Input value={form.primaryUrl} onChange={(e) => setForm((f) => ({ ...f, primaryUrl: e.target.value }))} placeholder="/register or https://…" />
+                <Input aria-label="primary url" value={form.primaryUrl} onChange={(e) => setForm((f) => ({ ...f, primaryUrl: e.target.value }))} placeholder="/register or https://…" />
                 <p className="text-xs leading-5 text-slate-400">Use a website path for an internal page or a full https:// link for an external destination.</p>
               </div>
             </div>
@@ -110,11 +110,11 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
             <div className="space-y-5 p-4 sm:p-5">
               <div className="space-y-1.5">
                 <Label>Button Label</Label>
-                <Input value={form.secondaryLabel} onChange={(e) => setForm((f) => ({ ...f, secondaryLabel: e.target.value }))} placeholder="e.g. Learn More" />
+                <Input aria-label="secondary label" value={form.secondaryLabel} onChange={(e) => setForm((f) => ({ ...f, secondaryLabel: e.target.value }))} placeholder="e.g. Learn More" />
               </div>
               <div className="space-y-1.5">
                 <Label>Destination URL</Label>
-                <Input value={form.secondaryUrl} onChange={(e) => setForm((f) => ({ ...f, secondaryUrl: e.target.value }))} placeholder="/about or https://…" />
+                <Input aria-label="secondary url" value={form.secondaryUrl} onChange={(e) => setForm((f) => ({ ...f, secondaryUrl: e.target.value }))} placeholder="/about or https://…" />
               </div>
             </div>
           </ClientSection>
@@ -123,7 +123,7 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
         <aside>
           <div className="sticky top-24 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-              <MousePointerClick className="h-5 w-5 text-lime-300" />
+              <MousePointerClick className="h-5 w-5 text-emerald-300" />
             </div>
             <h2 className="text-base font-semibold">CTA Preview</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">This preview shows button labels and destinations only. Website styling and placement remain controlled by the site design.</p>
@@ -132,13 +132,13 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Primary</p>
                 <p className="mt-1 font-semibold text-white">{form.primaryLabel || "Primary button label"}</p>
                 <p className="mt-1 flex items-center gap-1 truncate text-xs text-slate-400"><ExternalLink className="h-3 w-3" />{form.primaryUrl || "No URL entered"}</p>
-                <p className={`mt-2 text-xs font-medium ${primaryReady ? "text-lime-300" : "text-amber-300"}`}>{primaryReady ? "Ready to publish" : "Label and URL required"}</p>
+                <p className={`mt-2 text-xs font-medium ${primaryReady ? "text-emerald-300" : "text-amber-300"}`}>{primaryReady ? "Ready to publish" : "Label and URL required"}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Secondary</p>
                 <p className="mt-1 font-semibold text-white">{form.secondaryLabel || "Optional secondary button"}</p>
                 <p className="mt-1 flex items-center gap-1 truncate text-xs text-slate-400"><ExternalLink className="h-3 w-3" />{form.secondaryUrl || "No URL entered"}</p>
-                <p className={`mt-2 text-xs font-medium ${secondaryReady ? "text-lime-300" : "text-slate-500"}`}>{secondaryReady ? "Ready to publish" : "Optional"}</p>
+                <p className={`mt-2 text-xs font-medium ${secondaryReady ? "text-emerald-300" : "text-slate-500"}`}>{secondaryReady ? "Ready to publish" : "Optional"}</p>
               </div>
             </div>
           </div>

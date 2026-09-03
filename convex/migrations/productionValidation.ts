@@ -12,11 +12,11 @@ export const validate = query({
   handler: async (ctx) => {
     const corsair = await ctx.db
       .query("sites")
-      .withIndex("by_slug", (q) => q.eq("slug", "corsair-tactical"))
+      .withIndex("by_slug", (q) => q.eq("slug", "corsair-tactical-solutions"))
       .first();
 
     if (!corsair) {
-      throw new Error("Production validation failed: corsair-tactical site is missing");
+      throw new Error("Production validation failed: corsair-tactical-solutions site is missing");
     }
 
     const [

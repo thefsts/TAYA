@@ -267,7 +267,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
                 <Button size="sm" variant="outline" onClick={() => openEdit(service)}>
                   <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
                 </Button>
-                <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(service.id)}>
+                <Button aria-label="Delete" size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(service.id)}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -286,6 +286,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
               <div>
                 <Label>Title *</Label>
                 <Input
+                  aria-label="Title"
                   className="mt-1"
                   value={form.title}
                   onChange={(e) => handleTitleChange(e.target.value)}
@@ -295,6 +296,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
               <div>
                 <Label>Slug *</Label>
                 <Input
+                  aria-label="Slug"
                   className="mt-1"
                   value={form.slug}
                   onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
@@ -305,6 +307,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
             <div>
               <Label>Short Description</Label>
               <Input
+                aria-label="Short Description"
                 className="mt-1"
                 value={form.shortDescription}
                 onChange={(e) => setForm((f) => ({ ...f, shortDescription: e.target.value }))}
@@ -314,6 +317,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
             <div>
               <Label>Full Description *</Label>
               <Textarea
+                aria-label="Full Description"
                 className="mt-1"
                 rows={3}
                 value={form.description}
@@ -325,6 +329,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
               <div>
                 <Label>Price</Label>
                 <Input
+                  aria-label="Price"
                   className="mt-1"
                   value={form.price}
                   onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
@@ -334,6 +339,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
               <div>
                 <Label>Duration</Label>
                 <Input
+                  aria-label="Duration"
                   className="mt-1"
                   value={form.duration}
                   onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
@@ -343,6 +349,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
               <div>
                 <Label>Category</Label>
                 <Input
+                  aria-label="Category"
                   className="mt-1"
                   value={form.category}
                   onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
@@ -353,6 +360,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
             <div>
               <Label>Image URL</Label>
               <Input
+                aria-label="Image URL"
                 className="mt-1"
                 value={form.imageUrl}
                 onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
@@ -363,6 +371,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
               <div>
                 <Label>CTA Button Label</Label>
                 <Input
+                  aria-label="CTA Button Label"
                   className="mt-1"
                   value={form.ctaLabel}
                   onChange={(e) => setForm((f) => ({ ...f, ctaLabel: e.target.value }))}
@@ -372,6 +381,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
               <div>
                 <Label>CTA Button URL</Label>
                 <Input
+                  aria-label="CTA Button URL"
                   className="mt-1"
                   value={form.ctaUrl}
                   onChange={(e) => setForm((f) => ({ ...f, ctaUrl: e.target.value }))}

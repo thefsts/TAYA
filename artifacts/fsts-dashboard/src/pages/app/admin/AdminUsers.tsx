@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Pencil, Plus, ShieldCheck, Trash2, UserRoundCheck } from "lucide-react";
+import { ArrowLeft, Mail, Pencil, Plus, ShieldCheck, Trash2, UserRoundCheck } from "lucide-react";
 import { ROLES, ROLE_LABELS, type Role } from "@/lib/roleCapabilities";
 
 type RoleAssignmentForm = { siteId: string; role: string };
@@ -167,6 +167,9 @@ export default function AdminUsers() {
     <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
+          <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Platform Administration</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Manage Users</h1>
           <p className="mt-1 text-sm text-slate-500">Create client access, assign site-scoped roles, and issue secure Clerk invitations.</p>
@@ -220,8 +223,8 @@ export default function AdminUsers() {
           <DialogHeader><DialogTitle>{editing ? "Edit User" : "Invite Dashboard User"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5"><Label>Name</Label><Input required value={name} onChange={(event) => setName(event.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Email</Label><Input required type="email" disabled={!!editing} value={email} onChange={(event) => setEmail(event.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Name</Label><Input aria-label="Name" required value={name} onChange={(event) => setName(event.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Email</Label><Input aria-label="Email" required type="email" disabled={!!editing} value={email} onChange={(event) => setEmail(event.target.value)} /></div>
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4"><div><Label>Super Admin</Label><p className="mt-0.5 text-xs text-slate-500">Platform-wide FSTS access. Do not enable for client users.</p></div><Switch checked={isSuperAdmin} onCheckedChange={setIsSuperAdmin} /></div>
@@ -232,9 +235,9 @@ export default function AdminUsers() {
                 <div className="flex items-center justify-between"><div><Label>Site Role Assignments</Label><p className="mt-0.5 text-xs text-slate-500">Client access stays limited to the selected website.</p></div><Button type="button" variant="outline" size="sm" onClick={() => setAssignments([...assignments, { siteId: "", role: "content_editor" }])}><Plus className="mr-1 h-4 w-4" />Add</Button></div>
                 {assignments.map((assignment, index) => (
                   <div key={index} className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_180px_auto]">
-                    <Select value={assignment.siteId} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, siteId: value }; setAssignments(next); }}><SelectTrigger className="bg-white"><SelectValue placeholder="Choose website" /></SelectTrigger><SelectContent>{sites?.map((site: any) => <SelectItem key={site._id} value={site._id}>{site.name}</SelectItem>)}</SelectContent></Select>
-                    <Select value={assignment.role} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, role: value }; setAssignments(next); }}><SelectTrigger className="bg-white"><SelectValue /></SelectTrigger><SelectContent>{ROLES.map((role) => <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>)}</SelectContent></Select>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setAssignments(assignments.filter((_, itemIndex) => itemIndex !== index))}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                    <Select value={assignment.siteId} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, siteId: value }; setAssignments(next); }}><SelectTrigger aria-label="Choose website" className="bg-white"><SelectValue placeholder="Choose website" /></SelectTrigger><SelectContent>{sites?.map((site: any) => <SelectItem key={site._id} value={site._id}>{site.name}</SelectItem>)}</SelectContent></Select>
+                    <Select value={assignment.role} onValueChange={(value) => { const next = [...assignments]; next[index] = { ...assignment, role: value }; setAssignments(next); }}><SelectTrigger aria-label="assignments" className="bg-white"><SelectValue /></SelectTrigger><SelectContent>{ROLES.map((role) => <SelectItem key={role} value={role}>{ROLE_LABELS[role]}</SelectItem>)}</SelectContent></Select>
+                    <Button aria-label="Delete" type="button" variant="ghost" size="sm" onClick={() => setAssignments(assignments.filter((_, itemIndex) => itemIndex !== index))}><Trash2 className="h-4 w-4 text-red-500" /></Button>
                   </div>
                 ))}
                 {assignments.length === 0 && <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">Add a website role before inviting a client. For Corsair testing, select Corsair and assign the Owner role.</div>}

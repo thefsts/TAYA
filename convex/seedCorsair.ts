@@ -35,7 +35,7 @@ import { internalMutation, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
-const SITE_ID = "qd7cpjk68m0z4rme5hw4sqgeys8bk1zc" as const;
+const SITE_ID = "qd7e479ymhc2s7gweajc7c9msx8cqm66" as const; // Production Corsair site (uncommon-cobra-336)
 
 // ─── Step 1: Branding + Site Settings ─────────────────────────────────────────
 
@@ -156,7 +156,7 @@ export const seedNavigation = internalMutation({
       { label: "Events", href: "/events", order: 3 },
       { label: "Blog", href: "/blog", order: 4 },
       { label: "Contact", href: "/contact", order: 5 },
-      { label: "Member Portal", href: "/portal/corsair-tactical/login", order: 6 },
+      { label: "Member Portal", href: "/portal/corsair-tactical-solutions/login", order: 6 },
     ];
 
     for (const item of navItems) {

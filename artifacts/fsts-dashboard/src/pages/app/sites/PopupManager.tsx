@@ -106,11 +106,11 @@ export default function PopupManager({ params }: { params: { siteId: string } })
                 <div><Label className="text-sm font-semibold text-slate-900">Show popup on website</Label><p className="mt-0.5 text-xs leading-5 text-slate-500">Turn this off to keep the popup saved without showing it publicly.</p></div>
                 <Switch checked={form.isEnabled} onCheckedChange={(value) => setForm((current) => ({ ...current, isEnabled: value }))} />
               </div>
-              <div className="space-y-1.5"><Label>Popup Title *</Label><Input value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="e.g. Registration is now open" /></div>
-              <div className="space-y-1.5"><Label>Body Text *</Label><Textarea rows={4} value={form.body} onChange={(e) => setForm((current) => ({ ...current, body: e.target.value }))} placeholder="Add a short message explaining what visitors should know or do." /></div>
+              <div className="space-y-1.5"><Label>Popup Title *</Label><Input aria-label="Popup Title" value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="e.g. Registration is now open" /></div>
+              <div className="space-y-1.5"><Label>Body Text *</Label><Textarea aria-label="Body Text" rows={4} value={form.body} onChange={(e) => setForm((current) => ({ ...current, body: e.target.value }))} placeholder="Add a short message explaining what visitors should know or do." /></div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5"><Label>CTA Button Label</Label><Input value={form.ctaLabel} onChange={(e) => setForm((current) => ({ ...current, ctaLabel: e.target.value }))} placeholder="e.g. Register Now" /></div>
-                <div className="space-y-1.5"><Label>CTA Button URL</Label><Input value={form.ctaUrl} onChange={(e) => setForm((current) => ({ ...current, ctaUrl: e.target.value }))} placeholder="/register or https://…" /></div>
+                <div className="space-y-1.5"><Label>CTA Button Label</Label><Input aria-label="CTA Button Label" value={form.ctaLabel} onChange={(e) => setForm((current) => ({ ...current, ctaLabel: e.target.value }))} placeholder="e.g. Register Now" /></div>
+                <div className="space-y-1.5"><Label>CTA Button URL</Label><Input aria-label="CTA Button URL" value={form.ctaUrl} onChange={(e) => setForm((current) => ({ ...current, ctaUrl: e.target.value }))} placeholder="/register or https://…" /></div>
               </div>
               {(form.ctaLabel && !form.ctaUrl) || (!form.ctaLabel && form.ctaUrl) ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">For a working action button, enter both the button label and destination URL.</p> : null}
             </div>
@@ -124,7 +124,7 @@ export default function PopupManager({ params }: { params: { siteId: string } })
                   <option value="timed">Timed (after delay)</option><option value="exit">Exit Intent</option><option value="scroll">Scroll (50% page)</option>
                 </select>
               </div>
-              {form.triggerType === "timed" && <div className="space-y-1.5"><Label>Delay (seconds)</Label><Input type="number" min="1" max="60" value={form.delaySecs} onChange={(e) => setForm((current) => ({ ...current, delaySecs: e.target.value }))} /><p className="text-xs text-slate-400">Recommended: 3–10 seconds.</p></div>}
+              {form.triggerType === "timed" && <div className="space-y-1.5"><Label>Delay (seconds)</Label><Input aria-label="Delay (seconds)" type="number" min="1" max="60" value={form.delaySecs} onChange={(e) => setForm((current) => ({ ...current, delaySecs: e.target.value }))} /><p className="text-xs text-slate-400">Recommended: 3–10 seconds.</p></div>}
             </div>
           </ClientSection>
         </div>
@@ -132,9 +132,9 @@ export default function PopupManager({ params }: { params: { siteId: string } })
         <aside>
           <div className="sticky top-24 space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
-              <div className="mb-4 flex items-center justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-lime-300">Popup Preview</p><h2 className="mt-1 text-base font-semibold">Visitor view</h2></div><div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5"><Layers className="h-5 w-5 text-slate-300" /></div></div>
+              <div className="mb-4 flex items-center justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-300">Popup Preview</p><h2 className="mt-1 text-base font-semibold">Visitor view</h2></div><div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5"><Layers className="h-5 w-5 text-slate-300" /></div></div>
               {contentReady ? <div className="rounded-xl bg-white p-5 text-slate-900 shadow-lg"><div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-primary/10"><Sparkles className="h-4 w-4 text-primary" /></div><p className="font-bold">{form.title}</p><p className="mt-2 text-sm leading-6 text-slate-600">{form.body}</p>{form.ctaLabel && <button type="button" className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white">{form.ctaLabel}</button>}</div> : <div className="rounded-xl border border-dashed border-slate-700 p-5 text-center text-sm text-slate-400">Add a title and message to preview the popup.</div>}
-              <div className="mt-4 space-y-2 border-t border-slate-800 pt-4 text-xs"><div className="flex items-center justify-between gap-3"><span className="flex items-center gap-1.5 text-slate-400"><Clock3 className="h-3.5 w-3.5" />Trigger</span><span className="font-medium text-slate-200">{triggerLabels[form.triggerType] ?? form.triggerType}</span></div><div className="flex items-center justify-between gap-3"><span className="flex items-center gap-1.5 text-slate-400"><MousePointerClick className="h-3.5 w-3.5" />Action</span><span className={`font-medium ${ctaReady ? "text-lime-300" : "text-slate-500"}`}>{ctaReady ? "Configured" : "Optional"}</span></div></div>
+              <div className="mt-4 space-y-2 border-t border-slate-800 pt-4 text-xs"><div className="flex items-center justify-between gap-3"><span className="flex items-center gap-1.5 text-slate-400"><Clock3 className="h-3.5 w-3.5" />Trigger</span><span className="font-medium text-slate-200">{triggerLabels[form.triggerType] ?? form.triggerType}</span></div><div className="flex items-center justify-between gap-3"><span className="flex items-center gap-1.5 text-slate-400"><MousePointerClick className="h-3.5 w-3.5" />Action</span><span className={`font-medium ${ctaReady ? "text-emerald-300" : "text-slate-500"}`}>{ctaReady ? "Configured" : "Optional"}</span></div></div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-500">Clients control popup content, timing, and visibility here. The approved website layout and styling remain protected.</div>
           </div>

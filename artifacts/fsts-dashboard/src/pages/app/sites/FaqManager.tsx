@@ -62,7 +62,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
   }
 
   if (faqs === undefined) return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
-  const visibleCount = faqs.filter((faq) => faq.isActive).length;
+  const visibleCount = faqs.filter((faq: NonNullable<typeof faqs>[number]) => faq.isActive).length;
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -78,7 +78,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
           <ClientEmptyState icon={HelpCircle} title="No FAQs yet" description="Add your first frequently asked question to help visitors find answers faster." action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First FAQ</Button>} />
         ) : (
           <div className="divide-y divide-slate-100">
-            {faqs.map((faq: NonNullable<typeof faqs>[number], i) => (
+            {faqs.map((faq: NonNullable<typeof faqs>[number], i: number) => (
               <div key={faq.id} className="group flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-start sm:p-5">
                 <div className="flex gap-1 sm:flex-col">
                   <button aria-label="Move FAQ up" onClick={() => move(i, -1)} disabled={i === 0} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button>
@@ -90,7 +90,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <Button size="sm" variant="outline" onClick={() => openEdit(faq)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
-                  <Button size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(faq.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(faq.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
               </div>
             ))}
@@ -102,8 +102,8 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{editing ? "Edit FAQ" : "Add FAQ"}</DialogTitle></DialogHeader>
           <div className="space-y-5 py-2">
-            <div className="space-y-1.5"><Label>Question</Label><Input value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} placeholder="e.g. What areas do you serve?" /></div>
-            <div className="space-y-1.5"><Label>Answer</Label><Textarea rows={6} value={form.answer} onChange={(e) => setForm((f) => ({ ...f, answer: e.target.value }))} placeholder="Provide a clear, helpful answer…" /></div>
+            <div className="space-y-1.5"><Label>Question</Label><Input aria-label="Question" value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} placeholder="e.g. What areas do you serve?" /></div>
+            <div className="space-y-1.5"><Label>Answer</Label><Textarea aria-label="Answer" rows={6} value={form.answer} onChange={(e) => setForm((f) => ({ ...f, answer: e.target.value }))} placeholder="Provide a clear, helpful answer…" /></div>
             <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><Label>Visible on website</Label><p className="mt-0.5 text-xs text-slate-500">Turn this off to save the FAQ without showing it publicly.</p></div><Switch checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} /></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button onClick={handleSave} disabled={isPending}>{isPending ? "Saving…" : editing ? "Save Changes" : "Add FAQ"}</Button></DialogFooter>

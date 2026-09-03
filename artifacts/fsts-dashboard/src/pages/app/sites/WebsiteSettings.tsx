@@ -144,6 +144,7 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
           className="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5 bg-white"
         />
         <Input
+          aria-label="#000000"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="font-mono uppercase w-32"
@@ -371,11 +372,11 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label>Business Name</Label>
-                  <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Acme Corp" />
+                  <Input aria-label="business name" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Acme Corp" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Tagline</Label>
-                  <Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Building great things" />
+                  <Input aria-label="tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Building great things" />
                 </div>
               </div>
 
@@ -383,7 +384,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 <div className="space-y-1.5">
                   <Label>Website Type</Label>
                   <Select value={websiteType} onValueChange={setWebsiteType}>
-                    <SelectTrigger>
+                    <SelectTrigger aria-label="Website Type">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -398,7 +399,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 <div className="space-y-1.5">
                   <Label>Timezone</Label>
                   <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger>
+                    <SelectTrigger aria-label="Timezone">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
@@ -477,7 +478,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Heading Font</Label>
                     <Select value={fontHeading} onValueChange={setFontHeading}>
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Heading Font">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -492,7 +493,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Body Font</Label>
                     <Select value={fontBody} onValueChange={setFontBody}>
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Body Font">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -561,16 +562,16 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label>Phone</Label>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" />
+                  <Input aria-label="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Email</Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hello@example.com" />
+                  <Input aria-label="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hello@example.com" />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Address</Label>
-                <Textarea rows={2} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St, City, State 00000" />
+                <Textarea aria-label="address" rows={2} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St, City, State 00000" />
               </div>
 
               <div className="border-t border-slate-100 pt-5">
@@ -591,6 +592,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                       {row.isOpen ? (
                         <>
                           <Input
+                            aria-label="open time"
                             type="time"
                             value={row.openTime}
                             onChange={(e) => updateHour(i, "openTime", e.target.value)}
@@ -598,6 +600,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                           />
                           <span className="text-slate-400 text-xs">to</span>
                           <Input
+                            aria-label="close time"
                             type="time"
                             value={row.closeTime}
                             onChange={(e) => updateHour(i, "closeTime", e.target.value)}
@@ -619,6 +622,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                     <div key={platform} className="space-y-1.5">
                       <Label className="capitalize">{platform === "tiktok" ? "TikTok" : platform.charAt(0).toUpperCase() + platform.slice(1)}</Label>
                       <Input
+                        aria-label={platform === "tiktok" ? "TikTok" : platform.charAt(0).toUpperCase() + platform.slice(1)}
                         value={socialLinks[platform]}
                         onChange={(e) => updateSocial(platform, e.target.value)}
                         placeholder={`https://${platform}.com/yourpage`}
@@ -661,6 +665,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Global Title Template</Label>
                 <Input
+                  aria-label="Global Title Template"
                   value={seoGlobalTitle}
                   onChange={(e) => setSeoGlobalTitle(e.target.value)}
                   placeholder="My Business | %page%"
@@ -670,6 +675,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Global Meta Description</Label>
                 <Textarea
+                  aria-label="Global Meta Description"
                   rows={3}
                   value={seoGlobalDescription}
                   onChange={(e) => setSeoGlobalDescription(e.target.value)}
@@ -724,6 +730,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Google Analytics 4 (GA4) Measurement ID</Label>
                     <Input
+                      aria-label="Google Analytics 4 (GA4) Measurement ID"
                       value={analyticsGa4}
                       onChange={(e) => setAnalyticsGa4(e.target.value)}
                       placeholder="G-XXXXXXXXXX"
@@ -733,6 +740,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Google Tag Manager (GTM) Container ID</Label>
                     <Input
+                      aria-label="Google Tag Manager (GTM) Container ID"
                       value={analyticsGtm}
                       onChange={(e) => setAnalyticsGtm(e.target.value)}
                       placeholder="GTM-XXXXXXX"
@@ -742,6 +750,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Meta (Facebook) Pixel ID</Label>
                     <Input
+                      aria-label="Meta (Facebook) Pixel ID"
                       value={analyticsPixel}
                       onChange={(e) => setAnalyticsPixel(e.target.value)}
                       placeholder="123456789012345"
@@ -761,6 +770,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   <div className="space-y-1.5">
                     <Label>Cookie Policy URL</Label>
                     <Input
+                      aria-label="Cookie Policy URL"
                       value={cookiePolicyUrl}
                       onChange={(e) => setCookiePolicyUrl(e.target.value)}
                       placeholder="https://example.com/cookie-policy"
@@ -802,6 +812,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Privacy Policy URL</Label>
                 <Input
+                  aria-label="Privacy Policy URL"
                   value={privacyPolicyUrl}
                   onChange={(e) => setPrivacyPolicyUrl(e.target.value)}
                   placeholder="https://example.com/privacy-policy"
@@ -810,6 +821,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Terms of Service URL</Label>
                 <Input
+                  aria-label="Terms of Service URL"
                   value={termsOfServiceUrl}
                   onChange={(e) => setTermsOfServiceUrl(e.target.value)}
                   placeholder="https://example.com/terms"
@@ -818,6 +830,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
               <div className="space-y-1.5">
                 <Label>Cookie Policy URL</Label>
                 <Input
+                  aria-label="Cookie Policy URL"
                   value={legalCookiePolicyUrl}
                   onChange={(e) => setLegalCookiePolicyUrl(e.target.value)}
                   placeholder="https://example.com/cookie-policy"

@@ -239,7 +239,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
           <div className="space-y-1.5">
             <Label>Authentication Method</Label>
             <Select value={authMethod} onValueChange={(v) => setAuthMethod(v as AuthMethod)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Authentication Method"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="api_key">API Key</SelectItem>
                 <SelectItem value="oauth">OAuth</SelectItem>
@@ -250,12 +250,12 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
 
           <div className="space-y-1.5">
             <Label>Operon Account Name</Label>
-            <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="e.g. Acme Corp" />
+            <Input aria-label="account name" value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="e.g. Acme Corp" />
           </div>
 
           <div className="space-y-1.5">
             <Label>Organization ID</Label>
-            <Input value={orgId} onChange={(e) => setOrgId(e.target.value)} />
+            <Input aria-label="org id" value={orgId} onChange={(e) => setOrgId(e.target.value)} />
           </div>
 
           {authMethod === "api_key" && (
@@ -263,7 +263,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
               <Label>
                 API Key {connection?.apiKeyLast4 && <span className="text-slate-400">(current: …{connection.apiKeyLast4})</span>}
               </Label>
-              <Input type="password" placeholder="Leave blank to keep current" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+              <Input aria-label="Leave blank to keep current" type="password" placeholder="Leave blank to keep current" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
             </div>
           )}
 
@@ -420,7 +420,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Select value={logEntityFilter} onValueChange={setLogEntityFilter}>
-              <SelectTrigger className="h-8 text-xs w-44">
+              <SelectTrigger aria-label="All entity types" className="h-8 text-xs w-44">
                 <SelectValue placeholder="All entity types" />
               </SelectTrigger>
               <SelectContent>
@@ -431,7 +431,7 @@ export default function CrmConnectionConfig({ params }: { params: { siteId: stri
               </SelectContent>
             </Select>
             <Select value={logStatusFilter} onValueChange={setLogStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-32">
+              <SelectTrigger aria-label="All statuses" className="h-8 text-xs w-32">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>

@@ -9,7 +9,7 @@ interface DesignLockGuardProps {
 }
 
 /**
- * DesignLockGuard — wraps routes that are restricted to FSTS super-admins.
+ * DesignLockGuard — wraps routes that are restricted to TAYA super-admins.
  *
  * If the current user is not a super-admin they are immediately redirected
  * to the site dashboard. The guard shows nothing while loading so there is

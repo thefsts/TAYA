@@ -51,6 +51,7 @@ vi.mock("@convex/_generated/dataModel", () => ({}));
 
 vi.mock("wouter", () => ({
   useLocation: () => ["/", vi.fn()],
+  useSearch: () => "",
   useParams: () => ({}),
   useRoute: () => [false, {}],
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,

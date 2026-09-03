@@ -107,13 +107,13 @@ export default function AnnouncementBanner({ params }: { params: { siteId: strin
 
               <div className="space-y-1.5">
                 <Label>Banner Text *</Label>
-                <Input value={form.text} onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))} placeholder="e.g. New classes available — register now!" />
+                <Input aria-label="text" value={form.text} onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))} placeholder="e.g. New classes available — register now!" />
                 <p className="text-xs leading-5 text-slate-400">Keep the message short so it remains readable on mobile devices.</p>
               </div>
 
               <div className="space-y-1.5">
                 <Label>Link URL</Label>
-                <Input value={form.link} onChange={(e) => setForm((f) => ({ ...f, link: e.target.value }))} placeholder="/register or https://…" />
+                <Input aria-label="link" value={form.link} onChange={(e) => setForm((f) => ({ ...f, link: e.target.value }))} placeholder="/register or https://…" />
                 <p className="text-xs leading-5 text-slate-400">Optional. Add an internal page path or a complete external URL.</p>
               </div>
 
@@ -127,7 +127,7 @@ export default function AnnouncementBanner({ params }: { params: { siteId: strin
                     className="h-11 w-16 cursor-pointer rounded-lg border border-slate-200 bg-white p-1"
                     aria-label="Choose banner background color"
                   />
-                  <Input value={form.bgColor} onChange={(e) => setForm((f) => ({ ...f, bgColor: e.target.value }))} className="font-mono sm:max-w-44" placeholder="#1e3a5f" />
+                  <Input aria-label="bg color" value={form.bgColor} onChange={(e) => setForm((f) => ({ ...f, bgColor: e.target.value }))} className="font-mono sm:max-w-44" placeholder="#1e3a5f" />
                 </div>
               </div>
             </div>

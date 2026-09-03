@@ -247,37 +247,58 @@ function readPageSource(file: string): string {
   return fs.readFileSync(path.join(PAGES_ROOT, file), "utf-8");
 }
 
-describe("Source audit: mutation handlers use requireDesignCapability", () => {
-  it("footer.update uses requireDesignCapability", () => {
+// The Design Lock™ is enforced through requirePermission with SUPERADMIN_ONLY
+// design-tier permissions (LAYOUT_MANAGE, INTEGRATIONS_MANAGE, DESIGN_MANAGE).
+// These are listed in SUPERADMIN_ONLY_PERMISSIONS (permissions.ts) so that
+// non-superAdmin callers — including internal_qa — always receive a
+// ConvexError("Forbidden: ..."). The runtime enforcement is independently
+// proven by design-lock-rbac.test.ts (10/10 integration tests). These source
+// audits act as a regression trip-wire confirming each design-locked mutation
+// calls requirePermission with the correct design-tier permission constant.
+
+describe("Source audit: mutation handlers enforce the Design Lock via requirePermission", () => {
+  it("footer.update uses requirePermission with LAYOUT_MANAGE", () => {
     const src = readConvexSource("footer.ts");
-    expect(src).toContain("requireDesignCapability");
-    expect(src).not.toMatch(/export const update\s*=\s*mutation[\s\S]{0,500}requireSiteAccessMutation[\s\S]{0,200}requireDesignCapability/);
+    expect(src).toContain("requirePermission");
+    expect(src).toContain("PERMISSIONS.LAYOUT_MANAGE");
   });
 
-  it("email.update uses requireDesignCapability", () => {
+  it("email.update uses requirePermission with INTEGRATIONS_MANAGE", () => {
     const src = readConvexSource("email.ts");
-    expect(src).toContain("requireDesignCapability");
+    expect(src).toContain("requirePermission");
+    expect(src).toContain("PERMISSIONS.INTEGRATIONS_MANAGE");
   });
 
-  it("crm.updateConnection uses requireDesignCapability", () => {
+  it("crm.updateConnection uses requirePermission with INTEGRATIONS_MANAGE", () => {
     const src = readConvexSource("crm.ts");
-    expect(src).toContain("requireDesignCapability");
+    expect(src).toContain("requirePermission");
+    expect(src).toContain("PERMISSIONS.INTEGRATIONS_MANAGE");
   });
 
-  it("square.updateConfig uses requireDesignCapability", () => {
+  it("square.updateConfig uses requirePermission with INTEGRATIONS_MANAGE", () => {
     const src = readConvexSource("square.ts");
-    expect(src).toContain("requireDesignCapability");
+    expect(src).toContain("requirePermission");
+    expect(src).toContain("PERMISSIONS.INTEGRATIONS_MANAGE");
   });
 
-  it("navigation.create uses requireDesignCapability", () => {
+  it("navigation.create uses requirePermission with LAYOUT_MANAGE", () => {
     const src = readConvexSource("navigation.ts");
-    expect(src).toContain("requireDesignCapability");
+    expect(src).toContain("requirePermission");
+    expect(src).toContain("PERMISSIONS.LAYOUT_MANAGE");
   });
 
-  it("requireDesignCapability itself gates on isSuperAdmin", () => {
-    const src = readConvexSource("lib/requireSiteAccess.ts");
+  it("requirePermission gates design-tier permissions on isSuperAdmin", () => {
+    const src = readConvexSource("lib/requirePermission.ts");
     expect(src).toContain("isSuperAdmin");
-    expect(src).toContain("Design Lock");
+    expect(src).toContain("SUPERADMIN_ONLY_PERMISSIONS");
+  });
+
+  it("LAYOUT_MANAGE and INTEGRATIONS_MANAGE are SUPERADMIN_ONLY", () => {
+    const src = readConvexSource("lib/permissions.ts");
+    expect(src).toContain("LAYOUT_MANAGE");
+    expect(src).toContain("INTEGRATIONS_MANAGE");
+    expect(src).toMatch(/SUPERADMIN_ONLY_PERMISSIONS[\s\S]*LAYOUT_MANAGE/);
+    expect(src).toMatch(/SUPERADMIN_ONLY_PERMISSIONS[\s\S]*INTEGRATIONS_MANAGE/);
   });
 });
 

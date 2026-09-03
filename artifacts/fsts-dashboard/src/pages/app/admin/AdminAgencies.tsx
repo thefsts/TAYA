@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Plus, Pencil, Trash2, Building2, Globe, Mail, Link as LinkIcon,
+  ArrowLeft, Plus, Pencil, Trash2, Building2, Globe, Mail, Link as LinkIcon,
   ShieldCheck, Users, LayoutGrid,
 } from "lucide-react";
 import {
@@ -188,8 +188,11 @@ export default function AdminAgencies() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
+          <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
           <h1 className="text-2xl font-bold text-slate-900">Agencies</h1>
-          <p className="text-sm text-slate-500 mt-0.5">White-label agency partners on the FSTS-WOS™ platform.</p>
+          <p className="text-sm text-slate-500 mt-0.5">White-label agency partners on the TAYA™ platform.</p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="h-4 w-4 mr-2" /> Create Agency
@@ -236,13 +239,13 @@ export default function AdminAgencies() {
                     </Badge>
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <Button
+                    <Button aria-label="Edit"
                       variant="ghost" size="sm"
                       onClick={(e) => { e.stopPropagation(); openEdit(agency); }}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button
+                    <Button aria-label="Delete"
                       variant="ghost" size="sm"
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget(agency); }}
                     >
@@ -425,48 +428,48 @@ export default function AdminAgencies() {
               <TabsContent value="details" className="space-y-4">
                 <div className="space-y-1.5">
                   <Label>Agency Name *</Label>
-                  <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Acme Digital Agency" />
+                  <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Acme Digital Agency" />
                 </div>
                 {!editing && (
                   <div className="space-y-1.5">
                     <Label>Slug *</Label>
-                    <Input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} placeholder="acme-digital" />
+                    <Input aria-label="slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} placeholder="acme-digital" />
                     <p className="text-xs text-slate-500">Used in subdomain routing (e.g. acme-digital.yourdomain.com). Cannot be changed later.</p>
                   </div>
                 )}
                 <div className="space-y-1.5">
                   <Label>Support Email *</Label>
-                  <Input required type="email" value={form.supportEmail} onChange={(e) => setForm({ ...form, supportEmail: e.target.value })} placeholder="support@acme.com" />
+                  <Input aria-label="support email" required type="email" value={form.supportEmail} onChange={(e) => setForm({ ...form, supportEmail: e.target.value })} placeholder="support@acme.com" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Help Center URL</Label>
-                  <Input type="url" value={form.helpCenterUrl} onChange={(e) => setForm({ ...form, helpCenterUrl: e.target.value })} placeholder="https://help.acme.com" />
+                  <Input aria-label="help center url" type="url" value={form.helpCenterUrl} onChange={(e) => setForm({ ...form, helpCenterUrl: e.target.value })} placeholder="https://help.acme.com" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Billing Notes</Label>
-                  <Textarea value={form.billingNotes} onChange={(e) => setForm({ ...form, billingNotes: e.target.value })} placeholder="Manual billing notes, contract details, renewal dates…" rows={3} />
+                  <Textarea aria-label="billing notes" value={form.billingNotes} onChange={(e) => setForm({ ...form, billingNotes: e.target.value })} placeholder="Manual billing notes, contract details, renewal dates…" rows={3} />
                 </div>
               </TabsContent>
 
               <TabsContent value="branding" className="space-y-4">
                 <div className="space-y-1.5">
                   <Label>Logo URL</Label>
-                  <Input value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} placeholder="https://cdn.acme.com/logo.png" />
+                  <Input aria-label="logo url" value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} placeholder="https://cdn.acme.com/logo.png" />
                   <p className="text-xs text-slate-500">Shown in the dashboard header and login page for agency-assigned sites.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Primary Color</Label>
                     <div className="flex gap-2 items-center">
-                      <Input type="color" className="w-12 h-9 p-1 cursor-pointer" value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} />
-                      <Input value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} className="font-mono text-sm flex-1" />
+                      <Input aria-label="primary color" type="color" className="w-12 h-9 p-1 cursor-pointer" value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} />
+                      <Input aria-label="primary color" value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} className="font-mono text-sm flex-1" />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Accent Color</Label>
                     <div className="flex gap-2 items-center">
-                      <Input type="color" className="w-12 h-9 p-1 cursor-pointer" value={form.accentColor} onChange={(e) => setForm({ ...form, accentColor: e.target.value })} />
-                      <Input value={form.accentColor} onChange={(e) => setForm({ ...form, accentColor: e.target.value })} className="font-mono text-sm flex-1" />
+                      <Input aria-label="accent color" type="color" className="w-12 h-9 p-1 cursor-pointer" value={form.accentColor} onChange={(e) => setForm({ ...form, accentColor: e.target.value })} />
+                      <Input aria-label="accent color" value={form.accentColor} onChange={(e) => setForm({ ...form, accentColor: e.target.value })} className="font-mono text-sm flex-1" />
                     </div>
                   </div>
                 </div>

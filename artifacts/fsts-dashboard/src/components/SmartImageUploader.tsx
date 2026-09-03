@@ -744,7 +744,7 @@ export function SmartImageEditor({
             <div className="space-y-4 py-4">
               <div className="space-y-1.5">
                 <Label>Image URL</Label>
-                <Input placeholder="https://example.com/image.jpg" value={urlOverride}
+                <Input aria-label="Image URL" placeholder="https://example.com/image.jpg" value={urlOverride}
                   onChange={(e) => setUrlOverride(e.target.value)} />
               </div>
               {urlOverride && (
@@ -756,7 +756,7 @@ export function SmartImageEditor({
               <div className="space-y-1.5">
                 <Label>Alt Text</Label>
                 <div className="flex gap-2">
-                  <Input placeholder="Describe the image…" value={altText} onChange={(e) => setAltText(e.target.value)} />
+                  <Input aria-label="Alt Text" placeholder="Describe the image…" value={altText} onChange={(e) => setAltText(e.target.value)} />
                   <Button type="button" size="sm" variant="outline"
                     onClick={handleGenerateAlt}
                     disabled={!urlOverride || isGeneratingAlt}
@@ -915,7 +915,7 @@ export function SmartImageEditor({
                   <div className="space-y-1.5">
                     <Label className="text-xs">Alt Text</Label>
                     <div className="flex gap-2">
-                      <Input placeholder="Describe the image…" value={altText}
+                      <Input aria-label="Alt Text" placeholder="Describe the image…" value={altText}
                         onChange={(e) => setAltText(e.target.value)} className="text-xs" />
                       <Button type="button" size="sm" variant="outline"
                         onClick={handleGenerateAlt} disabled={isGeneratingAlt}

@@ -105,7 +105,12 @@ chmod +x "$HOOK_DEST3"
 echo "safe content" > "$TMPDIR_CLEAN/safe-file.txt"
 git -C "$TMPDIR_CLEAN" add safe-file.txt 2>/dev/null
 
-if git -C "$TMPDIR_CLEAN" commit -m "safe commit" > /dev/null 2>&1; then
+# Simulate the real platform environment where GIT_AUTHOR_* / GIT_COMMITTER_*
+# env vars are injected before every commit. The hook reads these via
+# `git var GIT_AUTHOR_IDENT` to verify the approved identity.
+if env GIT_AUTHOR_NAME='thefsts' GIT_AUTHOR_EMAIL='amorebey@gmail.com' \
+       GIT_COMMITTER_NAME='thefsts' GIT_COMMITTER_EMAIL='amorebey@gmail.com' \
+       git -C "$TMPDIR_CLEAN" commit -m "safe commit" > /dev/null 2>&1; then
   pass "hook allowed a clean commit (no corsair-source/ files staged)"
 else
   fail "hook incorrectly rejected a clean commit"

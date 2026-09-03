@@ -210,7 +210,7 @@ function ProviderCard({
 
       {!def.live && (
         <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-500 text-center">
-          This provider will be available in a future WOS release.
+          This provider will be available in a future TAYA release.
         </div>
       )}
 
@@ -226,7 +226,7 @@ function ProviderCard({
             </Button>
           )}
           {connected && (
-            <Button size="sm" variant="ghost" className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={onDisconnect}>
+            <Button aria-label="Disconnect" size="sm" variant="ghost" className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={onDisconnect}>
               <Plug2 className="w-3.5 h-3.5" />
             </Button>
           )}
@@ -326,7 +326,7 @@ function CredentialDialog({
             <div className="space-y-1.5">
               <Label>Environment</Label>
               <Select value={env} onValueChange={setEnv}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Environment"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="sandbox">Sandbox</SelectItem>
                   <SelectItem value="production">Production</SelectItem>
@@ -345,6 +345,7 @@ function CredentialDialog({
               </Label>
               <Input
                 type={f.secret ? "password" : "text"}
+                aria-label={f.label}
                 placeholder={f.placeholder ?? ""}
                 value={fields[f.key] ?? ""}
                 onChange={(e) => setFields((prev) => ({ ...prev, [f.key]: e.target.value }))}
@@ -602,7 +603,7 @@ function TransactionLogTab({ siteId }: { siteId: Id<"sites"> }) {
           <p className="text-sm text-slate-400 mt-1">Events appear here as your connector processes payments and webhooks.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500 text-xs uppercase tracking-wide">
               <tr>

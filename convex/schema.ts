@@ -48,6 +48,11 @@ export default defineSchema({
         role: v.string(),
       }),
     ),
+    // Clerk invitation metadata. No invitation secret is persisted in Convex.
+    inviteStatus: v.optional(v.string()),
+    invitedAt: v.optional(v.number()),
+    clerkInvitationId: v.optional(v.string()),
+    invitationLastError: v.optional(v.string()),
     // Phase 10 — Agency Edition™
     agencyId: v.optional(v.id("agencies")),
     isAgencyAdmin: v.optional(v.boolean()),
@@ -380,6 +385,9 @@ export default defineSchema({
     previousValue: v.optional(v.string()),
     newValue: v.optional(v.string()),
     details: v.optional(v.string()),
+    // Set by the activityLogCreatedAt backfill migration. Legacy rows are
+    // backfilled from _creationTime before the strict schema deploy.
+    createdAt: v.optional(v.number()),
   }).index("by_site", ["siteId"]),
 
   backups: defineTable({
@@ -859,7 +867,8 @@ export default defineSchema({
     lastActiveAt: v.number(),
   })
     .index("by_token", ["token"])
-    .index("by_user", ["portalUserId"]),
+    .index("by_user", ["portalUserId"])
+    .index("by_site", ["siteId"]),
 
   // ── Website Onboarding Wizard ──────────────────────────────────────────
   // Persists step-by-step wizard progress so sessions can be resumed after

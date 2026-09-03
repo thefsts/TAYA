@@ -178,7 +178,7 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
                 <Button size="sm" variant="outline" className="flex-1" onClick={() => openEdit(member)}>
                   <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
                 </Button>
-                <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(member.id)}>
+                <Button aria-label="Delete" size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(member.id)}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -196,20 +196,20 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Name *</Label>
-                <Input className="mt-1" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="John Smith" />
+                <Input aria-label="name" className="mt-1" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="John Smith" />
               </div>
               <div>
                 <Label>Role / Title</Label>
-                <Input className="mt-1" value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} placeholder="Lead Instructor" />
+                <Input aria-label="role" className="mt-1" value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} placeholder="Lead Instructor" />
               </div>
             </div>
             <div>
               <Label>Credentials</Label>
-              <Input className="mt-1" value={form.credentials} onChange={(e) => setForm((f) => ({ ...f, credentials: e.target.value }))} placeholder="NRA Certified, 20+ years experience" />
+              <Input aria-label="credentials" className="mt-1" value={form.credentials} onChange={(e) => setForm((f) => ({ ...f, credentials: e.target.value }))} placeholder="NRA Certified, 20+ years experience" />
             </div>
             <div>
               <Label>Bio</Label>
-              <Textarea className="mt-1" rows={3} value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} placeholder="Brief biography…" />
+              <Textarea aria-label="bio" className="mt-1" rows={3} value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} placeholder="Brief biography…" />
             </div>
             <ImagePickerField
               siteId={params.siteId}
