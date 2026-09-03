@@ -12,20 +12,43 @@ function parseEmailAllowlist(value: string | undefined): Set<string> {
   );
 }
 
-function accessFlagsForEmail(email: string) {
+function parseValueAllowlist(value: string | undefined): Set<string> {
+  return new Set(
+    (value ?? "")
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+  );
+}
+
+function accessFlagsForIdentity(email: string, clerkUserId: string) {
   const normalizedEmail = email.trim().toLowerCase();
   const superAdminEmails = parseEmailAllowlist(process.env.SUPERADMIN_EMAILS);
+  const superAdminClerkUserIds = parseValueAllowlist(process.env.SUPERADMIN_CLERK_USER_IDS);
   const internalQaEmails = parseEmailAllowlist(process.env.INTERNAL_QA_EMAILS);
-  const isSuperAdmin = superAdminEmails.has(normalizedEmail);
+  const isSuperAdmin =
+    superAdminEmails.has(normalizedEmail) || superAdminClerkUserIds.has(clerkUserId);
   const isInternalQa = internalQaEmails.has(normalizedEmail);
 
   if (isSuperAdmin && isInternalQa) {
     throw new Error(
-      "Account configuration error: an email cannot be both SUPERADMIN_EMAILS and INTERNAL_QA_EMAILS",
+      "Account configuration error: an identity cannot be both SuperAdmin and Internal QA",
     );
   }
 
-  return { normalizedEmail, isSuperAdmin, isInternalQa };
+  const canonicalSuperAdminEmail =
+    !email.includes("@unknown.local") && superAdminEmails.has(normalizedEmail)
+      ? normalizedEmail
+      : superAdminClerkUserIds.has(clerkUserId) && superAdminEmails.size === 1
+        ? Array.from(superAdminEmails)[0]
+        : normalizedEmail;
+
+  return {
+    normalizedEmail,
+    canonicalSuperAdminEmail,
+    isSuperAdmin,
+    isInternalQa,
+  };
 }
 
 async function ensureInternalQaRoles(ctx: MutationCtx, user: CurrentUser): Promise<CurrentUser> {
@@ -48,12 +71,27 @@ async function reconcileExistingAccess(
   ctx: MutationCtx,
   user: CurrentUser,
   expectedSuperAdmin: boolean,
+  canonicalEmail?: string,
 ): Promise<CurrentUser> {
   if (!user.isActive) throw new Error("Account is deactivated");
 
   let current = user;
+  const patch: { isSuperAdmin?: boolean; email?: string } = {};
+
   if (current.isSuperAdmin !== expectedSuperAdmin) {
-    await ctx.db.patch(current._id, { isSuperAdmin: expectedSuperAdmin });
+    patch.isSuperAdmin = expectedSuperAdmin;
+  }
+
+  if (
+    canonicalEmail &&
+    current.email.endsWith("@unknown.local") &&
+    canonicalEmail !== current.email.trim().toLowerCase()
+  ) {
+    patch.email = canonicalEmail;
+  }
+
+  if (Object.keys(patch).length > 0) {
+    await ctx.db.patch(current._id, patch);
     current = (await ctx.db.get(current._id))!;
   }
 
@@ -74,15 +112,21 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
 
-  const email = (identity.email ?? `${identity.subject}@unknown.local`).trim().toLowerCase();
-  const { isSuperAdmin, isInternalQa } = accessFlagsForEmail(email);
+  const rawEmail = (identity.email ?? `${identity.subject}@unknown.local`).trim().toLowerCase();
+  const {
+    normalizedEmail,
+    canonicalSuperAdminEmail,
+    isSuperAdmin,
+    isInternalQa,
+  } = accessFlagsForIdentity(rawEmail, identity.subject);
+  const email = isSuperAdmin ? canonicalSuperAdminEmail : normalizedEmail;
 
   const existing = await ctx.db
     .query("users")
     .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
     .first();
   if (existing) {
-    return await reconcileExistingAccess(ctx, existing, isSuperAdmin);
+    return await reconcileExistingAccess(ctx, existing, isSuperAdmin, email);
   }
 
   const emailMatchedUser = await ctx.db
@@ -104,9 +148,10 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
   }
 
   // Recovery for an FSTS owner account after a Clerk instance/domain migration.
-  // A trusted Clerk JWT plus an explicit SUPERADMIN_EMAILS allowlist entry is
-  // required before an existing email-matched account may be rebound to a new
-  // Clerk subject. Normal client accounts are never rebound this way.
+  // A trusted Clerk JWT plus an explicit SUPERADMIN_EMAILS or
+  // SUPERADMIN_CLERK_USER_IDS allowlist entry is required before an existing
+  // owner account may be rebound to a new Clerk subject. Normal client accounts
+  // are never rebound this way.
   if (
     emailMatchedUser &&
     isSuperAdmin &&
@@ -116,6 +161,7 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
     await ctx.db.patch(emailMatchedUser._id, {
       clerkUserId: identity.subject,
       isSuperAdmin: true,
+      email,
     });
     const rebound = (await ctx.db.get(emailMatchedUser._id))!;
     return await ensureInternalQaRoles(ctx, rebound);
