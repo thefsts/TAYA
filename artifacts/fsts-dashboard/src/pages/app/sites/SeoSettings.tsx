@@ -17,6 +17,7 @@ import { ExternalLink, FileSearch, Image as ImageIcon, Pencil, Plus, Search, Tra
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type SeoFormState = {
   pagePath: string;
@@ -140,12 +141,21 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
 
   return (
     <AppLayout siteId={params.siteId} pageContext={pageContext}>
-      <ClientPageHeader
-        eyebrow="Search Visibility"
+      <VisualEditorShell
+        siteId={siteId}
         title="SEO Settings"
-        description="Manage per-page search titles, descriptions, social preview images, and canonical URLs without changing page design."
-        actions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Page</Button>}
-      />
+        subtitle="Edit search & social metadata while previewing the live site."
+        moduleId="seo"
+        isDirty={false}
+        previewPath="/"
+        showPublish={false}
+        toolbarActions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Page</Button>}
+      >
+        <ClientPageHeader
+          eyebrow="Search Visibility"
+          title="SEO Settings"
+          description="Manage per-page search titles, descriptions, social preview images, and canonical URLs without changing page design."
+        />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-4 lg:max-w-4xl">
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><FileSearch className="h-3.5 w-3.5" />SEO pages</div><p className="mt-1 text-2xl font-semibold text-slate-900">{data.length}</p></div>
@@ -174,6 +184,7 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
           </div>
         )}
       </ClientSection>
+      </VisualEditorShell>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-xl">

@@ -28,7 +28,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Pencil, Plus, Trash2, GripVertical, Search } from "lucide-react";
+import { Briefcase, Pencil, Plus, Trash2, GripVertical, Search, History } from "lucide-react";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
+import { Link } from "wouter";
 
 type ServiceForm = {
   title: string;
@@ -210,48 +212,50 @@ export default function ServicesManager({ params }: { params: { siteId: string }
 
   return (
     <AppLayout siteId={params.siteId}>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Services Manager</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Add and manage the services shown on your Services page.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" /> Add Service
-        </Button>
-      </div>
-
-      {items.length > 0 && (
-        <div className="mb-4 relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            aria-label="Search services"
-            placeholder="Search services…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      )}
-
-      {filteredItems.length === 0 && items.length > 0 ? (
-        <div className="text-center py-16 border border-slate-200 rounded-xl bg-slate-50/50">
-          <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-          <p className="text-slate-500 font-medium">No services match your search</p>
-          <Button variant="link" size="sm" onClick={() => setSearchQuery("")} className="mt-1 text-slate-400">Clear search</Button>
-        </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-xl">
-          <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500 font-medium">No services yet</p>
-          <p className="text-slate-400 text-sm mt-1">Add the services you offer to showcase them on your website.</p>
-          <Button className="mt-4" onClick={openCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Add Your First Service
+      <VisualEditorShell
+        siteId={siteId}
+        title="Services Manager"
+        subtitle="Add and manage the services shown on your Services page."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="services"
+        previewPath="/services"
+        toolbarActions={
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" /> Add Service
           </Button>
-        </div>
-      ) : (
-        <div className="space-y-3">
+        }
+      >
+        {items.length > 0 && (
+          <div className="mb-4 relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              aria-label="Search services"
+              placeholder="Search services…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
+
+        {filteredItems.length === 0 && items.length > 0 ? (
+          <div className="text-center py-16 border border-slate-200 rounded-xl bg-slate-50/50">
+            <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <p className="text-slate-500 font-medium">No services match your search</p>
+            <Button variant="link" size="sm" onClick={() => setSearchQuery("")} className="mt-1 text-slate-400">Clear search</Button>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-xl">
+            <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500 font-medium">No services yet</p>
+            <p className="text-slate-400 text-sm mt-1">Add the services you offer to showcase them on your website.</p>
+            <Button className="mt-4" onClick={openCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Add Your First Service
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
           {filteredItems.map((service: NonNullable<typeof items>[number], index: number) => (
             <div
               key={service.id}
@@ -311,6 +315,8 @@ export default function ServicesManager({ params }: { params: { siteId: string }
           ))}
         </div>
       )}
+
+      </VisualEditorShell>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

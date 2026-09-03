@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -73,15 +74,21 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
 
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Contact Information"
+        subtitle="Keep the public phone number, email address, location, map link, and business hours accurate."
+        isDirty={false}
+        onSave={handleSave}
+        isSaving={isPending}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="contact"
+        showPublish={false}
+      >
       <ClientPageHeader
         eyebrow="Website Details"
         title="Contact Information"
         description="Keep the public phone number, email address, location, map link, and business hours accurate across your website."
-        actions={
-          <Button onClick={handleSave} disabled={isPending} className="shadow-sm">
-            {isPending ? "Saving…" : "Save Changes"}
-          </Button>
-        }
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.8fr)]">
@@ -192,6 +199,7 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
           </div>
         </aside>
       </div>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

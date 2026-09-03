@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -75,14 +76,41 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
   const totalLinks = columns.reduce((count, column) => count + column.links.length, 0);
   const socialCount = mergeLinks(namedPlatforms, customLinks).length;
 
+  const isDirty = !!(data && (
+    copyrightText !== (data.copyrightText ?? "") ||
+    JSON.stringify(columns) !== JSON.stringify(asColumns((data.columns as unknown[]) ?? [])) ||
+    JSON.stringify(mergeLinks(namedPlatforms, customLinks)) !== JSON.stringify(asSocialLinks((data.socialLinks as unknown[]) ?? []))
+  ));
+
+  function handleDiscard() {
+    if (data) {
+      setCopyrightText(data.copyrightText ?? "");
+      setColumns(asColumns((data.columns as unknown[]) ?? []));
+      const links = asSocialLinks((data.socialLinks as unknown[]) ?? []);
+      setNamedPlatforms(extractNamed(links));
+      setCustomLinks(extractCustom(links));
+    }
+  }
+
   return (
     <AppLayout siteId={params.siteId}>
       <DesignLockBanner label="Footer Layout" />
+      <VisualEditorShell
+        siteId={siteId}
+        title="Footer Editor"
+        subtitle="Manage footer link content, social destinations, and copyright text."
+        isDirty={isDirty}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        isSaving={isPending}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="footer"
+        showPublish={false}
+      >
       <ClientPageHeader
         eyebrow="Website Structure"
         title="Footer Editor"
         description="Manage footer link content, social destinations, and copyright text while the approved footer layout remains protected."
-        actions={<LockedField capabilityLabel="Footer Layout"><Button onClick={handleSave} disabled={isPending} className="shadow-sm"><Save className="mr-2 h-4 w-4" />{isPending ? "Saving…" : "Save Changes"}</Button></LockedField>}
       />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
@@ -147,6 +175,7 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
           </ClientSection>
         </LockedField>
       </div>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

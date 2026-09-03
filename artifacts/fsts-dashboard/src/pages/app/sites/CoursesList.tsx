@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Pencil, Plus, Trash2, Users, History } from "lucide-react";
-import { LivePreviewPanel } from "@/components/LivePreviewPanel";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
@@ -450,7 +450,21 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
 
   return (
     <AppLayout siteId={params.siteId} pageContext="Courses & Classes">
-      <LivePreviewPanel siteId={siteId} section="courses">
+      <VisualEditorShell
+        siteId={siteId}
+        title="Course Management"
+        subtitle="Create, publish, schedule, and monitor classes from one place."
+        isDirty={false}
+        historyHref={`/app/sites/${siteId}/history`}
+        moduleId="courses"
+        previewPath="/courses"
+        toolbarActions={
+          <Button onClick={openCreate} size="sm" className="shadow-sm">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Course
+          </Button>
+        }
+      >
         <ClientPageHeader
           eyebrow="Courses & Classes"
           title="Course Management"
@@ -585,16 +599,7 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
             </div>
           </ClientSection>
         )}
-      </LivePreviewPanel>
-
-      <div className="mt-4 flex justify-end">
-        <Link href={`/app/sites/${siteId}/history`}>
-          <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
-            <History className="mr-1.5 h-4 w-4" />
-            Revision History
-          </Button>
-        </Link>
-      </div>
+      </VisualEditorShell>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto rounded-2xl p-0">
