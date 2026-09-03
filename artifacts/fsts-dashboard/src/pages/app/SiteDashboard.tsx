@@ -651,6 +651,14 @@ export default function SiteDashboard() {
             </a>
           )}
         </div>
+        {site?.domain && (
+          <a href={`https://${site.domain}`} target="_blank" rel="noreferrer">
+            <Button className="h-9 bg-primary text-white">
+              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+              View Live Site
+            </Button>
+          </a>
+        )}
       </div>
 
       <Link href={`/app/sites/${siteId}/health`}>
@@ -709,16 +717,26 @@ export default function SiteDashboard() {
       </Link>
 
       {summary === undefined ? (
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[1,2,3,4].map((index) => <Skeleton key={index} className="h-28 rounded-2xl bg-slate-200" />)}
-        </div>
-      ) : summary ? (
         <>
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard title="Courses" value={summary.courseCount} label="Active catalog items" />
-            <StatCard title="Events" value={summary.eventCount} label="Scheduled events" />
-            <StatCard title="Articles" value={summary.articleCount} label="Published posts" />
-            <StatCard title="Media Assets" value={summary.mediaCount} label="Files in library" />
+            {[1,2,3,4].map((index) => <Skeleton key={index} className="h-28 rounded-2xl bg-slate-200" />)}
+          </div>
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
+            <Skeleton className="h-64 rounded-2xl bg-slate-200" />
+            <Skeleton className="h-64 rounded-2xl bg-slate-200" />
+            <Skeleton className="h-64 rounded-2xl bg-slate-200" />
+          </div>
+        </>
+      ) : summary ? (
+        <>
+          {/* Content counts stat cards */}
+          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+            <StatCard title="Courses" value={summary.courseCount} label="Catalog items" />
+            <StatCard title="Events" value={summary.eventCount} label="Scheduled" />
+            <StatCard title="Articles" value={summary.articleCount} label="Total posts" />
+            <StatCard title="Published" value={summary.publishedArticles} label="Live articles" />
+            <StatCard title="Drafts" value={summary.draftArticles} label="Pending" />
+            <StatCard title="Media" value={summary.mediaCount} label="Assets" />
           </div>
 
           {(() => {
@@ -779,11 +797,21 @@ export default function SiteDashboard() {
             );
           })()}
 
+          {/* Main dashboard grid */}
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
-            <div className="xl:col-span-2">
+            {/* Left column: Recent activity + Upcoming */}
+            <div className="space-y-6 xl:col-span-2">
+              {/* Recent Activity */}
               <Card className="rounded-2xl border-slate-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">Recent Activity</CardTitle>
+                  <CardTitle className="flex items-center justify-between text-lg">
+                    <span>Recent Activity</span>
+                    <Link href={`/app/sites/${siteId}/activity`}>
+                      <Button variant="ghost" size="sm" className="text-xs text-primary">
+                        View all \u2192
+                      </Button>
+                    </Link>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {summary.recentActivity && summary.recentActivity.length > 0 ? (
@@ -807,9 +835,157 @@ export default function SiteDashboard() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Upcoming Events */}
+              {summary.upcomingEvents && summary.upcomingEvents.length > 0 && (
+                <Card className="rounded-2xl border-slate-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-lg">
+                      <span className="flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-primary" />
+                        Upcoming Events
+                      </span>
+                      <Link href={`/app/sites/${siteId}/events`}>
+                        <Button variant="ghost" size="sm" className="text-xs text-primary">
+                          Manage \u2192
+                        </Button>
+                      </Link>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {summary.upcomingEvents.map((event: any) => (
+                        <div key={event.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-slate-800">{event.title}</p>
+                            {event.location && <p className="truncate text-xs text-slate-500">{event.location}</p>}
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-xs font-semibold text-slate-700">{new Date(event.startAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+                            <p className="text-[10px] text-slate-400">{new Date(event.startAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Upcoming Courses */}
+              {summary.upcomingCourses && summary.upcomingCourses.length > 0 && (
+                <Card className="rounded-2xl border-slate-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-lg">
+                      <span className="flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        Upcoming Courses
+                      </span>
+                      <Link href={`/app/sites/${siteId}/courses`}>
+                        <Button variant="ghost" size="sm" className="text-xs text-primary">
+                          Manage \u2192
+                        </Button>
+                      </Link>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {summary.upcomingCourses.map((course: any) => (
+                        <div key={course.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-slate-800">{course.title}</p>
+                          </div>
+                          {course.startDateTime && (
+                            <div className="flex-shrink-0 text-right">
+                              <p className="text-xs font-semibold text-slate-700">{new Date(course.startDateTime).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Recent Media */}
+              {summary.recentMedia && summary.recentMedia.length > 0 && (
+                <Card className="rounded-2xl border-slate-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-lg">
+                      <span className="flex items-center gap-2">
+                        <ImageIcon className="h-5 w-5 text-primary" />
+                        Recent Media
+                      </span>
+                      <Link href={`/app/sites/${siteId}/media`}>
+                        <Button variant="ghost" size="sm" className="text-xs text-primary">
+                          Library \u2192
+                        </Button>
+                      </Link>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+                      {summary.recentMedia.map((media: any) => (
+                        <div key={media.id} className="aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                          {(media.thumbnailUrl || media.url) ? (
+                            <img src={media.thumbnailUrl || media.url} alt={media.altText || media.fileName} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <ImageIcon className="h-6 w-6 text-slate-300" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
-            <div className="space-y-4">
+            {/* Right column: Inbox, Status, Quick Edit */}
+            <div className="space-y-6">
+              {/* Contact Inbox Summary */}
+              <Card className="rounded-2xl border-slate-200 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <Inbox className="h-4 w-4 text-primary" />
+                      Contact Inbox
+                    </span>
+                    {summary.unreadSubmissionCount > 0 && (
+                      <span className="inline-flex items-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                        {summary.unreadSubmissionCount} new
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {summary.recentSubmissions && summary.recentSubmissions.length > 0 ? (
+                    summary.recentSubmissions.slice(0, 4).map((sub: any) => (
+                      <Link key={sub.id} href={`/app/sites/${siteId}/inbox`}>
+                        <div className="cursor-pointer rounded-lg border border-slate-100 p-2.5 transition-colors hover:bg-slate-50">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`truncate text-sm font-medium ${sub.readAt ? "text-slate-600" : "text-slate-900 font-semibold"}`}>{sub.submitterName || sub.submitterEmail || "Anonymous"}</span>
+                            {!sub.readAt && <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary" />}
+                          </div>
+                          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                            <span className="truncate">{sub.formType}</span>
+                            <span className="whitespace-nowrap">{new Date(sub.submittedAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="py-2 text-sm text-slate-500">No submissions yet.</p>
+                  )}
+                  <Link href={`/app/sites/${siteId}/inbox`}>
+                    <Button variant="outline" size="sm" className="w-full text-xs">
+                      Open Inbox \u2192
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Website Status */}
               <Card className="rounded-2xl border-slate-200 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-sm">Website Status</CardTitle>
@@ -864,6 +1040,75 @@ export default function SiteDashboard() {
                       {summary.lastBackupAt ? new Date(summary.lastBackupAt).toLocaleDateString() : "Never"}
                     </span>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* SEO Health */}
+              <Card className="rounded-2xl border-slate-200 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <Search className="h-4 w-4 text-primary" />
+                      SEO Health
+                    </span>
+                    <Link href={`/app/sites/${siteId}/seo`}>
+                      <Button variant="ghost" size="sm" className="text-xs text-primary">
+                        Manage \u2192
+                      </Button>
+                    </Link>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="text-slate-600">Pages with SEO</span>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${summary.seoPagesConfigured > 0 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                      {summary.seoPagesConfigured} configured
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400">
+                    {summary.seoPagesConfigured > 0
+                      ? "Meta titles and descriptions are set for key pages."
+                      : "No SEO settings configured. Set up page titles and descriptions to improve search visibility."}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Quick Edit */}
+              <Card className="rounded-2xl border-slate-200 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-sm">Quick Edit</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Link href={`/app/sites/${siteId}/homepage`}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                      <LayoutTemplate className="mr-2 h-4 w-4 text-slate-400" />
+                      Edit Homepage
+                    </Button>
+                  </Link>
+                  <Link href={`/app/sites/${siteId}/articles`}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                      <FileText className="mr-2 h-4 w-4 text-slate-400" />
+                      Write Article
+                    </Button>
+                  </Link>
+                  <Link href={`/app/sites/${siteId}/events`}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                      <Calendar className="mr-2 h-4 w-4 text-slate-400" />
+                      Add Event
+                    </Button>
+                  </Link>
+                  <Link href={`/app/sites/${siteId}/courses`}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                      <BookOpen className="mr-2 h-4 w-4 text-slate-400" />
+                      Add Course
+                    </Button>
+                  </Link>
+                  <Link href={`/app/sites/${siteId}/media`}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                      <ImageIcon className="mr-2 h-4 w-4 text-slate-400" />
+                      Upload Media
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>
