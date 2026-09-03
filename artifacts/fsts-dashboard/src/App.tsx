@@ -7,7 +7,7 @@ import { ConvexProvider, ConvexReactClient, useConvexAuth, useMutation, useQuery
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
-import fstsLogo from "@assets/fsts_header_logo_1783377175328.PNG";
+import { tayaLogoUrl } from "@/lib/tayaBrand";
 import DesignLockGuard from "@/components/DesignLockGuard";
 
 // Lazy-loaded pages — each route is its own chunk so clients only download
@@ -123,7 +123,10 @@ const PortalRootPage = withPortalConvex(PortalRootRedirect);
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+// TAYA production uses Clerk's verified custom domain and hosted Account
+// Portal directly. The retired Clerk proxy integration is intentionally not
+// referenced anywhere in the active bundle (the build also neutralizes any
+// leftover proxy env value via vite.config.ts `define`).
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function stripBase(path: string): string {
@@ -174,10 +177,10 @@ const clerkAppearance = {
   options: {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${fstsLogo}`,
+    logoImageUrl: tayaLogoUrl,
   },
   variables: {
-    colorPrimary: "hsl(84 65% 25%)",
+    colorPrimary: "hsl(318 86% 49%)",
     colorForeground: "hsl(222 47% 11%)",
     colorMutedForeground: "hsl(215 16% 47%)",
     colorDanger: "hsl(0 84% 60%)",
@@ -254,9 +257,12 @@ function DeactivationGuard() {
 function AuthPageBrand() {
   return (
     <div className="flex flex-col items-center mb-8">
-      <img src={fstsLogo} alt="Full Stack Tech Solutions" className="h-16 w-auto mb-3" />
-      <p className="text-sm font-medium text-slate-500 tracking-wide">
-        Client Dashboard
+      <img src={tayaLogoUrl} alt="TAYA" className="h-16 w-auto mb-3" />
+      <p className="text-sm font-semibold tracking-[0.18em] text-slate-700 uppercase">
+        TAYA Client Dashboard
+      </p>
+      <p className="text-xs font-medium text-slate-400 tracking-wide mt-1">
+        Tools. Automation. Your Advantage.
       </p>
     </div>
   );
@@ -337,7 +343,6 @@ function AppRouter() {
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
-      proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}

@@ -59,11 +59,11 @@ export default function NavigationManager({ params }: { params: { siteId: string
     const swapIndex = index + dir;
     if (swapIndex < 0 || swapIndex >= newOrder.length) return;
     [newOrder[index], newOrder[swapIndex]] = [newOrder[swapIndex], newOrder[index]];
-    await reorder({ siteId, orderedIds: newOrder.map((item) => item.id as Id<"navigationItems">) });
+    await reorder({ siteId, orderedIds: newOrder.map((item: NonNullable<typeof items>[number]) => item.id as Id<"navigationItems">) });
   }
 
   if (items === undefined) return <AppLayout siteId={params.siteId}><ClientLoadingList rows={5} /></AppLayout>;
-  const visibleCount = items.filter((item) => item.isVisible).length;
+  const visibleCount = items.filter((item: NonNullable<typeof items>[number]) => item.isVisible).length;
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -85,7 +85,7 @@ export default function NavigationManager({ params }: { params: { siteId: string
           <ClientEmptyState icon={Navigation} title="No navigation links yet" description="Add your first website menu link to begin building the visitor navigation." action={<LockedField capabilityLabel="Navigation Structure"><Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First Link</Button></LockedField>} />
         ) : (
           <div className="divide-y divide-slate-100">
-            {items.map((item: NonNullable<typeof items>[number], index) => (
+            {items.map((item: NonNullable<typeof items>[number], index: number) => (
               <div key={item.id} className="flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-center sm:p-5">
                 <LockedField capabilityLabel="Navigation Structure" className="flex gap-1 sm:flex-col">
                   <button aria-label="Move navigation item up" onClick={() => move(index, -1)} disabled={index === 0} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button>

@@ -105,8 +105,8 @@ export default function DownloadsManager({ params }: { params: { siteId: string 
     return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
   }
 
-  const visibleCount = items.filter((item) => item.isActive).length;
-  const categoryCount = new Set(items.map((item) => item.category).filter(Boolean)).size;
+  const visibleCount = items.filter((item: NonNullable<typeof items>[number]) => item.isActive).length;
+  const categoryCount = new Set(items.map((item: NonNullable<typeof items>[number]) => item.category).filter(Boolean)).size;
 
   return (
     <AppLayout siteId={params.siteId}>

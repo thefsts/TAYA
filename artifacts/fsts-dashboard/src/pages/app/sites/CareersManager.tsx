@@ -110,8 +110,8 @@ export default function CareersManager({ params }: { params: { siteId: string } 
     return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
   }
 
-  const activeCount = items.filter((job) => job.isActive).length;
-  const typeCount = new Set(items.map((job) => job.jobType).filter(Boolean)).size;
+  const activeCount = items.filter((job: NonNullable<typeof items>[number]) => job.isActive).length;
+  const typeCount = new Set(items.map((job: NonNullable<typeof items>[number]) => job.jobType).filter(Boolean)).size;
 
   return (
     <AppLayout siteId={params.siteId}>

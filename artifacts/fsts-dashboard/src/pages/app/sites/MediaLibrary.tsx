@@ -153,7 +153,7 @@ function UsageBadge({ siteId, asset }: { siteId: Id<"sites">; asset: any }) {
           <p className="text-xs text-slate-500">Not referenced in any content.</p>
         ) : (
           <ul className="space-y-1">
-            {usages.map((u, i) => (
+            {usages.map((u: { module: string; label: string }, i: number) => (
               <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
                 <FileImage className="h-3 w-3 text-blue-400 mt-0.5 flex-shrink-0" />
                 {u.label}
@@ -287,7 +287,7 @@ function MediaFilterBar({
                   className="text-sm"
                 />
                 <datalist id="category-suggestions">
-                  {taxonomy?.categories.map((c) => <option key={c} value={c} />)}
+                  {taxonomy?.categories.map((c: string) => <option key={c} value={c} />)}
                 </datalist>
                 {filters.category && (
                   <button type="button" onClick={() => onChange({ category: "" })} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -487,7 +487,7 @@ function AssetDetailPanel({
             <p className="text-xs text-slate-400 italic">Not used in any content</p>
           ) : (
             <ul className="space-y-1">
-              {usages.map((u, i) => (
+              {usages.map((u: { module: string; label: string }, i: number) => (
                 <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
                   <FileImage className="h-3 w-3 text-blue-400 mt-0.5 flex-shrink-0" />
                   {u.label}
@@ -530,7 +530,7 @@ function AssetDetailPanel({
                 className="text-sm"
               />
               <datalist id="panel-category-suggestions">
-                {taxonomy?.categories.map((c) => <option key={c} value={c} />)}
+                {taxonomy?.categories.map((c: string) => <option key={c} value={c} />)}
               </datalist>
             </div>
           </div>
@@ -559,7 +559,7 @@ function AssetDetailPanel({
                 className="text-sm"
               />
               <datalist id="panel-tag-suggestions">
-                {taxonomy?.tags.filter((t) => !tags.includes(t)).map((t) => <option key={t} value={t} />)}
+                {taxonomy?.tags.filter((t: string) => !tags.includes(t)).map((t: string) => <option key={t} value={t} />)}
               </datalist>
               <Button type="button" variant="outline" size="sm" onClick={() => addTag(tagInput)} disabled={!tagInput.trim()}>Add</Button>
             </div>

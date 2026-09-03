@@ -176,7 +176,7 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
         <aside>
           <div className="sticky top-24 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-              <Building2 className="h-5 w-5 text-lime-300" />
+              <Building2 className="h-5 w-5 text-emerald-300" />
             </div>
             <h2 className="text-base font-semibold">What this controls</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">

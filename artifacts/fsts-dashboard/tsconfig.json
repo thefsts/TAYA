@@ -14,7 +14,8 @@
     "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./src/*"],
-      "@convex/*": ["../../convex/*"]
+      "@convex/*": ["../../convex/*"],
+      "@workspace/embed-widget": ["../../lib/embed-widget/src/index.ts"]
     }
   }
 }

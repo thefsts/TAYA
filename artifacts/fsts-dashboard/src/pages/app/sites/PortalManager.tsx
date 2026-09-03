@@ -190,7 +190,7 @@ export default function PortalManager() {
 
   const loading = config === undefined || site === undefined;
 
-  const pendingCount = (members ?? []).filter((m) => m.status === "pending_approval").length;
+  const pendingCount = (members ?? []).filter((m: NonNullable<typeof members>[number]) => m.status === "pending_approval").length;
 
   return (
     <AppLayout siteId={siteId} pageContext="Portal Manager™">
@@ -419,7 +419,7 @@ export default function PortalManager() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {members.map((member) => (
+                    {members.map((member: NonNullable<typeof members>[number]) => (
                       <tr key={String(member._id)} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3 font-medium text-slate-900">
                           {member.firstName} {member.lastName}
@@ -505,7 +505,7 @@ export default function PortalManager() {
           <div className="mt-4 flex items-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1.5">
               <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-              {(members ?? []).filter((m) => m.status === "active").length} active
+              {(members ?? []).filter((m: NonNullable<typeof members>[number]) => m.status === "active").length} active
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-amber-500" />
@@ -513,7 +513,7 @@ export default function PortalManager() {
             </span>
             <span className="flex items-center gap-1.5">
               <XCircle className="h-3.5 w-3.5 text-slate-400" />
-              {(members ?? []).filter((m) => m.status === "deactivated").length} deactivated
+              {(members ?? []).filter((m: NonNullable<typeof members>[number]) => m.status === "deactivated").length} deactivated
             </span>
           </div>
         </div>

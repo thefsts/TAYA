@@ -62,7 +62,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
   }
 
   if (faqs === undefined) return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
-  const visibleCount = faqs.filter((faq) => faq.isActive).length;
+  const visibleCount = faqs.filter((faq: NonNullable<typeof faqs>[number]) => faq.isActive).length;
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -78,7 +78,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
           <ClientEmptyState icon={HelpCircle} title="No FAQs yet" description="Add your first frequently asked question to help visitors find answers faster." action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First FAQ</Button>} />
         ) : (
           <div className="divide-y divide-slate-100">
-            {faqs.map((faq: NonNullable<typeof faqs>[number], i) => (
+            {faqs.map((faq: NonNullable<typeof faqs>[number], i: number) => (
               <div key={faq.id} className="group flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-start sm:p-5">
                 <div className="flex gap-1 sm:flex-col">
                   <button aria-label="Move FAQ up" onClick={() => move(i, -1)} disabled={i === 0} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button>

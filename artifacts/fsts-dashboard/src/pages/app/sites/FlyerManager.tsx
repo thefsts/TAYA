@@ -363,7 +363,7 @@ export default function FlyerManager({ params }: { params: { siteId: string } })
   }
 
   // ── Associated entity options ───────────────────────────────────────────
-  const entityOptions = (() => {
+  const entityOptions: { id: string; label: string }[] = (() => {
     if (!form.associatedEntityType) return [];
     if (form.associatedEntityType === "class") {
       return (courses ?? []).map((c: any) => ({ id: c._id, label: c.title }));

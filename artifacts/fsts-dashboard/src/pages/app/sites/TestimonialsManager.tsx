@@ -72,8 +72,8 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
   }
 
   if (items === undefined) return <AppLayout siteId={params.siteId}><ClientLoadingList rows={4} /></AppLayout>;
-  const visibleCount = items.filter((item) => item.isActive).length;
-  const averageRating = items.length ? (items.reduce((sum, item) => sum + (item.rating ?? 0), 0) / items.length).toFixed(1) : "—";
+  const visibleCount = items.filter((item: NonNullable<typeof items>[number]) => item.isActive).length;
+  const averageRating = items.length ? (items.reduce((sum: number, item: NonNullable<typeof items>[number]) => sum + (item.rating ?? 0), 0) / items.length).toFixed(1) : "—";
 
   return (
     <AppLayout siteId={params.siteId}>

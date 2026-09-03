@@ -219,7 +219,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                   <div className="border-b border-slate-100 bg-slate-50 px-3 py-1.5">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Switch Website</span>
                   </div>
-                  {sites.map((listedSite) => (
+                  {sites.map((listedSite: NonNullable<typeof sites>[number]) => (
                     <Link
                       key={listedSite._id}
                       href={`/app/sites/${listedSite._id}`}
