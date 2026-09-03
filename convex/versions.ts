@@ -10,11 +10,23 @@ function toResponse(doc: any) {
 }
 
 export const list = query({
-  args: { siteId: v.id("sites") },
-  handler: async (ctx, { siteId }) => {
+  args: { siteId: v.id("sites"), entityType: v.optional(v.string()) },
+  handler: async (ctx, { siteId, entityType }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
     if (!await checkModuleEnabled(ctx, siteId, "history")) return [];
-    const docs = await ctx.db.query("contentVersions").withIndex("by_site", (q) => q.eq("siteId", siteId)).order("desc").collect();
+    if (entityType) {
+      const docs = await ctx.db
+        .query("contentVersions")
+        .withIndex("by_site_entity", (q) => q.eq("siteId", siteId).eq("entityType", entityType))
+        .order("desc")
+        .collect();
+      return docs.map(toResponse);
+    }
+    const docs = await ctx.db
+      .query("contentVersions")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .order("desc")
+      .collect();
     return docs.map(toResponse);
   },
 });

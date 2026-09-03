@@ -377,7 +377,9 @@ export default defineSchema({
     entityId: v.string(),
     snapshot: v.any(),
     createdByName: v.string(),
-  }).index("by_site", ["siteId"]),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_entity", ["siteId", "entityType"]),
 
   activityLog: defineTable({
     siteId: v.id("sites"),
