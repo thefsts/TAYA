@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
 
 type SiteStatus = "active" | "staging" | "archived";
 type WebsiteType = string;
@@ -176,6 +176,9 @@ export default function AdminSites() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
+          <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
           <h1 className="text-2xl font-bold text-slate-900">Global Sites</h1>
           <p className="text-sm text-slate-500 mt-0.5">Client sites managed on this platform.</p>
         </div>

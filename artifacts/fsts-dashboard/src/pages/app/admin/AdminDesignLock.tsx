@@ -1,10 +1,10 @@
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
-import { Lock, Unlock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Lock, Unlock, ShieldCheck } from "lucide-react";
 import {
   CAPABILITIES,
   CONTENT_CAPABILITIES,
@@ -56,6 +56,9 @@ export default function AdminDesignLock() {
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
+        <Link href="/app" className="mb-3 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+          <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+        </Link>
         <div className="flex items-center gap-3 mb-2">
           <div className="h-9 w-9 rounded-lg bg-slate-900 flex items-center justify-center">
             <ShieldCheck className="h-5 w-5 text-white" />

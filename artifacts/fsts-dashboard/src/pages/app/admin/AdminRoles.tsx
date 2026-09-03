@@ -8,12 +8,12 @@
  */
 
 import { useState } from "react";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Lock, CheckCircle2, Circle, ShieldCheck, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Lock, CheckCircle2, Circle, ShieldCheck, ChevronDown, ChevronRight } from "lucide-react";
 import {
   ROLES,
   ROLE_LABELS,
@@ -110,6 +110,9 @@ export default function AdminRoles() {
       <div className="mb-6 flex items-start gap-3">
         <ShieldCheck className="h-7 w-7 text-primary mt-0.5 flex-shrink-0" />
         <div>
+          <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
           <h1 className="text-2xl font-bold text-slate-900">Role Permissions Reference</h1>
           <p className="text-sm text-slate-500 mt-0.5 max-w-2xl">
             Every named RBAC permission and which site roles receive it.

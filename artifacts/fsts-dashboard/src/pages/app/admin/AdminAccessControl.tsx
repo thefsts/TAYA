@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { RotateCcw, Info } from "lucide-react";
+import { ArrowLeft, RotateCcw, Info } from "lucide-react";
 import {
   ROLES,
   ROLE_LABELS,
@@ -169,6 +169,9 @@ export default function AdminAccessControl() {
   return (
     <div className="p-8 max-w-full mx-auto">
       <div className="mb-6">
+        <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+          <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+        </Link>
         <h1 className="text-2xl font-bold text-slate-900">Access Control</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Override the default role capabilities for any site. Changes take effect immediately.

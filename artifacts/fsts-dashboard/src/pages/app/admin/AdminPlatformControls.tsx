@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
-  ShieldCheck, Building2, CheckCircle2, XCircle, AlertCircle,
+  ArrowLeft, ShieldCheck, Building2, CheckCircle2, XCircle, AlertCircle,
   Settings, Flag, FileText,
 } from "lucide-react";
 import {
@@ -48,6 +48,9 @@ export default function AdminPlatformControls() {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-6">
+        <Link href="/app" className="mb-3 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+          <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+        </Link>
         <div className="flex items-center gap-3 mb-1">
           <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
             <ShieldCheck className="h-5 w-5 text-primary" />

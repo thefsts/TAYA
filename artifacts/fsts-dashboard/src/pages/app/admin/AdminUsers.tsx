@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Pencil, Plus, ShieldCheck, Trash2, UserRoundCheck } from "lucide-react";
+import { ArrowLeft, Mail, Pencil, Plus, ShieldCheck, Trash2, UserRoundCheck } from "lucide-react";
 import { ROLES, ROLE_LABELS, type Role } from "@/lib/roleCapabilities";
 
 type RoleAssignmentForm = { siteId: string; role: string };
@@ -167,6 +167,9 @@ export default function AdminUsers() {
     <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
+          <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Platform Administration</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Manage Users</h1>
           <p className="mt-1 text-sm text-slate-500">Create client access, assign site-scoped roles, and issue secure Clerk invitations.</p>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Plus, Pencil, Trash2, Building2, Globe, Mail, Link as LinkIcon,
+  ArrowLeft, Plus, Pencil, Trash2, Building2, Globe, Mail, Link as LinkIcon,
   ShieldCheck, Users, LayoutGrid,
 } from "lucide-react";
 import {
@@ -188,6 +188,9 @@ export default function AdminAgencies() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
+          <Link href="/app" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
           <h1 className="text-2xl font-bold text-slate-900">Agencies</h1>
           <p className="text-sm text-slate-500 mt-0.5">White-label agency partners on the TAYA™ platform.</p>
         </div>
