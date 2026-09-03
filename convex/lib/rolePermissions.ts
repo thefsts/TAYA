@@ -24,6 +24,17 @@ const FLYERS_ALL: readonly Permission[] = [
 ];
 
 export const ROLE_PERMISSIONS: RolePermissionMap = {
+  // internal_qa is intentionally owner-equivalent for client-facing workflow
+  // testing while remaining a distinct role in the user/audit record. It does
+  // not receive any SUPERADMIN_ONLY permission and therefore cannot bypass the
+  // Global Design Lock or platform administration boundaries.
+  internal_qa: [
+    ...CONTENT_ALL,
+    ...MEDIA_ALL,
+    ...FLYERS_ALL,
+    PERMISSIONS.EVENTS_MANAGE,
+    PERMISSIONS.CLASSES_MANAGE,
+  ],
   owner: [...CONTENT_ALL, ...MEDIA_ALL, ...FLYERS_ALL, PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE],
   manager: [...CONTENT_ALL, ...MEDIA_ALL, ...FLYERS_ALL, PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE],
   marketing: [
@@ -40,19 +51,10 @@ export const ROLE_PERMISSIONS: RolePermissionMap = {
 
 /**
  * Non-client operational roles and legacy role strings.
- * internal_qa is intentionally owner-equivalent for client-facing workflow
- * testing while remaining a distinct role in the user/audit record. It does
- * not receive any SUPERADMIN_ONLY permission and therefore cannot bypass the
- * Global Design Lock or platform administration boundaries.
+ * These cover older role spellings still present in production user records;
+ * roleHasPermission falls back to this map when a role is not a current `Role`.
  */
 const LEGACY_ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
-  internal_qa: [
-    ...CONTENT_ALL,
-    ...MEDIA_ALL,
-    ...FLYERS_ALL,
-    PERMISSIONS.EVENTS_MANAGE,
-    PERMISSIONS.CLASSES_MANAGE,
-  ],
   client_admin: [...CONTENT_ALL, ...MEDIA_ALL, ...FLYERS_ALL, PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE],
   site_admin: [...CONTENT_ALL, ...MEDIA_ALL, ...FLYERS_ALL, PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE],
   admin: [...CONTENT_ALL, ...MEDIA_ALL, ...FLYERS_ALL, PERMISSIONS.EVENTS_MANAGE, PERMISSIONS.CLASSES_MANAGE],

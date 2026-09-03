@@ -413,7 +413,7 @@ export const findOrdersPendingEmailRetry = internalQuery({
 /** Cron-triggered retry sweep — re-attempts failed email deliveries. */
 export const retryFailedPaymentEmails = internalAction({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ queued: number }> => {
     const now = Date.now();
     const orders = await ctx.runQuery(internal.squareOrders.findOrdersPendingEmailRetry, { now });
     for (const order of orders) {
