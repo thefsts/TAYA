@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ExternalLink, FileSearch, Image as ImageIcon, Pencil, Plus, Search, Trash2 } from "lucide-react";
@@ -22,9 +24,13 @@ type SeoFormState = {
   description: string;
   ogImageUrl: string;
   canonicalUrl: string;
+  noindex: boolean;
+  ogTitle: string;
+  ogDescription: string;
+  twitterCardType: string;
 };
 
-const emptyForm: SeoFormState = { pagePath: "", title: "", description: "", ogImageUrl: "", canonicalUrl: "" };
+const emptyForm: SeoFormState = { pagePath: "", title: "", description: "", ogImageUrl: "", canonicalUrl: "", noindex: false, ogTitle: "", ogDescription: "", twitterCardType: "" };
 
 export default function SeoSettings({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
@@ -50,6 +56,10 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
       description: setting.description,
       ogImageUrl: setting.ogImageUrl ?? "",
       canonicalUrl: setting.canonicalUrl ?? "",
+      noindex: setting.noindex ?? false,
+      ogTitle: setting.ogTitle ?? "",
+      ogDescription: setting.ogDescription ?? "",
+      twitterCardType: setting.twitterCardType ?? "",
     });
     setDialogOpen(true);
   }
@@ -66,6 +76,10 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
           description: form.description,
           ogImageUrl: form.ogImageUrl || undefined,
           canonicalUrl: form.canonicalUrl || undefined,
+          noindex: form.noindex || undefined,
+          ogTitle: form.ogTitle || undefined,
+          ogDescription: form.ogDescription || undefined,
+          twitterCardType: form.twitterCardType || undefined,
         });
         toast({ title: "SEO setting updated" });
       } else {
@@ -76,6 +90,10 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
           description: form.description,
           ogImageUrl: form.ogImageUrl || undefined,
           canonicalUrl: form.canonicalUrl || undefined,
+          noindex: form.noindex || undefined,
+          ogTitle: form.ogTitle || undefined,
+          ogDescription: form.ogDescription || undefined,
+          twitterCardType: form.twitterCardType || undefined,
         });
         toast({ title: "SEO setting created" });
       }
@@ -118,6 +136,7 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
 
   const withImages = data.filter((setting: any) => Boolean(setting.ogImageUrl)).length;
   const withCanonical = data.filter((setting: any) => Boolean(setting.canonicalUrl)).length;
+  const noindexCount = data.filter((setting: any) => Boolean(setting.noindex)).length;
 
   return (
     <AppLayout siteId={params.siteId} pageContext={pageContext}>
@@ -128,10 +147,11 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
         actions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Page</Button>}
       />
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
+      <div className="mb-5 grid gap-3 sm:grid-cols-4 lg:max-w-4xl">
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><FileSearch className="h-3.5 w-3.5" />SEO pages</div><p className="mt-1 text-2xl font-semibold text-slate-900">{data.length}</p></div>
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><ImageIcon className="h-3.5 w-3.5" />Social images</div><p className="mt-1 text-2xl font-semibold text-slate-900">{withImages}</p></div>
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><ExternalLink className="h-3.5 w-3.5" />Canonical URLs</div><p className="mt-1 text-2xl font-semibold text-slate-900">{withCanonical}</p></div>
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><Search className="h-3.5 w-3.5" />No-index</div><p className="mt-1 text-2xl font-semibold text-slate-900">{noindexCount}</p></div>
       </div>
 
       <ClientSection title="Page SEO" description="Each entry controls how a specific website page can appear in search engines and social sharing previews.">
@@ -143,7 +163,7 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
               <div key={setting._id} className="flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-start sm:p-5">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50"><Search className="h-4 w-4 text-slate-500" /></div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><p className="font-mono text-xs font-semibold text-primary">{setting.pagePath}</p>{setting.ogImageUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">OG image</span>}{setting.canonicalUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">Canonical</span>}</div>
+                  <div className="flex flex-wrap items-center gap-2"><p className="font-mono text-xs font-semibold text-primary">{setting.pagePath}</p>{setting.noindex && <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">No-index</span>}{setting.ogImageUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">OG image</span>}{setting.canonicalUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">Canonical</span>}</div>
                   <p className="mt-1 font-semibold text-slate-900">{setting.title}</p>
                   <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">{setting.description}</p>
                   <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-slate-400"><span>{setting.title?.length ?? 0} title chars</span><span>{setting.description?.length ?? 0} description chars</span></div>
@@ -164,6 +184,15 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
             <div className="space-y-1.5"><div className="flex items-center justify-between gap-3"><Label>Meta Description</Label><span className={`text-xs ${form.description.length > 160 ? "text-amber-600" : "text-slate-400"}`}>{form.description.length}/160</span></div><Textarea aria-label="Meta Description" required rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="A concise description of this page for search engines." /></div>
             <ImagePickerField siteId={params.siteId} label="Social Preview Image" value={form.ogImageUrl} onChange={(url) => setForm({ ...form, ogImageUrl: url })} initialPreset={SITE_PRESETS.find((preset) => preset.label === "Article Thumbnail")} hint="Recommended: 1200×630 px (Open Graph)." />
             <div className="space-y-1.5"><Label>Canonical URL</Label><Input aria-label="Canonical URL" value={form.canonicalUrl} onChange={(e) => setForm({ ...form, canonicalUrl: e.target.value })} placeholder="https://yourdomain.com/about" /><p className="text-xs leading-5 text-slate-400">Optional. Use this when search engines should treat one URL as the preferred version of the page.</p></div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5">
+              <div className="flex items-center justify-between gap-3">
+                <div><Label>Hide from search engines (noindex)</Label><p className="mt-0.5 text-xs text-slate-500">When enabled, search engines are told not to index this page. Use for thank-you pages, staging, or private content.</p></div>
+                <Switch checked={form.noindex} onCheckedChange={(v) => setForm({ ...form, noindex: v })} />
+              </div>
+            </div>
+            <div className="space-y-1.5"><Label>Social Title (OG)</Label><Input aria-label="Social Title" value={form.ogTitle} onChange={(e) => setForm({ ...form, ogTitle: e.target.value })} placeholder="Defaults to meta title if empty" /><p className="text-xs leading-5 text-slate-400">Optional. Override the title shown in social sharing previews (Open Graph / Twitter).</p></div>
+            <div className="space-y-1.5"><Label>Social Description (OG)</Label><Textarea aria-label="Social Description" rows={2} value={form.ogDescription} onChange={(e) => setForm({ ...form, ogDescription: e.target.value })} placeholder="Defaults to meta description if empty" /><p className="text-xs leading-5 text-slate-400">Optional. Override the description shown in social sharing previews.</p></div>
+            <div className="space-y-1.5"><Label>Twitter Card Type</Label><Select value={form.twitterCardType || "none"} onValueChange={(v) => setForm({ ...form, twitterCardType: v === "none" ? "" : v })}><SelectTrigger><SelectValue placeholder="Default (summary_large_image)" /></SelectTrigger><SelectContent><SelectItem value="none">Default (summary_large_image)</SelectItem><SelectItem value="summary">Summary</SelectItem><SelectItem value="summary_large_image">Summary with large image</SelectItem><SelectItem value="player">Player (video)</SelectItem></SelectContent></Select><p className="text-xs leading-5 text-slate-400">Controls how this page's link card appears on Twitter/X.</p></div>
             <DialogFooter><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button type="submit" disabled={isPending}>{isPending ? "Saving…" : editing ? "Save Changes" : "Add SEO Page"}</Button></DialogFooter>
           </form>
         </DialogContent>
