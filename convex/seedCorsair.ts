@@ -288,7 +288,7 @@ export const seedSeo = internalMutation({
         description:
           "Professional security services, armed protection, private investigations, and state-certified security training nationwide. Veteran-owned. Licensed & Insured.",
         ogImageUrl: "/og-default.jpg",
-        canonicalUrl: "https://corsairtacticalsolutions.com/",
+        canonicalUrl: "https://www.corsairtacticalsolution.com/",
       },
       {
         pagePath: "/courses",
@@ -296,7 +296,7 @@ export const seedSeo = internalMutation({
         description:
           "Texas DPS-certified security officer training, Texas License to Carry (LTC) certification, defensive shooting, and private firearms instruction. All skill levels.",
         ogImageUrl: "/og-default.jpg",
-        canonicalUrl: "https://corsairtacticalsolutions.com/courses",
+        canonicalUrl: "https://www.corsairtacticalsolution.com/courses",
       },
       {
         pagePath: "/about",
@@ -304,14 +304,14 @@ export const seedSeo = internalMutation({
         description:
           "Corsair Tactical Solutions is a veteran-owned, Texas DPS-certified security and firearms training company serving North Texas and nationwide.",
         ogImageUrl: "/og-default.jpg",
-        canonicalUrl: "https://corsairtacticalsolutions.com/about",
+        canonicalUrl: "https://www.corsairtacticalsolution.com/about",
       },
       {
         pagePath: "/contact",
         title: "Contact Us | Corsair Tactical Solutions",
         description:
           "Get in touch with Corsair Tactical Solutions for firearms training, security services, and private investigations. Call 214-335-6652 or email us.",
-        canonicalUrl: "https://corsairtacticalsolutions.com/contact",
+        canonicalUrl: "https://www.corsairtacticalsolution.com/contact",
       },
     ];
 
@@ -372,7 +372,7 @@ Once you've passed, you submit your DPS application online, schedule fingerprint
 
 ## Ready to Sign Up?
 
-[Contact us](https://corsairtacticalsolutions.com/contact) or call **214-335-6652** to register for the next available class.`,
+[Contact us](https://www.corsairtacticalsolution.com/contact) or call **214-335-6652** to register for the next available class.`,
       coverImageUrl: "/images/corsair-real/ltc-cert-basic-handgun-01.png",
       publishedAt: now - 5 * 24 * 60 * 60 * 1000,
       category: "LTC",
@@ -914,7 +914,10 @@ export const _ensureCorsairCoursesMutation = internalMutation({
         poweredByFsts: true,
         websiteType: "standard",
         enabledModules: { courses: true, events: true },
-        domain: "corsairtacticalsolutions.com",
+        // Canonical production domain (Vercel host; the plural
+        // corsairtacticalsolutions.com is an owner-run 301 redirect bridge —
+        // see migrations/canonicalizeCorsairDomain.ts).
+        domain: "www.corsairtacticalsolution.com",
         // Branding fields render via plain <img> in the dashboard/portal
         // (app.fstsclientsystem.com), so they must be absolute URLs —
         // site-relative paths would 404 against the dashboard domain.
