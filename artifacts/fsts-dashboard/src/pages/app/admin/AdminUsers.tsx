@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { Redirect, Link } from "wouter";
 import { api } from "@convex/_generated/api";
@@ -58,6 +58,7 @@ export default function AdminUsers() {
   const { toast } = useToast();
 
   const createUser = useMutation(api.users.create);
+  const assignClient = useMutation(api.users.assignClient);
   const updateUser = useMutation(api.users.update);
   const deleteUser = useMutation(api.users.remove);
   const markInvite = useMutation(api.invitationState.mark);
@@ -73,6 +74,35 @@ export default function AdminUsers() {
   const [assignments, setAssignments] = useState<RoleAssignmentForm[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Phase 1 client-assignment handoff: AdminSites navigates here with
+  // ?invite=1&siteId=<new site> right after creating a website. Pre-open the
+  // invite dialog with that website pre-selected so the admin can finish the
+  // coherent "create site → assign client → send invite" flow in one pass.
+  const [handoffConsumed, setHandoffConsumed] = useState(false);
+  useEffect(() => {
+    if (handoffConsumed || !sites || sites.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("invite") !== "1") {
+      setHandoffConsumed(true);
+      return;
+    }
+    const siteId = params.get("siteId") ?? "";
+    const site = sites.find((s: any) => String(s._id) === siteId);
+    setHandoffConsumed(true);
+    if (!site) return;
+    setEditing(null);
+    setName("");
+    setEmail("");
+    setIsSuperAdmin(false);
+    setIsActive(true);
+    setAssignments([{ siteId: String(site._id), role: "owner" }]);
+    setDialogOpen(true);
+    toast({
+      title: "Assign the client owner",
+      description: `Invite ${site.name}'s owner. They'll be able to sign in and manage only this website.`,
+    });
+  }, [handoffConsumed, sites, toast]);
 
   if (me === undefined) return <div className="p-8"><Skeleton className="mb-6 h-10 w-48" /></div>;
   if (!me || !me.isSuperAdmin) return <Redirect to="/app" />;
@@ -117,7 +147,30 @@ export default function AdminUsers() {
         return;
       }
 
-      await createUser({ name, email, isSuperAdmin, roleAssignments });
+      // Phase 1: single-site client invites go through assignClient (upsert).
+      // Existing clients are REUSED — role attached, no duplicate record —
+      // instead of failing with "user already exists".
+      const isSingleSiteClientInvite = !isSuperAdmin && roleAssignments.length === 1;
+      let assignmentOutcome: string | null = null;
+      if (isSingleSiteClientInvite) {
+        const result = await assignClient({
+          siteId: roleAssignments[0].siteId,
+          email,
+          name,
+          role: roleAssignments[0].role,
+        });
+        assignmentOutcome = result.outcome;
+        if (result.outcome === "reused" || result.outcome === "role_updated") {
+          toast({
+            title: "Existing client attached to this website",
+            description: `${email} already had a TAYA account — their access to this website is ready. No duplicate account was created.`,
+          });
+          setDialogOpen(false);
+          return;
+        }
+      } else {
+        await createUser({ name, email, isSuperAdmin, roleAssignments });
+      }
 
       try {
         const invite = await sendClerkInvite({ email });
@@ -126,7 +179,10 @@ export default function AdminUsers() {
           toast({ title: "Invitation sent", description: `${email} can now accept the Clerk invitation and sign in.` });
         } else {
           await markInvite({ email, status: "existing_user" });
-          toast({ title: "User already has Clerk access", description: `The dashboard role is ready. ${email} can sign in at fstsclientsystem.com/sign-in.` });
+          toast({
+            title: "User already has Clerk access",
+            description: `The dashboard role is ready. ${email} can sign in at ${window.location.origin}/sign-in.`,
+          });
         }
       } catch (inviteError) {
         const message = inviteError instanceof Error ? inviteError.message : String(inviteError);

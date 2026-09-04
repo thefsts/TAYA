@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useLocation } from "wouter";
 import {
@@ -7,13 +7,14 @@ import {
   Plug, Package, Rocket, CheckCircle2, ChevronLeft,
   ChevronRight, ArrowLeft, ShieldX, Share2, PenLine,
   SearchCode, Activity, ShieldCheck, ClipboardList,
-  Clock, Lock,
+  Clock, Lock, UserRound, Mail, UserRoundCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -34,7 +35,8 @@ const STEPS = [
   { id: 6, label: "Domain",           icon: Globe      },
   { id: 7, label: "Integrations",     icon: Plug       },
   { id: 8, label: "Add-ons",          icon: Package    },
-  { id: 9, label: "Review & Launch",  icon: Rocket     },
+  { id: 9, label: "Client Owner",     icon: UserRound  },
+  { id: 10, label: "Review & Launch", icon: Rocket     },
 ];
 
 const PURPOSES = [
@@ -144,6 +146,11 @@ interface StepData {
   integrations: string[];
   // Step 8
   addOnSelections: string[];
+  // Step 9 — Client Owner
+  ownerName: string;
+  ownerEmail: string;
+  ownerRole: string;
+  sendOwnerInvite: boolean;
 }
 
 const DEFAULT_DATA: StepData = {
@@ -157,6 +164,7 @@ const DEFAULT_DATA: StepData = {
   domainChoice: "later", customDomain: "",
   integrations: [],
   addOnSelections: [],
+  ownerName: "", ownerEmail: "", ownerRole: "owner", sendOwnerInvite: true,
 };
 
 function generateSessionKey(): string {
@@ -799,6 +807,80 @@ function Step8({ data, set }: { data: StepData; set: (p: Partial<StepData>) => v
   );
 }
 
+// ── Step 9: Client Owner ──────────────────────────────────────────────────
+
+function Step9Owner({
+  data, set,
+}: {
+  data: StepData;
+  set: (p: Partial<StepData>) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">Client Owner</h2>
+        <p className="text-sm text-slate-500 mt-1">
+          Who will manage this website day to day? They'll sign in with the Admin Login and see only this website.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Owner name</Label>
+        <Input
+          aria-label="Owner name"
+          placeholder="Jane Smith"
+          value={data.ownerName}
+          onChange={(e) => set({ ownerName: e.target.value })}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Owner email</Label>
+        <Input
+          aria-label="Owner email"
+          type="email"
+          placeholder="jane@business.com"
+          value={data.ownerEmail}
+          onChange={(e) => set({ ownerEmail: e.target.value })}
+        />
+        <p className="text-xs text-slate-500">
+          If they already have a TAYA login, their access to this website is attached automatically — no duplicate account is created.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Owner role</Label>
+        <Select value={data.ownerRole} onValueChange={(v) => set({ ownerRole: v })}>
+          <SelectTrigger aria-label="Owner role"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="owner">Owner — full control of this website</SelectItem>
+            <SelectItem value="manager">Manager — manage content, orders, and team</SelectItem>
+            <SelectItem value="content_editor">Content Editor — edit website content</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-slate-500">The owner role can manage everything for this website, including inviting staff.</p>
+      </div>
+
+      <div className="flex items-start justify-between rounded-lg border border-slate-200 bg-white p-4">
+        <div className="pr-4">
+          <div className="text-sm font-medium text-slate-800 flex items-center gap-1.5">
+            <Mail className="h-4 w-4 text-slate-400" />
+            Send sign-in invitation
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Sends a secure sign-in invitation to the owner's email. Leave off if you'll set up their access later.
+          </p>
+        </div>
+        <Switch checked={data.sendOwnerInvite} onCheckedChange={(v) => set({ sendOwnerInvite: v })} />
+      </div>
+
+      <p className="text-xs text-slate-400">
+        You can also assign or change the client at any time from Manage Users.
+      </p>
+    </div>
+  );
+}
+
 function Step9({
   data, onLaunch, isLaunching,
 }: {
@@ -816,6 +898,7 @@ function Step9({
     { label: "Template",         ok: !!data.templateId },
     { label: "Content plan",     ok: !!data.contentSetup },
     { label: "Domain plan",      ok: !!data.domainChoice },
+    { label: "Client owner",     ok: !!data.ownerEmail.trim() },
   ];
   const score = readiness.filter((r) => r.ok).length;
   const pct = Math.round((score / readiness.length) * 100);
@@ -863,6 +946,7 @@ function Step9({
           ["Domain",     data.domainChoice === "existing" ? (data.customDomain || "Not entered") : data.domainChoice === "temp" ? genSubdomain : "Configure later"],
           ["Integrations", data.integrations.length ? data.integrations.map((i) => INTEGRATIONS.find((x) => x.value === i)?.label ?? i).join(", ") : "None selected"],
           ["Add-ons", (data.addOnSelections ?? []).length ? (data.addOnSelections ?? []).map((s) => ADDON_CATALOG.find((a) => a.slug === s)?.name ?? s).join(", ") : "None selected"],
+          ["Client owner", data.ownerEmail ? (data.ownerName ? `${data.ownerName} (${data.ownerEmail})` : data.ownerEmail) : "Not set — assign after launch"],
         ].map(([k, v]) => (
           <div key={k} className="flex items-baseline px-4 py-2.5 gap-3">
             <span className="text-slate-500 w-28 flex-shrink-0">{k}</span>
@@ -894,8 +978,30 @@ function Step9({
 
 // ── Success screen ─────────────────────────────────────────────────────────
 
-function LaunchSuccess({ siteId, siteName }: { siteId: string; siteName: string }) {
+function LaunchSuccess({
+  siteId, siteName, ownerEmail, ownerOutcome, inviteOutcome,
+}: {
+  siteId: string;
+  siteName: string;
+  ownerEmail?: string;
+  ownerOutcome?: string | null;
+  inviteOutcome?: "invited" | "existing_user" | "skipped" | "failed";
+}) {
   const [, setLocation] = useLocation();
+
+  const ownerStatus =
+    !ownerEmail
+      ? null
+      : ownerOutcome === "created" && inviteOutcome === "invited"
+        ? { tone: "ok", text: `Invitation sent to ${ownerEmail}. They can sign in and manage only this website.` }
+        : ownerOutcome === "created" && inviteOutcome === "failed"
+          ? { tone: "warn", text: `${ownerEmail} was assigned, but the sign-in invitation failed to send. You can retry it from Manage Users.` }
+          : inviteOutcome === "existing_user"
+            ? { tone: "ok", text: `${ownerEmail} already had a TAYA login — access to this website is attached. No duplicate account was created.` }
+            : inviteOutcome === "failed"
+              ? { tone: "warn", text: `${ownerEmail} was attached to this website, but the invitation update failed. You can retry from Manage Users.` }
+              : { tone: "ok", text: `${ownerEmail} is assigned as the client owner.` };
+
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-5">
@@ -906,6 +1012,22 @@ function LaunchSuccess({ siteId, siteName }: { siteId: string; siteName: string 
         <p className="text-slate-500">
           <strong>{siteName}</strong> has been provisioned with all starter content, navigation, and settings. Open the workspace to begin adding content.
         </p>
+        {ownerStatus && (
+          <div
+            className={`flex items-start gap-2 rounded-lg border p-3 text-left text-sm ${
+              ownerStatus.tone === "ok"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border-amber-200 bg-amber-50 text-amber-800"
+            }`}
+          >
+            {ownerStatus.tone === "ok" ? (
+              <UserRoundCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            ) : (
+              <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+            )}
+            <span>{ownerStatus.text}</span>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <Button variant="outline" onClick={() => setLocation("/app")}>Back to Sites</Button>
           <Button onClick={() => setLocation(`/app/sites/${siteId}`)}>
@@ -932,12 +1054,20 @@ export default function OnboardingWizard() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
-  const [launchResult, setLaunchResult] = useState<{ siteId: string; siteName: string } | null>(null);
+  const [launchResult, setLaunchResult] = useState<{
+    siteId: string;
+    siteName: string;
+    ownerEmail?: string;
+    ownerOutcome?: string | null;
+    inviteOutcome?: "invited" | "existing_user" | "skipped" | "failed";
+  } | null>(null);
   const { toast } = useToast();
 
   const createSession = useMutation(api.onboarding.createSession);
   const saveStep = useMutation(api.onboarding.saveStep);
   const launchMutation = useMutation(api.onboarding.launch);
+  const sendClerkInvite = useAction(api.clerkInvitations.invite);
+  const markInvite = useMutation(api.invitationState.mark);
 
   const savedSession = useQuery(api.onboarding.getSession, { sessionKey });
 
@@ -988,7 +1118,15 @@ export default function OnboardingWizard() {
 
   // Success
   if (launchResult) {
-    return <LaunchSuccess siteId={launchResult.siteId} siteName={launchResult.siteName} />;
+    return (
+      <LaunchSuccess
+        siteId={launchResult.siteId}
+        siteName={launchResult.siteName}
+        ownerEmail={launchResult.ownerEmail}
+        ownerOutcome={launchResult.ownerOutcome}
+        inviteOutcome={launchResult.inviteOutcome}
+      />
+    );
   }
 
   const update = (partial: Partial<StepData>) =>
@@ -1000,6 +1138,11 @@ export default function OnboardingWizard() {
       case 0: return !!stepData.businessName.trim() && !!stepData.websiteName.trim() && !!stepData.industry;
       case 1: return stepData.purposes.length > 0;
       case 2: return stepData.pages.length > 0;
+      case 9: {
+        // Owner email only required when an invitation will be sent.
+        if (!stepData.sendOwnerInvite) return true;
+        return !!stepData.ownerEmail.trim() && /.+@.+\..+/.test(stepData.ownerEmail.trim());
+      }
       default: return true;
     }
   };
@@ -1029,9 +1172,49 @@ export default function OnboardingWizard() {
   const handleLaunch = async () => {
     setIsLaunching(true);
     try {
-      const result = await launchMutation({ sessionKey, stepData });
+      const owner =
+        stepData.ownerEmail.trim() && stepData.sendOwnerInvite
+          ? {
+              email: stepData.ownerEmail.trim(),
+              name: stepData.ownerName.trim() || undefined,
+              role: stepData.ownerRole,
+            }
+          : stepData.ownerEmail.trim()
+            ? {
+                email: stepData.ownerEmail.trim(),
+                name: stepData.ownerName.trim() || undefined,
+                role: stepData.ownerRole,
+              }
+            : undefined;
+
+      const result = await launchMutation({ sessionKey, stepData, owner });
+
+      // Issue the Clerk invitation after a successful launch so a failed
+      // invitation can never orphan a half-launched site.
+      let inviteOutcome: "invited" | "existing_user" | "skipped" | "failed" = "skipped";
+      if (owner && stepData.sendOwnerInvite) {
+        try {
+          const invite = await sendClerkInvite({ email: owner.email });
+          if (invite.status === "invited") {
+            await markInvite({ email: owner.email, status: "invited", clerkInvitationId: invite.invitationId });
+            inviteOutcome = "invited";
+          } else {
+            await markInvite({ email: owner.email, status: "existing_user" });
+            inviteOutcome = "existing_user";
+          }
+        } catch {
+          inviteOutcome = "failed";
+        }
+      }
+
       localStorage.removeItem("fsts_onboarding_session");
-      setLaunchResult({ siteId: result.siteId, siteName: stepData.websiteName || stepData.businessName });
+      setLaunchResult({
+        siteId: result.siteId,
+        siteName: stepData.websiteName || stepData.businessName,
+        ownerEmail: owner?.email,
+        ownerOutcome: result.owner?.outcome ?? null,
+        inviteOutcome,
+      });
     } catch (err) {
       toast({
         title: "Launch failed",
@@ -1069,12 +1252,14 @@ export default function OnboardingWizard() {
           {currentStep === 6 && <Step6 data={stepData} set={update} />}
           {currentStep === 7 && <Step7 data={stepData} set={update} />}
           {currentStep === 8 && <Step8 data={stepData} set={update} />}
-          {currentStep === 9 && (
+          {currentStep === 9 && <Step9Owner data={stepData} set={update} />}
+
+          {currentStep === 10 && (
             <Step9 data={stepData} onLaunch={handleLaunch} isLaunching={isLaunching} />
           )}
 
           {/* Navigation — hidden on review step (has its own launch button) */}
-          {currentStep < 9 && (
+          {currentStep < 10 && (
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
               <Button
                 variant="ghost"
@@ -1095,7 +1280,7 @@ export default function OnboardingWizard() {
           )}
 
           {/* Back nav on review step */}
-          {currentStep === 9 && (
+          {currentStep === 10 && (
             <div className="mt-4 flex justify-start">
               <Button variant="ghost" onClick={handleBack}>
                 <ChevronLeft className="mr-1 h-4 w-4" />

@@ -4,6 +4,7 @@
  */
 import { internalQuery } from "./_generated/server";
 import { v } from "convex/values";
+import { resolveAdminLogin } from "./lib/adminLogin";
 
 export const getSiteBySlug = internalQuery({
   args: { slug: v.string() },
@@ -33,7 +34,11 @@ export const getFooterBySlug = internalQuery({
     if (!site) return null;
     const doc = await ctx.db.query("footerContent").withIndex("by_site", (q) => q.eq("siteId", site._id)).first();
     if (!doc) return null;
-    return { ...doc, id: doc._id, siteId: doc.siteId };
+    // Resolved Admin Login link (Phase 1) — always present in the public
+    // payload so external public sites can render the locked client journey
+    // entry point without hardcoding URLs. Falls back to the config-driven
+    // platform default when the site has not configured an override.
+    return { ...doc, id: doc._id, siteId: doc.siteId, adminLogin: resolveAdminLogin(doc, slug) };
   },
 });
 

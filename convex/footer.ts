@@ -5,6 +5,12 @@ import { requirePermission } from "./lib/requirePermission";
 import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
 import { logActivity } from "./lib/logActivity";
+import { resolveAdminLogin } from "./lib/adminLogin";
+
+async function currentSiteSlug(ctx: any, siteId: any): Promise<string | null> {
+  const site = await ctx.db.get(siteId);
+  return site?.slug ?? null;
+}
 
 function toResponse(doc: any) {
   return { ...doc, id: doc._id, siteId: doc.siteId, updatedAt: new Date(doc._creationTime).toISOString() };
@@ -16,8 +22,12 @@ export const get = query({
     if (!await checkSiteAccess(ctx, siteId)) return null;
     if (!await checkModuleEnabled(ctx, siteId, "footer")) return null;
     const doc = await ctx.db.query("footerContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
-    if (!doc) return { siteId, columns: [], socialLinks: [], copyrightText: "", updatedAt: new Date().toISOString() };
-    return toResponse(doc);
+    if (!doc) {
+      const slug = await currentSiteSlug(ctx, siteId);
+      return { siteId, columns: [], socialLinks: [], copyrightText: "", adminLogin: resolveAdminLogin(null, slug), updatedAt: new Date().toISOString() };
+    }
+    const slug = await currentSiteSlug(ctx, siteId);
+    return { ...toResponse(doc), adminLogin: resolveAdminLogin(doc, slug) };
   },
 });
 
@@ -27,6 +37,9 @@ export const update = mutation({
     columns: v.optional(v.any()),
     socialLinks: v.optional(v.any()),
     copyrightText: v.optional(v.string()),
+    adminLoginEnabled: v.optional(v.boolean()),
+    adminLoginLabel: v.optional(v.string()),
+    adminLoginUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
     const user = await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE);
@@ -42,6 +55,7 @@ export const update = mutation({
     const doc = (await ctx.db.get(docId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: existing ? "updated" : "created", entityType: "footer", page: "Footer", previousValue: existing, newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "footer", entityId: docId, snapshot: doc });
-    return toResponse(doc);
+    const slug = await currentSiteSlug(ctx, siteId);
+    return { ...toResponse(doc), adminLogin: resolveAdminLogin(doc, slug) };
   },
 });

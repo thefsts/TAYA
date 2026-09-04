@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Copyright, ExternalLink, Link2, Plus, Save, Share2, Trash2 } from "lucide-react";
+import { Copyright, ExternalLink, Link2, Lock, Plus, Save, Share2, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { LockedField, DesignLockBanner } from "@/components/LockedField";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 
@@ -47,6 +48,9 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
   const [columns, setColumns] = useState<LinkColumn[]>([]);
   const [namedPlatforms, setNamedPlatforms] = useState<Record<NamedPlatform, string>>({ Instagram: "", Facebook: "", TikTok: "", YouTube: "" });
   const [customLinks, setCustomLinks] = useState<SocialLink[]>([]);
+  const [adminLoginEnabled, setAdminLoginEnabled] = useState(false);
+  const [adminLoginLabel, setAdminLoginLabel] = useState("");
+  const [adminLoginUrl, setAdminLoginUrl] = useState("");
   const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
@@ -56,13 +60,16 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
       const links = asSocialLinks((data.socialLinks as unknown[]) ?? []);
       setNamedPlatforms(extractNamed(links));
       setCustomLinks(extractCustom(links));
+      setAdminLoginEnabled(data.adminLogin?.enabled ?? false);
+      setAdminLoginLabel(data.adminLoginLabel ?? "");
+      setAdminLoginUrl(data.adminLoginUrl ?? "");
     }
   }, [data]);
 
   async function handleSave() {
     setIsPending(true);
     try {
-      await updateFooterContent({ siteId, copyrightText, columns, socialLinks: mergeLinks(namedPlatforms, customLinks) });
+      await updateFooterContent({ siteId, copyrightText, columns, socialLinks: mergeLinks(namedPlatforms, customLinks), adminLoginEnabled, adminLoginLabel: adminLoginLabel.trim(), adminLoginUrl: adminLoginUrl.trim() });
       toast({ title: "Footer updated" });
     } catch (err) {
       toast({ title: "Something went wrong", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
@@ -79,7 +86,10 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
   const isDirty = !!(data && (
     copyrightText !== (data.copyrightText ?? "") ||
     JSON.stringify(columns) !== JSON.stringify(asColumns((data.columns as unknown[]) ?? [])) ||
-    JSON.stringify(mergeLinks(namedPlatforms, customLinks)) !== JSON.stringify(asSocialLinks((data.socialLinks as unknown[]) ?? []))
+    JSON.stringify(mergeLinks(namedPlatforms, customLinks)) !== JSON.stringify(asSocialLinks((data.socialLinks as unknown[]) ?? [])) ||
+    adminLoginEnabled !== (data.adminLogin?.enabled ?? false) ||
+    adminLoginLabel !== (data.adminLoginLabel ?? "") ||
+    adminLoginUrl !== (data.adminLoginUrl ?? "")
   ));
 
   function handleDiscard() {
@@ -89,6 +99,9 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
       const links = asSocialLinks((data.socialLinks as unknown[]) ?? []);
       setNamedPlatforms(extractNamed(links));
       setCustomLinks(extractCustom(links));
+      setAdminLoginEnabled(data.adminLogin?.enabled ?? false);
+      setAdminLoginLabel(data.adminLoginLabel ?? "");
+      setAdminLoginUrl(data.adminLoginUrl ?? "");
     }
   }
 
@@ -172,6 +185,37 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
         <LockedField capabilityLabel="Footer Layout">
           <ClientSection title="Copyright Text" description="Set the copyright or legal line displayed in the footer.">
             <div className="p-4 sm:p-5"><Label className="flex items-center gap-2"><Copyright className="h-3.5 w-3.5 text-slate-400" />Footer copyright</Label><Textarea aria-label="Footer copyright" rows={3} className="mt-2" value={copyrightText} onChange={(e) => setCopyrightText(e.target.value)} placeholder="© 2026 Your Company. All rights reserved." /></div>
+          </ClientSection>
+        </LockedField>
+
+        <LockedField capabilityLabel="Admin Login Link">
+          <ClientSection title="Admin Login Link" description="Show the Admin Login link in the public footer so you can reach this website's dashboard from your live site.">
+            <div className="space-y-4 p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+                <div>
+                  <Label className="text-sm font-medium">Show Admin Login link</Label>
+                  <p className="mt-0.5 text-xs text-slate-500">When enabled, visitors see a discreet link to the secure admin sign-in.</p>
+                </div>
+                <Switch aria-label="Show Admin Login link" checked={adminLoginEnabled} onCheckedChange={setAdminLoginEnabled} />
+              </div>
+              {adminLoginEnabled && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Link label</Label>
+                    <Input aria-label="Admin login link label" value={adminLoginLabel} onChange={(e) => setAdminLoginLabel(e.target.value)} placeholder="Admin Login" />
+                    <p className="text-xs text-slate-500">Leave blank to use the default label.</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Sign-in URL</Label>
+                    <Input aria-label="Admin login URL" value={adminLoginUrl} onChange={(e) => setAdminLoginUrl(e.target.value)} placeholder="https://app.fstsclientsystem.com/sign-in?site=…" />
+                    <p className="text-xs text-slate-500">Leave blank to use the platform sign-in ({data.adminLogin?.url ?? "config default"}).</p>
+                  </div>
+                </div>
+              )}
+              {adminLoginEnabled && (
+                <p className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500"><Lock className="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />Clients sign in at the resolved URL below and land directly in this website's dashboard.</p>
+              )}
+            </div>
           </ClientSection>
         </LockedField>
       </div>

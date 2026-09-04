@@ -260,6 +260,150 @@ export const update = mutation({
   },
 });
 
+/**
+ * Assign a client user to a site with upsert semantics (SuperAdmin only).
+ *
+ * Phase 1 of the Client CMS completion: the admin explicitly assigns a client
+ * owner/admin to a website during or after onboarding. Unlike `create`, this
+ * REUSES an existing dashboard user with the same email instead of failing:
+ *   - existing user  → add (or update) the site role, no duplicate record,
+ *                      no second Clerk invitation.
+ *   - brand-new user → insert with `pending:<email>` clerkUserId, send the
+ *                      dashboard welcome email (the Clerk invitation itself
+ *                      is issued separately via clerkInvitations.invite so
+ *                      the email flow stays a single place).
+ *
+ * Returns an explicit outcome so the UI can show precise status:
+ *   { outcome: "reused" | "created" | "role_updated", userId, email, role }
+ */
+export async function upsertClientAssignment(
+  ctx: any,
+  args: {
+    siteId: Id<"sites">;
+    email: string;
+    name?: string;
+    role?: string;
+    actorName: string;
+    /** When false (onboarding launch path), the welcome email is skipped
+     *  because the wizard sends the Clerk invitation immediately after. */
+    sendWelcomeEmail?: boolean;
+  },
+): Promise<{ outcome: "reused" | "created" | "role_updated"; userId: any; email: string; role: string }> {
+  const email = normalizeEmail(args.email);
+  if (!email || !email.includes("@")) throw new Error("A valid email address is required");
+  const role = args.role ?? "owner";
+  const site = await ctx.db.get(args.siteId);
+  if (!site) throw new Error("Website not found");
+
+  const existing = await ctx.db
+    .query("users")
+    .withIndex("by_email", (q: { eq: (field: string, value: string) => any }) =>
+      q.eq("email", email),
+    )
+    .first();
+
+  if (existing) {
+    if (existing.isSuperAdmin) {
+      throw new Error(
+        "This person is already a platform administrator. Superadmins cannot be assigned a site role — remove platform admin access first if they should manage a single website."
+      );
+    }
+    const existingRoles: Array<{ siteId: any; role: string }> = (existing.roles as any[]) ?? [];
+    const prior = existingRoles.find((r) => String(r.siteId) === String(args.siteId));
+    const merged = [
+      ...existingRoles.filter((r) => String(r.siteId) !== String(args.siteId)),
+      { siteId: args.siteId, role },
+    ];
+    await ctx.db.patch(existing._id, { roles: merged } as any);
+    await logActivity(ctx, {
+      siteId: args.siteId,
+      actorName: args.actorName,
+      action: prior ? "changed role" : "assigned role",
+      entityType: "user",
+      entityId: String(existing._id),
+      page: "users",
+      previousValue: prior?.role,
+      newValue: role,
+      details: prior
+        ? `Role for ${existing.name} on ${site.name} updated to ${role} (existing client reused)`
+        : `Assigned role '${role}' to existing client ${existing.name} on ${site.name}`,
+    });
+    return {
+      outcome: prior ? "role_updated" : "reused",
+      userId: existing._id,
+      email,
+      role,
+    };
+  }
+
+  const displayName = (args.name ?? "").trim() || email.split("@")[0];
+  const userId = await ctx.db.insert("users", {
+    clerkUserId: `pending:${email}`,
+    name: displayName,
+    email,
+    isSuperAdmin: false,
+    isActive: true,
+    roles: [{ siteId: args.siteId, role }],
+    inviteStatus: "pending",
+    invitedAt: Date.now(),
+  });
+
+  await logActivity(ctx, {
+    siteId: args.siteId,
+    actorName: args.actorName,
+    action: "assigned role",
+    entityType: "user",
+    entityId: String(userId),
+    page: "users",
+    newValue: role,
+    details: `Assigned role '${role}' to new client ${displayName} on ${site.name}`,
+  });
+
+  // Welcome email only for brand-new users; reused clients already have
+  // credentials or a pending invitation.
+  if (args.sendWelcomeEmail !== false) {
+    await ctx.scheduler.runAfter(0, internal.email.sendDashboardWelcome, {
+      recipientEmail: email,
+      recipientName: displayName,
+    });
+  }
+
+  return { outcome: "created", userId, email, role };
+}
+
+/**
+ * Assign a client user to a site with upsert semantics (SuperAdmin only).
+ *
+ * Phase 1 of the Client CMS completion: the admin explicitly assigns a client
+ * owner/admin to a website during or after onboarding. Unlike `create`, this
+ * REUSES an existing dashboard user with the same email instead of failing:
+ *   - existing user  -> add (or update) the site role, no duplicate record,
+ *                      no second Clerk invitation.
+ *   - brand-new user -> insert with `pending:<email>` clerkUserId, send the
+ *                      dashboard welcome email (the Clerk invitation itself
+ *                      is issued separately via clerkInvitations.invite so
+ *                      the email flow stays in one place).
+ */
+export const assignClient = mutation({
+  args: {
+    siteId: v.id("sites"),
+    email: v.string(),
+    name: v.optional(v.string()),
+    role: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const me = await provisionUser(ctx);
+    if (!me.isSuperAdmin) throw new Error("Forbidden");
+    return await upsertClientAssignment(ctx, {
+      siteId: args.siteId,
+      email: args.email,
+      name: args.name,
+      role: args.role,
+      actorName: me.name,
+    });
+  },
+});
+
 export const remove = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {

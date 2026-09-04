@@ -1,16 +1,18 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
+// The dashboard application origin is resolved by the shared adminLogin lib
+// (convex/lib/adminLogin.ts) — config-driven via the DASHBOARD_URL env var,
+// defaulting to the application origin (never the marketing website). Shared
+// with footer.ts / public.ts so the URL is never hardcoded in two places.
+import { dashboardBaseUrl } from "./lib/adminLogin";
 
 const CLERK_API = "https://api.clerk.com/v1";
 
+const dashboardUrl = dashboardBaseUrl;
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-function dashboardUrl(): string {
-  const configured = (process.env.DASHBOARD_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "").trim();
-  return (configured || "https://fstsclientsystem.com").replace(/\/$/, "");
 }
 
 function clerkSecret(): string {

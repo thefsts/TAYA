@@ -73,6 +73,13 @@ export default defineSchema({
     columns: v.any(),
     socialLinks: v.any(),
     copyrightText: v.string(),
+    // Admin Login link shown on the public website (Phase 1 — locked client
+    // journey: Public Website → Admin Login → Clerk → assigned site CMS).
+    // The label/url are optional per-site overrides; empty values fall back
+    // to the config-driven platform default. Gated by LAYOUT_MANAGE.
+    adminLoginEnabled: v.optional(v.boolean()),
+    adminLoginLabel: v.optional(v.string()),
+    adminLoginUrl: v.optional(v.string()),
   }).index("by_site", ["siteId"]),
 
   contactInfo: defineTable({
