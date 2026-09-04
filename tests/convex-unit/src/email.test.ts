@@ -3,12 +3,22 @@
  *
  * Covers:
  *  1. email.sendFormNotification — notifyOnNewLead/notifyOnBooking flags,
- *     no-fromEmail guard, correct subject/html/to passed to email.send
+ *     no-fromEmail guard, correct subject/html/to passed to email.send,
+ *     ARCHITECTURE LOCK: per-site-key-only sends (no platform fallback —
+ *     form notifications are website-owned by design)
  *  2. email.sendPortalWelcome — approval vs active copy variant,
- *     no-fromEmail guard
+ *     no-fromEmail guard, ARCHITECTURE LOCK: per-site-key-only sends
  *  3. formSubmissions.submit — scheduler enqueues email.sendFormNotification
  *  4. portal.register — sendPortalWelcome is called for active and
  *     pending_approval paths; fire-and-forget (rejection does not block)
+ *
+ * EMAIL ARCHITECTURE (locked): client websites own their transactional email
+ * delivery — the client website sends its own notification from its own Resend
+ * configuration and TAYA stores the submission in the site Inbox. TAYA-side
+ * sends fire ONLY through the site's own emailSettings.resendApiKey; a missing
+ * per-site key is a graceful skip, never an error. Platform RESEND_API_KEY
+ * remains dormant infrastructure for TAYA-owned platform features only
+ * (dashboard welcome / payment confirmations — see email.send).
  *
  * All tests use plain mock objects for `ctx` — no live Convex backend.
  * Convex registration helpers are stubbed to expose `_handler` directly.
@@ -91,12 +101,16 @@ const handler = <T extends { _handler: (...args: any[]) => any }>(reg: T) =>
 const SITE_ID = "site_test_001" as unknown as never;
 
 // ── Shared email-settings factory ────────────────────────────────────────────
+// Default includes a per-site Resend key: under the website-owned email
+// architecture, TAYA-side sends fire only through emailSettings.resendApiKey,
+// so every "sends successfully" test needs one configured.
 function makeSettings(overrides: Record<string, unknown> = {}) {
   return {
     siteId: SITE_ID,
     fromName: "My Agency",
     fromEmail: "owner@myagency.com",
     replyToEmail: "",
+    resendApiKey: "re_site_key_default",
     notifyOnNewLead: true,
     notifyOnBooking: true,
     ...overrides,
@@ -290,17 +304,21 @@ describe("email.sendFormNotification", () => {
     expect(call.args.apiKey).toBe("re_site_key_abc");
   });
 
-  it("omits apiKey on the send call when resendApiKey is not in settings (platform-key fallback)", async () => {
-    const ctx = makeCtx(); // no resendApiKey in settings
-    await handler(sendFormNotification)(ctx as never, {
+  it("ARCHITECTURE LOCK: skips with no email.send call when resendApiKey is not in settings (no platform fallback)", async () => {
+    const ctx = makeCtx({ resendApiKey: undefined }); // no per-site key
+    const result = await handler(sendFormNotification)(ctx as never, {
       siteId: SITE_ID,
       formType: "contact_form",
       submitterEmail: "x@x.com",
     });
 
-    const call = ctx._runActionCalls[0];
-    // apiKey should be undefined — send() will fall back to RESEND_API_KEY env var
-    expect(call.args.apiKey).toBeUndefined();
+    // Website-owned delivery: without the site's own Resend key there is NO
+    // send at all — email.send must never fall back to the platform key.
+    expect(result).toMatchObject({
+      skipped: true,
+      reason: expect.stringContaining("no per-site Resend key"),
+    });
+    expect(ctx._runActionCalls).toHaveLength(0);
   });
 });
 
@@ -399,12 +417,17 @@ describe("email.sendPortalWelcome", () => {
     expect(call.args.apiKey).toBe("re_site_key_xyz");
   });
 
-  it("omits apiKey on the send call when resendApiKey is not in settings (platform-key fallback)", async () => {
-    const ctx = makeCtx(); // no resendApiKey
-    await handler(sendPortalWelcome)(ctx as never, BASE_ARGS);
+  it("ARCHITECTURE LOCK: skips with no email.send call when resendApiKey is not in settings (no platform fallback)", async () => {
+    const ctx = makeCtx({ resendApiKey: undefined }); // no per-site key
+    const result = await handler(sendPortalWelcome)(ctx as never, BASE_ARGS);
 
-    const call = ctx._runActionCalls[0];
-    expect(call.args.apiKey).toBeUndefined();
+    // Site-scoped delivery: portal mail routes ONLY through the site's own
+    // Resend account — email.send must never fall back to the platform key.
+    expect(result).toMatchObject({
+      skipped: true,
+      reason: expect.stringContaining("no per-site Resend key"),
+    });
+    expect(ctx._runActionCalls).toHaveLength(0);
   });
 });
 

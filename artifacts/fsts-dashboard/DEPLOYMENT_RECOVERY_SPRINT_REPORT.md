@@ -1,6 +1,18 @@
 # FSTS-WOS™ — Deployment Recovery Sprint Report
 ## Date: July 31, 2026 | Task #51
 
+> **ADDENDUM — 2026-09-04 — EMAIL ARCHITECTURE LOCK (supersedes the email preconditions in this report):**
+> Client websites now own their transactional email delivery. The required flow is
+> Client Website Form → POST to TAYA → TAYA Inbox storage → the client website's own
+> Resend configuration sends the notification. TAYA does **not** require a platform
+> `RESEND_API_KEY` for client form operation, and a missing platform key is **not a launch
+> blocker**. The "Set `RESEND_API_KEY` in Convex production environment … Required before
+> Client #1 goes live" pre-condition below is therefore **retired** (the platform key remains
+> optional dormant infrastructure for future TAYA-owned platform email features, and
+> TAYA-side per-site keys in `emailSettings.resendApiKey` are an optional opt-in).
+> For the current email-delivery architecture, see `EMAIL_DELIVERY_RUNBOOK.md` and
+> `docs/PRODUCTION_STARTUP_GUARD.md` (both updated 2026-09-04).
+
 **Prepared by:** FSTS-WOS™ Deployment Recovery Sprint  
 **Authorized Repo:** `https://github.com/thefsts/FSTS-client-Dashboard-for-sites-`  
 **Authorized Vercel Project:** `fsts-client-dashboard-for-sites-api-server`  

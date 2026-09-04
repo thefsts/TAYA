@@ -95,14 +95,25 @@ emit_line \
   "Dashboard cannot connect to Convex; all data loading fails silently" \
   "Set VITE_CONVEX_URL to your Convex deployment URL (https://<name>.convex.cloud)"
 
-# ── Required (per-site) — silent degradation per affected site ───────────────
+# ── Optional — dormant platform mail infrastructure (website-owned delivery) ──
+#
+# ARCHITECTURE LOCK — email architecture (website-owned delivery):
+# Client websites own their transactional email delivery. The required flow is
+#   Client Website Form → POST to TAYA → TAYA Inbox storage →
+#   Client Website's own Resend configuration sends the notification.
+# The platform RESEND_API_KEY env var is NOT required for client form operation;
+# it is dormant infrastructure for future TAYA-owned platform email features
+# (dashboard welcome, payment confirmations). A missing platform key is a
+# healthy by-design state, never a launch blocker. Per-site TAYA-side sends
+# (portal welcome, form-builder notifications) fire only with a per-site
+# emailSettings.resendApiKey and skip gracefully when absent.
 
 emit_line \
   "RESEND_API_KEY" \
-  "Required (per-site)" \
-  "Transactional email delivery" \
-  "Welcome emails and form-submission notifications are silently skipped with no visible error" \
-  "Run: npx convex env set RESEND_API_KEY <key> (obtain from resend.com → API Keys)"
+  "Optional" \
+  "Dormant platform mail infrastructure (future TAYA-owned features)" \
+  "Nothing for client form operation: client websites own their transactional email delivery. TAYA-side sends fire only per-site (emailSettings.resendApiKey) and skip gracefully when absent" \
+  "Not required for client form operation (website-owned delivery). Set only when enabling TAYA-owned platform email features: npx convex env set RESEND_API_KEY <key>"
 
 emit_line \
   "SQUARE_WEBHOOK_SIGNATURE_KEY" \

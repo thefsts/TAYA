@@ -51,7 +51,7 @@ Before beginning any onboarding step, verify all of the following are in place:
 
 - [ ] 1. Run: `dig +short A <client-domain>` — confirm it resolves to Vercel IP ranges (`76.76.21.*`).
 - [ ] 2. Run: `dig +short CNAME www.<client-domain>` — confirm it points to Vercel's CNAME target.
-- [ ] 3. If email delivery will be configured (Section 14), identify where to add:
+- [ ] 3. Email delivery is website-owned (Section 14): the client website sends its own transactional email via its own Resend configuration (hosting env `RESEND_API_KEY` + DNS). Identify where to add:
   - [ ] a. SPF TXT record: `v=spf1 include:resend.com ~all`
   - [ ] b. DKIM CNAME records (values from Resend dashboard after domain is added there)
 - [ ] 4. Document the DNS provider name and the client's point of contact for DNS changes — you will need this for the email section.
@@ -290,18 +290,18 @@ Before beginning any onboarding step, verify all of the following are in place:
 **Dashboard page:** Forms (`/app/sites/:siteId/forms`) + Inbox (`/app/sites/:siteId/inbox`)
 
 - [ ] 1. Navigate to Forms. Verify the default contact form exists for the site.
-- [ ] 2. Confirm email notification flags in Email Config (Section 14 must be completed first):
+- [ ] 2. Confirm email notification flags in Email Config (sender identity only — Section 14a; TAYA-side keys are optional under website-owned delivery):
   - `notifyOnNewLead: true`
   - `notifyOnBooking: true`
   - `notificationEmail: <client admin email>`
 - [ ] 3. Submit a test form submission (use the public form URL: `/forms/<siteSlug>/contact` or equivalent).
 - [ ] 4. Confirm the submission appears in the Inbox at Dashboard → Inbox.
 - [ ] 5. Confirm an email notification was scheduled (check Convex logs for `email.sendFormNotification` being invoked).
-- [ ] 6. Once the Resend API key is configured (Section 14), confirm actual inbox delivery by submitting a real form and checking the notification email inbox.
+- [ ] 6. Confirm actual inbox delivery by submitting a real form on the **client website** and checking the notification email inbox — the website's own Resend configuration sends the notification (website-owned delivery; Section 14).
 
-✅ **Done when…** A test submission appears in the Inbox, `sendFormNotification` is logged as scheduled in Convex, and (after Resend is configured) the email arrives in the notification inbox.
+✅ **Done when…** A test submission appears in the Inbox, `sendFormNotification` is logged as scheduled in Convex, and the email arrives in the notification inbox (sent by the website's own Resend configuration — website-owned delivery).
 
-> **Note:** Form submission uses a fire-and-forget scheduler pattern: `ctx.scheduler.runAfter(0, internal.email.sendFormNotification, ...)`. A form submission will never fail due to email delivery issues. If the Resend API key is absent, email is silently skipped but the submission is still saved to the inbox.
+> **Note (email architecture — locked, website-owned delivery):** Form submission uses a fire-and-forget scheduler pattern: `ctx.scheduler.runAfter(0, internal.email.sendFormNotification, ...)`. A form submission will never fail due to email delivery issues. TAYA is not the mail sender for client website forms: the client website sends its own notification using its own Resend configuration after storing the submission in the TAYA Inbox. On the TAYA side, `sendFormNotification` fires only when a per-site `emailSettings.resendApiKey` exists and otherwise skips gracefully — an absent key is a healthy by-design state, not an outage.
 
 ---
 
@@ -327,7 +327,7 @@ Before beginning any onboarding step, verify all of the following are in place:
 
 ## Section 14 — Email Configuration
 
-**Purpose:** Configure the site's sender identity and connect the Resend transactional email service for form notifications and portal welcome emails.
+**Purpose:** Configure the site's sender identity, and — optionally — connect a per-site Resend key for TAYA-side sends. Under the locked website-owned email architecture, the client website's own Resend configuration (its hosting env `RESEND_API_KEY` + DNS) delivers form notifications; TAYA stores submissions in the site Inbox and is not the mail sender.
 
 **Dashboard page:** Email Config (`/app/sites/:siteId/email`)  
 **Convex table:** `emailSettings`
@@ -344,11 +344,13 @@ Before beginning any onboarding step, verify all of the following are in place:
   - Notify on Booking: On
 - [ ] 3. Save and confirm no errors. If the form renders empty and Save does nothing, this is the null-guard defect (D-03, now fixed) — upgrade to latest platform version.
 
-### 14b — Resend API Key (⚠️ Owner action)
+### 14b — Resend API Key (⚠️ Owner action — optional per-site opt-in)
 
-- [ ] 4. ⚠️ **Client must:** Create a free Resend account at `resend.com` and obtain an API key.
-- [ ] 5. ⚠️ **Client must:** Log in to Dashboard → Email Config → paste the Resend API key → Save.
-- [ ] 6. Verify the key is saved by checking Convex `emailSettings` for this site.
+> **Website-owned delivery (locked):** The client website sends its own form notifications via its own Resend configuration (its hosting env `RESEND_API_KEY` — set in the website's hosting project, e.g. Vercel → Settings → Environment Variables). A TAYA-side per-site key is **optional** and only enables TAYA-side sends (portal welcome, form-builder notifications). Absence of a TAYA-side key is a healthy by-design state — not a launch blocker.
+
+- [ ] 4. ⚠️ **Client must (website side — required for the website's own notifications):** Create a free Resend account at `resend.com`, obtain an API key, and set it as `RESEND_API_KEY` in the website hosting project's environment variables.
+- [ ] 5. **Optional TAYA-side opt-in:** Log in to Dashboard → Email Config → paste the Resend API key → Save (enables TAYA-side portal welcome / form-builder notifications).
+- [ ] 6. Verify any TAYA-side key is saved by checking Convex `emailSettings` for this site.
 
 ### 14c — DNS Records for Email Delivery (⚠️ Owner action)
 
@@ -362,9 +364,9 @@ Before beginning any onboarding step, verify all of the following are in place:
   dig +short CNAME resend._domainkey.<client-domain>   # should return Resend's CNAME target
   ```
 - [ ] 10. In Resend Dashboard → Domains, confirm the domain status changes to "Verified".
-- [ ] 11. Run an end-to-end email test: submit a contact form → verify the notification email arrives in the client's inbox.
+- [ ] 11. Run an end-to-end email test on the **client website**: submit its contact form → verify the notification email arrives in the client's inbox (sent by the website's own Resend configuration — website-owned delivery).
 
-✅ **Done when…** Sender identity is saved, Resend API key is entered, DNS records are verified in Resend dashboard, and a test form submission produces a real email in the notification inbox.
+✅ **Done when…** Sender identity is saved, the **website's** Resend key is set in its hosting environment, DNS records are verified in the Resend dashboard, and a test form submission on the client website produces a real email in the notification inbox (website-owned delivery).
 
 > **See also:** `EMAIL_DELIVERY_RUNBOOK.md` for exact DKIM CNAME values and troubleshooting steps.
 
@@ -464,7 +466,7 @@ Before beginning any onboarding step, verify all of the following are in place:
 - [ ] 3. **Verify Convex production environment:**
   - [ ] a. `CONVEX_DEPLOYMENT_ENVIRONMENT=production` is set (prevents test mode running on prod).
   - [ ] b. `CONVEX_TEST_MODE` is **absent** from the Convex production environment.
-  - [ ] c. `RESEND_API_KEY` is present (once client has completed Section 14b).
+  - [ ] c. `RESEND_API_KEY` on the platform is **optional** (dormant infrastructure — see Section 14b; website-owned delivery is the norm). Do not treat its absence as a launch blocker.
 - [ ] 4. **Final smoke test:** Visit `https://<client-domain>` → confirm the page loads, branding is correct, and navigation works.
 - [ ] 5. **Client handoff:** Send the client their dashboard URL, admin login, and the Owner Action Checklist (see Section 17a below).
 
@@ -474,7 +476,7 @@ Document these in the client handoff email. The platform is live but these remai
 
 | # | Action | Urgency |
 |---|---|---|
-| OA-1 | Enter Resend API key in Email Config | HIGH — blocks all email delivery |
+| OA-1 | Set the website's `RESEND_API_KEY` in its hosting project (website-owned delivery); a TAYA Email Config key is optional opt-in | HIGH — the website's own notifications do not send without it (TAYA-side key optional) |
 | OA-2 | Add SPF DNS record: `v=spf1 include:resend.com ~all` | HIGH — required for inbox delivery |
 | OA-3 | Add DKIM CNAME records (from Resend dashboard) | HIGH — required for inbox delivery |
 | OA-4 | Upload real logo and favicon (replace placeholder URLs) | Medium |
@@ -579,12 +581,12 @@ These defects were discovered during the Corsair Tactical Solutions (Website #1)
 
 ---
 
-### A-07 — Resend API key must be set before any email delivery is possible
+### A-07 — No email arrives at the notification address (website-owned delivery)
 
 **Symptom:** Form submissions appear in the Inbox but no email arrives at the notification address. No error is surfaced to the user.  
-**Root cause:** The `internal.email.send` action checks for `RESEND_API_KEY` before calling the Resend REST API. If the key is absent, the action logs a `console.warn` and returns `{ skipped: true }` — no throw, no user-visible error.  
-**Fix:** Enter the Resend API key via Dashboard → Email Config (per-site key in `emailSettings.resendApiKey`). This is a client/owner action and cannot be automated.  
-**Prevention:** Section 14 of this checklist marks this as a HIGH-urgency owner action and includes verification steps.
+**Root cause (website-owned architecture — locked):** The client website's form pipeline stores the submission in the TAYA Inbox, then the **website's own** Resend configuration sends the notification. If the website hosting environment lacks `RESEND_API_KEY` (or its DNS is unverified in Resend), the website's send silently fails or is skipped. On the TAYA side, `email.sendFormNotification` fires only with a per-site `emailSettings.resendApiKey` and otherwise returns `{ skipped: true }` gracefully — by design, not an outage.  
+**Fix:** Set `RESEND_API_KEY` in the **website's hosting project** (e.g. Vercel → Settings → Environment Variables) and complete Resend domain verification for the website's sender domain. A TAYA-side per-site key (Dashboard → Email Config) is an optional opt-in for TAYA-side sends only.  
+**Prevention:** Section 14b of this checklist documents the website-side key as the required owner action and the TAYA-side key as optional.
 
 ---
 

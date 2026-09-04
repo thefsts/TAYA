@@ -355,15 +355,15 @@ These items cannot be completed by automated onboarding scripts — they require
 
 | # | Action | Urgency | Instructions |
 |---|---|---|---|
-| OA-1 | Enter Resend API key in Email Config | **HIGH — blocks all email delivery** | Dashboard → Email Config → paste key from resend.com → Save |
-| OA-2 | Add SPF record for `corsairtacticalsolutions.com` | **HIGH — required for inbox delivery** | DNS provider → TXT record: `v=spf1 include:resend.com ~all` |
-| OA-3 | Add DKIM CNAME record | **HIGH — required for inbox delivery** | See `EMAIL_DELIVERY_RUNBOOK.md` for exact DKIM CNAME values from Resend dashboard |
+| OA-1 | Set Resend API key for the **Corsair website** (website-owned delivery) | **HIGH — required for the website's own notifications** | Vercel → Corsair-Tactical-Solutions project → Environment Variables → `RESEND_API_KEY` (the website's `/api/contact` route sends its own notification). Optional for TAYA: per-site key in Dashboard → Email Config only if owner wants TAYA-side duplicates — by default OFF (architecture lock). |
+| OA-2 | Add SPF record for `corsairtacticalsolutions.com` (website's own Resend sends) | **HIGH — required for inbox delivery** | DNS provider → TXT record: `v=spf1 include:resend.com ~all` (supports the Corsair website's own Resend account; per Resend docs current value may be `include:spf.resend.com`) |
+| OA-3 | Add DKIM record for the website's Resend account | **HIGH — required for inbox delivery** | Resend dashboard → corsairtacticalsolution.com domain → copy DKIM record; a `resend._domainkey` DKIM TXT already exists in DNS (verified). See `EMAIL_DELIVERY_RUNBOOK.md` |
 | OA-4 | Upload real logo and favicon | Medium | Media Library → Upload → copy URLs → Website Settings → Identity |
 | OA-5 | Enter real Google Place ID for Reviews | Medium | Reviews → Edit Google source → paste Place ID from Google Maps URL |
 | OA-6 | Set Clerk production key on Vercel | Medium | Vercel → fsts-dashboard project → Environment Variables → `VITE_CLERK_PUBLISHABLE_KEY=pk_live_...` |
 | OA-7 | Confirm admin user can log in | Medium | Navigate to `fstsclientsystem.com` → sign in as `corsairtacticalsolutions@gmail.com` |
 | OA-8 | Upload a real media asset to confirm CDN path | Low (code verified) | Media Library → Upload image → confirm `storageId` in Convex dashboard |
-| OA-9 | Submit a test contact form → verify inbox delivery | Low (depends on OA-1/2/3) | Contact page → fill form → check inbox at notification email |
+| OA-9 | Submit a test contact form → verify inbox delivery | Low (depends on OA-1/2/3, website-side) | Contact page → fill form → check inbox at the notification email; delivery comes from the **website's** own Resend send (TAYA stores the submission in the Inbox — visible immediately) |
 | OA-10 | Square Commerce credentials (if applicable) | Low | Commerce → Connect Square → paste App ID + Access Token |
 
 ---
@@ -454,13 +454,25 @@ Every section in the onboarding checklist is in saved, non-error state for the C
 
 ### Step 4 — Form and Email Delivery
 
+> **EMAIL ARCHITECTURE — LOCKED (post-certification product direction):**
+> Client websites own their transactional email delivery. The required flow is
+> Client Website Form → POST submission to TAYA → TAYA stores it in the
+> site-specific Inbox → the **client website sends its own email notification
+> using that website's Resend configuration**. A TAYA-wide platform
+> `RESEND_API_KEY` is NOT required for client form operation and is NOT a
+> Corsair launch blocker. TAYA-side form notifications fire only through the
+> site's own `emailSettings.resendApiKey` (per-site opt-in) — when absent they
+> skip gracefully so delivery is never duplicated with the website's own send.
+> TAYA platform mail infrastructure stays dormant for future TAYA-owned
+> platform features (dashboard welcome / payment confirmations).
+
 | Check | Result | Detail |
 |---|---|---|
-| Form submission → email notification | ⚠️ Blocked | `RESEND_API_KEY` not yet configured for the Corsair site (Owner Action OA-1). Emails are silently skipped with a `console.warn` — no data loss, no crash. |
-| Email delivery code path | ✅ Code verified | `sendFormNotification` is scheduled via `ctx.scheduler.runAfter(0, ...)` on every `formSubmissions:submit`. Notification email is `corsairtacticalsolutions@gmail.com`. |
-| DNS SPF/DKIM | ⚠️ Not configured | `corsairtacticalsolutions.com` DNS not yet updated with Resend SPF/DKIM records (Owner Actions OA-2, OA-3). |
+| Form submission → email notification | ✅ By design (website-owned) | The Corsair **website** sends its own notification from its own Resend config (`/api/contact` route → Vercel `RESEND_API_KEY`, sender `contact@corsairtacticalsolution.com`). TAYA-side `sendFormNotification` fires only per-site opt-in and skips gracefully otherwise — no duplicate delivery. |
+| Email delivery code path | ✅ Code verified | `sendFormNotification` is scheduled via `ctx.scheduler.runAfter(0, ...)` on every `formSubmissions:submit`; requires the site's own `resendApiKey` (per-site-key-only, no platform fallback). TAYA Inbox path verified live (submissions 3 → 4). |
+| DNS SPF/DKIM | ⚠️ Not configured (website-side) | `corsairtacticalsolution.com` DNS not yet updated with Resend SPF/DKIM records for the website's own Resend sends (Owner Actions OA-2, OA-3 — these support the Corsair **website's** Resend account, not TAYA). |
 
-**Unblocking path:** Owner completes OA-1 → OA-2 → OA-3, then submits a test contact form and verifies inbox delivery. Record timestamp of first confirmed delivery here when done.
+**Verification path:** Owner completes the website-side Resend setup (Vercel `RESEND_API_KEY` for the Corsair website's `/api/contact` route + OA-2/OA-3 DNS records for the website's own sender domain), then submits a test contact form and verifies inbox delivery. Record timestamp of first confirmed delivery here when done.
 
 ---
 
