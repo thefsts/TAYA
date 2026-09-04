@@ -502,13 +502,13 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Slug <span className="text-red-500">*</span></Label>
+                    <Label>Web Address <span className="text-red-500">*</span></Label>
                     <Input
-                      aria-label="Slug"
+                      aria-label="Web Address"
                       required
                       value={form.slug}
                       onChange={(e) => setField("slug", e.target.value)}
-                      placeholder="url-friendly-slug"
+                      placeholder="my-first-article"
                     />
                   </div>
                 </div>
@@ -692,7 +692,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                     aria-label="Canonical URL"
                     value={form.canonicalUrl}
                     onChange={(e) => setField("canonicalUrl", e.target.value)}
-                    placeholder={`https://yourdomain.com/blog/${form.slug || "slug"}`}
+                    placeholder={`https://yourdomain.com/blog/${form.slug || "my-first-article"}`}
                   />
                 </div>
               </TabsContent>

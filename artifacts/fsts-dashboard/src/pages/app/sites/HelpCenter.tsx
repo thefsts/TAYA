@@ -3,15 +3,32 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Circle, PlayCircle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { LifeBuoy, Mail, Phone, BookOpen, ShieldCheck, History, Users, ExternalLink } from "lucide-react";
+import { LifeBuoy, Mail, Phone, BookOpen, ShieldCheck, History, Users, ExternalLink, Rocket, Eye, RotateCcw, ListChecks } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { clearTourDismissal, TOUR_STEPS } from "@/components/WelcomeTour";
+import { gettingStartedDismissKey, buildGettingStartedItems } from "@/components/GettingStartedCard";
 
 const FAQS: { question: string; answer: string; icon: any }[] = [
+  {
+    icon: Rocket,
+    question: "What's the difference between Save Draft, Preview, and Publish?",
+    answer:
+      "Save Draft stores your changes safely without anyone seeing them. Preview shows how your page will look on your live website. Publish is the button that makes your changes live for visitors. Until you click Publish, nothing changes on your public website.",
+  },
+  {
+    icon: Eye,
+    question: "How quickly do my published changes appear on my website?",
+    answer:
+      "Publishing is near-instant. When you click Publish, your live website is usually updated within a minute. If you don't see a change, wait a few moments and refresh your browser. The preview panel inside the dashboard always shows your live site.",
+  },
   {
     icon: BookOpen,
     question: "How do I edit my website's content?",
@@ -47,6 +64,10 @@ const FAQS: { question: string; answer: string; icon: any }[] = [
 export default function HelpCenter({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
   const site = useQuery(api.sites.get, { siteId });
+  const me = useQuery(api.users.me);
+  const summary = useQuery(api.sites.getDashboardSummary, { siteId });
+  const modules = useQuery(api.sites.getEffectiveModules, { siteId });
+  const { toast } = useToast();
 
   const agencyId = (site as any)?.agencyId as Id<"agencies"> | undefined;
   const agency = useQuery(
@@ -57,6 +78,28 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
   const supportEmail = agency?.supportEmail ?? "support@fullstacktechsolutions.com";
   const helpCenterUrl = agency?.helpCenterUrl ?? null;
   const agencyName = agency?.name ?? "Full Stack Tech Solutions";
+
+  // Phase 5: real completion state + tour controls
+  const gettingStartedItems = buildGettingStartedItems(site?.domain, summary, modules);
+  const doneCount = gettingStartedItems.filter((i) => i.done).length;
+  const checklistText =
+    gettingStartedItems.length > 0 && doneCount === gettingStartedItems.length
+      ? "You're all set \u2014 the basics are done!"
+      : `${doneCount} of ${gettingStartedItems.length} steps done.`;
+
+  function handleRestartTour() {
+    clearTourDismissal(me?._id, siteId);
+    toast({ title: "Tour restarted", description: "Open your dashboard to see the welcome tour again." });
+  }
+
+  function handleRestoreChecklist() {
+    try {
+      window.localStorage.removeItem(gettingStartedDismissKey(me?._id, siteId));
+      toast({ title: "Checklist restored", description: "Open your dashboard to see the Getting Started checklist again." });
+    } catch {
+      toast({ title: "Something went wrong", description: "Could not restore the checklist.", variant: "destructive" });
+    }
+  }
 
   return (
     <AppLayout siteId={params.siteId}>
@@ -71,6 +114,53 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
           </div>
         </div>
       </div>
+
+      {/* Phase 5: Getting Started with real completion state + tour controls */}
+      <Card className="mb-8 shadow-sm border-slate-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ListChecks className="h-4 w-4 text-primary" />
+            Getting Started
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-slate-500">
+            A quick look at your website setup. {checklistText}
+          </p>
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {gettingStartedItems.map((item) => (
+              <li key={item.key} className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                {item.done ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
+                ) : (
+                  <Circle className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-300" />
+                )}
+                <div className="min-w-0">
+                  <div className={`text-sm font-medium ${item.done ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                    {item.label}
+                  </div>
+                  <p className="mt-0.5 text-xs text-slate-500">{item.reason}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-400">
+              Changed your mind? Restore the Getting Started checklist on your dashboard at any time.
+            </p>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleRestoreChecklist}>
+                <RotateCcw className="mr-1 h-3.5 w-3.5" />
+                Restore Checklist
+              </Button>
+              <Button size="sm" onClick={handleRestartTour} className="bg-primary text-white">
+                <PlayCircle className="mr-1 h-3.5 w-3.5" />
+                Restart Tour
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">

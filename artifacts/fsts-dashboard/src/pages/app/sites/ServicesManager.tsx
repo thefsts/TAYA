@@ -336,9 +336,9 @@ export default function ServicesManager({ params }: { params: { siteId: string }
                 />
               </div>
               <div>
-                <Label>Slug *</Label>
+                <Label>Web Address *</Label>
                 <Input
-                  aria-label="Slug"
+                  aria-label="Web Address"
                   className="mt-1"
                   value={form.slug}
                   onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
