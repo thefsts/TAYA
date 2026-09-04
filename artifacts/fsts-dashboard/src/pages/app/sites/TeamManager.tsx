@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Users, Pencil, Plus, Trash2 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type MemberForm = {
   name: string;
@@ -128,18 +129,20 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
 
   return (
     <AppLayout siteId={params.siteId}>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Team Manager</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Manage instructors and staff shown on your website.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" /> Add Member
-        </Button>
-      </div>
-
+      <VisualEditorShell
+        siteId={siteId}
+        title="Team Manager"
+        subtitle="Manage instructors and staff shown on your website."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="team"
+        previewPath="/team"
+        toolbarActions={
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" /> Add Member
+          </Button>
+        }
+      >
       {items.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-xl">
           <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -243,6 +246,7 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

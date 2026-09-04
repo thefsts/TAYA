@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, Save } from "lucide-react";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 const POLICY_TYPES = [
   { key: "privacy", label: "Privacy Policy" },
@@ -91,6 +92,15 @@ export default function PolicyEditor({ params }: { params: { siteId: string } })
 
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Policy Pages"
+        subtitle="Edit your site's legal and compliance pages. Content is saved per document."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="policy"
+        previewPath="/privacy"
+      >
       <div className="flex items-start gap-2 mb-6">
         <Shield className="w-6 h-6 text-slate-500 mt-0.5" />
         <div>
@@ -122,6 +132,7 @@ export default function PolicyEditor({ params }: { params: { siteId: string } })
           <PolicyTab key={pt.key} siteId={siteId} policyType={pt.key} label={pt.label} />
         ) : null,
       )}
+      </VisualEditorShell>
     </AppLayout>
   );
 }

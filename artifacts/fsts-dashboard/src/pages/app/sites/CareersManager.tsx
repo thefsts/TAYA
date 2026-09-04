@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, Eye, EyeOff, ExternalLink, MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 const JOB_TYPES = ["Full-Time", "Part-Time", "Contract", "Internship", "Volunteer"];
 
@@ -115,11 +116,20 @@ export default function CareersManager({ params }: { params: { siteId: string } 
 
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Careers"
+        subtitle="Manage open positions and job postings shown on your public website."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="careers"
+        previewPath="/careers"
+        toolbarActions={<Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Post Job</Button>}
+      >
       <ClientPageHeader
         eyebrow="Hiring"
         title="Careers"
         description="Manage open positions and job postings shown on your public website."
-        actions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Post Job</Button>}
       />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
@@ -194,6 +204,7 @@ export default function CareersManager({ params }: { params: { siteId: string } 
           <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete Posting</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

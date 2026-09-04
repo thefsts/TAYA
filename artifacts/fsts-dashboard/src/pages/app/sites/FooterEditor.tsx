@@ -116,6 +116,7 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
         onSave={handleSave}
         onDiscard={handleDiscard}
         isSaving={isPending}
+        saveLabel="Save Changes"
         historyHref={`/app/sites/${params.siteId}/history`}
         moduleId="footer"
         showPublish={false}

@@ -16,6 +16,7 @@ import { Eye, EyeOff, MessageSquareQuote, Pencil, Plus, Star, Trash2, Users, Sea
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type TestimonialFormState = {
   name: string;
@@ -89,11 +90,20 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
 
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Testimonials"
+        subtitle="Manage approved client feedback, ratings, and profile images shown across your website."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="testimonials"
+        previewPath="/testimonials"
+        toolbarActions={<Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Testimonial</Button>}
+      >
       <ClientPageHeader
         eyebrow="Social Proof"
         title="Testimonials"
         description="Manage approved client feedback, ratings, and profile images shown across your website."
-        actions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Testimonial</Button>}
       />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
@@ -146,6 +156,7 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
       </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete testimonial?</AlertDialogTitle><AlertDialogDescription>This permanently removes the testimonial from the dashboard and website. This cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete Testimonial</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

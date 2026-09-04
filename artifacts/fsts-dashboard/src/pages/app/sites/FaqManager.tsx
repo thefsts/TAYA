@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronUp, Eye, EyeOff, HelpCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type FaqFormState = { question: string; answer: string; isActive: boolean };
 const emptyForm: FaqFormState = { question: "", answer: "", isActive: true };
@@ -66,7 +67,17 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
 
   return (
     <AppLayout siteId={params.siteId}>
-      <ClientPageHeader eyebrow="Website Content" title="Frequently Asked Questions" description="Answer common customer questions and control the order they appear on your website." actions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add FAQ</Button>} />
+      <VisualEditorShell
+        siteId={siteId}
+        title="Frequently Asked Questions"
+        subtitle="Answer common customer questions and control the order they appear on your website."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="faq"
+        previewPath="/faq"
+        toolbarActions={<Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add FAQ</Button>}
+      >
+      <ClientPageHeader eyebrow="Website Content" title="Frequently Asked Questions" description="Answer common customer questions and control the order they appear on your website." />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:max-w-xl">
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400"><HelpCircle className="h-3.5 w-3.5" />Total questions</div><p className="mt-1 text-2xl font-semibold text-slate-900">{faqs.length}</p></div>
@@ -111,6 +122,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
       </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this FAQ?</AlertDialogTitle><AlertDialogDescription>This permanently removes the question and answer from the dashboard and website. This cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete FAQ</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      </VisualEditorShell>
     </AppLayout>
   );
 }
