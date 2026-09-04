@@ -905,7 +905,7 @@ http.route({ path: "/api/admin/config-status", method: "OPTIONS", handler: admin
  *   squareWebhookVerification: "configured" | "missing",
  *   resendApiKey:              "configured" | "missing",
  *   convexEnvironment:         "production" | "sandbox" | "unknown",
- *   emailDelivery:             "configured" | "missing",
+ *   emailDelivery:             "platform-key-configured" | "website-owned",
  *   siteSlug:                  string | null,
  *   checkedAt:                 ISO timestamp,
  * }

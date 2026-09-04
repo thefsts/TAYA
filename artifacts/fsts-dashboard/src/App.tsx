@@ -176,46 +176,43 @@ const clerkAppearance = {
   theme: shadcn,
   cssLayerName: "clerk",
   options: {
+    // The TAYA (or client) brand stack renders directly above the card, so
+    // the in-card logo is hidden (auth.css) to avoid double branding.
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
     logoImageUrl: tayaLogoUrl,
   },
   variables: {
+    // TAYA auth palette: deep navy card surface with bright spectrum accents.
     colorPrimary: "hsl(318 86% 49%)",
-    colorForeground: "hsl(222 47% 11%)",
-    colorMutedForeground: "hsl(215 16% 47%)",
+    colorPrimaryForeground: "hsl(0 0% 100%)",
+    colorForeground: "hsl(210 40% 98%)",
+    colorMutedForeground: "hsl(215 20% 65%)",
     colorDanger: "hsl(0 84% 60%)",
-    colorBackground: "hsl(0 0% 100%)",
-    colorInput: "hsl(0 0% 100%)",
-    colorInputForeground: "hsl(222 47% 11%)",
-    colorNeutral: "hsl(214 32% 91%)",
+    colorBackground: "hsl(222 69% 9%)",
+    colorInput: "hsl(222 66% 9%)",
+    colorInputForeground: "hsl(210 40% 98%)",
+    colorInputBorder: "hsl(215 28% 27%)",
+    colorNeutral: "hsl(215 28% 27%)",
     fontFamily: "Inter, sans-serif",
-    borderRadius: "0.25rem",
+    borderRadius: "0.7rem",
   },
   elements: {
+    // Layout-only overrides; the premium TAYA card skin lives in auth.css
+    // (single source of truth for .cl-* styling).
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-white border border-slate-200 shadow-xl rounded-md w-[440px] max-w-full overflow-hidden",
+    cardBox: "border-0 shadow-none bg-transparent",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-2xl font-bold tracking-tight text-slate-900",
-    headerSubtitle: "text-sm text-slate-500",
+    headerTitle: "text-2xl font-bold tracking-tight",
+    headerSubtitle: "text-sm",
     socialButtonsBlockButtonText: "font-medium",
-    formFieldLabel: "text-sm font-medium text-slate-900",
-    footerActionLink: "font-semibold text-primary hover:text-primary/90",
-    footerActionText: "text-slate-500",
-    dividerText: "text-xs font-medium text-slate-500",
-    identityPreviewEditButton: "text-primary hover:text-primary/90",
-    formFieldSuccessText: "text-sm text-green-600",
-    alertText: "text-sm text-red-600 font-medium",
-    logoBox: "mb-6 flex justify-center",
-    logoImage: "h-12 w-auto",
-    socialButtonsBlockButton: "border-slate-200 bg-white hover:bg-slate-50 text-slate-900",
-    formButtonPrimary: "bg-primary hover:bg-primary/90 text-white shadow-sm font-medium",
-    formFieldInput: "flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-    footerAction: "bg-slate-50 border-t border-slate-200 py-4",
-    dividerLine: "bg-slate-200",
-    alert: "bg-red-50 border border-red-200 rounded-md p-3",
-    otpCodeFieldInput: "border-slate-200 bg-white text-slate-900",
+    formFieldLabel: "text-sm font-medium",
+    dividerText: "text-xs font-medium",
+    formFieldSuccessText: "text-sm",
+    alertText: "text-sm font-medium",
+    logoBox: "hidden",
+    formButtonPrimary: "font-semibold",
     formFieldRow: "space-y-4",
     main: "p-6",
   },
@@ -255,29 +252,64 @@ function DeactivationGuard() {
   return null;
 }
 
-function AuthPageBrand({ site }: { site?: { name: string; logoUrl: string | null } | null }) {
+function AuthBrandPanel() {
   return (
-    <div className="flex flex-col items-center mb-8">
+    <div className="auth-brand-panel">
+      <div className="auth-brand-panel-inner">
+        <img src={tayaLogoUrl} alt="TAYA" className="auth-brand-panel-logo" />
+        <div className="auth-brand-word" aria-hidden="true">TAYA</div>
+        <p className="auth-brand-panel-tag">Tools. Automation. Your Advantage.</p>
+        <div className="auth-brand-panel-divider" />
+        <ul className="auth-brand-panel-points">
+          <li>Content, media, and SEO operations in one controlled workspace</li>
+          <li>Events, courses, forms, and client portals under one roof</li>
+          <li>Security-first website operations with audited access control</li>
+        </ul>
+      </div>
+      <p className="auth-brand-panel-foot">
+        TAYA™ — Website Operating System<br />
+        Built and managed by Full Stack Tech & Solutions LLC
+      </p>
+    </div>
+  );
+}
+
+function AuthPageBrand({
+  site,
+  action = "Admin Login",
+}: {
+  site?: { name: string; logoUrl: string | null } | null;
+  action?: string;
+}) {
+  return (
+    <div className="auth-brand-stack">
       {site?.logoUrl ? (
-        <img src={site.logoUrl} alt={site.name} className="h-16 w-auto mb-3" />
+        <img src={site.logoUrl} alt={site.name} className="auth-brand-logo" />
       ) : (
-        <img src={tayaLogoUrl} alt="TAYA" className="h-16 w-auto mb-3" />
+        <img src={tayaLogoUrl} alt="TAYA" className="auth-brand-logo" />
       )}
-      <p className="text-sm font-semibold tracking-[0.18em] text-slate-700 uppercase">
-        TAYA Client Dashboard
-      </p>
-      <p className="text-xs font-medium text-slate-400 tracking-wide mt-1">
-        {site ? `${site.name} — Admin Login` : "Tools. Automation. Your Advantage."}
-      </p>
+      <p className="auth-brand-product">TAYA Client Dashboard</p>
+      {site ? (
+        <h1 className="auth-brand-site">{site.name} — {action}</h1>
+      ) : (
+        <p className="auth-brand-tagline">Tools. Automation. Your Advantage.</p>
+      )}
+      {site && (
+        <p className="auth-brand-managed">
+          <img src={tayaLogoUrl} alt="" aria-hidden="true" />
+          Managed through <strong>TAYA</strong>
+        </p>
+      )}
     </div>
   );
 }
 
 function SignInPage() {
   const isDeactivated = new URLSearchParams(window.location.search).get("deactivated") === "1";
-  // Phase 6 branded-login context: /sign-in?site=<slug> shows the client's
-  // website name (and logo when uploaded) above the Clerk card. Cosmetic only —
-  // authentication is always the platform Clerk instance.
+  // Site-aware login context: /sign-in?site=<slug> shows the client's logo
+  // and name above the Clerk card. Cosmetic only — authentication is
+  // always the platform Clerk instance, and an unknown slug fails closed to
+  // the standard TAYA brand with no tenant leakage.
   const siteSlug = new URLSearchParams(window.location.search).get("site");
   const siteBrand = useQuery(api.sites.publicBrandBySlug, siteSlug ? { slug: siteSlug } : "skip");
   const siteContext = siteSlug
@@ -286,23 +318,48 @@ function SignInPage() {
       : siteBrand
     : null;
   return (
-    <div className="flex flex-col min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-12">
-      <AuthPageBrand site={siteContext} />
-      {isDeactivated && (
-        <div className="mb-4 w-full max-w-[440px] rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          Your account has been deactivated. Please contact your administrator.
+    <div className="auth-shell">
+      <AuthBrandPanel />
+      <div className="auth-form-panel">
+        <div className="auth-form-stack">
+          <AuthPageBrand site={siteContext} />
+          {isDeactivated && (
+            <div className="auth-deactivated">
+              Your account has been deactivated. Please contact your administrator.
+            </div>
+          )}
+          <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+          <p className="auth-attribution">
+            <strong>TAYA™</strong> — Secure website operations by Full Stack Tech & Solutions LLC
+          </p>
         </div>
-      )}
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      </div>
     </div>
   );
 }
 
 function SignUpPage() {
+  // Propagate the site-aware context from /sign-up?site=<slug> so the brand
+  // stack matches the sign-in experience (informational only, fails closed).
+  const siteSlug = new URLSearchParams(window.location.search).get("site");
+  const siteBrand = useQuery(api.sites.publicBrandBySlug, siteSlug ? { slug: siteSlug } : "skip");
+  const siteContext = siteSlug
+    ? siteBrand === undefined
+      ? null
+      : siteBrand
+    : null;
   return (
-    <div className="flex flex-col min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-12">
-      <AuthPageBrand />
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+    <div className="auth-shell">
+      <AuthBrandPanel />
+      <div className="auth-form-panel">
+        <div className="auth-form-stack">
+          <AuthPageBrand site={siteContext} action="Create Account" />
+          <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+          <p className="auth-attribution">
+            <strong>TAYA™</strong> — Secure website operations by Full Stack Tech & Solutions LLC
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
