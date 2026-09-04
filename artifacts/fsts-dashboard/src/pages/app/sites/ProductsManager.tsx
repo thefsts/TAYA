@@ -473,9 +473,9 @@ export default function ProductsManager({ params }: { params: { siteId: string }
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Slug *</Label>
+                <Label>Web Address *</Label>
                 <Input
-                  aria-label="Slug"
+                  aria-label="Web Address"
                   required
                   value={form.slug}
                   onChange={(e) => setForm({ ...form, slug: e.target.value })}

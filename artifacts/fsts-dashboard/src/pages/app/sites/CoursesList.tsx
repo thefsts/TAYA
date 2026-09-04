@@ -631,8 +631,8 @@ export default function CoursesList({ params }: { params: { siteId: string } }) 
                   <Input aria-label="title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Slug</Label>
-                  <Input aria-label="slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+                  <Label>Web Address</Label>
+                  <Input aria-label="Web Address" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
                 </div>
               </div>
               <div className="space-y-1.5">

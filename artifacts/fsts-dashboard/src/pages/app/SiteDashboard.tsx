@@ -37,6 +37,8 @@ import { AIAssistant } from "@/components/AIAssistant";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarNav } from "@/components/SidebarNav";
 import { useSidebarUi } from "@/hooks/useSidebarUi";
+import GettingStartedCard from "@/components/GettingStartedCard";
+import WelcomeTour from "@/components/WelcomeTour";
 
 function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
   const [open, setOpen] = useState(false);
@@ -545,6 +547,7 @@ export default function SiteDashboard() {
   const params = useParams();
   const siteId = params.siteId as unknown as Id<"sites">;
 
+  const me = useQuery(api.users.me);
   const summary = useQuery(api.sites.getDashboardSummary, { siteId });
   const site = useQuery(api.sites.get, { siteId });
   const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId });
@@ -666,6 +669,16 @@ export default function SiteDashboard() {
         </>
       ) : summary ? (
         <>
+          {/* Phase 5: Getting Started checklist with real completion state */}
+          <GettingStartedCard
+            siteId={siteId as unknown as string}
+            siteName={site?.name}
+            domain={site?.domain}
+            summary={summary as any}
+            modules={effectiveModules as any}
+            userId={me?._id}
+          />
+
           {/* Content counts stat cards */}
           <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-7">
             <StatCard title="Courses" value={summary.courseCount} label="Catalog items" />
@@ -1101,6 +1114,7 @@ export default function SiteDashboard() {
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center text-slate-500 shadow-sm">Failed to load dashboard summary.</div>
       )}
+      <WelcomeTour siteId={siteId as unknown as string} userId={me?._id} me={me} />
     </AppLayout>
   );
 }

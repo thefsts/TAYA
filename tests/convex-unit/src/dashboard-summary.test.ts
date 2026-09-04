@@ -12,6 +12,7 @@
  *   ✓ a client assigned to ANOTHER site cannot read this site's summary
  *   ✓ an anonymous caller receives null
  *   ✓ unreadSubmissionCount counts only unread form submissions
+ *   ✓ teamCount counts this site's team members (Phase 5 — Getting Started)
  *
  * @vitest-environment edge-runtime
  */
@@ -131,6 +132,11 @@ describe("sites.getDashboardSummary — real-data counts", () => {
         await ctx.db.insert("mediaAssets", { siteId: siteA, fileName: `file-${i}.png`, mimeType: "image/png", sizeBytes: 1000, url: `https://cdn.test/${i}.png` });
       }
 
+      // 2 team members on siteA, 1 on siteB (tenant isolation)
+      await ctx.db.insert("teamMembers", { siteId: siteA, name: "Jane Coach", role: "Head Coach", isActive: true, order: 0 });
+      await ctx.db.insert("teamMembers", { siteId: siteA, name: "Sam Trainer", role: "Trainer", isActive: true, order: 1 });
+      await ctx.db.insert("teamMembers", { siteId: siteB, name: "Other Site", role: "Owner", isActive: true, order: 0 });
+
       // 2 form submissions: 1 read, 1 unread
       await ctx.db.insert("formSubmissions", { siteId: siteA, formType: "contact", status: "new", submittedAt: now - 1000, submitterName: "Read One", submitterEmail: "r@t.local", readAt: now, data: {} });
       await ctx.db.insert("formSubmissions", { siteId: siteA, formType: "contact", status: "new", submittedAt: now, submitterName: "Unread One", submitterEmail: "u@t.local", data: {} });
@@ -144,6 +150,7 @@ describe("sites.getDashboardSummary — real-data counts", () => {
     expect(result!.eventCount).toBe(3);
     expect(result!.articleCount).toBe(3);
     expect(result!.serviceCount).toBe(2);
+    expect(result!.teamCount).toBe(2);
     expect(result!.publishedArticles).toBe(1);
     expect(result!.draftArticles).toBe(2);
     expect(result!.mediaCount).toBe(4);
@@ -163,6 +170,7 @@ describe("sites.getDashboardSummary — real-data counts", () => {
     expect(summary!.eventCount).toBe(0);
     expect(summary!.articleCount).toBe(0);
     expect(summary!.serviceCount).toBe(0);
+    expect(summary!.teamCount).toBe(0);
     expect(summary!.publishedArticles).toBe(0);
     expect(summary!.draftArticles).toBe(0);
     expect(summary!.mediaCount).toBe(0);
