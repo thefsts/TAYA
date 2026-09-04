@@ -8,7 +8,7 @@ import {
   MODULE_LABELS,
   defaultModulesForWebsiteType,
 } from "@/lib/siteModules";
-import { Redirect, Link } from "wouter";
+import { Redirect, Link, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ export default function AdminSites() {
   const me = useQuery(api.users.me);
   const sites = useQuery(api.sites.list);
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const createSite = useMutation(api.sites.create);
   const updateSite = useMutation(api.sites.update);
@@ -127,8 +128,9 @@ export default function AdminSites() {
           enabledModules: form.enabledModules,
         });
         toast({ title: "Site updated" });
+        setDialogOpen(false);
       } else {
-        await createSite({
+        const site = await createSite({
           name: form.name,
           slug: form.slug,
           status: form.status,
@@ -140,9 +142,13 @@ export default function AdminSites() {
           websiteType: form.websiteType,
           enabledModules: form.enabledModules,
         });
-        toast({ title: "Site created" });
+        toast({
+          title: "Site created",
+          description: "Next: assign the client owner so their Admin Login opens only this website.",
+        });
+        setDialogOpen(false);
+        navigate(`/app/admin/users?invite=1&siteId=${encodeURIComponent(String(site._id))}`);
       }
-      setDialogOpen(false);
     } catch (err) {
       toast({
         title: "Something went wrong",
@@ -226,7 +232,7 @@ export default function AdminSites() {
               ))}
               {sites.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-500">No sites found.</td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">No sites found.</td>
                 </tr>
               )}
             </tbody>
@@ -235,84 +241,86 @@ export default function AdminSites() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[calc(100vh-2rem)] max-w-lg flex-col overflow-hidden p-0 sm:max-h-[calc(100vh-3rem)]">
+          <DialogHeader className="shrink-0 border-b border-slate-200 px-6 py-4 pr-12">
             <DialogTitle>{editing ? "Edit Site" : "Create Site"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Name</Label>
-              <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Slug</Label>
-              <Input aria-label="slug" required disabled={!!editing} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as SiteStatus })}>
-                <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="staging">Staging</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Domain</Label>
-              <Input aria-label="example.com" placeholder="example.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Website Type</Label>
-              <Select value={form.websiteType} onValueChange={handleWebsiteTypeChange}>
-                <SelectTrigger aria-label="Website Type"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {WEBSITE_TYPE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+              <div className="space-y-1.5">
+                <Label>Name</Label>
+                <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Slug</Label>
+                <Input aria-label="slug" required disabled={!!editing} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Status</Label>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as SiteStatus })}>
+                  <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="staging">Staging</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Domain</Label>
+                <Input aria-label="example.com" placeholder="example.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Website Type</Label>
+                <Select value={form.websiteType} onValueChange={handleWebsiteTypeChange}>
+                  <SelectTrigger aria-label="Website Type"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {WEBSITE_TYPE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">Sets sensible default modules below. You can still adjust each toggle.</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Enabled Modules</Label>
+                <div className="border border-slate-200 rounded-md divide-y divide-slate-100">
+                  {MODULE_KEYS.map((key) => (
+                    <div key={key} className="flex items-center justify-between px-3 py-2">
+                      <span className="text-sm text-slate-700">{MODULE_LABELS[key]}</span>
+                      <Switch
+                        checked={form.enabledModules[key]}
+                        onCheckedChange={(v) =>
+                          setForm((f) => ({ ...f, enabledModules: { ...f.enabledModules, [key]: v } }))
+                        }
+                      />
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-slate-500">Sets sensible default modules below. You can still adjust each toggle.</p>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Enabled Modules</Label>
-              <div className="border border-slate-200 rounded-md divide-y divide-slate-100">
-                {MODULE_KEYS.map((key) => (
-                  <div key={key} className="flex items-center justify-between px-3 py-2">
-                    <span className="text-sm text-slate-700">{MODULE_LABELS[key]}</span>
-                    <Switch
-                      checked={form.enabledModules[key]}
-                      onCheckedChange={(v) =>
-                        setForm((f) => ({ ...f, enabledModules: { ...f.enabledModules, [key]: v } }))
-                      }
-                    />
-                  </div>
-                ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Primary Brand Color</Label>
+                  <Input aria-label="brand color primary" type="color" value={form.brandColorPrimary} onChange={(e) => setForm({ ...form, brandColorPrimary: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Secondary Brand Color</Label>
+                  <Input aria-label="brand color secondary" type="color" value={form.brandColorSecondary} onChange={(e) => setForm({ ...form, brandColorSecondary: e.target.value })} />
+                </div>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <Label>White Label Enabled</Label>
+                <Switch checked={form.whiteLabelEnabled} onCheckedChange={(v) => setForm({ ...form, whiteLabelEnabled: v })} />
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <Label>"Powered by FSTS" Badge</Label>
+                <Switch checked={form.poweredByFsts} onCheckedChange={(v) => setForm({ ...form, poweredByFsts: v })} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Primary Brand Color</Label>
-                <Input aria-label="brand color primary" type="color" value={form.brandColorPrimary} onChange={(e) => setForm({ ...form, brandColorPrimary: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Secondary Brand Color</Label>
-                <Input aria-label="brand color secondary" type="color" value={form.brandColorSecondary} onChange={(e) => setForm({ ...form, brandColorSecondary: e.target.value })} />
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <Label>White Label Enabled</Label>
-              <Switch checked={form.whiteLabelEnabled} onCheckedChange={(v) => setForm({ ...form, whiteLabelEnabled: v })} />
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <Label>"Powered by FSTS" Badge</Label>
-              <Switch checked={form.poweredByFsts} onCheckedChange={(v) => setForm({ ...form, poweredByFsts: v })} />
-            </div>
-            <DialogFooter>
+            <DialogFooter className="shrink-0 border-t border-slate-200 bg-white px-6 py-4">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Saving…" : "Save"}
+                {isPending ? "Saving…" : editing ? "Save Changes" : "Create Site & Assign Client"}
               </Button>
             </DialogFooter>
           </form>
