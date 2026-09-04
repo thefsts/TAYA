@@ -547,6 +547,7 @@ export default function SiteDashboard() {
 
   const summary = useQuery(api.sites.getDashboardSummary, { siteId });
   const site = useQuery(api.sites.get, { siteId });
+  const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId });
   const latestScan = useQuery(api.healthScans.getLatestScan, { siteId });
   const notifications = useQuery(api.healthScans.getNotifications, { siteId });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -566,6 +567,9 @@ export default function SiteDashboard() {
       : healthScore >= 50 ? "bg-amber-50 border-amber-200"
         : "bg-red-50 border-red-200";
   const activeNotifications = notifications?.filter((n: any) => !n.readAt && !n.dismissedAt) ?? [];
+
+  // Module visibility for Quick Edit (mirrors sidebar gating: null → show, false → hide).
+  const moduleIsVisible = (key: string) => effectiveModules == null || effectiveModules[key] !== false;
 
   return (
     <AppLayout siteId={siteId}>
@@ -663,10 +667,11 @@ export default function SiteDashboard() {
       ) : summary ? (
         <>
           {/* Content counts stat cards */}
-          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-7">
             <StatCard title="Courses" value={summary.courseCount} label="Catalog items" />
             <StatCard title="Events" value={summary.eventCount} label="Scheduled" />
             <StatCard title="Articles" value={summary.articleCount} label="Total posts" />
+            <StatCard title="Services" value={summary.serviceCount} label="Offerings" />
             <StatCard title="Published" value={summary.publishedArticles} label="Live articles" />
             <StatCard title="Drafts" value={summary.draftArticles} label="Pending" />
             <StatCard title="Media" value={summary.mediaCount} label="Assets" />
@@ -770,7 +775,7 @@ export default function SiteDashboard() {
               </Card>
 
               {/* Upcoming Events */}
-              {summary.upcomingEvents && summary.upcomingEvents.length > 0 && (
+              {summary.upcomingEvents && (
                 <Card className="rounded-2xl border-slate-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-lg">
@@ -780,32 +785,44 @@ export default function SiteDashboard() {
                       </span>
                       <Link href={`/app/sites/${siteId}/events`}>
                         <Button variant="ghost" size="sm" className="text-xs text-primary">
-                          Manage \u2192
+                          Manage →
                         </Button>
                       </Link>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {summary.upcomingEvents.map((event: any) => (
-                        <div key={event.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-slate-800">{event.title}</p>
-                            {event.location && <p className="truncate text-xs text-slate-500">{event.location}</p>}
+                    {summary.upcomingEvents.length > 0 ? (
+                      <div className="space-y-3">
+                        {summary.upcomingEvents.map((event: any) => (
+                          <div key={event.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-slate-800">{event.title}</p>
+                              {event.location && <p className="truncate text-xs text-slate-500">{event.location}</p>}
+                            </div>
+                            <div className="flex-shrink-0 text-right">
+                              <p className="text-xs font-semibold text-slate-700">{new Date(event.startAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+                              <p className="text-[10px] text-slate-400">{new Date(event.startAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</p>
+                            </div>
                           </div>
-                          <div className="flex-shrink-0 text-right">
-                            <p className="text-xs font-semibold text-slate-700">{new Date(event.startAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
-                            <p className="text-[10px] text-slate-400">{new Date(event.startAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
+                        <p className="text-sm font-medium text-slate-600">No upcoming events</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          When you schedule an event, it appears here so visitors can find it.{" "}
+                          <Link href={`/app/sites/${siteId}/events`} className="font-medium text-primary hover:underline">
+                            Schedule your first event
+                          </Link>
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
 
               {/* Upcoming Courses */}
-              {summary.upcomingCourses && summary.upcomingCourses.length > 0 && (
+              {summary.upcomingCourses && (
                 <Card className="rounded-2xl border-slate-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-lg">
@@ -815,32 +832,44 @@ export default function SiteDashboard() {
                       </span>
                       <Link href={`/app/sites/${siteId}/courses`}>
                         <Button variant="ghost" size="sm" className="text-xs text-primary">
-                          Manage \u2192
+                          Manage →
                         </Button>
                       </Link>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {summary.upcomingCourses.map((course: any) => (
-                        <div key={course.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-slate-800">{course.title}</p>
-                          </div>
-                          {course.startDateTime && (
-                            <div className="flex-shrink-0 text-right">
-                              <p className="text-xs font-semibold text-slate-700">{new Date(course.startDateTime).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+                    {summary.upcomingCourses.length > 0 ? (
+                      <div className="space-y-3">
+                        {summary.upcomingCourses.map((course: any) => (
+                          <div key={course.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-slate-800">{course.title}</p>
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                            {course.startDateTime && (
+                              <div className="flex-shrink-0 text-right">
+                                <p className="text-xs font-semibold text-slate-700">{new Date(course.startDateTime).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
+                        <p className="text-sm font-medium text-slate-600">No upcoming courses</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Courses and classes you schedule will show up here.{" "}
+                          <Link href={`/app/sites/${siteId}/courses`} className="font-medium text-primary hover:underline">
+                            Create your first course
+                          </Link>
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
 
               {/* Recent Media */}
-              {summary.recentMedia && summary.recentMedia.length > 0 && (
+              {summary.recentMedia && (
                 <Card className="rounded-2xl border-slate-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-lg">
@@ -850,25 +879,37 @@ export default function SiteDashboard() {
                       </span>
                       <Link href={`/app/sites/${siteId}/media`}>
                         <Button variant="ghost" size="sm" className="text-xs text-primary">
-                          Library \u2192
+                          Library →
                         </Button>
                       </Link>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                      {summary.recentMedia.map((media: any) => (
-                        <div key={media.id} className="aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                          {(media.thumbnailUrl || media.url) ? (
-                            <img src={media.thumbnailUrl || media.url} alt={media.altText || media.fileName} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <ImageIcon className="h-6 w-6 text-slate-300" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    {summary.recentMedia.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+                        {summary.recentMedia.map((media: any) => (
+                          <div key={media.id} className="aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                            {(media.thumbnailUrl || media.url) ? (
+                              <img src={media.thumbnailUrl || media.url} alt={media.altText || media.fileName} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center">
+                                <ImageIcon className="h-6 w-6 text-slate-300" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
+                        <p className="text-sm font-medium text-slate-600">No media yet</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Photos and files you upload appear here for quick reuse.{" "}
+                          <Link href={`/app/sites/${siteId}/media`} className="font-medium text-primary hover:underline">
+                            Upload your first image
+                          </Link>
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -1012,36 +1053,46 @@ export default function SiteDashboard() {
                   <CardTitle className="text-sm">Quick Edit</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Link href={`/app/sites/${siteId}/homepage`}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
-                      <LayoutTemplate className="mr-2 h-4 w-4 text-slate-400" />
-                      Edit Homepage
-                    </Button>
-                  </Link>
-                  <Link href={`/app/sites/${siteId}/articles`}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
-                      <FileText className="mr-2 h-4 w-4 text-slate-400" />
-                      Write Article
-                    </Button>
-                  </Link>
-                  <Link href={`/app/sites/${siteId}/events`}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
-                      <Calendar className="mr-2 h-4 w-4 text-slate-400" />
-                      Add Event
-                    </Button>
-                  </Link>
-                  <Link href={`/app/sites/${siteId}/courses`}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
-                      <BookOpen className="mr-2 h-4 w-4 text-slate-400" />
-                      Add Course
-                    </Button>
-                  </Link>
-                  <Link href={`/app/sites/${siteId}/media`}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
-                      <ImageIcon className="mr-2 h-4 w-4 text-slate-400" />
-                      Upload Media
-                    </Button>
-                  </Link>
+                  {moduleIsVisible("homepage") && (
+                    <Link href={`/app/sites/${siteId}/homepage`}>
+                      <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                        <LayoutTemplate className="mr-2 h-4 w-4 text-slate-400" />
+                        Edit Homepage
+                      </Button>
+                    </Link>
+                  )}
+                  {moduleIsVisible("articles") && (
+                    <Link href={`/app/sites/${siteId}/articles`}>
+                      <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                        <FileText className="mr-2 h-4 w-4 text-slate-400" />
+                        Write Article
+                      </Button>
+                    </Link>
+                  )}
+                  {moduleIsVisible("events") && (
+                    <Link href={`/app/sites/${siteId}/events`}>
+                      <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                        <Calendar className="mr-2 h-4 w-4 text-slate-400" />
+                        Add Event
+                      </Button>
+                    </Link>
+                  )}
+                  {moduleIsVisible("courses") && (
+                    <Link href={`/app/sites/${siteId}/courses`}>
+                      <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                        <BookOpen className="mr-2 h-4 w-4 text-slate-400" />
+                        Add Course
+                      </Button>
+                    </Link>
+                  )}
+                  {moduleIsVisible("media") && (
+                    <Link href={`/app/sites/${siteId}/media`}>
+                      <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
+                        <ImageIcon className="mr-2 h-4 w-4 text-slate-400" />
+                        Upload Media
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             </div>

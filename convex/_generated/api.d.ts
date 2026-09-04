@@ -39,6 +39,7 @@ import type * as healthScans from "../healthScans.js";
 import type * as homepage from "../homepage.js";
 import type * as http from "../http.js";
 import type * as invitationState from "../invitationState.js";
+import type * as lib_adminLogin from "../lib/adminLogin.js";
 import type * as lib_capabilities from "../lib/capabilities.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_crmProviders from "../lib/crmProviders.js";
@@ -128,6 +129,7 @@ declare const fullApi: ApiFromModules<{
   homepage: typeof homepage;
   http: typeof http;
   invitationState: typeof invitationState;
+  "lib/adminLogin": typeof lib_adminLogin;
   "lib/capabilities": typeof lib_capabilities;
   "lib/constants": typeof lib_constants;
   "lib/crmProviders": typeof lib_crmProviders;
