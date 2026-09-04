@@ -1,162 +1,524 @@
-/* FSTS dashboard authentication shell.
-   Clerk owns the authentication behavior; this file only styles the public
-   sign-in/sign-up surfaces so they visually match the client dashboard. */
+/* TAYA authentication experience (D8 production login shell).
+   Clerk owns authentication behavior; this file only styles the public
+   sign-in / sign-up surfaces: the TAYA split-layout shell, the site-aware
+   brand stack, and the Clerk card skin. This is the single source of truth
+   for .cl-* auth styling — index.css intentionally carries no Clerk rules. */
 
-.cl-rootBox {
+/* ---------------------------------------------------------------------------
+   1. Shell — deep TAYA navy with spectrum accents
+   --------------------------------------------------------------------------- */
+.auth-shell {
   position: relative;
-  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100dvh;
+  background:
+    radial-gradient(1100px 620px at 14% 6%, rgb(236 13 198 / 0.13), transparent 62%),
+    radial-gradient(950px 580px at 88% 94%, rgb(36 107 254 / 0.16), transparent 62%),
+    radial-gradient(720px 480px at 70% 34%, rgb(124 60 255 / 0.10), transparent 66%),
+    linear-gradient(150deg, #04091a 0%, #071126 46%, #0b1430 100%);
 }
 
-.cl-rootBox::before {
+/* Full-width spectrum hairline, echoing the dashboard sidebar top bar. */
+.auth-shell::before {
   content: "";
   position: fixed;
-  inset: 0;
-  z-index: -3;
-  background:
-    radial-gradient(circle at 12% 18%, rgba(132, 204, 22, 0.18), transparent 30%),
-    radial-gradient(circle at 86% 78%, rgba(100, 116, 139, 0.18), transparent 28%),
-    linear-gradient(135deg, #07111f 0%, #0f172a 48%, #172033 100%);
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 6;
+  background: linear-gradient(90deg,
+    var(--taya-pink), var(--taya-magenta), var(--taya-violet),
+    var(--taya-blue), var(--taya-cyan), var(--taya-orange), var(--taya-yellow));
 }
 
-.cl-rootBox::after {
-  content: "FSTS WEBSITE OPERATING SYSTEM™";
-  position: fixed;
-  left: 50%;
-  top: 2rem;
-  transform: translateX(-50%);
-  z-index: -1;
-  width: min(90vw, 72rem);
-  text-align: center;
-  color: rgba(255, 255, 255, 0.38);
-  font-size: 0.72rem;
+/* ---------------------------------------------------------------------------
+   2. Brand panel — TAYA platform identity (desktop split layout only)
+   --------------------------------------------------------------------------- */
+.auth-brand-panel {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  padding: 3.5rem 3.5rem 2.75rem;
+  border-right: 1px solid rgb(51 65 85 / 0.55);
+  background: linear-gradient(180deg, rgb(7 17 38 / 0.6), rgb(4 9 26 / 0.15));
+  overflow: hidden;
+}
+
+/* Vertical spectrum seam on the panel's outer edge. */
+.auth-brand-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg,
+    var(--taya-pink), var(--taya-magenta), var(--taya-violet),
+    var(--taya-blue), var(--taya-cyan));
+  opacity: 0.9;
+}
+
+/* Soft magenta bloom behind the wordmark. */
+.auth-brand-panel::after {
+  content: "";
+  position: absolute;
+  top: 18%;
+  left: -14rem;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgb(236 13 198 / 0.14), transparent 62%);
+  pointer-events: none;
+}
+
+.auth-brand-panel-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  margin: auto 0; /* centers between the panel top and the foot */
+}
+
+.auth-brand-panel-logo {
+  height: 3.5rem;
+  width: auto;
+  margin-bottom: 1.75rem;
+  filter: drop-shadow(0 8px 20px rgb(0 0 0 / 0.45));
+}
+
+.auth-brand-word {
+  font-size: clamp(3.4rem, 4.6vw, 4.6rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  padding-left: 0.16em; /* optical centering for the tracking */
+  color: transparent;
+  background: linear-gradient(100deg,
+    var(--taya-pink) 0%, var(--taya-magenta) 28%, var(--taya-violet) 52%,
+    var(--taya-blue) 76%, var(--taya-cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 10px 26px rgb(36 107 254 / 0.22));
+}
+
+.auth-brand-panel-tag {
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.auth-brand-panel-divider {
+  width: 4.5rem;
+  height: 2px;
+  margin: 1.9rem 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--taya-pink), var(--taya-violet), var(--taya-blue));
+}
+
+.auth-brand-panel-points {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.auth-brand-panel-points li {
+  position: relative;
+  padding-left: 1.35rem;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.auth-brand-panel-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.42em;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--taya-magenta), var(--taya-blue));
+  box-shadow: 0 0 10px rgb(236 13 198 / 0.45);
+}
+
+.auth-brand-panel-foot {
+  position: relative;
+  z-index: 1;
+  padding-top: 2.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+/* ---------------------------------------------------------------------------
+   3. Form panel — site-aware brand stack + Clerk card
+   --------------------------------------------------------------------------- */
+.auth-form-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 3.25rem 1.5rem 2.25rem;
+}
+
+.auth-form-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 30rem;
+  margin: auto 0; /* graceful vertical centering (no clipping on overflow) */
+}
+
+.auth-brand-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.6rem;
+  text-align: center;
+}
+
+.auth-brand-logo {
+  height: 3.25rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  margin-bottom: 0.95rem;
+  filter: drop-shadow(0 8px 20px rgb(0 0 0 / 0.5));
+}
+
+.auth-brand-product {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.auth-brand-site {
+  margin: 0.45rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #f8fafc;
+}
+
+.auth-brand-tagline {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.auth-brand-managed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0;
+  padding: 0.32rem 0.85rem;
+  border: 1px solid rgb(51 65 85 / 0.85);
+  border-radius: 999px;
+  background: rgb(8 18 39 / 0.75);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #cbd5e1;
+}
+
+.auth-brand-managed img {
+  height: 0.8rem;
+  width: auto;
+}
+
+.auth-brand-managed strong {
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #f8fafc;
+}
+
+.auth-deactivated {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgb(248 113 113 / 0.38);
+  border-radius: 0.7rem;
+  background: rgb(127 29 29 / 0.22);
+  color: #fecaca;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.auth-attribution {
+  margin: 1.4rem 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  text-align: center;
+}
+
+.auth-attribution strong {
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+/* ---------------------------------------------------------------------------
+   4. Clerk card skin — premium TAYA navy card (auth.css owns all .cl-* rules)
+   --------------------------------------------------------------------------- */
+.cl-rootBox {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .cl-cardBox {
-  width: min(100%, 460px) !important;
-  border: 1px solid rgba(226, 232, 240, 0.95) !important;
-  border-radius: 1.25rem !important;
+  position: relative;
+  width: min(100%, 27.5rem) !important;
   overflow: hidden !important;
-  background: rgba(255, 255, 255, 0.985) !important;
+  border: 1px solid rgb(51 65 85 / 0.9) !important;
+  border-radius: 1.1rem !important;
+  background: linear-gradient(180deg, rgb(13 24 48 / 0.98), rgb(7 17 38 / 0.99)) !important;
   box-shadow:
-    0 40px 90px -42px rgba(2, 6, 23, 0.9),
-    0 20px 50px -30px rgba(2, 6, 23, 0.7) !important;
+    0 34px 90px -38px rgb(36 107 254 / 0.5),
+    0 18px 45px -30px rgb(236 13 198 / 0.55) !important;
 }
 
 .cl-cardBox::before {
   content: "";
-  display: block;
-  height: 5px;
-  background: linear-gradient(90deg, #4d7c0f, #84cc16, #4d7c0f);
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  z-index: 2;
+  background: linear-gradient(90deg,
+    var(--taya-pink), var(--taya-magenta), var(--taya-violet),
+    var(--taya-blue), var(--taya-cyan), var(--taya-orange), var(--taya-yellow));
 }
 
 .cl-card {
+  padding-top: 0.5rem !important;
   background: transparent !important;
-  box-shadow: none !important;
+  color: #f8fafc !important;
 }
 
-.cl-logoBox {
-  margin-bottom: 1.25rem !important;
-}
-
-.cl-logoImage {
-  height: 3.4rem !important;
-  width: auto !important;
+.cl-header {
+  padding-bottom: 0.25rem;
 }
 
 .cl-headerTitle {
-  color: #0f172a !important;
-  font-size: 1.75rem !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.035em !important;
+  letter-spacing: -0.025em !important;
+  color: #f8fafc !important;
 }
 
-.cl-headerSubtitle {
-  color: #64748b !important;
-  line-height: 1.6 !important;
+.cl-headerSubtitle,
+.cl-footerActionText,
+.cl-dividerText {
+  color: #94a3b8 !important;
 }
 
-.cl-formFieldLabel {
-  color: #1e293b !important;
-  font-weight: 650 !important;
+.cl-formFieldLabel,
+.cl-socialButtonsBlockButtonText,
+.cl-identityPreviewText {
+  color: #e2e8f0 !important;
 }
 
 .cl-formFieldInput {
-  min-height: 2.9rem !important;
-  border-radius: 0.75rem !important;
-  border: 1px solid #cbd5e1 !important;
-  background: #fff !important;
-  color: #0f172a !important;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+  min-height: 2.75rem !important;
+  border-radius: 0.7rem !important;
+  border-color: rgb(51 65 85) !important;
+  background: rgb(8 18 39 / 0.9) !important;
+  color: #f8fafc !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.cl-formFieldInput:hover {
+  border-color: rgb(80 102 143) !important;
 }
 
 .cl-formFieldInput:focus {
-  border-color: #65a30d !important;
-  box-shadow: 0 0 0 4px rgba(101, 163, 13, 0.13) !important;
+  border-color: var(--taya-blue) !important;
+  box-shadow: 0 0 0 3px rgb(36 107 254 / 0.2), 0 0 24px rgb(236 13 198 / 0.08) !important;
+}
+
+.cl-formFieldInput::placeholder {
+  color: #64748b !important;
+}
+
+.cl-formFieldInputShowPasswordButton,
+.cl-formFieldInputShowPasswordButton svg {
+  color: #94a3b8 !important;
+}
+
+.cl-formFieldSuccessText {
+  color: #4ade80 !important;
+}
+
+.cl-formFieldErrorText,
+.cl-formFieldErrorText * {
+  color: #fca5a5 !important;
+}
+
+.cl-formFieldInfoText {
+  color: #94a3b8 !important;
 }
 
 .cl-formButtonPrimary {
-  min-height: 2.9rem !important;
-  border-radius: 0.75rem !important;
-  background: linear-gradient(180deg, #4d7c0f, #3f6212) !important;
+  min-height: 2.8rem !important;
+  border: 0 !important;
+  border-radius: 0.7rem !important;
   color: white !important;
   font-weight: 700 !important;
-  box-shadow: 0 12px 28px -16px rgba(63, 98, 18, 0.9) !important;
+  background: linear-gradient(90deg,
+    var(--taya-magenta), var(--taya-pink) 35%, var(--taya-violet) 62%, var(--taya-blue) 100%) !important;
+  box-shadow: 0 12px 26px -14px rgb(236 13 198 / 0.9) !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease !important;
 }
 
 .cl-formButtonPrimary:hover {
-  background: linear-gradient(180deg, #5c8f13, #4d7c0f) !important;
   transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: 0 16px 32px -15px rgb(36 107 254 / 0.9) !important;
+}
+
+.cl-formButtonPrimary:active {
+  transform: translateY(0);
 }
 
 .cl-socialButtonsBlockButton {
-  min-height: 2.75rem !important;
-  border-radius: 0.75rem !important;
-  border-color: #cbd5e1 !important;
-  background: #fff !important;
+  min-height: 2.65rem !important;
+  border-radius: 0.7rem !important;
+  border-color: rgb(51 65 85) !important;
+  background: rgb(8 18 39 / 0.7) !important;
+  color: #f8fafc !important;
 }
 
-.cl-footer,
+.cl-socialButtonsBlockButton:hover {
+  border-color: rgb(80 102 143) !important;
+  background: rgb(13 24 48 / 0.85) !important;
+}
+
+.cl-footer {
+  background: rgb(8 18 39 / 0.7) !important;
+}
+
 .cl-footerAction {
-  background: #f8fafc !important;
+  border-radius: 0 0 1rem 1rem !important;
+  border-color: rgb(51 65 85) !important;
 }
 
-.cl-footerAction {
-  border-top: 1px solid #e2e8f0 !important;
-  padding-block: 1rem !important;
+.cl-footerActionLink,
+.cl-identityPreviewEditButton,
+.cl-formResendCodeLink {
+  color: #38bdf8 !important;
+  font-weight: 600 !important;
 }
 
-.cl-footerActionLink {
-  color: #4d7c0f !important;
-  font-weight: 700 !important;
-}
-
-.cl-alert {
-  border-radius: 0.75rem !important;
+.cl-footerActionLink:hover,
+.cl-identityPreviewEditButton:hover,
+.cl-formResendCodeLink:hover {
+  color: #7dd3fc !important;
 }
 
 .cl-identityPreview {
-  border-radius: 0.75rem !important;
+  border-radius: 0.7rem !important;
 }
 
+.cl-alert {
+  border-radius: 0.7rem !important;
+  background: rgb(127 29 29 / 0.22) !important;
+  border: 1px solid rgb(248 113 113 / 0.35) !important;
+}
+
+.cl-alertText,
+.cl-alertText * {
+  color: #fecaca !important;
+}
+
+.cl-alert svg {
+  color: #f87171 !important;
+}
+
+.cl-otpCodeFieldInput {
+  border-color: rgb(51 65 85) !important;
+  background: rgb(8 18 39 / 0.9) !important;
+  color: #f8fafc !important;
+}
+
+.cl-logoBox {
+  margin-bottom: 1.1rem !important;
+}
+
+.cl-logoImage {
+  height: 2.75rem !important;
+  width: auto !important;
+}
+
+/* ---------------------------------------------------------------------------
+   5. Responsive behavior — split desktop / centered tablet / fluid mobile
+   --------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .auth-shell {
+    grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr);
+  }
+
+  .auth-brand-panel {
+    display: flex;
+  }
+
+  .auth-form-panel {
+    min-height: 100vh;
+    padding: 3.5rem 3rem;
+  }
+}
+
+/* Mobile (≤640px): full-width fluid layout, no clipping at 390px. */
 @media (max-width: 640px) {
-  .cl-rootBox::after {
-    top: 1rem;
-    font-size: 0.62rem;
-    letter-spacing: 0.13em;
+  .auth-form-panel {
+    min-height: 100dvh;
+    padding: 2.75rem 1rem 1.75rem;
+  }
+
+  .auth-form-stack {
+    max-width: 100%;
+  }
+
+  .auth-brand-logo {
+    height: 2.75rem;
+  }
+
+  .auth-brand-site {
+    font-size: 1.18rem;
   }
 
   .cl-cardBox {
-    width: min(100%, calc(100vw - 1.5rem)) !important;
+    width: 100% !important;
+    max-width: calc(100vw - 2rem) !important;
     border-radius: 1rem !important;
+    box-shadow: 0 18px 45px -28px rgb(36 107 254 / 0.45) !important;
   }
 
   .cl-main {
-    padding: 1.35rem !important;
+    padding: 1.25rem !important;
   }
 
   .cl-headerTitle {
-    font-size: 1.5rem !important;
+    font-size: 1.3rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-formButtonPrimary,
+  .cl-formButtonPrimary:hover {
+    transition: none !important;
+    transform: none !important;
   }
 }
