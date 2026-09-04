@@ -376,13 +376,14 @@ export const getDashboardSummary = query({
 
     const now = Date.now();
 
-    const [site, courses, events, articles, media, backups, squareConfig, contactInfo, emailSettings, recentActivity, recentSubmissions, seoSettings, recentMedia] =
+    const [site, courses, events, articles, media, services, backups, squareConfig, contactInfo, emailSettings, recentActivity, recentSubmissions, seoSettings, recentMedia] =
       await Promise.all([
         ctx.db.get(siteId),
         ctx.db.query("courses").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
         ctx.db.query("events").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
         ctx.db.query("articles").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
         ctx.db.query("mediaAssets").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
+        ctx.db.query("siteServices").withIndex("by_site", (q) => q.eq("siteId", siteId)).collect(),
         ctx.db.query("backups").withIndex("by_site", (q) => q.eq("siteId", siteId)).order("desc").take(1),
         ctx.db.query("squareConfig").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
         ctx.db.query("contactInfo").withIndex("by_site", (q) => q.eq("siteId", siteId)).first(),
@@ -447,6 +448,7 @@ export const getDashboardSummary = query({
       courseCount: courses.length,
       eventCount: events.length,
       articleCount: articles.length,
+      serviceCount: services.length,
       publishedArticles,
       draftArticles,
       mediaCount: media.length,
