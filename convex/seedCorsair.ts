@@ -104,7 +104,7 @@ export const seedHomepage = internalMutation({
       heroHeadline: "Professional Security Services Across All 50 States",
       heroSubheadline:
         "Corsair Tactical Solutions provides professional security services, armed protective services, private investigations, and state-certified security training nationwide. Veteran-owned. Licensed & Insured.",
-      heroImageUrl: "https://storage.googleapis.com/corsair-tactical/hero-range.jpg",
+      heroImageUrl: "/images/corsair-real/hero-corsair-training-outdoor-01.jpg",
       sections: [
         {
           type: "features",
@@ -287,7 +287,7 @@ export const seedSeo = internalMutation({
         title: "Corsair Tactical Solutions | Professional Security Services & Training",
         description:
           "Professional security services, armed protection, private investigations, and state-certified security training nationwide. Veteran-owned. Licensed & Insured.",
-        ogImageUrl: "https://storage.googleapis.com/corsair-tactical/og-home.jpg",
+        ogImageUrl: "/og-default.jpg",
         canonicalUrl: "https://corsairtacticalsolutions.com/",
       },
       {
@@ -295,7 +295,7 @@ export const seedSeo = internalMutation({
         title: "Training Courses — Corsair Tactical Solutions",
         description:
           "Texas DPS-certified security officer training, Texas License to Carry (LTC) certification, defensive shooting, and private firearms instruction. All skill levels.",
-        ogImageUrl: "https://storage.googleapis.com/corsair-tactical/og-courses.jpg",
+        ogImageUrl: "/og-default.jpg",
         canonicalUrl: "https://corsairtacticalsolutions.com/courses",
       },
       {
@@ -303,7 +303,7 @@ export const seedSeo = internalMutation({
         title: "About Corsair Tactical Solutions — Veteran-Owned Security & Training",
         description:
           "Corsair Tactical Solutions is a veteran-owned, Texas DPS-certified security and firearms training company serving North Texas and nationwide.",
-        ogImageUrl: "https://storage.googleapis.com/corsair-tactical/og-about.jpg",
+        ogImageUrl: "/og-default.jpg",
         canonicalUrl: "https://corsairtacticalsolutions.com/about",
       },
       {
@@ -373,7 +373,7 @@ Once you've passed, you submit your DPS application online, schedule fingerprint
 ## Ready to Sign Up?
 
 [Contact us](https://corsairtacticalsolutions.com/contact) or call **214-335-6652** to register for the next available class.`,
-      coverImageUrl: "https://storage.googleapis.com/corsair-tactical/blog-ltc-guide.jpg",
+      coverImageUrl: "/images/corsair-real/ltc-cert-basic-handgun-01.png",
       publishedAt: now - 5 * 24 * 60 * 60 * 1000,
       category: "LTC",
       author: "Corsair Tactical Solutions",
@@ -439,7 +439,7 @@ If you want to carry: add Level III.
 If executive protection is your goal: go straight to the Level III + IV bundle.
 
 Call us at **214-335-6652** — we'll help you map out the right path.`,
-      coverImageUrl: "https://storage.googleapis.com/corsair-tactical/blog-security-levels.jpg",
+      coverImageUrl: "/images/corsair-real/classroom-training-group-01.jpg",
       publishedAt: now - 12 * 24 * 60 * 60 * 1000,
       category: "Security Training",
       author: "Corsair Tactical Solutions",
@@ -491,7 +491,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-cert-basic-handgun-01.png",
       },
       {
         title: "Texas LTC Shooting Proficiency",
@@ -509,7 +509,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-cert-basic-handgun-01.png",
       },
       {
         title: "Texas License to Carry Certification (Wichita)",
@@ -527,7 +527,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-cert-basic-handgun-01.png",
       },
       {
         title: "Online Texas License to Carry Assessment",
@@ -545,7 +545,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: false,
         autoArchive: false,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-cert-basic-handgun-01.png",
       },
       // ── Beginner Firearms ─────────────────────────────────────────────────
       {
@@ -564,7 +564,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       {
         title: "First Shots Basic Firearm Training",
@@ -582,7 +582,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       {
         title: "Introduction to Firearms",
@@ -600,7 +600,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       // ── Defensive & Scenario-Based ────────────────────────────────────────
       {
@@ -619,7 +619,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       {
         title: "Concealed Carry Home Defense",
@@ -637,7 +637,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       {
         title: "Continuing Education",
@@ -655,7 +655,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       // ── Security Training & Certification ─────────────────────────────────
       {
@@ -674,7 +674,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level2.jpg",
+        imageUrl: "/images/corsair-real/level-2-unarmed-officer-01.png",
       },
       {
         title: "Level 3 Armed Security Officer — Commissioned",
@@ -692,7 +692,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level3.jpg",
+        imageUrl: "/images/corsair-real/level-3-armed-security-01.jpg",
       },
       {
         title: "Level 4 Bodyguard (Personal Protection Officer)",
@@ -710,7 +710,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level4.jpg",
+        imageUrl: "/images/corsair-real/level-4-bodyguard-01.jpg",
       },
       {
         title: "Level III + IV Complete Package",
@@ -728,7 +728,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-bundle.jpg",
+        imageUrl: "/images/corsair-real/hilton-training-braids-01.jpg",
       },
       {
         title: "Non-Lethal Defense Training",
@@ -747,7 +747,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: false,
         autoArchive: false,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level2.jpg",
+        imageUrl: "/images/corsair-real/level-2-unarmed-officer-01.png",
       },
       {
         title: "Firearm Proficiency Re-Qualification",
@@ -765,7 +765,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level3.jpg",
+        imageUrl: "/images/corsair-real/level-3-armed-security-01.jpg",
       },
       {
         title: "Armed First Responder",
@@ -783,7 +783,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level3.jpg",
+        imageUrl: "/images/corsair-real/level-3-armed-security-01.jpg",
       },
       // ── Rifle & Shotgun ───────────────────────────────────────────────────
       {
@@ -802,7 +802,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       {
         title: "AR-15 Rifle Course",
@@ -820,7 +820,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       // ── First Aid & Medical Response ───────────────────────────────────────
       {
@@ -839,7 +839,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
       {
         title: "First Aid Training",
@@ -857,7 +857,7 @@ export const seedCourses = internalMutation({
         timezone: "America/Chicago",
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
     ];
 
@@ -915,8 +915,12 @@ export const _ensureCorsairCoursesMutation = internalMutation({
         websiteType: "standard",
         enabledModules: { courses: true, events: true },
         domain: "corsairtacticalsolutions.com",
-        logoUrl: "https://storage.googleapis.com/corsair-tactical/logo-white.png",
-        faviconUrl: "https://storage.googleapis.com/corsair-tactical/favicon.ico",
+        // Branding fields render via plain <img> in the dashboard/portal
+        // (app.fstsclientsystem.com), so they must be absolute URLs —
+        // site-relative paths would 404 against the dashboard domain.
+        logoUrl:
+          "https://www.corsairtacticalsolution.com/corsair-logo-transparent.png",
+        faviconUrl: "https://www.corsairtacticalsolution.com/favicon.ico",
       } as any);
       site = await ctx.db.get(newSiteId);
       siteCreated = true;
@@ -933,7 +937,7 @@ export const _ensureCorsairCoursesMutation = internalMutation({
           "Texas DPS-certified License to Carry course. Covers Texas handgun laws, safe storage, shooting proficiency qualification, and all requirements to obtain your Texas LTC. All skill levels welcome — loaner firearms available.",
         durationLabel: "1 day",
         priceCents: 10000,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-cert-basic-handgun-01.png",
       },
       {
         title: "Level II Unarmed Security Officer Training",
@@ -943,7 +947,7 @@ export const _ensureCorsairCoursesMutation = internalMutation({
           "Texas DPS-certified Level II unarmed security officer training. Required for all licensed security officers in Texas. Covers legal authority, use of force, report writing, and professional conduct.",
         durationLabel: "1 day",
         priceCents: 6500,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level2.jpg",
+        imageUrl: "/images/corsair-real/level-2-unarmed-officer-01.png",
       },
       {
         title: "Level III Armed Security Officer Training",
@@ -953,7 +957,7 @@ export const _ensureCorsairCoursesMutation = internalMutation({
           "Texas DPS-certified Level III armed security officer training. Covers firearm safety, shooting proficiency, legal use of force, and all requirements for a Texas armed security officer license.",
         durationLabel: "2 days",
         priceCents: 13000,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level3.jpg",
+        imageUrl: "/images/corsair-real/level-3-armed-security-01.jpg",
       },
       {
         title: "Level IV Personal Protection Officer (PPO) Training",
@@ -963,7 +967,7 @@ export const _ensureCorsairCoursesMutation = internalMutation({
           "Texas DPS-certified Level IV bodyguard and personal protection officer training. Designed for executive protection professionals. Covers protective driving, threat assessment, and close-protection tactics.",
         durationLabel: "2 days",
         priceCents: 22500,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-level4.jpg",
+        imageUrl: "/images/corsair-real/level-4-bodyguard-01.jpg",
       },
       {
         title: "Level III + IV Complete Package",
@@ -973,7 +977,7 @@ export const _ensureCorsairCoursesMutation = internalMutation({
           "Complete your Level III and Level IV certifications together and save $45. The fastest path from unarmed to fully licensed personal protection officer.",
         durationLabel: "3 days",
         priceCents: 40000,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-bundle.jpg",
+        imageUrl: "/images/corsair-real/hilton-training-braids-01.jpg",
       },
       {
         title: "Basic Handgun & Private Instruction",
@@ -985,7 +989,7 @@ export const _ensureCorsairCoursesMutation = internalMutation({
         // Intentionally contact-only: private and group session rates vary.
         priceCents: null,
         contactOnly: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/course-private.jpg",
+        imageUrl: "/images/corsair-real/basic-handgun-1on1-personal-01.jpg",
       },
     ];
 
@@ -1056,7 +1060,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-06-27", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       {
         title: "Texas LTC Certification Class — July 2026",
@@ -1081,7 +1085,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-07-18", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       {
         title: "Level III/IV Security Officer Training — July 2026",
@@ -1106,7 +1110,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-07-06", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       // ── Upcoming events (Aug–Oct 2026) ────────────────────────────────────
       {
@@ -1132,7 +1136,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-08-29", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       {
         title: "Level 2 Unarmed Security Officer Training — August 2026",
@@ -1157,7 +1161,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-08-22", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-level2.jpg",
+        imageUrl: "/images/corsair-real/level-2-unarmed-officer-01.png",
       },
       {
         title: "Level III/IV Security Officer Training — September 2026",
@@ -1182,7 +1186,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-09-12", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-sep-level34.jpg",
+        imageUrl: "/images/corsair-real/hilton-training-braids-01.jpg",
       },
       {
         title: "Texas LTC Certification Class — September 2026",
@@ -1207,7 +1211,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-09-26", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       {
         title: "Texas LTC Certification Class — October 2026",
@@ -1232,7 +1236,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-10-17", 17),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       // ── Nov 2026 (CST — clocks fall back Nov 1, 2026) ────────────────────
       {
@@ -1258,7 +1262,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-11-07", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-level2.jpg",
+        imageUrl: "/images/corsair-real/level-2-unarmed-officer-01.png",
       },
       {
         title: "Level III/IV Security Officer Training — November 2026",
@@ -1283,7 +1287,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-11-09", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-sep-level34.jpg",
+        imageUrl: "/images/corsair-real/hilton-training-braids-01.jpg",
       },
       {
         title: "Texas LTC Certification Class — November 2026",
@@ -1308,7 +1312,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2026-11-14", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       // ── Q1 2027 (CST until Mar 14, 2027; CDT from Mar 14 onward) ─────────
       {
@@ -1334,7 +1338,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2027-01-09", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-level2.jpg",
+        imageUrl: "/images/corsair-real/level-2-unarmed-officer-01.png",
       },
       {
         title: "Texas LTC Certification Class — January 2027",
@@ -1359,7 +1363,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2027-01-16", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       {
         title: "Level III/IV Security Officer Training — February 2027",
@@ -1384,7 +1388,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2027-02-08", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-sep-level34.jpg",
+        imageUrl: "/images/corsair-real/hilton-training-braids-01.jpg",
       },
       {
         title: "Texas LTC Certification Class — February 2027",
@@ -1409,7 +1413,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2027-02-20", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
       {
         title: "Level 2 Unarmed Security Officer Training — March 2027",
@@ -1434,7 +1438,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2027-03-07", 17, "CST"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-level2.jpg",
+        imageUrl: "/images/corsair-real/level-2-unarmed-officer-01.png",
       },
       {
         title: "Texas LTC Certification Class — March 2027",
@@ -1459,7 +1463,7 @@ export const seedEvents = internalMutation({
         registrationCloseAt: ctMs("2027-03-21", 17, "CDT"),
         autoCloseRegistration: true,
         autoArchive: true,
-        imageUrl: "https://storage.googleapis.com/corsair-tactical/event-aug-ltc.jpg",
+        imageUrl: "/images/corsair-real/ltc-shooting-proficiency-01.png",
       },
     ];
 
@@ -1584,7 +1588,7 @@ export const seedPortalConfig = internalMutation({
       enabled: true,
       registrationOpen: true,
       requireApproval: false,
-      logoUrl: "https://storage.googleapis.com/corsair-tactical/logo-dark.png",
+      logoUrl: "/corsair-logo.png",
       primaryColor: "#1A3A52",
       welcomeMessage:
         "Welcome to the Corsair Tactical Solutions Client Portal. Access your course materials, training certificates, and booking history here. Questions? Contact us at corsairtacticalsolutions@gmail.com.",
