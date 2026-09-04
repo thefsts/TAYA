@@ -5,6 +5,11 @@
 # reach inboxes.  Run this before onboarding the first client, and again
 # whenever a new client's sender domain is added to Resend.
 #
+# ARCHITECTURE LOCK — website-owned delivery: client websites own their
+# transactional email. Form-submission notifications are sent by the client
+# website's own Resend configuration (its hosting env RESEND_API_KEY + DNS),
+# not by TAYA. The platform RESEND_API_KEY is optional dormant infrastructure.
+#
 # Usage:
 #   bash scripts/verify-email-delivery.sh [--domain <sender-domain>]
 #
@@ -51,9 +56,17 @@ echo "╚═══════════════════════�
 echo "  Sender domain: $DOMAIN"
 echo "  Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 
-# ─── 1. Platform RESEND_API_KEY in Convex production ─────────────────────────
+# ─── 1. Platform RESEND_API_KEY in Convex production (informational) ─
 sep
-echo "CHECK 1 — Platform RESEND_API_KEY in Convex production"
+echo "CHECK 1 — Platform RESEND_API_KEY in Convex production (informational)"
+echo ""
+# ARCHITECTURE LOCK — email architecture (website-owned delivery):
+# Client websites own their transactional email delivery:
+#   Client Website Form → POST to TAYA → TAYA Inbox storage →
+#   Client Website's own Resend configuration sends the notification.
+# The platform RESEND_API_KEY is dormant infrastructure for future
+# TAYA-owned platform email features; its absence is a healthy by-design
+    # state and NOT a launch blocker. This check is therefore informational.
 
 if [[ -z "${CONVEX_DEPLOY_KEY:-}" ]]; then
   warn "CONVEX_DEPLOY_KEY not set — skipping Convex env check (run from Replit with the secret available)"
@@ -62,12 +75,16 @@ else
     npx convex env get RESEND_API_KEY 2>/dev/null || true)
 
   if echo "$KEY_RESULT" | grep -qi "not found"; then
-    fail "RESEND_API_KEY is NOT set in Convex production (deployment: $(echo "$KEY_RESULT" | grep -o 'on .* deployment [^ ]*' || echo 'unknown'))"
-    echo "       Action: Set it in the Convex dashboard → Settings → Environment Variables"
-    echo "       OR configure a per-site resendApiKey via the Email Config module for each client."
-    echo "       Without either, all emails are silently skipped."
+    ok "Platform RESEND_API_KEY not set — website-owned delivery (by design, not a launch blocker)"
+    echo "       Form-submission notifications are sent by the client website's own Resend"
+    echo "       configuration, not by TAYA. To verify a site's email delivery, check that"
+    echo "       site's website-side Resend setup (its hosting env RESEND_API_KEY + DNS)."
+    echo "       A per-site resendApiKey in TAYA Email Config is optional and only enables"
+    echo "       TAYA-side sends (portal welcome / form-builder notifications)."
   else
-    ok "RESEND_API_KEY is set in Convex production (platform fallback key present)"
+    ok "Platform RESEND_API_KEY is set in Convex production (dormant platform mail infrastructure)"
+    echo "       Note: this key serves only future TAYA-owned platform email features —"
+    echo "       it is not used for client form-submission notifications (website-owned)."
   fi
 fi
 

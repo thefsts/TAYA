@@ -86,11 +86,21 @@ export async function configStatusHandler(
         ? "sandbox"
         : "unknown";
 
+  // EMAIL ARCHITECTURE (locked): client websites own their transactional
+  // email delivery — each website sends its own form notifications from its
+  // own Resend configuration, and TAYA stores submissions in the site Inbox.
+  // A platform RESEND_API_KEY is NOT required for client form operation; it
+  // is dormant infrastructure reserved for future TAYA-owned platform
+  // features (dashboard welcome / payment confirmations).
+  const emailDelivery = resendApiKey
+    ? "platform-key-configured"
+    : "website-owned";
+
   return adminOk({
     squareWebhookVerification: squareWebhookKey ? "configured" : "missing",
     resendApiKey: resendApiKey ? "configured" : "missing",
     convexEnvironment,
-    emailDelivery: resendApiKey ? "configured" : "missing",
+    emailDelivery,
     siteSlug: siteSlug || null,
     checkedAt: new Date().toISOString(),
   });

@@ -110,7 +110,9 @@ describe("configStatusHandler — response shape (superadmin)", () => {
     expect(body.squareWebhookVerification).toBe("configured");
     expect(body.resendApiKey).toBe("configured");
     expect(body.convexEnvironment).toBe("production");
-    expect(body.emailDelivery).toBe("configured");
+    // Email architecture lock: a platform key reports the dormant platform
+    // path; it is never required for client form notifications.
+    expect(body.emailDelivery).toBe("platform-key-configured");
     expect(body.siteSlug).toBe("apex-fitness-studio");
     expect(typeof body.checkedAt).toBe("string");
     expect(body.checkedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
@@ -130,7 +132,9 @@ describe("configStatusHandler — response shape (superadmin)", () => {
     expect(body.squareWebhookVerification).toBe("missing");
     expect(body.resendApiKey).toBe("missing");
     expect(body.convexEnvironment).toBe("unknown");
-    expect(body.emailDelivery).toBe("missing");
+    // Email architecture lock: no platform key — client websites own their
+    // delivery, so this is the normal, healthy production state, NOT an outage.
+    expect(body.emailDelivery).toBe("website-owned");
     expect(body.siteSlug).toBeNull();
   });
 

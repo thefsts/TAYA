@@ -20,7 +20,7 @@ Neither mechanism ever exposes secret values — only `"configured"` or `"missin
 | `CLERK_SECRET_KEY` | **Required** | Clerk authentication (server-side) | Server-side Clerk calls fail; user management and webhook verification break |
 | `VITE_CLERK_PUBLISHABLE_KEY` | **Required** | Clerk authentication (client-side) | Dashboard fails to initialise Clerk; all users see a blank auth screen |
 | `VITE_CONVEX_URL` | **Required** | Convex backend connectivity | Dashboard cannot connect to Convex; all data loading fails silently |
-| `RESEND_API_KEY` | **Required (per-site)** | Transactional email delivery | Welcome emails and form-submission notifications are silently skipped with no visible error |
+| `RESEND_API_KEY` | **Optional — dormant platform mail infrastructure** | Future TAYA-owned platform features (dashboard welcome / payment confirmations) | Nothing for client form operation: client websites own their transactional email delivery (website form → TAYA Inbox → website's own Resend sends the notification). Form notifications on the TAYA side fire only per-site (`emailSettings.resendApiKey`) and skip gracefully when absent |
 | `SQUARE_WEBHOOK_SIGNATURE_KEY` | **Required (per-site)** | Square webhook signature verification | Webhooks accept any payload without verifying the Square signature; spoofed payment events pass unchallenged |
 | `AI_INTEGRATIONS_OPENAI_API_KEY` | Recommended | AI Dashboard Assistant | AI chat assistant is silently unavailable |
 | `AI_INTEGRATIONS_OPENAI_BASE_URL` | Recommended | AI Dashboard Assistant (endpoint routing) | AI requests may hit the wrong endpoint |
@@ -147,7 +147,7 @@ Authorization: Bearer <clerk-session-token>
   "squareWebhookVerification": "configured",
   "resendApiKey": "missing",
   "convexEnvironment": "production",
-  "emailDelivery": "missing",
+  "emailDelivery": "website-owned",
   "siteSlug": "apex-fitness-studio",
   "checkedAt": "2026-08-03T14:22:01.000Z"
 }
@@ -156,9 +156,9 @@ Authorization: Bearer <clerk-session-token>
 | Field | Values | Meaning |
 |---|---|---|
 | `squareWebhookVerification` | `"configured"` \| `"missing"` | Whether `SQUARE_WEBHOOK_SIGNATURE_KEY` is set |
-| `resendApiKey` | `"configured"` \| `"missing"` | Whether `RESEND_API_KEY` is set |
+| `resendApiKey` | `"configured"` \| `"missing"` | Whether the platform `RESEND_API_KEY` env var is set (dormant platform mail infrastructure — not required for client form operation) |
 | `convexEnvironment` | `"production"` \| `"sandbox"` \| `"unknown"` | Value of `CONVEX_DEPLOYMENT_ENVIRONMENT` |
-| `emailDelivery` | `"configured"` \| `"missing"` | Same as `resendApiKey`; present as a semantic alias |
+| `emailDelivery` | `"platform-key-configured"` \| `"website-owned"` | Delivery-ownership semantics: `website-owned` is the healthy by-design state (client websites own transactional email; no platform key needed) — not an outage |
 | `siteSlug` | string \| `null` | The `siteSlug` query param you passed in |
 | `checkedAt` | ISO 8601 | Timestamp of when the check ran |
 
@@ -201,7 +201,7 @@ Each line of output is a self-contained JSON object. A typical passing run looks
 {"variable":"CLERK_SECRET_KEY","classification":"Required","status":"present","feature":"Clerk authentication (server-side)","failureMode":"...","ownerAction":"..."}
 {"variable":"VITE_CLERK_PUBLISHABLE_KEY","classification":"Required","status":"present","feature":"Clerk authentication (client-side)","failureMode":"...","ownerAction":"..."}
 {"variable":"VITE_CONVEX_URL","classification":"Required","status":"present","feature":"Convex backend connectivity","failureMode":"...","ownerAction":"..."}
-{"variable":"RESEND_API_KEY","classification":"Required (per-site)","status":"missing","feature":"Transactional email delivery","failureMode":"...","ownerAction":"Run: npx convex env set RESEND_API_KEY <key>"}
+{"variable":"RESEND_API_KEY","classification":"Optional - dormant platform mail infrastructure","status":"missing","feature":"Future TAYA-owned platform email features","failureMode":"...","ownerAction":"Not required for client form operation (website-owned delivery). Set only when enabling TAYA-owned platform email features: npx convex env set RESEND_API_KEY <key>"}
 ...
 {"summary":"PASSED","message":"All Required variables are present. Deployment is safe to proceed."}
 ```
@@ -232,7 +232,7 @@ Run these steps in order before every production deployment.
 
 7. **Verify the config-status endpoint** — call `GET /api/admin/config-status` with a superadmin token and confirm every field shows `"configured"` (or `"production"` for `convexEnvironment`).
 
-8. **Verify email delivery** — `bash scripts/verify-email-delivery.sh` (requires `RESEND_API_KEY` to be set). Send a test welcome email and confirm receipt.
+8. **Verify email delivery (per-site, website-owned)** — client websites own their transactional email delivery; verify each website's own Resend configuration on its hosting (e.g. Vercel `RESEND_API_KEY` for its `/api/contact` route). A platform `RESEND_API_KEY` is not required. Per-site TAYA sends (if the owner opts in) can be checked with `bash scripts/verify-email-delivery.sh --domain <client-domain>`.
 
 9. **Check the domain** — `curl -sI https://fstsclientsystem.com | grep -E "HTTP|server|x-vercel"`. Confirm HTTP 200 from Vercel.
 

@@ -306,6 +306,7 @@ export const submitPublic = internalMutation({
     const notificationEmails: string[] = settings.notificationEmails ?? [];
     if (notificationEmails.length > 0) {
       await ctx.scheduler.runAfter(0, internal.forms.sendSubmissionNotification, {
+        siteId,
         formName: form.name,
         formSlug: form.slug,
         submissionId: id.toString(),
@@ -321,10 +322,16 @@ export const submitPublic = internalMutation({
 });
 
 // Sends notification emails when a form is submitted. Called via scheduler.
-// Reads RESEND_API_KEY from environment; logs only when key is absent so the
-// submission pipeline never blocks on email delivery.
+// ARCHITECTURE LOCK — website-owned delivery:
+// Reads the site's own emailSettings (emailSettings.resendApiKey) and sends
+// from the site's own sender identity. There is intentionally NO platform
+// RESEND_API_KEY fallback — form-submission notifications are website-owned,
+// so a platform key must never silently start sending them. When the site
+// has no per-site key the send is skipped gracefully (logged, never throws)
+// so the submission pipeline never blocks on email delivery.
 export const sendSubmissionNotification = internalAction({
   args: {
+    siteId: v.id("sites"),
     formName: v.string(),
     formSlug: v.string(),
     submissionId: v.string(),
@@ -333,12 +340,28 @@ export const sendSubmissionNotification = internalAction({
     notificationEmails: v.array(v.string()),
     fieldCount: v.number(),
   },
-  handler: async (_ctx, args) => {
-    const apiKey = process.env.RESEND_API_KEY;
+  handler: async (ctx, args) => {
     const {
       formName, formSlug, submissionId, submitterName, submitterEmail,
       notificationEmails, fieldCount,
     } = args;
+
+    // Per-site email settings — the site's own Resend key + sender identity.
+    const settings = await ctx.runQuery(internal.email._getEmailSettings, {
+      siteId: args.siteId,
+    }) as { fromName?: string; fromEmail?: string; resendApiKey?: string } | null;
+
+    const siteApiKey = settings?.resendApiKey;
+    const senderEmail = settings?.fromEmail;
+    const senderName = settings?.fromName;
+
+    if (!siteApiKey || !senderEmail) {
+      console.info(
+        "[forms] Email notification skipped — no per-site Resend configuration (website-owned delivery).",
+        { siteId: args.siteId, formName, submissionId, notificationEmails },
+      );
+      return;
+    }
 
     const senderLine = submitterName
       ? `${submitterName}${submitterEmail ? ` <${submitterEmail}>` : ""}`
@@ -354,24 +377,16 @@ export const sendSubmissionNotification = internalAction({
       <p>Log in to your FSTS dashboard to view the full submission in Contact Inbox.</p>
     `;
 
-    if (!apiKey) {
-      console.info(
-        "[forms] Email notification skipped — RESEND_API_KEY not set.",
-        { formName, submissionId, notificationEmails },
-      );
-      return;
-    }
-
     for (const toEmail of notificationEmails) {
       try {
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${siteApiKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "noreply@fsts.app",
+            from: `${senderName ?? formName} <${senderEmail}>`,
             to: toEmail,
             subject,
             html: htmlBody,

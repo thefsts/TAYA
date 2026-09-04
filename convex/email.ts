@@ -133,6 +133,27 @@ export const sendFormNotification = internalAction({
       return { skipped: true, reason: "no notification email configured" };
     }
 
+    // ARCHITECTURE LOCK — website-owned delivery:
+    // Form-submission notifications are sent ONLY through this site's own
+    // Resend key (emailSettings.resendApiKey). Client websites own their
+    // transactional email delivery: the client website sends its own
+    // notification from its own Resend account, and TAYA stores the
+    // submission in the site Inbox. There is intentionally NO platform
+    // RESEND_API_KEY fallback here — it would duplicate delivery with the
+    // website's own send. Platform mail infrastructure stays dormant for
+    // TAYA-owned platform features (see email.send / sendDashboardWelcome).
+    const siteApiKey = settings?.resendApiKey;
+    if (!siteApiKey) {
+      console.info(
+        "[email.sendFormNotification] No per-site Resend key configured — TAYA send skipped (website-owned delivery).",
+        { siteId: args.siteId, formType: args.formType },
+      );
+      return {
+        skipped: true,
+        reason: "no per-site Resend key configured — form notifications are website-owned by design",
+      };
+    }
+
     const fromName = settings?.fromName ?? "FSTS Platform";
     const senderEmail = settings?.fromEmail; // sender identity stays as fromEmail regardless of recipient
     const submitterLabel = args.submitterName ?? args.submitterEmail ?? "Someone";
@@ -158,9 +179,10 @@ export const sendFormNotification = internalAction({
       fromName,
       fromEmail: senderEmail,
       replyTo: args.submitterEmail,
-      // Pass the per-site key so this site's emails route through its own
-      // Resend account; falls back to the platform RESEND_API_KEY in send().
-      apiKey: settings?.resendApiKey,
+      // Per-site key only (required above) — this site's emails route through
+      // its own Resend account. No platform RESEND_API_KEY fallback: client
+      // websites own their form-notification delivery.
+      apiKey: siteApiKey,
     });
     return { skipped: false };
   },
@@ -171,6 +193,9 @@ export const sendFormNotification = internalAction({
 /**
  * Send a welcome email to a newly registered portal member.
  * Only fires when the site has emailSettings configured with a fromEmail.
+ * Site-scoped delivery: sends ONLY through the site's own Resend key —
+ * portal mail is branded as the client site, so it can never route through
+ * a platform account (the client's sender domain would be unverified there).
  */
 export const sendPortalWelcome = internalAction({
   args: {
@@ -191,6 +216,23 @@ export const sendPortalWelcome = internalAction({
 
     const fromName = settings?.fromName ?? args.siteName;
 
+    // ARCHITECTURE LOCK — site-scoped delivery:
+    // Portal welcome mail is branded as the client site and must route through
+    // the site's own Resend account (emailSettings.resendApiKey). There is
+    // intentionally NO platform RESEND_API_KEY fallback: a platform key cannot
+    // send from the client's (unverified on that account) sender domain.
+    const siteApiKey = settings?.resendApiKey;
+    if (!siteApiKey) {
+      console.info(
+        "[email.sendPortalWelcome] No per-site Resend key configured — welcome email skipped.",
+        { siteId: args.siteId },
+      );
+      return {
+        skipped: true,
+        reason: "no per-site Resend key configured — portal mail is site-scoped by design",
+      };
+    }
+
     const bodyText = args.requiresApproval
       ? `Thank you for registering! Your account is pending approval. You will receive another email once you have been approved.`
       : `Your account is active and you can log in now.`;
@@ -209,9 +251,8 @@ export const sendPortalWelcome = internalAction({
       html,
       fromName,
       fromEmail,
-      // Pass the per-site key so portal welcome emails route through the same
-      // Resend account as the site's other outbound mail.
-      apiKey: settings?.resendApiKey,
+      // Per-site key only (required above) — the site's own Resend account.
+      apiKey: siteApiKey,
     });
     return { skipped: false };
   },

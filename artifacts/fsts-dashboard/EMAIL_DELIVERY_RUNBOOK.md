@@ -18,7 +18,7 @@ All transactional email in `convex/email.ts` is classified below.
 | **Sender (`from`)** | Client's `emailSettings.fromEmail` (e.g. `hello@acmeplumbing.com`) |
 | **Recipient** | Client's `emailSettings.notificationEmail` or `fromEmail` |
 | **Ownership** | **Client-website-owned.** The content, sender, and recipient are all the client's. FSTS-WOS™ is the delivery conduit only. |
-| **API key required** | Client's own `resendApiKey` in Email Config (preferred), or platform `RESEND_API_KEY` as fallback |
+| **API key required** | Client's own `resendApiKey` in Email Config **only** (per-site-key-only, ARCHITECTURE LOCK: no platform fallback — the client **website** sends its own notification; TAYA-side sends are an opt-in and never duplicate website-owned delivery) |
 
 ### `sendPortalWelcome` — Tenant-specific dashboard message
 
@@ -28,33 +28,49 @@ All transactional email in `convex/email.ts` is classified below.
 | **Sender (`from`)** | Client's `emailSettings.fromEmail` |
 | **Recipient** | The newly registered portal member |
 | **Ownership** | **Tenant-specific dashboard message.** Initiated by FSTS-WOS™ portal machinery; uses client-branded sender identity. |
-| **API key required** | Client's `resendApiKey` (preferred), or platform `RESEND_API_KEY` as fallback |
+| **API key required** | Client's `resendApiKey` **only** (site-scoped by design: portal mail is branded as the client site and can never route through a platform account — the client's sender domain would be unverified there) |
 
 ---
 
-## 2. Architecture Verdict
+## 2. Architecture Verdict — WEBSITE-OWNED DELIVERY (LOCKED)
 
-> **FSTS-WOS™ does NOT require its own dedicated platform Resend account for the current email flows.**
+> **TAYA does NOT require a platform `RESEND_API_KEY` for client form operation.**
+> Client websites own their transactional email delivery: the required flow is
+> **Client Website Form → POST submission to TAYA → TAYA stores it in the
+> site-specific Inbox → the client website sends its own email notification
+> using that website's Resend configuration.**
 
-Every message in `convex/email.ts` sends from a client-configured `fromEmail`. No email originates from an FSTS-WOS™ platform identity. Therefore:
+Locked rules (enforced in `convex/email.ts` and `convex/forms.ts`):
 
-- A platform-level `RESEND_API_KEY` is optional — it serves as a convenience fallback when a site has not yet configured its own key.
-- Each client should configure their own `resendApiKey` in the Email Config module.
-- Each client's sender domain must be verified in Resend (the Resend account that owns the key must have the domain added and verified).
+- `email.sendFormNotification` sends ONLY through the site's own
+  `emailSettings.resendApiKey`. When absent it returns
+  `{ skipped: true, reason: "no per-site Resend key configured …" }` —
+  there is intentionally NO platform `RESEND_API_KEY` fallback, so delivery is
+  never duplicated with the website's own send.
+- `email.sendPortalWelcome` is likewise per-site-key-only (site-scoped mail).
+- `forms.sendSubmissionNotification` (Form Builder) reads the site's own
+  emailSettings and sends from the site's own sender identity — never from a
+  platform sender and never via the platform key.
+- `email.send` keeps its `args.apiKey || process.env.RESEND_API_KEY` resolution,
+  but only TAYA-owned platform features use the platform fallback
+  (dashboard welcome / payment confirmations — dormant infrastructure for
+> future platform features).
 
-### Recommended environment variable model
+### Environment variable model
 
 | Scope | Variable | Where set | Purpose |
 |-------|----------|-----------|---------|
-| Per-site (preferred) | `resendApiKey` in `emailSettings` | FSTS dashboard → Email Config | Routes all email for that site through the client's own Resend account |
-| Platform fallback (optional) | `RESEND_API_KEY` | Convex dashboard → Environment Variables | Fallback for sites that have not yet configured their own key; also useful during initial onboarding before the client provides a key |
+| Per-site (required for TAYA-side sends) | `resendApiKey` in `emailSettings` | TAYA dashboard → Email Config | Routes TAYA-side opt-in sends for that site through the client's own Resend account |
+| Platform (dormant) | `RESEND_API_KEY` | Convex dashboard → Environment Variables | TAYA-owned platform email features only (dashboard welcome / payment confirmations). NOT used for form notifications |
+| Client website (required for website-owned sends) | `RESEND_API_KEY` | Website hosting (e.g. Vercel env vars for the website's own repo) | The website's own form-notification sends (e.g. Corsair `/api/contact` route) |
 
 ### Key resolution order in `email.send`
 
 ```
-1. args.apiKey        ← passed from sendFormNotification / sendPortalWelcome
-                        from site's emailSettings.resendApiKey
-2. process.env.RESEND_API_KEY  ← Convex deployment environment variable
+1. args.apiKey        ← passed by callers with the site's emailSettings.resendApiKey
+2. process.env.RESEND_API_KEY  ← platform key — reachable ONLY from TAYA-owned
+                        platform features (dashboard welcome / payment confirmations);
+                        form-notification callers never omit apiKey anymore
 3. (neither set) → email skipped with console.warn — never throws
 ```
 

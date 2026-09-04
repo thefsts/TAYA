@@ -185,7 +185,14 @@ When an order shows `retryScheduled`, `failed`, or `permanentlyFailed` email sta
 
 | Variable | Location | Purpose |
 |---|---|---|
-| `RESEND_API_KEY` | Convex env vars | Platform-level Resend key (fallback if no per-site key) |
+| `RESEND_API_KEY` | Convex env vars | Platform-level Resend key (fallback if no per-site key) — payment/platform emails only |
+
+> **Email architecture note:** the platform-key fallback above applies to
+> TAYA-owned platform email features only (payment confirmations, dashboard
+> welcome). Form-submission notifications are **website-owned** — the client
+> website sends its own notification from its own Resend configuration, and
+> TAYA-side form notifications fire only per-site (`emailSettings.resendApiKey`)
+> with no platform fallback.
 | `webhookSignatureKey` | `squareConfig` table (per site) | Square webhook HMAC-SHA-256 verification |
 | `PAYMENT_ENCRYPTION_KEY` | Convex env vars | AES-256-GCM key for `paymentConnectors` credentials |
 | `DASHBOARD_URL` | Convex env vars | Used in platform emails |
