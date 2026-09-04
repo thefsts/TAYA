@@ -3,13 +3,13 @@ import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, Megaphone, Save } from "lucide-react";
+import { ExternalLink, Megaphone } from "lucide-react";
 import { ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type BannerForm = {
   text: string;
@@ -74,18 +74,47 @@ export default function AnnouncementBanner({ params }: { params: { siteId: strin
     return <AppLayout siteId={params.siteId}><ClientLoadingList rows={3} /></AppLayout>;
   }
 
+  // Track unsaved changes against the saved singleton so the shell's
+  // "Unsaved changes" indicator, Discard action, and save button reflect
+  // the real editing state.
+  const isDirty = !!(existing && (
+    form.text !== (existing.text ?? "") ||
+    form.bgColor !== (existing.bgColor ?? "#1e3a5f") ||
+    form.link !== (existing.link ?? "") ||
+    form.isEnabled !== (existing.isEnabled ?? false)
+  ));
+
+  function handleDiscard() {
+    if (existing) {
+      setForm({
+        text: existing.text ?? "",
+        bgColor: existing.bgColor ?? "#1e3a5f",
+        link: existing.link ?? "",
+        isEnabled: existing.isEnabled ?? false,
+      });
+    }
+  }
+
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Announcement Banner"
+        subtitle="Create a short message that can appear across the top of your website for important updates, promotions, or alerts."
+        isDirty={isDirty}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        isSaving={isPending}
+        saveLabel="Save Changes"
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="announcement"
+        previewPath="/"
+        showPublish={false}
+      >
       <ClientPageHeader
         eyebrow="Site-Wide Message"
         title="Announcement Banner"
         description="Create a short message that can appear across the top of your website for important updates, promotions, or alerts."
-        actions={
-          <Button onClick={handleSave} disabled={isPending} className="shadow-sm">
-            <Save className="mr-2 h-4 w-4" />
-            {isPending ? "Saving…" : "Save Banner"}
-          </Button>
-        }
         meta={
           <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${form.isEnabled ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
             {form.isEnabled ? "Enabled" : "Disabled"}
@@ -169,6 +198,7 @@ export default function AnnouncementBanner({ params }: { params: { siteId: strin
           </div>
         </aside>
       </div>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

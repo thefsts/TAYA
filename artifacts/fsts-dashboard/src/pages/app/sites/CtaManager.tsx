@@ -3,12 +3,12 @@ import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, MousePointerClick, Save } from "lucide-react";
+import { ExternalLink, MousePointerClick } from "lucide-react";
 import { ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type CtaForm = {
   primaryLabel: string;
@@ -76,18 +76,47 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
   const primaryReady = Boolean(form.primaryLabel.trim() && form.primaryUrl.trim());
   const secondaryReady = Boolean(form.secondaryLabel.trim() && form.secondaryUrl.trim());
 
+  // Track unsaved changes against the saved singleton so the shell's
+  // "Unsaved changes" indicator, Discard action, and save button reflect
+  // the real editing state.
+  const isDirty = !!(existing && (
+    form.primaryLabel !== (existing.primaryLabel ?? "") ||
+    form.primaryUrl !== (existing.primaryUrl ?? "") ||
+    form.secondaryLabel !== (existing.secondaryLabel ?? "") ||
+    form.secondaryUrl !== (existing.secondaryUrl ?? "")
+  ));
+
+  function handleDiscard() {
+    if (existing) {
+      setForm({
+        primaryLabel: existing.primaryLabel ?? "",
+        primaryUrl: existing.primaryUrl ?? "",
+        secondaryLabel: existing.secondaryLabel ?? "",
+        secondaryUrl: existing.secondaryUrl ?? "",
+      });
+    }
+  }
+
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Call-to-Action Manager"
+        subtitle="Control the primary and optional secondary buttons used across your website without changing the site layout."
+        isDirty={isDirty}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        isSaving={isPending}
+        saveLabel="Save Changes"
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="cta"
+        previewPath="/"
+        showPublish={false}
+      >
       <ClientPageHeader
         eyebrow="Website Actions"
         title="Call-to-Action Manager"
         description="Control the primary and optional secondary buttons used across your website without changing the site layout."
-        actions={
-          <Button onClick={handleSave} disabled={isPending} className="shadow-sm">
-            <Save className="mr-2 h-4 w-4" />
-            {isPending ? "Saving…" : "Save Changes"}
-          </Button>
-        }
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
@@ -144,6 +173,7 @@ export default function CtaManager({ params }: { params: { siteId: string } }) {
           </div>
         </aside>
       </div>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

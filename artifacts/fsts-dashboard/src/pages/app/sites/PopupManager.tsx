@@ -3,14 +3,14 @@ import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Clock3, Layers, MousePointerClick, Save, Sparkles } from "lucide-react";
+import { Clock3, Layers, MousePointerClick, Sparkles } from "lucide-react";
 import { ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type PopupForm = {
   title: string;
@@ -88,13 +88,53 @@ export default function PopupManager({ params }: { params: { siteId: string } })
   const contentReady = Boolean(form.title.trim() && form.body.trim());
   const ctaReady = Boolean(form.ctaLabel.trim() && form.ctaUrl.trim());
 
+  // Track unsaved changes against the saved singleton so the shell's
+  // "Unsaved changes" indicator, Discard action, and save button reflect
+  // the real editing state.
+  const isDirty = !!(existing && (
+    form.title !== (existing.title ?? "") ||
+    form.body !== (existing.body ?? "") ||
+    form.ctaLabel !== (existing.ctaLabel ?? "") ||
+    form.ctaUrl !== (existing.ctaUrl ?? "") ||
+    form.triggerType !== (existing.triggerType ?? "timed") ||
+    form.delaySecs !== String(existing.delaySecs ?? 5) ||
+    form.isEnabled !== (existing.isEnabled ?? false)
+  ));
+
+  function handleDiscard() {
+    if (existing) {
+      setForm({
+        title: existing.title ?? "",
+        body: existing.body ?? "",
+        ctaLabel: existing.ctaLabel ?? "",
+        ctaUrl: existing.ctaUrl ?? "",
+        triggerType: existing.triggerType ?? "timed",
+        delaySecs: String(existing.delaySecs ?? 5),
+        isEnabled: existing.isEnabled ?? false,
+      });
+    }
+  }
+
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Popup Manager"
+        subtitle="Create an approved website popup for promotions, registrations, announcements, or other visitor actions."
+        isDirty={isDirty}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        isSaving={isPending}
+        saveLabel="Save Changes"
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="popup"
+        previewPath="/"
+        showPublish={false}
+      >
       <ClientPageHeader
         eyebrow="Visitor Engagement"
         title="Popup Manager"
         description="Create an approved website popup for promotions, registrations, announcements, or other visitor actions."
-        actions={<Button onClick={handleSave} disabled={isPending} className="shadow-sm"><Save className="mr-2 h-4 w-4" />{isPending ? "Saving…" : "Save Popup"}</Button>}
         meta={<span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${form.isEnabled ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-500"}`}>{form.isEnabled ? "Enabled" : "Disabled"}</span>}
       />
 
@@ -140,6 +180,7 @@ export default function PopupManager({ params }: { params: { siteId: string } })
           </div>
         </aside>
       </div>
+      </VisualEditorShell>
     </AppLayout>
   );
 }

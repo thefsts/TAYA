@@ -96,6 +96,11 @@ export function LivePreviewPanel({ siteId, children, section }: Props) {
           Live Preview Studio™
         </span>
 
+        {/* Honest label: this pane shows the LIVE published site. */}
+        <Badge variant="outline" className="border-green-200 bg-green-50 text-[10px] font-medium text-green-700">
+          Live site
+        </Badge>
+
         <div className={`flex items-center gap-1 p-1 rounded-md ${expanded ? "bg-slate-700" : "bg-white border border-slate-200"}`}>
           {BREAKPOINTS.map((bp) => {
             const Icon = bp.icon;

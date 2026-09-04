@@ -95,6 +95,13 @@ type VisualEditorShellProps = {
   historyHref?: string;
   /** Whether to show the Publish button (some modules are draft-only) */
   showPublish?: boolean;
+  /**
+   * Label for the save button. Defaults to "Save Draft" (collection editors
+   * with a draft stage). Singleton modules whose content is published to the
+   * live site as soon as it is saved (e.g. Announcement, Popup, CTA, Policy)
+   * should pass a label like "Save Changes".
+   */
+  saveLabel?: string;
   /** Module identifier for the click-to-edit bridge */
   moduleId?: string;
   /** Additional toolbar actions (e.g. "Add Service" button) */
@@ -286,10 +293,11 @@ type ActionBarProps = {
   onPublish?: () => void;
   onDiscard?: () => void;
   showPublish?: boolean;
+  saveLabel?: string;
   historyHref?: string;
 };
 
-function ActionBar({ isDirty, isSaving, onSave, onPublish, onDiscard, showPublish, historyHref }: ActionBarProps) {
+function ActionBar({ isDirty, isSaving, onSave, onPublish, onDiscard, showPublish, saveLabel, historyHref }: ActionBarProps) {
   return (
     <div className="flex items-center gap-2">
       {/* Unsaved changes indicator */}
@@ -319,7 +327,7 @@ function ActionBar({ isDirty, isSaving, onSave, onPublish, onDiscard, showPublis
       {onSave && (
         <Button variant="outline" size="sm" onClick={onSave} disabled={isSaving}>
           {isSaving ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Save className="mr-1.5 h-4 w-4" />}
-          Save Draft
+          {saveLabel ?? "Save Draft"}
         </Button>
       )}
 
@@ -346,6 +354,10 @@ function PreviewToolbar({ breakpoint, onBreakpointChange, onRefresh, liveUrl }: 
   return (
     <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-3 py-2">
       <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Preview</span>
+      {/* Honest label: the preview pane shows the LIVE published site. */}
+      <Badge variant="outline" className="border-green-200 bg-green-50 text-[10px] font-medium text-green-700">
+        Live site
+      </Badge>
 
       {/* Breakpoint controls */}
       <div className="flex items-center gap-0.5 rounded-md bg-white p-0.5 ring-1 ring-slate-200">
@@ -413,6 +425,7 @@ export function VisualEditorShell({
   isSaving,
   historyHref,
   showPublish = true,
+  saveLabel,
   moduleId,
   toolbarActions,
 }: VisualEditorShellProps) {
@@ -440,6 +453,21 @@ export function VisualEditorShell({
 
   const refresh = useCallback(() => setIframeKey((k) => k + 1), []);
 
+  // A completed save should be reflected in the preview. Clients expect the
+  // WordPress-Customizer loop: edit → Save Draft → the preview updates. The
+  // preview shows the live published site, so after a save completes we bump
+  // the iframe key to force a fresh load (same-origin external sites may also
+  // cache aggressively). We detect "save finished" by watching isSaving go
+  // true → false.
+  const wasSavingRef = useRef(false);
+  useEffect(() => {
+    if (wasSavingRef.current && !isSaving) {
+      // A save just completed — refresh the preview so the client sees it.
+      refresh();
+    }
+    wasSavingRef.current = !!isSaving;
+  }, [isSaving, refresh]);
+
   const handleElementClick = useCallback((elementType: string, _elementId?: string) => {
     // In the future, this can scroll to / open the relevant editor section.
     // For now, we dispatch a custom event that editor pages can listen for.
@@ -464,6 +492,7 @@ export function VisualEditorShell({
           onPublish={onPublish}
           onDiscard={onDiscard}
           showPublish={showPublish}
+          saveLabel={saveLabel}
           historyHref={historyHref}
         />
       </div>

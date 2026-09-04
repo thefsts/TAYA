@@ -31,6 +31,17 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
   const [hours, setHours] = useState<Hours[]>([]);
   const [isPending, setIsPending] = useState(false);
 
+  // Track unsaved changes by comparing current state to loaded data so the
+  // shell's "Unsaved changes" indicator (and Discard) work like the other
+  // singleton editors.
+  const isDirty = !!(data && (
+    email !== (data.email ?? "") ||
+    phone !== (data.phone ?? "") ||
+    address !== (data.address ?? "") ||
+    mapEmbedUrl !== (data.mapEmbedUrl ?? "") ||
+    JSON.stringify(hours) !== JSON.stringify(asHours((data.hours as unknown[]) ?? []))
+  ));
+
   useEffect(() => {
     if (data) {
       setEmail(data.email ?? "");
@@ -64,6 +75,16 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
     }
   }
 
+  function handleDiscard() {
+    if (data) {
+      setEmail(data.email ?? "");
+      setPhone(data.phone ?? "");
+      setAddress(data.address ?? "");
+      setMapEmbedUrl(data.mapEmbedUrl ?? "");
+      setHours(asHours((data.hours as unknown[]) ?? []));
+    }
+  }
+
   if (data === undefined) {
     return (
       <AppLayout siteId={params.siteId}>
@@ -78,11 +99,13 @@ export default function ContactInfo({ params }: { params: { siteId: string } }) 
         siteId={siteId}
         title="Contact Information"
         subtitle="Keep the public phone number, email address, location, map link, and business hours accurate."
-        isDirty={false}
+        isDirty={isDirty}
         onSave={handleSave}
+        onDiscard={handleDiscard}
         isSaving={isPending}
         historyHref={`/app/sites/${params.siteId}/history`}
         moduleId="contact"
+        saveLabel="Save Changes"
         showPublish={false}
       >
       <ClientPageHeader

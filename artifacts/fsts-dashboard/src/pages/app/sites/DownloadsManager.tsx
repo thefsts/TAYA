@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Download, Eye, EyeOff, ExternalLink, FileText, Pencil, Plus, Trash2 } from "lucide-react";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
+import { VisualEditorShell } from "@/components/VisualEditorShell";
 
 type DownloadForm = {
   title: string;
@@ -110,11 +111,20 @@ export default function DownloadsManager({ params }: { params: { siteId: string 
 
   return (
     <AppLayout siteId={params.siteId}>
+      <VisualEditorShell
+        siteId={siteId}
+        title="Downloads & Resources"
+        subtitle="Publish approved PDFs, guides, forms, and other downloadable resources for website visitors."
+        isDirty={false}
+        historyHref={`/app/sites/${params.siteId}/history`}
+        moduleId="downloads"
+        previewPath="/downloads"
+        toolbarActions={<Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Resource</Button>}
+      >
       <ClientPageHeader
         eyebrow="Website Resources"
         title="Downloads & Resources"
         description="Publish approved PDFs, guides, forms, and other downloadable resources for website visitors."
-        actions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Resource</Button>}
       />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
@@ -203,6 +213,7 @@ export default function DownloadsManager({ params }: { params: { siteId: string 
           <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Delete Resource</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </VisualEditorShell>
     </AppLayout>
   );
 }
