@@ -45,6 +45,17 @@ interface CredentialField {
   hint?: string;
 }
 
+/* ── Convex HTTP base URL (webhook endpoints) ──────────────────────────────
+ * HTTP actions are served from the deployment's *.convex.site host (the
+ * *.convex.cloud host only carries the websocket/query API and returns 404
+ * for HTTP routes). Derived from VITE_CONVEX_URL so every environment —
+ * dev, preview, production — shows clients the URL that actually receives
+ * their provider webhooks. Matches the pattern used by ReviewsManager and
+ * PublicForm. Never hardcode a deployment URL here. */
+
+const CONVEX_HTTP_URL = ((import.meta.env.VITE_CONVEX_URL as string) ?? "")
+  .replace("convex.cloud", "convex.site");
+
 const PROVIDERS: ProviderDef[] = [
   {
     id: "square",
@@ -700,7 +711,7 @@ function SettingsTab({ siteId }: { siteId: Id<"sites"> }) {
           Register this URL in your payment provider's dashboard to receive real-time payment events.
         </p>
         <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-mono text-xs text-slate-700 break-all select-all">
-          https://clean-marlin-94.convex.cloud/api/payment/webhook?provider={activeConnector?.provider ?? "square"}&slug={site?.slug ?? ""}
+          {`${CONVEX_HTTP_URL}/api/payment/webhook?provider=${activeConnector?.provider ?? "square"}&slug=${site?.slug ?? ""}`}
         </div>
         <p className="text-xs text-slate-400 mt-2">
           Requests without a valid provider signature are rejected with HTTP 401 — no silent failures.
