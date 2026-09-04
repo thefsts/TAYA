@@ -255,15 +255,19 @@ function DeactivationGuard() {
   return null;
 }
 
-function AuthPageBrand() {
+function AuthPageBrand({ site }: { site?: { name: string; logoUrl: string | null } | null }) {
   return (
     <div className="flex flex-col items-center mb-8">
-      <img src={tayaLogoUrl} alt="TAYA" className="h-16 w-auto mb-3" />
+      {site?.logoUrl ? (
+        <img src={site.logoUrl} alt={site.name} className="h-16 w-auto mb-3" />
+      ) : (
+        <img src={tayaLogoUrl} alt="TAYA" className="h-16 w-auto mb-3" />
+      )}
       <p className="text-sm font-semibold tracking-[0.18em] text-slate-700 uppercase">
         TAYA Client Dashboard
       </p>
       <p className="text-xs font-medium text-slate-400 tracking-wide mt-1">
-        Tools. Automation. Your Advantage.
+        {site ? `${site.name} — Admin Login` : "Tools. Automation. Your Advantage."}
       </p>
     </div>
   );
@@ -271,9 +275,19 @@ function AuthPageBrand() {
 
 function SignInPage() {
   const isDeactivated = new URLSearchParams(window.location.search).get("deactivated") === "1";
+  // Phase 6 branded-login context: /sign-in?site=<slug> shows the client's
+  // website name (and logo when uploaded) above the Clerk card. Cosmetic only —
+  // authentication is always the platform Clerk instance.
+  const siteSlug = new URLSearchParams(window.location.search).get("site");
+  const siteBrand = useQuery(api.sites.publicBrandBySlug, siteSlug ? { slug: siteSlug } : "skip");
+  const siteContext = siteSlug
+    ? siteBrand === undefined
+      ? null
+      : siteBrand
+    : null;
   return (
     <div className="flex flex-col min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-12">
-      <AuthPageBrand />
+      <AuthPageBrand site={siteContext} />
       {isDeactivated && (
         <div className="mb-4 w-full max-w-[440px] rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           Your account has been deactivated. Please contact your administrator.

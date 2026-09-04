@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, UserPlus, UserRoundCheck, UserRoundX } from "lucide-react";
 
 type SiteStatus = "active" | "staging" | "archived";
 type WebsiteType = string;
@@ -44,6 +44,7 @@ type EnabledModules = Record<string, boolean>;
 export default function AdminSites() {
   const me = useQuery(api.users.me);
   const sites = useQuery(api.sites.list);
+  const clientAssignments = useQuery(api.sites.getClientAssignments);
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -178,6 +179,12 @@ export default function AdminSites() {
     }
   }
 
+  // Client assignment status per site — powers the "Client" column.
+  const assignmentBySite = new Map<string, any>();
+  for (const row of clientAssignments ?? []) {
+    assignmentBySite.set(String(row.siteId), row.owner);
+  }
+
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -209,6 +216,7 @@ export default function AdminSites() {
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Type</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Status</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Domain</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-slate-500">Client</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -224,6 +232,44 @@ export default function AdminSites() {
                     <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-slate-500">{site.domain ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const owner = assignmentBySite.get(String(site._id));
+                      if (!owner) {
+                        return (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+                              <UserRoundX className="mr-1 h-3 w-3" />Not assigned
+                            </Badge>
+                            <Button
+                              aria-label={`Assign client to ${site.name}`}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/app/admin/users?invite=1&siteId=${site._id}`)}
+                            >
+                              <UserPlus className="mr-1 h-3.5 w-3.5" />Assign Client
+                            </Button>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                            <UserRoundCheck className="mr-1 h-3 w-3" />
+                            {owner.ownerConnected ? `${owner.ownerName} (owner)` : `${owner.ownerName} — invite ${owner.ownerEmail}`}
+                          </Badge>
+                          <Button
+                            aria-label={`Manage client access for ${site.name}`}
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/app/admin/users?invite=1&siteId=${site._id}`)}
+                          >
+                            <UserPlus className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(site)}><Pencil className="h-4 w-4" /></Button>
                     <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(site)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
@@ -232,7 +278,7 @@ export default function AdminSites() {
               ))}
               {sites.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">No sites found.</td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">No sites found.</td>
                 </tr>
               )}
             </tbody>

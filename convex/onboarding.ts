@@ -13,6 +13,7 @@ import { v } from "convex/values";
 import { provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
 import { insertPlaceholderProducts } from "./products";
+import { upsertClientAssignment } from "./users";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -184,6 +185,15 @@ export const launch = mutation({
   args: {
     sessionKey: v.string(),
     stepData: v.any(),
+    /** Client owner assignment (Phase 1). Optional — when provided the
+     *  website is launched with the client owner already attached. */
+    owner: v.optional(
+      v.object({
+        email: v.string(),
+        name: v.optional(v.string()),
+        role: v.optional(v.string()),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const user = await provisionUser(ctx);
@@ -411,6 +421,19 @@ export const launch = mutation({
       stepData: d,
     });
 
-    return { siteId, slug, domain };
+    // ── Assign client owner (Phase 1: coherent onboarding) ─────────────────────────────────────────────────
+    let ownerResult: { outcome: string; email: string; role: string } | null = null;
+    if (args.owner?.email?.trim()) {
+      ownerResult = await upsertClientAssignment(ctx, {
+        siteId,
+        email: args.owner.email,
+        name: args.owner.name,
+        role: args.owner.role ?? "owner",
+        actorName: user.name,
+        sendWelcomeEmail: false, // the wizard issues the Clerk invitation next
+      });
+    }
+
+    return { siteId, slug, domain, owner: ownerResult };
   },
 });

@@ -85,6 +85,33 @@ export const listWithHealth = query({
   },
 });
 
+/**
+ * Cosmetic-only site brand context for the sign-in page (?site=slug).
+ *
+ * Public (unauthenticated) by design: returns ONLY the fields shown on the
+ * branded login card — site name, logo, domain, and brand colors. Never
+ * returns ids beyond the slug lookup, user data, or configuration. A missing
+ * or unknown slug returns null so the login falls back to the standard TAYA
+ * brand presentation.
+ */
+export const publicBrandBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!site) return null;
+    return {
+      name: site.name,
+      domain: site.domain ?? null,
+      logoUrl: site.logoUrl ?? null,
+      brandColorPrimary: site.brandColorPrimary ?? null,
+      whiteLabelEnabled: site.whiteLabelEnabled === true,
+    };
+  },
+});
+
 export const get = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
@@ -278,6 +305,63 @@ export const markReviewsWidgetCdnMigrated = mutation({
     }
     await ctx.db.patch(siteId, { reviewsWidgetCdnMigrated: true });
     return { success: true };
+  },
+});
+
+/**
+ * Client assignment status for every site the caller can administer
+ * (superadmin: all sites; agency admin: agency sites; site-scoped
+ * manage-capable users: their sites).
+ *
+ * Powers the "Client: Assigned / Not Assigned" status column in the Platform
+ * Admin sites view and the review step of the onboarding wizard. Returns the
+ * client owner (role "owner") plus a count of other assigned users.
+ */
+export const getClientAssignments = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
+      .first();
+    if (!me || !me.isActive) return [];
+
+    const allSites = await ctx.db.query("sites").collect();
+    let visible: typeof allSites;
+    if (me.isSuperAdmin) {
+      visible = allSites;
+    } else if (me.isAgencyAdmin && me.agencyId) {
+      visible = allSites.filter((s) => String(s.agencyId) === String(me.agencyId));
+    } else {
+      const mySiteIds = new Set((me.roles ?? []).map((r: any) => String(r.siteId)));
+      visible = allSites.filter((s) => mySiteIds.has(String(s._id)));
+    }
+
+    const users = await ctx.db.query("users").collect();
+    const bySite = new Map<string, { ownerName: string; ownerEmail: string; ownerConnected: boolean; otherUsers: number }>();
+    for (const u of users) {
+      for (const r of (u.roles ?? []) as Array<{ siteId: string; role: string }>) {
+        const entry = bySite.get(String(r.siteId));
+        if (r.role === "owner") {
+          bySite.set(String(r.siteId), {
+            ownerName: u.name,
+            ownerEmail: u.email,
+            ownerConnected: !u.clerkUserId?.startsWith("pending:"),
+            otherUsers: entry?.otherUsers ?? 0,
+          });
+        } else if (entry) {
+          entry.otherUsers += 1;
+        }
+      }
+    }
+
+    return visible.map((s) => ({
+      siteId: s._id,
+      siteName: s.name,
+      owner: bySite.get(String(s._id)) ?? null,
+    }));
   },
 });
 
