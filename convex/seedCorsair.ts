@@ -43,9 +43,12 @@ export const seedBranding = internalMutation({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     // 1a. Update the sites record (legacy branding fields used by some views)
+    // Media note: the legacy GCS bucket (storage.googleapis.com/corsair-tactical)
+    // is offline (404 on every asset). The client's live public site serves the
+    // same logo/favicon directly, so branding references the site's own domain.
     await ctx.db.patch(siteId, {
-      logoUrl: "https://storage.googleapis.com/corsair-tactical/logo-white.png",
-      faviconUrl: "https://storage.googleapis.com/corsair-tactical/favicon.ico",
+      logoUrl: "https://www.corsairtacticalsolution.com/corsair-logo-transparent.png",
+      faviconUrl: "https://www.corsairtacticalsolution.com/favicon.ico",
       brandColorPrimary: "#1A3A52",
       brandColorSecondary: "#C41E3A",
     });
@@ -60,8 +63,8 @@ export const seedBranding = internalMutation({
       siteId,
       businessName: "Corsair Tactical Solutions",
       tagline: "Professional Security Services & Security Training in Texas",
-      logoUrl: "https://storage.googleapis.com/corsair-tactical/logo-white.png",
-      faviconUrl: "https://storage.googleapis.com/corsair-tactical/favicon.ico",
+      logoUrl: "https://www.corsairtacticalsolution.com/corsair-logo-transparent.png",
+      faviconUrl: "https://www.corsairtacticalsolution.com/favicon.ico",
       websiteType: "security_services",
       timezone: "America/Chicago",
       brandColorPrimary: "#1A3A52",
