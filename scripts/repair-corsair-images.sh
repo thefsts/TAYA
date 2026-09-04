@@ -21,11 +21,11 @@ case "$CONVEX_DEPLOY_KEY" in
   *) echo "ERROR: wrong production deploy key — refusing to touch non-prod." >&2; exit 1 ;;
 esac
 
-echo "[1/4] Pre-repair audit (dead references in Corsair records)..."
-pnpm exec convex run migrations/repairCorsairImages:audit
-
-echo "[2/4] Deploying migration function through environment guard..."
+echo "[1/4] Deploying migration function through environment guard..."
 bash scripts/deploy-convex.sh
+
+echo "[2/4] Pre-repair audit (dead references in Corsair records)..."
+pnpm exec convex run migrations/repairCorsairImages:audit
 
 echo "[3/4] Running one-off repair mutation..."
 pnpm exec convex run migrations/repairCorsairImages:repair
