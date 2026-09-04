@@ -412,7 +412,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             <p className="text-[11px] leading-tight text-slate-400">
               Powered by <span className="font-semibold text-slate-600">Full Stack Tech Solutions</span>
             </p>
-            <p className="mt-0.5 text-[10px] leading-tight text-slate-400">TAYA System\u2122</p>
+            <p className="mt-0.5 text-[10px] leading-tight text-slate-400">TAYA System™</p>
           </div>
         )}
         {agency && !compactRail && (
@@ -628,7 +628,7 @@ export default function SiteDashboard() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-lg font-semibold text-slate-900">Website Health Command Center\u2122</p>
+                <p className="text-lg font-semibold text-slate-900">Website Health Command Center™</p>
                 {activeNotifications.length > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
                     {activeNotifications.length} alert{activeNotifications.length > 1 ? "s" : ""}
@@ -772,7 +772,7 @@ export default function SiteDashboard() {
                           <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
                           <div className="min-w-0">
                             <p className="text-slate-900">
-                              <span className="font-semibold">{activity.actorName}</span> {activity.action} {activity.entityType} {activity.details && <span className="text-slate-500">\u2014 {activity.details}</span>}
+                              <span className="font-semibold">{activity.actorName}</span> {activity.action} {activity.entityType} {activity.details && <span className="text-slate-500">— {activity.details}</span>}
                             </p>
                             <p className="mt-1 font-mono text-xs text-slate-400">
                               {new Date(activity._creationTime).toLocaleString()}
