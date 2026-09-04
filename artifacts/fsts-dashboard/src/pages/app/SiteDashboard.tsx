@@ -3,125 +3,40 @@ import { useLocation, useParams, Link } from "wouter";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit, Lock, AlertTriangle } from "lucide-react";
+import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit, AlertTriangle } from "lucide-react";
 import {
+  Activity,
   ArrowLeft,
-  ChevronsUpDown,
-  Globe,
-  LayoutTemplate,
+  Bell,
   BookOpen,
   Calendar,
-  FileText,
-  Image as ImageIcon,
-  Search,
-  CreditCard,
-  Mail,
-  History,
-  Activity,
-  DatabaseBackup,
-  Phone,
-  Building2,
-  LifeBuoy,
-  HelpCircle,
-  MessageSquareQuote,
-  Inbox,
-  HeartPulse,
-  Navigation as NavIcon,
-  Megaphone,
-  MousePointerClick,
-  Download,
-  Users,
-  Briefcase,
-  Bell,
-  ShoppingBag,
-  ScrollText,
-  FormInput,
-  ShieldCheck as ShieldCheckIcon,
-  Settings,
-  Zap,
-  Star,
-  UserCog,
-  Package,
-  Newspaper,
-  Menu,
-  X,
   ChevronDown,
-  LogOut,
-  User as UserIcon,
+  ChevronsUpDown,
+  FileText,
   FlaskConical,
+  Globe,
+  HelpCircle,
+  Image as ImageIcon,
+  Inbox,
   LayoutDashboard,
-  FileStack,
+  LayoutTemplate,
+  LifeBuoy,
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  ShieldCheck as ShieldCheckIcon,
+  User as UserIcon,
+  X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AIAssistant } from "@/components/AIAssistant";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-
-function NavItem({ icon: Icon, label, href, isDesignLocked, isSuperAdmin, badge }: {
-  icon: any;
-  label: string;
-  href: string;
-  isDesignLocked?: boolean;
-  isSuperAdmin?: boolean;
-  badge?: number;
-}) {
-  const [location] = useLocation();
-  const isActive = location === href;
-  const locked = isDesignLocked && !isSuperAdmin;
-
-  if (locked) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex h-10 w-full cursor-not-allowed select-none items-center rounded-lg px-3 text-slate-400 opacity-65">
-            <Icon className="mr-3 h-4 w-4 text-slate-400" />
-            <span className="flex-1 text-left text-sm font-normal">{label}</span>
-            <Lock className="ml-1 h-3 w-3 text-slate-400" />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-xs text-xs">
-          <div className="flex items-start gap-2">
-            <Lock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-            <span>
-              <strong>{label}</strong> is managed by TAYA administrators.
-              Contact your TAYA representative to make changes.
-            </span>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return (
-    <Link href={href}>
-      <Button
-        variant={isActive ? "secondary" : "ghost"}
-        className={`h-10 w-full justify-start rounded-lg px-3 ${isActive ? "bg-primary/10 font-semibold text-primary hover:bg-primary/15" : "font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950"}`}
-      >
-        <Icon className={`mr-3 h-4 w-4 ${isActive ? "text-primary" : "text-slate-500"}`} />
-        <span className="flex-1">{label}</span>
-        {badge != null && badge > 0 && (
-          <span className="ml-1 inline-flex h-4 min-w-4 flex-shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-            {badge}
-          </span>
-        )}
-        {isDesignLocked && isSuperAdmin && (
-          <Lock className="ml-1 h-3 w-3 flex-shrink-0 text-slate-300" />
-        )}
-      </Button>
-    </Link>
-  );
-}
-
-function NavSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-1">
-      <div className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{title}</div>
-      <div className="space-y-1">{children}</div>
-    </div>
-  );
-}
+import { SidebarNav } from "@/components/SidebarNav";
+import { useSidebarUi } from "@/hooks/useSidebarUi";
 
 function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
   const [open, setOpen] = useState(false);
@@ -235,12 +150,14 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const me = useQuery(api.users.me);
   const [location] = useLocation();
   const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId: siteId as Id<"sites"> });
-  const isEnabled = (key: string) => (effectiveModules ?? (site?.enabledModules as Record<string, boolean> | undefined))?.[key] ?? true;
   const unreadNotifications = useQuery(api.healthScans.getUnreadNotificationCount, { siteId: siteId as Id<"sites"> });
   const mediaHealth = useQuery(api.media.healthStats, { siteId: siteId as Id<"sites"> });
   const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
   const isSuperAdmin = me?.isSuperAdmin ?? false;
   const isInternalQa = !!me?.roles?.some((r: any) => r.role === "internal_qa");
+
+  // WordPress-like sidebar state (collapsible groups + compact rail), persisted per user.
+  const sidebarUi = useSidebarUi(me?._id ?? null);
 
   const agencyId = (site as any)?.agencyId as Id<"agencies"> | undefined;
   const agency = useQuery(
@@ -254,6 +171,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const pageTitle = location.split("/").pop()?.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Dashboard";
   const siteStatus = site?.status ?? "active";
   const isArchived = siteStatus === "archived";
+  const compactRail = sidebarUi.compact;
 
   return (
     <div className="relative flex min-h-screen bg-slate-50">
@@ -266,25 +184,44 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
         />
       )}
 
-      {/* Responsive client workspace navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[min(19rem,88vw)] flex-shrink-0 flex-col border-r border-slate-200 bg-white shadow-2xl transition-transform duration-200 lg:static lg:z-auto lg:w-72 lg:translate-x-0 lg:shadow-none ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex h-16 items-center justify-between border-b border-slate-200 bg-slate-950 px-4 text-white">
+      {/* Responsive client workspace navigation (WordPress-like collapsible sidebar) */}
+      <aside
+        data-sidebar={compactRail ? "compact" : "full"}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(19rem,88vw)] flex-shrink-0 flex-col border-r border-slate-200 bg-white shadow-2xl transition-[transform,width] duration-200 lg:static lg:z-auto lg:translate-x-0 lg:shadow-none ${
+          compactRail ? "lg:w-16" : "lg:w-72"
+        } ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <div className="flex h-16 items-center justify-between border-b border-slate-200 bg-slate-950 px-3 text-white lg:px-4">
           <Link href="/app" onClick={() => setMobileNavOpen(false)}>
             <Button variant="ghost" size="sm" className="-ml-2 text-slate-300 hover:bg-slate-900 hover:text-white">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Websites
+              {!compactRail && "Websites"}
             </Button>
           </Link>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-9 w-9 p-0 text-slate-300 hover:bg-slate-900 hover:text-white lg:hidden"
-            onClick={() => setMobileNavOpen(false)}
-            aria-label="Close navigation"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={`hidden h-9 w-9 p-0 text-slate-300 hover:bg-slate-900 hover:text-white lg:flex ${compactRail ? "justify-center" : ""}`}
+              onClick={() => sidebarUi.toggleCompact()}
+              aria-label={compactRail ? "Expand sidebar" : "Collapse sidebar"}
+              aria-pressed={compactRail}
+              title={compactRail ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {compactRail ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 p-0 text-slate-300 hover:bg-slate-900 hover:text-white lg:hidden"
+              onClick={() => setMobileNavOpen(false)}
+              aria-label="Close navigation"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {agency && (
@@ -303,7 +240,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           </div>
         )}
 
-        <div className="border-b border-slate-200 p-4">
+        <div className={`border-b border-slate-200 ${compactRail ? "px-2 py-3" : "p-4"}`}>
           {site === undefined ? (
             <div className="flex items-center gap-3">
               <Skeleton className="h-11 w-11 rounded-xl" />
@@ -317,7 +254,8 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
               <button
                 type="button"
                 onClick={() => sites && sites.length > 1 ? setSwitcherOpen((value) => !value) : undefined}
-                className={`-m-1.5 flex w-full items-center gap-3 rounded-xl p-1.5 text-left transition-colors ${sites && sites.length > 1 ? "cursor-pointer hover:bg-slate-50" : "cursor-default"}`}
+                className={`-m-1.5 flex w-full items-center rounded-xl p-1.5 text-left transition-colors ${compactRail ? "justify-center gap-0" : "gap-3"} ${sites && sites.length > 1 ? "cursor-pointer hover:bg-slate-50" : "cursor-default"}`}
+                title={compactRail ? site?.name : undefined}
               >
                 {site?.logoUrl ? (
                   <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
@@ -328,19 +266,21 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                     {site?.name?.charAt(0)}
                   </div>
                 )}
-                <div className="min-w-0 flex-1 overflow-hidden">
-                  <h2 className="truncate font-bold tracking-tight text-slate-950" title={site?.name}>{site?.name}</h2>
-                  <div className="truncate text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                    {agency ? `${agency.name} Dashboard` : "TAYA System\u2122"}
+                {!compactRail && (
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <h2 className="truncate font-bold tracking-tight text-slate-950" title={site?.name}>{site?.name}</h2>
+                    <div className="truncate text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                      {agency ? `${agency.name} Dashboard` : "TAYA System\u2122"}
+                    </div>
                   </div>
-                </div>
-                {sites && sites.length > 1 && (
+                )}
+                {!compactRail && sites && sites.length > 1 && (
                   <ChevronsUpDown className="h-4 w-4 flex-shrink-0 text-slate-400" />
                 )}
               </button>
 
               {/* Domain + status display under site name */}
-              {site && (
+              {site && !compactRail && (
                 <div className="mt-2 flex items-center gap-2 px-1.5">
                   {site.domain && (
                     <a
@@ -359,7 +299,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
                 </div>
               )}
 
-              {switcherOpen && sites && sites.length > 1 && (
+              {switcherOpen && !compactRail && sites && sites.length > 1 && (
                 <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
                   <div className="border-b border-slate-100 bg-slate-50 px-3 py-1.5">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Switch Website</span>
@@ -385,97 +325,87 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
           )}
         </div>
 
-        <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto px-3 py-4" onClick={() => setMobileNavOpen(false)}>
-          {/* Overview */}
-          <NavSection title="Overview">
-            <NavItem icon={Activity} label="Dashboard" href={`/app/sites/${siteId}`} isSuperAdmin={isSuperAdmin} />
-          </NavSection>
+        <nav className="custom-scrollbar flex-1 overflow-y-auto px-3 py-4" onClick={() => setMobileNavOpen(false)}>
+          {/* Dashboard entry (always visible) */}
+          <div className="mb-2 space-y-1">
+            <Link href={`/app/sites/${siteId}`} onClick={() => setMobileNavOpen(false)}>
+              <Button
+                variant={location === `/app/sites/${siteId}` ? "secondary" : "ghost"}
+                aria-current={location === `/app/sites/${siteId}` ? "page" : undefined}
+                className={`h-10 w-full justify-start rounded-lg px-3 ${
+                  location === `/app/sites/${siteId}`
+                    ? "bg-primary/10 font-semibold text-primary hover:bg-primary/15"
+                    : "font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                } ${compactRail ? "justify-center px-2" : ""}`}
+                title={compactRail ? "Dashboard" : undefined}
+              >
+                <LayoutDashboard className={`h-4 w-4 ${location === `/app/sites/${siteId}` ? "text-primary" : "text-slate-500"} ${compactRail ? "" : "mr-3"}`} />
+                {!compactRail && <span className="flex-1 text-left">Dashboard</span>}
+              </Button>
+            </Link>
+          </div>
 
-          {/* Content */}
-          <NavSection title="Content">
-            <NavItem icon={FileStack} label="All Pages" href={`/app/sites/${siteId}/pages`} isSuperAdmin={isSuperAdmin} />
-            {isEnabled("homepage") && <NavItem icon={LayoutTemplate} label="Homepage" href={`/app/sites/${siteId}/homepage`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("articles") && <NavItem icon={FileText} label="Blog & Articles" href={`/app/sites/${siteId}/articles`} isSuperAdmin={isSuperAdmin} />}
-            <NavItem icon={Newspaper} label="Flyers" href={`/app/sites/${siteId}/flyers`} isSuperAdmin={isSuperAdmin} />
-            <NavItem icon={HelpCircle} label="FAQ" href={`/app/sites/${siteId}/faq`} isSuperAdmin={isSuperAdmin} />
-            {isEnabled("announcement") && <NavItem icon={Megaphone} label="Announcement Banner" href={`/app/sites/${siteId}/announcement`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("cta") && <NavItem icon={MousePointerClick} label="CTA Buttons" href={`/app/sites/${siteId}/cta`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("popup") && <NavItem icon={Bell} label="Popup" href={`/app/sites/${siteId}/popup`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("policy") && <NavItem icon={ScrollText} label="Policy Pages" href={`/app/sites/${siteId}/policies`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("team") && <NavItem icon={Users} label="Team" href={`/app/sites/${siteId}/team`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("careers") && <NavItem icon={Briefcase} label="Careers" href={`/app/sites/${siteId}/careers`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("downloads") && <NavItem icon={Download} label="Downloads" href={`/app/sites/${siteId}/downloads`} isSuperAdmin={isSuperAdmin} />}
-          </NavSection>
-
-          {/* Media */}
-          <NavSection title="Media">
-            {isEnabled("media") && <NavItem icon={ImageIcon} label="Media Library" href={`/app/sites/${siteId}/media`} isSuperAdmin={isSuperAdmin} badge={mediaHealth?.broken} />}
-          </NavSection>
-
-          {/* Navigation */}
-          <NavSection title="Navigation">
-            {isEnabled("navigation") && <NavItem icon={NavIcon} label="Menu Builder" href={`/app/sites/${siteId}/nav`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("footer") && <NavItem icon={LayoutTemplate} label="Footer Structure" href={`/app/sites/${siteId}/footer`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          </NavSection>
-
-          {/* Forms & Inbox */}
-          <NavSection title="Forms & Inbox">
-            {isEnabled("forms") && <NavItem icon={FormInput} label="Forms" href={`/app/sites/${siteId}/forms`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("contact") && <NavItem icon={Inbox} label="Contact Inbox" href={`/app/sites/${siteId}/inbox`} isSuperAdmin={isSuperAdmin} />}
-          </NavSection>
-
-          {/* Business */}
-          <NavSection title="Business">
-            {isEnabled("services") && <NavItem icon={Briefcase} label="Services" href={`/app/sites/${siteId}/services`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("products") && <NavItem icon={Package} label="Products" href={`/app/sites/${siteId}/products`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("courses") && <NavItem icon={BookOpen} label="Courses & Classes" href={`/app/sites/${siteId}/courses`} isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("events") && <NavItem icon={Calendar} label="Events" href={`/app/sites/${siteId}/events`} isSuperAdmin={isSuperAdmin} />}
-          </NavSection>
-
-          {/* Marketing */}
-          <NavSection title="Marketing">
-            {isEnabled("seo") && <NavItem icon={Search} label="SEO Settings" href={`/app/sites/${siteId}/seo`} isSuperAdmin={isSuperAdmin} />}
-            <NavItem icon={MessageSquareQuote} label="Testimonials" href={`/app/sites/${siteId}/testimonials`} isSuperAdmin={isSuperAdmin} />
-            {isEnabled("reviews") && <NavItem icon={Star} label="Reviews" href={`/app/sites/${siteId}/reviews`} isSuperAdmin={isSuperAdmin} />}
-          </NavSection>
-
-          {/* Site */}
-          <NavSection title="Site">
-            <NavItem icon={Settings} label="Website Settings" href={`/app/sites/${siteId}/settings`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-            {isEnabled("contact") && <NavItem icon={Phone} label="Contact Info" href={`/app/sites/${siteId}/contact`} isSuperAdmin={isSuperAdmin} />}
-            <NavItem icon={ShieldCheckIcon} label="My Permissions" href={`/app/sites/${siteId}/permissions`} isSuperAdmin={isSuperAdmin} />
-            <NavItem icon={Users} label="Site Users" href={`/app/sites/${siteId}/users`} isSuperAdmin={isSuperAdmin} />
-            <NavItem icon={Zap} label="Automation Engine\u2122" href={`/app/sites/${siteId}/automation`} isSuperAdmin={isSuperAdmin} />
-            {isEnabled("portal") && <NavItem icon={UserCog} label="Portal Manager\u2122" href={`/app/sites/${siteId}/portal`} isSuperAdmin={isSuperAdmin} />}
-            {isSuperAdmin && (
-              <Link href="/app/admin/users" className="block">
-                <Button
-                  variant={location === "/app/admin/users" ? "secondary" : "ghost"}
-                  className={`h-10 w-full justify-start rounded-lg px-3 ${location === "/app/admin/users" ? "bg-primary/10 font-semibold text-primary hover:bg-primary/15" : "font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950"}`}
-                >
-                  <Users className="mr-3 h-4 w-4 text-slate-500" />
-                  <span className="flex-1 text-left">User Management</span>
-                </Button>
-              </Link>
-            )}
-            <NavItem icon={LifeBuoy} label="Help Center" href={`/app/sites/${siteId}/help`} isSuperAdmin={isSuperAdmin} />
-          </NavSection>
-
-          {/* TAYA Managed (Design-Locked advanced tools) */}
-          <NavSection title="TAYA Managed">
-            <NavItem icon={CreditCard} label="Payment Providers" href={`/app/sites/${siteId}/payment-providers`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-            {isEnabled("payments") && <NavItem icon={CreditCard} label="Square Payments" href={`/app/sites/${siteId}/payments`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("commerce") && <NavItem icon={ShoppingBag} label="Commerce" href={`/app/sites/${siteId}/commerce`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("email") && <NavItem icon={Mail} label="Email Configuration" href={`/app/sites/${siteId}/email`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-            {isEnabled("crm") && <NavItem icon={Building2} label="Marketing & CRM" href={`/app/sites/${siteId}/crm`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-            <NavItem icon={HeartPulse} label="Health Monitor" href={`/app/sites/${siteId}/health`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-            {isEnabled("history") && <NavItem icon={History} label="Version History" href={`/app/sites/${siteId}/history`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-            <NavItem icon={Activity} label="Activity Log" href={`/app/sites/${siteId}/activity`} isDesignLocked isSuperAdmin={isSuperAdmin} />
-            {isEnabled("backups") && <NavItem icon={DatabaseBackup} label="Backups" href={`/app/sites/${siteId}/backups`} isDesignLocked isSuperAdmin={isSuperAdmin} />}
-          </NavSection>
+          {/* WordPress-like collapsible groups (persisted per user) */}
+          <SidebarNav
+            siteId={String(siteId)}
+            enabledModules={(effectiveModules ?? (site as any)?.enabledModules) as Record<string, boolean> | null | undefined}
+            isSuperAdmin={isSuperAdmin}
+            collapsedGroups={sidebarUi.collapsedGroups}
+            onToggleGroup={sidebarUi.toggleGroup}
+            badges={{ mediaBroken: mediaHealth?.broken ?? 0 }}
+            compact={compactRail}
+            onNavigate={() => setMobileNavOpen(false)}
+          />
         </nav>
 
-        {(site?.poweredByFsts ?? true) && !agency && (
+        {/* Bottom action area: always-available client actions */}
+        <div className="border-t border-slate-200 px-3 py-2">
+          {site?.domain && (
+            <a href={`https://${site.domain}`} target="_blank" rel="noreferrer" className="block">
+              <Button
+                variant="ghost"
+                className={`h-10 w-full justify-start rounded-lg px-3 font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950 ${compactRail ? "justify-center px-2" : ""}`}
+                title={compactRail ? "View Live Site" : undefined}
+                aria-label="View live site (opens in a new tab)"
+              >
+                <ExternalLink className={`h-4 w-4 text-slate-500 ${compactRail ? "" : "mr-3"}`} />
+                {!compactRail && <span className="flex-1 text-left">View Live Site</span>}
+              </Button>
+            </a>
+          )}
+          <Link href={`/app/sites/${siteId}/help`} onClick={() => setMobileNavOpen(false)} className="block">
+            <Button
+              variant="ghost"
+              className={`h-10 w-full justify-start rounded-lg px-3 font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950 ${compactRail ? "justify-center px-2" : ""}`}
+              title={compactRail ? "Help Center" : undefined}
+            >
+              <LifeBuoy className={`h-4 w-4 text-slate-500 ${compactRail ? "" : "mr-3"}`} />
+              {!compactRail && <span className="flex-1 text-left">Help</span>}
+            </Button>
+          </Link>
+          <a href="https://accounts.app.fstsclientsystem.com" className="block">
+            <Button
+              variant="ghost"
+              className={`h-10 w-full justify-start rounded-lg px-3 font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950 ${compactRail ? "justify-center px-2" : ""}`}
+              title={compactRail ? "Account Settings" : undefined}
+            >
+              <UserIcon className={`h-4 w-4 text-slate-500 ${compactRail ? "" : "mr-3"}`} />
+              {!compactRail && <span className="flex-1 text-left">Account</span>}
+            </Button>
+          </a>
+          <a href="https://accounts.app.fstsclientsystem.com/user/logout" className="block">
+            <Button
+              variant="ghost"
+              className={`h-10 w-full justify-start rounded-lg px-3 font-normal text-slate-600 hover:bg-red-50 hover:text-red-600 ${compactRail ? "justify-center px-2" : ""}`}
+              title={compactRail ? "Sign Out" : undefined}
+            >
+              <LogOut className={`h-4 w-4 text-slate-500 ${compactRail ? "" : "mr-3"}`} />
+              {!compactRail && <span className="flex-1 text-left">Sign Out</span>}
+            </Button>
+          </a>
+        </div>
+
+        {(site?.poweredByFsts ?? true) && !agency && !compactRail && (
           <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-center">
             <p className="text-[11px] leading-tight text-slate-400">
               Powered by <span className="font-semibold text-slate-600">Full Stack Tech Solutions</span>
@@ -483,7 +413,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             <p className="mt-0.5 text-[10px] leading-tight text-slate-400">TAYA System\u2122</p>
           </div>
         )}
-        {agency && (
+        {agency && !compactRail && (
           <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-center">
             <p className="text-[11px] leading-tight text-slate-400">
               Managed by <span className="font-semibold text-slate-600">{agency.name}</span>

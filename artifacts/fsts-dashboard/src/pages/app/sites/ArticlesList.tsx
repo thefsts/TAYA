@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "wouter";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -169,6 +170,19 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("content");
+  // Sidebar deep links (?filter=draft|published|archived) drive the status
+  // filter; navigating to the unfiltered list resets it so "All Articles"
+  // always shows every article regardless of the previously active filter.
+  const search = useSearch();
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(search).get("filter");
+    if (fromUrl === "draft" || fromUrl === "published" || fromUrl === "archived") {
+      setFilterStatus(fromUrl);
+    } else {
+      setFilterStatus("all");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   function openCreate() {
     setEditing(null);
