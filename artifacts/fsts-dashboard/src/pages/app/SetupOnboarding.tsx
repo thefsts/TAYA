@@ -84,10 +84,11 @@ export default function SetupOnboarding() {
   const handleSignOut = async () => {
     if (signingOut) return;
     setSigningOut(true);
-    const returnTo = `${window.location.origin}/`;
-    const hostedSignIn = `https://accounts.app.fstsclientsystem.com/sign-in?redirect_url=${encodeURIComponent(returnTo)}`;
+    // Owner directive (00e6f90 "keep client sign-out inside TAYA"): never
+    // expose Clerk's hosted Account Portal to clients — sign out back to the
+    // D8-branded in-app sign-in page.
     try {
-      await signOut({ sessionId: sessionId ?? undefined, redirectUrl: hostedSignIn });
+      await signOut({ sessionId: sessionId ?? undefined, redirectUrl: "/sign-in" });
     } catch (err) {
       console.error("TAYA sign-out failed", err);
       setSigningOut(false);
