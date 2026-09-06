@@ -1,4 +1,4 @@
-import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
+import { query, mutation, action, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { provisionUser } from "./lib/getCurrentUser";
@@ -22,6 +22,17 @@ function toUserResponse(user: any, sitesMap: Map<string, string>) {
     })),
   };
 }
+
+/**
+ * Response shape of the provisioning entry points (`_provisionMeTrusted`,
+ * `provisionMeVerified`, `provisionMe`). Declared explicitly so the action's
+ * handler does not need to infer its return type through the generated
+ * `internal` API types — that inference is circular (the generated api.d.ts
+ * imports `typeof users` from this module) and would make the action type
+ * resolve to `any`, cascading implicit-any errors into every dashboard
+ * consumer of the generated `api` namespace.
+ */
+export type ProvisionMeResponse = ReturnType<typeof toUserResponse>;
 
 export const me = query({
   args: {},
@@ -52,6 +63,117 @@ export const provisionMe = mutation({
     const sites = await ctx.db.query("sites").collect();
     const sitesMap = new Map(sites.map((s) => [s._id as string, s.name]));
     return toUserResponse(user, sitesMap);
+  },
+});
+
+/**
+ * Internal carrier for `users.provisionMeVerified`.
+ *
+ * SECURITY: internal mutations cannot be called from the browser, so a
+ * client-supplied "verified" email can never reach `provisionUser`. Only the
+ * `provisionMeVerified` action invokes this, after verifying the email through
+ * Clerk (the JWT email claim, or a Backend API lookup for claimless JWTs).
+ */
+export const _provisionMeTrusted = internalMutation({
+  args: {
+    verifiedEmail: v.optional(v.string()),
+    verifiedName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await provisionUser(ctx, {
+      email: args.verifiedEmail ?? null,
+      name: args.verifiedName ?? null,
+    });
+    const sites = await ctx.db.query("sites").collect();
+    const sitesMap = new Map(sites.map((s) => [s._id as string, s.name]));
+    return toUserResponse(user, sitesMap);
+  },
+});
+
+/**
+ * Provision (or reconcile) the signed-in dashboard user, with server-side
+ * email verification when the Convex JWT carries no email claim.
+ *
+ * WHY THIS EXISTS: Clerk's default session-token claims contain only
+ * `sub`/`sid` — email and name are NOT default claims. The dashboard's Convex
+ * provider fetches tokens through the Clerk "convex" JWT template; when that
+ * template is not configured with an email claim, `provisionUser` receives an
+ * identity with NO email and historically auto-created a duplicate user with
+ * an `<subject>@unknown.local` email and EMPTY roles, stranding the invited
+ * client's site assignments on their `pending:<email>` invitation record (the
+ * "client signs in but sees no site" defect).
+ *
+ * Resolution order:
+ *   1. The identity's own email claim (verified by Clerk at sign-in) is
+ *      trusted directly.
+ *   2. Otherwise, when CLERK_SECRET_KEY is configured, the Clerk user is
+ *      looked up in the Backend API and ONLY a verified primary email address
+ *      is trusted. Unverified emails are rejected.
+ *   3. Otherwise (no claim, no key) provisioning continues claimless —
+ *      `provisionUser` applies its own fail-safe guards and logs loudly so
+ *      the operator fixes the configuration. Sign-in is never blocked.
+ */
+export const provisionMeVerified = action({
+  args: {},
+  handler: async (ctx): Promise<ProvisionMeResponse> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const identityEmail = identity.email?.trim().toLowerCase() ?? null;
+    const identityHasRealEmail =
+      !!identityEmail && !identityEmail.endsWith("@unknown.local");
+
+    if (identityHasRealEmail) {
+      return await ctx.runMutation(internal.users._provisionMeTrusted, {
+        verifiedEmail: identityEmail,
+        ...(identity.name ? { verifiedName: identity.name } : {}),
+      });
+    }
+
+    const secret = process.env.CLERK_SECRET_KEY?.trim();
+    if (!secret) {
+      // Fail safe: the email cannot be verified server-side without the
+      // Backend API key. Continue with claimless provisioning — provisionUser
+      // guards against ambiguous claims and logs the misconfiguration.
+      return await ctx.runMutation(internal.users._provisionMeTrusted, {});
+    }
+
+    const response = await fetch(
+      `https://api.clerk.com/v1/users/${encodeURIComponent(identity.subject)}`,
+      { headers: { Authorization: `Bearer ${secret}` } },
+    );
+    if (!response.ok) {
+      throw new Error(`CLERK_USER_LOOKUP_FAILED_${response.status}`);
+    }
+    const clerkUser = (await response.json()) as {
+      first_name?: string | null;
+      last_name?: string | null;
+      primary_email_address_id?: string | null;
+      email_addresses?: Array<{
+        id: string;
+        email_address: string;
+        verification?: { status?: string } | null;
+      }>;
+    };
+    const primary = (clerkUser.email_addresses ?? []).find(
+      (e) => e.id === clerkUser.primary_email_address_id,
+    );
+    if (!primary) {
+      throw new Error("No primary email address found on the Clerk account");
+    }
+    if (primary.verification?.status !== "verified") {
+      throw new Error(
+        "Your account email is not verified. Verify it from your account settings, then sign in again.",
+      );
+    }
+    const verifiedEmail = primary.email_address.trim().toLowerCase();
+    const verifiedName =
+      [clerkUser.first_name, clerkUser.last_name].filter(Boolean).join(" ").trim() ||
+      undefined;
+    return await ctx.runMutation(internal.users._provisionMeTrusted, {
+      verifiedEmail,
+      ...(verifiedName ? { verifiedName } : {}),
+    });
   },
 });
 

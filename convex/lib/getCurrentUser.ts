@@ -108,11 +108,143 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx): Promise<Curre
   return user;
 }
 
-export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
+/**
+ * Reconcile the user record found by Clerk user ID on a repeat sign-in.
+ *
+ * Production defect context: when the Clerk "convex" JWT template carried no
+ * email claim, first sign-ins provisioned an orphan record with a
+ * `<subject>@unknown.local` email and empty roles while the invited client's
+ * real roles stayed stranded on their `pending:<email>` invitation record.
+ * This path repairs that state on the next sign-in that DOES carry a trusted
+ * email (identity claim or server-side verified):
+ *
+ *   1. Exactly one pending invitation matches the trusted email -> merge:
+ *      rebind the invitation to this Clerk subject (preserving the
+ *      invitation's email, roles, active status, and invitation history),
+ *      carry over any non-conflicting orphan roles, retire the orphan row.
+ *   2. No invitation matches -> upgrade the orphan's fallback email to the
+ *      trusted address (guarded so a second record can never share an email).
+ *   3. Another record already owns the trusted email -> leave the orphan
+ *      untouched and log loudly; an administrator must reconcile.
+ *
+ * Superadmin identities skip the merge entirely - their allowlist entry is a
+ * server-side decision, and the canonical-email upgrade in
+ * `reconcileExistingAccess` already repairs their fallback records.
+ */
+async function reconcileExistingUser(
+  ctx: MutationCtx,
+  subject: string,
+  existing: CurrentUser,
+  trusted: {
+    email: string | null;
+    name: string | null;
+    hasRealEmail: boolean;
+    isSuperAdmin: boolean;
+    canonicalEmail: string;
+  },
+): Promise<CurrentUser> {
+  const existingIsOrphan = existing.email.trim().toLowerCase().endsWith("@unknown.local");
+  let canonicalForReconcile: string | undefined = trusted.canonicalEmail;
+
+  if (existingIsOrphan && trusted.hasRealEmail && !trusted.isSuperAdmin) {
+    const pendingMatches = (await ctx.db.query("users").collect()).filter(
+      (candidate) =>
+        candidate.clerkUserId.startsWith("pending:") &&
+        candidate.email === trusted.email,
+    );
+    if (pendingMatches.length > 1) {
+      throw new Error(
+        "Account configuration error: multiple pending invitations exist for this email address. Contact your administrator.",
+      );
+    }
+    const claimable = pendingMatches[0] ?? null;
+
+    if (claimable && claimable._id !== existing._id) {
+      if (!claimable.isActive) throw new Error("Account is deactivated");
+      const orphanRoles = existing.roles ?? [];
+      const mergedRoles = [
+        ...(claimable.roles ?? []).filter(
+          (r) => !orphanRoles.some((o) => String(o.siteId) === String(r.siteId)),
+        ),
+        ...orphanRoles,
+      ];
+      await ctx.db.patch(claimable._id, {
+        clerkUserId: subject,
+        email: claimable.email,
+        isSuperAdmin: false,
+        roles: mergedRoles,
+      });
+      await ctx.db.delete(existing._id);
+      console.warn(
+        "[TAYA provision] merged a claimless orphan user into its pending invitation",
+        {
+          subject,
+          email: claimable.email,
+          retiredOrphanId: existing._id,
+          keptUserId: claimable._id,
+        },
+      );
+      const rebound = (await ctx.db.get(claimable._id))!;
+      return await ensureInternalQaRoles(ctx, rebound);
+    }
+
+    const emailOwner = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", trusted.email!))
+      .first();
+    if (!emailOwner || emailOwner._id === existing._id) {
+      await ctx.db.patch(existing._id, { email: trusted.email! });
+      console.warn(
+        "[TAYA provision] upgraded a claimless orphan email to the verified address",
+        { subject, email: trusted.email, userId: existing._id },
+      );
+    } else {
+      console.error(
+        "[TAYA provision] cannot upgrade orphan email: another user already owns it (administrator reconciliation required)",
+        { subject, email: trusted.email, orphanId: existing._id, ownerId: emailOwner._id },
+      );
+      canonicalForReconcile = undefined;
+    }
+  }
+
+  // Cosmetic name repair for records whose name was seeded from the raw
+  // Clerk subject because the JWT carried no name claim.
+  let current = existing;
+  if (trusted.name && (current.name === subject || !current.name.trim())) {
+    await ctx.db.patch(current._id, { name: trusted.name });
+    current = (await ctx.db.get(current._id))!;
+  }
+
+  return await reconcileExistingAccess(ctx, current, trusted.isSuperAdmin, canonicalForReconcile);
+}
+
+export async function provisionUser(
+  ctx: MutationCtx,
+  verified?: { email?: string | null; name?: string | null },
+): Promise<CurrentUser> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
 
-  const rawEmail = (identity.email ?? `${identity.subject}@unknown.local`).trim().toLowerCase();
+  // ---- Trusted identity attributes ------------------------------------
+  // Clerk's default session-token claims contain only `sub`/`sid` - email and
+  // name are NOT default claims. When the Clerk "convex" JWT template is not
+  // configured with those claims, `identity.email` is undefined and the
+  // historical code path silently inserted a brand-new user with a
+  // `<subject>@unknown.local` email and EMPTY roles, stranding an invited
+  // client's site assignments on their `pending:<email>` invitation record.
+  //
+  // Trusted sources, in order:
+  //   1. a server-side verified email/name passed by `users.provisionMeVerified`
+  //      (the action looked the Clerk user up in the Backend API when the JWT
+  //      carried no email claim), or
+  //   2. the identity's own email/name claims (verified by Clerk at sign-in).
+  // A pending invitation is ONLY ever rebound from one of those two sources -
+  // a claimless self-signup can never claim another person's invitation.
+  const trustedEmail = (verified?.email ?? identity.email)?.trim().toLowerCase() ?? null;
+  const trustedName = (verified?.name ?? "").trim() || null;
+  const identityHasRealEmail = !!trustedEmail && !trustedEmail.endsWith("@unknown.local");
+
+  const rawEmail = trustedEmail ?? `${identity.subject.toLowerCase()}@unknown.local`;
   const {
     normalizedEmail,
     canonicalSuperAdminEmail,
@@ -126,26 +258,107 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
     .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
     .first();
   if (existing) {
-    return await reconcileExistingAccess(ctx, existing, isSuperAdmin, email);
+    return await reconcileExistingUser(ctx, identity.subject, existing, {
+      email: trustedEmail,
+      name: trustedName,
+      hasRealEmail: identityHasRealEmail,
+      isSuperAdmin,
+      canonicalEmail: email,
+    });
   }
 
-  const emailMatchedUser = await ctx.db
-    .query("users")
-    .withIndex("by_email", (q) => q.eq("email", email))
-    .first();
+  // ---- First-login reconciliation -------------------------------------
+  // All pending invitation records (clerkUserId "pending:<email>"). There are
+  // normally only a handful in the table, so a full scan is safe and never
+  // relies on the identity carrying an email claim.
+  const pendingUsers = (await ctx.db.query("users").collect()).filter((candidate) =>
+    candidate.clerkUserId.startsWith("pending:"),
+  );
 
-  // Invitation records intentionally use a pending:* Clerk ID until the invited
-  // person signs in for the first time. Link that row to the authenticated Clerk
-  // subject without creating a duplicate user.
-  if (emailMatchedUser && emailMatchedUser.clerkUserId.startsWith("pending:")) {
-    if (!emailMatchedUser.isActive) throw new Error("Account is deactivated");
-    await ctx.db.patch(emailMatchedUser._id, {
+  let claimablePending: CurrentUser | null = null;
+  if (identityHasRealEmail) {
+    // Exact-match the trusted email against pending invitations. Matching
+    // more than one pending record with the same email is a data-integrity
+    // error: fail safely rather than guess which invitation this person owns.
+    const matches = pendingUsers.filter((candidate) => candidate.email === trustedEmail);
+    if (matches.length > 1) {
+      throw new Error(
+        "Account configuration error: multiple pending invitations exist for this email address. Contact your administrator.",
+      );
+    }
+    claimablePending = matches[0] ?? null;
+  }
+
+  // Orphan fallback records for this subject: users previously auto-created
+  // from claimless sign-ins, recognizable by their `<subject>@unknown.local`
+  // email. A record carrying this subject was already handled by the
+  // by_clerk_user_id lookup above, so finding any here means detached data -
+  // fail safely instead of guessing.
+  const fallbackEmail = `${identity.subject.toLowerCase()}@unknown.local`;
+  const orphanUsers = (await ctx.db.query("users").collect()).filter(
+    (candidate) => candidate.email === fallbackEmail,
+  );
+  if (orphanUsers.length > 1) {
+    throw new Error(
+      "Account configuration error: multiple fallback user records exist for this sign-in identity. Contact your administrator.",
+    );
+  }
+  const orphan = orphanUsers[0] ?? null;
+
+  // ---- Orphan + invitation merge --------------------------------------
+  // The orphan row (empty roles, fallback email) and the pending invitation
+  // row (real roles, real email) describe the same human. Rebind the
+  // invitation to the real Clerk subject, preserving the invitation's
+  // roles/active status/invitation history, and retire the orphan row.
+  if (orphan && claimablePending && orphan._id !== claimablePending._id) {
+    if (!claimablePending.isActive) throw new Error("Account is deactivated");
+    const orphanRoles = orphan.roles ?? [];
+    const mergedRoles = [
+      ...(claimablePending.roles ?? []).filter(
+        (r) => !orphanRoles.some((o) => String(o.siteId) === String(r.siteId)),
+      ),
+      ...orphanRoles,
+    ];
+    await ctx.db.patch(claimablePending._id, {
+      clerkUserId: identity.subject,
+      email: claimablePending.email,
+      isSuperAdmin: false,
+      roles: mergedRoles,
+    });
+    await ctx.db.delete(orphan._id);
+    console.warn(
+      "[TAYA provision] merged a claimless orphan user into its pending invitation",
+      {
+        subject: identity.subject,
+        email: claimablePending.email,
+        retiredOrphanId: orphan._id,
+        keptUserId: claimablePending._id,
+      },
+    );
+    const rebound = (await ctx.db.get(claimablePending._id))!;
+    return await ensureInternalQaRoles(ctx, rebound);
+  }
+
+  // ---- Normal invited-client first login ------------------------------
+  // No orphan row exists. If the trusted email matches exactly one pending
+  // invitation, rebind it - preserving site assignments, role, active status,
+  // and invitation history - without creating a duplicate user.
+  if (claimablePending && !orphan) {
+    if (!claimablePending.isActive) throw new Error("Account is deactivated");
+    await ctx.db.patch(claimablePending._id, {
       clerkUserId: identity.subject,
       isSuperAdmin,
     });
-    const connected = (await ctx.db.get(emailMatchedUser._id))!;
+    const connected = (await ctx.db.get(claimablePending._id))!;
     return await ensureInternalQaRoles(ctx, connected);
   }
+
+  const emailMatchedUser = identityHasRealEmail
+    ? await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", trustedEmail!))
+        .first()
+    : null;
 
   // Recovery for an FSTS owner account after a Clerk instance/domain migration.
   // A trusted Clerk JWT plus an explicit SUPERADMIN_EMAILS or
@@ -174,7 +387,29 @@ export async function provisionUser(ctx: MutationCtx): Promise<CurrentUser> {
     throw new Error("Account already exists with a different authentication identity");
   }
 
+  // Ambiguity guard (no usable email claim): if there are multiple pending
+  // invitations and none could be attributed to this identity, fail safely
+  // instead of creating an empty duplicate user. The administrator must
+  // reconcile the invitation records first.
+  if (!identityHasRealEmail && pendingUsers.length > 1 && !isSuperAdmin) {
+    throw new Error(
+      "Account configuration error: sign-in identity has no verified email and multiple pending invitations exist. Contact your administrator to link this account.",
+    );
+  }
+
+  // Nothing could be verified for this sign-in and no invitation is claimable.
+  // Log loudly so the operator fixes the configuration (CLERK_SECRET_KEY for
+  // server-side verification, or the email claim in the Clerk "convex" JWT
+  // template) instead of silently accumulating anonymous records.
+  if (!identityHasRealEmail && !isSuperAdmin) {
+    console.error(
+      "[TAYA provision] provisioning without a trusted email claim - configure CLERK_SECRET_KEY (server-side verification) or add the email claim to the Clerk convex JWT template",
+      { subject: identity.subject, pendingInvitations: pendingUsers.length },
+    );
+  }
+
   const name =
+    trustedName ||
     identity.name ||
     [identity.givenName, identity.familyName].filter(Boolean).join(" ") ||
     identity.email ||
