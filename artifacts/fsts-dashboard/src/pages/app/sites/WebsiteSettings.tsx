@@ -25,6 +25,8 @@ import {
   Lock,
 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
+import { DesignLockBanner } from "@/components/LockedField";
+import { PERMISSIONS, roleHasPermission } from "@/lib/roleCapabilities";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import {
   WEBSITE_TYPE_OPTIONS,
@@ -188,6 +190,22 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
 
   const isSuperAdmin = !!(me as any)?.isSuperAdmin;
 
+  // Per-tab RBAC tiering — mirrors convex/lib/requirePermission exactly.
+  // The backend gates Contact/SEO/Legal/Events saves on CONTENT_UPDATE for the
+  // user's roles on THIS site, while Identity/Branding (DESIGN_MANAGE),
+  // Integrations (INTEGRATIONS_MANAGE), and Modules (sites.update) are
+  // SuperAdmin-only. The tab visibility below mirrors that split so clients
+  // get the tabs their role can actually save, and never see a form whose
+  // Save would be rejected server-side (no fake Save).
+  const siteRoles: string[] = Array.isArray((me as any)?.roles)
+    ? (me as any)
+        .roles.filter((r: any) => String(r.siteId) === String(siteId))
+        .map((r: any) => String(r.role))
+    : [];
+  const canEditContent =
+    isSuperAdmin ||
+    siteRoles.some((role) => roleHasPermission(role, PERMISSIONS.CONTENT_UPDATE));
+
   const [pending, setPending] = useState<string | null>(null);
   const [moduleState, setModuleState] = useState<Record<string, boolean>>({});
 
@@ -296,7 +314,9 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
     }
   }
 
-  if (data === undefined) {
+  // Wait for both the settings doc AND the user record: deciding tab
+  // visibility before `me` loads would flash the client view at superadmins.
+  if (data === undefined || me === undefined) {
     return (
       <AppLayout siteId={params.siteId}>
         <div className="space-y-4">
@@ -317,6 +337,41 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
     );
   }
 
+  // View-only site users (read_only, finance, support, …): no CONTENT_UPDATE
+  // role on this site and not a SuperAdmin. The backend CONTENT_UPDATE
+  // mutations reject these roles, so the page shows an explained view-only
+  // card instead of forms whose Save would always fail (no fake Save, no
+  // blank screen, no unauthorized redirect).
+  if (!isSuperAdmin && !canEditContent) {
+    return (
+      <AppLayout siteId={params.siteId}>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">Website Settings™</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Manage your contact details, SEO defaults, legal links, and event display settings.
+          </p>
+        </div>
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 max-w-2xl">
+          <div className="flex items-start gap-3">
+            <Lock className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-500" />
+            <div className="space-y-1.5">
+              <p className="font-semibold">View-only access</p>
+              <p>
+                Your role on this site is view-only, so Website Settings editing is not
+                available to you. Contact your site administrator or your TAYA
+                representative to request edit access.
+              </p>
+              <p>
+                Brand identity, colors, fonts, integrations, and module setup are always
+                managed by TAYA administrators.
+              </p>
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   const d = data as any;
 
   return (
@@ -324,20 +379,33 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Website Settings™</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Manage your site identity, branding, contact details, SEO defaults, integrations, and legal pages.
+          {isSuperAdmin
+            ? "Manage site identity, branding, contact details, SEO defaults, integrations, and legal pages."
+            : "Manage your contact details, SEO defaults, legal links, and event display settings."}
         </p>
       </div>
 
-      <Tabs defaultValue="identity" className="space-y-6">
+      {/* Client notice for the design-tier sections that stay TAYA-managed
+          (Identity, Branding, Integrations, Modules). Renders nothing for
+          SuperAdmins. */}
+      <DesignLockBanner label="Brand identity, colors, fonts, integrations, and module setup" />
+
+      {/* Default tab must match a trigger that exists for this role —
+          "identity" is SuperAdmin-only, so clients land on "contact". */}
+      <Tabs defaultValue={isSuperAdmin ? "identity" : "contact"} className="space-y-6">
         <TabsList className="bg-slate-100 p-1 rounded-lg flex-wrap h-auto gap-1">
-          <TabsTrigger value="identity" className="flex items-center gap-1.5 text-xs font-medium">
-            <Building2 className="h-3.5 w-3.5" />
-            Identity
-          </TabsTrigger>
-          <TabsTrigger value="branding" className="flex items-center gap-1.5 text-xs font-medium">
-            <Palette className="h-3.5 w-3.5" />
-            Branding
-          </TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="identity" className="flex items-center gap-1.5 text-xs font-medium">
+              <Building2 className="h-3.5 w-3.5" />
+              Identity
+            </TabsTrigger>
+          )}
+          {isSuperAdmin && (
+            <TabsTrigger value="branding" className="flex items-center gap-1.5 text-xs font-medium">
+              <Palette className="h-3.5 w-3.5" />
+              Branding
+            </TabsTrigger>
+          )}
           <TabsTrigger value="contact" className="flex items-center gap-1.5 text-xs font-medium">
             <Phone className="h-3.5 w-3.5" />
             Contact
@@ -346,10 +414,12 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
             <Search className="h-3.5 w-3.5" />
             SEO
           </TabsTrigger>
-          <TabsTrigger value="integrations" className="flex items-center gap-1.5 text-xs font-medium">
-            <Plug className="h-3.5 w-3.5" />
-            Integrations
-          </TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="integrations" className="flex items-center gap-1.5 text-xs font-medium">
+              <Plug className="h-3.5 w-3.5" />
+              Integrations
+            </TabsTrigger>
+          )}
           <TabsTrigger value="legal" className="flex items-center gap-1.5 text-xs font-medium">
             <ScrollText className="h-3.5 w-3.5" />
             Legal
@@ -367,166 +437,73 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
         </TabsList>
 
         {/* ── Identity ── */}
-        <TabsContent value="identity">
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
-            <SectionHeader
-              title="Identity"
-              description="Your business name, logo, and core site configuration."
-              ts={d.identityUpdatedAt}
-            >
-              <Button
-                size="sm"
-                disabled={pending === "identity"}
-                onClick={() =>
-                  handleSave("identity", () =>
-                    saveIdentity({
-                      siteId,
-                      businessName: businessName || undefined,
-                      tagline: tagline || undefined,
-                      logoUrl: logoUrl || undefined,
-                      faviconUrl: faviconUrl || undefined,
-                      websiteType: websiteType || undefined,
-                      timezone: timezone || undefined,
-                    })
-                  )
-                }
+        {isSuperAdmin && (
+          <TabsContent value="identity">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
+              <SectionHeader
+                title="Identity"
+                description="Your business name, logo, and core site configuration."
+                ts={d.identityUpdatedAt}
               >
-                {pending === "identity" ? "Saving…" : "Save Identity"}
-              </Button>
-            </SectionHeader>
+                <Button
+                  size="sm"
+                  disabled={pending === "identity"}
+                  onClick={() =>
+                    handleSave("identity", () =>
+                      saveIdentity({
+                        siteId,
+                        businessName: businessName || undefined,
+                        tagline: tagline || undefined,
+                        logoUrl: logoUrl || undefined,
+                        faviconUrl: faviconUrl || undefined,
+                        websiteType: websiteType || undefined,
+                        timezone: timezone || undefined,
+                      })
+                    )
+                  }
+                >
+                  {pending === "identity" ? "Saving…" : "Save Identity"}
+                </Button>
+              </SectionHeader>
 
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Business Name</Label>
-                  <Input aria-label="business name" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Acme Corp" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Tagline</Label>
-                  <Input aria-label="tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Building great things" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Website Type</Label>
-                  <Select value={websiteType} onValueChange={setWebsiteType}>
-                    <SelectTrigger aria-label="Website Type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {WEBSITE_TYPE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Timezone</Label>
-                  <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger aria-label="Timezone">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {TIMEZONES.map((tz) => (
-                        <SelectItem key={tz} value={tz}>
-                          {tz}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <ImagePickerField
-                siteId={params.siteId}
-                label="Logo"
-                value={logoUrl}
-                onChange={setLogoUrl}
-                initialPreset={SITE_PRESETS.find((p) => p.label === "Logo")}
-                hint="Recommended: SVG or PNG with transparent background, 300×100."
-              />
-
-              <ImagePickerField
-                siteId={params.siteId}
-                label="Favicon"
-                value={faviconUrl}
-                onChange={setFaviconUrl}
-                initialPreset={SITE_PRESETS.find((p) => p.label === "Favicon")}
-                hint="Recommended: 64×64 PNG — square crop enforced."
-              />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* ── Branding ── */}
-        <TabsContent value="branding">
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
-            <SectionHeader
-              title="Branding"
-              description="Brand colors and typography used across your website."
-              ts={d.brandingUpdatedAt}
-            >
-              <Button
-                size="sm"
-                disabled={pending === "branding"}
-                onClick={() =>
-                  handleSave("branding", () =>
-                    saveBranding({
-                      siteId,
-                      brandColorPrimary: colorPrimary || undefined,
-                      brandColorSecondary: colorSecondary || undefined,
-                      brandColorAccent: colorAccent || undefined,
-                      fontHeading: fontHeading || undefined,
-                      fontBody: fontBody || undefined,
-                    })
-                  )
-                }
-              >
-                {pending === "branding" ? "Saving…" : "Save Branding"}
-              </Button>
-            </SectionHeader>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Brand Colors</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <ColorField label="Primary" value={colorPrimary} onChange={setColorPrimary} />
-                  <ColorField label="Secondary" value={colorSecondary} onChange={setColorSecondary} />
-                  <ColorField label="Accent" value={colorAccent} onChange={setColorAccent} />
-                </div>
-              </div>
-
-              <div className="border-t border-slate-100 pt-5">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Typography</h3>
+              <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label>Heading Font</Label>
-                    <Select value={fontHeading} onValueChange={setFontHeading}>
-                      <SelectTrigger aria-label="Heading Font">
+                    <Label>Business Name</Label>
+                    <Input aria-label="business name" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Acme Corp" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Tagline</Label>
+                    <Input aria-label="tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Building great things" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Website Type</Label>
+                    <Select value={websiteType} onValueChange={setWebsiteType}>
+                      <SelectTrigger aria-label="Website Type">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {FONT_OPTIONS.map((f) => (
-                          <SelectItem key={f.value} value={f.value}>
-                            {f.label}
+                        {WEBSITE_TYPE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Body Font</Label>
-                    <Select value={fontBody} onValueChange={setFontBody}>
-                      <SelectTrigger aria-label="Body Font">
+                    <Label>Timezone</Label>
+                    <Select value={timezone} onValueChange={setTimezone}>
+                      <SelectTrigger aria-label="Timezone">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        {FONT_OPTIONS.map((f) => (
-                          <SelectItem key={f.value} value={f.value}>
-                            {f.label}
+                      <SelectContent className="max-h-60">
+                        {TIMEZONES.map((tz) => (
+                          <SelectItem key={tz} value={tz}>
+                            {tz}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -534,28 +511,125 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                   </div>
                 </div>
 
-                {(fontHeading !== "system" || fontBody !== "system") && (
-                  <div
-                    className="mt-4 p-4 rounded-md border border-slate-100 bg-slate-50"
-                    style={{
-                      fontFamily: fontBody === "system" ? undefined : fontBody,
-                    }}
-                  >
-                    <p
-                      className="text-lg font-bold text-slate-900 mb-1"
-                      style={{ fontFamily: fontHeading === "system" ? undefined : fontHeading }}
-                    >
-                      The quick brown fox jumps over the lazy dog
-                    </p>
-                    <p className="text-sm text-slate-600">
-                      Body text preview — your site's paragraph and UI copy will use this font at various sizes.
-                    </p>
-                  </div>
-                )}
+                <ImagePickerField
+                  siteId={params.siteId}
+                  label="Logo"
+                  value={logoUrl}
+                  onChange={setLogoUrl}
+                  initialPreset={SITE_PRESETS.find((p) => p.label === "Logo")}
+                  hint="Recommended: SVG or PNG with transparent background, 300×100."
+                />
+
+                <ImagePickerField
+                  siteId={params.siteId}
+                  label="Favicon"
+                  value={faviconUrl}
+                  onChange={setFaviconUrl}
+                  initialPreset={SITE_PRESETS.find((p) => p.label === "Favicon")}
+                  hint="Recommended: 64×64 PNG — square crop enforced."
+                />
               </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
+
+        {/* ── Branding ── */}
+        {isSuperAdmin && (
+          <TabsContent value="branding">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
+              <SectionHeader
+                title="Branding"
+                description="Brand colors and typography used across your website."
+                ts={d.brandingUpdatedAt}
+              >
+                <Button
+                  size="sm"
+                  disabled={pending === "branding"}
+                  onClick={() =>
+                    handleSave("branding", () =>
+                      saveBranding({
+                        siteId,
+                        brandColorPrimary: colorPrimary || undefined,
+                        brandColorSecondary: colorSecondary || undefined,
+                        brandColorAccent: colorAccent || undefined,
+                        fontHeading: fontHeading || undefined,
+                        fontBody: fontBody || undefined,
+                      })
+                    )
+                  }
+                >
+                  {pending === "branding" ? "Saving…" : "Save Branding"}
+                </Button>
+              </SectionHeader>
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Brand Colors</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <ColorField label="Primary" value={colorPrimary} onChange={setColorPrimary} />
+                    <ColorField label="Secondary" value={colorSecondary} onChange={setColorSecondary} />
+                    <ColorField label="Accent" value={colorAccent} onChange={setColorAccent} />
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-5">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Typography</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Heading Font</Label>
+                      <Select value={fontHeading} onValueChange={setFontHeading}>
+                        <SelectTrigger aria-label="Heading Font">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FONT_OPTIONS.map((f) => (
+                            <SelectItem key={f.value} value={f.value}>
+                              {f.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Body Font</Label>
+                      <Select value={fontBody} onValueChange={setFontBody}>
+                        <SelectTrigger aria-label="Body Font">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FONT_OPTIONS.map((f) => (
+                            <SelectItem key={f.value} value={f.value}>
+                              {f.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {(fontHeading !== "system" || fontBody !== "system") && (
+                    <div
+                      className="mt-4 p-4 rounded-md border border-slate-100 bg-slate-50"
+                      style={{
+                        fontFamily: fontBody === "system" ? undefined : fontBody,
+                      }}
+                    >
+                      <p
+                        className="text-lg font-bold text-slate-900 mb-1"
+                        style={{ fontFamily: fontHeading === "system" ? undefined : fontHeading }}
+                      >
+                        The quick brown fox jumps over the lazy dog
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        Body text preview — your site's paragraph and UI copy will use this font at various sizes.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        )}
 
         {/* ── Contact ── */}
         <TabsContent value="contact">
@@ -723,91 +797,93 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
         </TabsContent>
 
         {/* ── Integrations ── */}
-        <TabsContent value="integrations">
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
-            <SectionHeader
-              title="Integrations"
-              description="Analytics tracking IDs and cookie consent configuration."
-              ts={d.integrationsUpdatedAt}
-            >
-              <Button
-                size="sm"
-                disabled={pending === "integrations"}
-                onClick={() =>
-                  handleSave("integrations", () =>
-                    saveIntegrations({
-                      siteId,
-                      analyticsGa4: analyticsGa4 || undefined,
-                      analyticsGtm: analyticsGtm || undefined,
-                      analyticsPixel: analyticsPixel || undefined,
-                      cookieConsentEnabled,
-                      cookiePolicyUrl: cookiePolicyUrl || undefined,
-                    })
-                  )
-                }
+        {isSuperAdmin && (
+          <TabsContent value="integrations">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
+              <SectionHeader
+                title="Integrations"
+                description="Analytics tracking IDs and cookie consent configuration."
+                ts={d.integrationsUpdatedAt}
               >
-                {pending === "integrations" ? "Saving…" : "Save Integrations"}
-              </Button>
-            </SectionHeader>
+                <Button
+                  size="sm"
+                  disabled={pending === "integrations"}
+                  onClick={() =>
+                    handleSave("integrations", () =>
+                      saveIntegrations({
+                        siteId,
+                        analyticsGa4: analyticsGa4 || undefined,
+                        analyticsGtm: analyticsGtm || undefined,
+                        analyticsPixel: analyticsPixel || undefined,
+                        cookieConsentEnabled,
+                        cookiePolicyUrl: cookiePolicyUrl || undefined,
+                      })
+                    )
+                  }
+                >
+                  {pending === "integrations" ? "Saving…" : "Save Integrations"}
+                </Button>
+              </SectionHeader>
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Analytics</h3>
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label>Google Analytics 4 (GA4) Measurement ID</Label>
-                    <Input
-                      aria-label="Google Analytics 4 (GA4) Measurement ID"
-                      value={analyticsGa4}
-                      onChange={(e) => setAnalyticsGa4(e.target.value)}
-                      placeholder="G-XXXXXXXXXX"
-                      className="font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Google Tag Manager (GTM) Container ID</Label>
-                    <Input
-                      aria-label="Google Tag Manager (GTM) Container ID"
-                      value={analyticsGtm}
-                      onChange={(e) => setAnalyticsGtm(e.target.value)}
-                      placeholder="GTM-XXXXXXX"
-                      className="font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Meta (Facebook) Pixel ID</Label>
-                    <Input
-                      aria-label="Meta (Facebook) Pixel ID"
-                      value={analyticsPixel}
-                      onChange={(e) => setAnalyticsPixel(e.target.value)}
-                      placeholder="123456789012345"
-                      className="font-mono"
-                    />
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Analytics</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label>Google Analytics 4 (GA4) Measurement ID</Label>
+                      <Input
+                        aria-label="Google Analytics 4 (GA4) Measurement ID"
+                        value={analyticsGa4}
+                        onChange={(e) => setAnalyticsGa4(e.target.value)}
+                        placeholder="G-XXXXXXXXXX"
+                        className="font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Google Tag Manager (GTM) Container ID</Label>
+                      <Input
+                        aria-label="Google Tag Manager (GTM) Container ID"
+                        value={analyticsGtm}
+                        onChange={(e) => setAnalyticsGtm(e.target.value)}
+                        placeholder="GTM-XXXXXXX"
+                        className="font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Meta (Facebook) Pixel ID</Label>
+                      <Input
+                        aria-label="Meta (Facebook) Pixel ID"
+                        value={analyticsPixel}
+                        onChange={(e) => setAnalyticsPixel(e.target.value)}
+                        placeholder="123456789012345"
+                        className="font-mono"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="border-t border-slate-100 pt-5">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Cookie Consent</h3>
-                <div className="flex items-center gap-3 mb-3">
-                  <Switch checked={cookieConsentEnabled} onCheckedChange={setCookieConsentEnabled} />
-                  <Label>Show cookie consent banner</Label>
-                </div>
-                {cookieConsentEnabled && (
-                  <div className="space-y-1.5">
-                    <Label>Cookie Policy URL</Label>
-                    <Input
-                      aria-label="Cookie Policy URL"
-                      value={cookiePolicyUrl}
-                      onChange={(e) => setCookiePolicyUrl(e.target.value)}
-                      placeholder="https://example.com/cookie-policy"
-                    />
+                <div className="border-t border-slate-100 pt-5">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Cookie Consent</h3>
+                  <div className="flex items-center gap-3 mb-3">
+                    <Switch checked={cookieConsentEnabled} onCheckedChange={setCookieConsentEnabled} />
+                    <Label>Show cookie consent banner</Label>
                   </div>
-                )}
+                  {cookieConsentEnabled && (
+                    <div className="space-y-1.5">
+                      <Label>Cookie Policy URL</Label>
+                      <Input
+                        aria-label="Cookie Policy URL"
+                        value={cookiePolicyUrl}
+                        onChange={(e) => setCookiePolicyUrl(e.target.value)}
+                        placeholder="https://example.com/cookie-policy"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* ── Legal ── */}
         <TabsContent value="legal">

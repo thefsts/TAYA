@@ -205,7 +205,10 @@ export function buildSidebarGroups(ctx: SidebarBuildContext): SidebarNavGroup[] 
       title: "Site",
       icon: Settings,
       items: [
-        { id: "website-settings", label: "Website Settings", href: HREF(siteId, "settings"), icon: Settings, isDesignLocked: true },
+        // Client-accessible per-tab RBAC (PART 13): Contact/SEO/Legal/Events are
+        // client-editable (CONTENT_UPDATE); Identity/Branding/Integrations/Modules
+        // show a SuperAdmin-only lock notice inside the page. Never blanket-locked.
+        { id: "website-settings", label: "Website Settings", href: HREF(siteId, "settings"), icon: Settings },
         { id: "contact-info", label: "Contact Info", href: HREF(siteId, "contact"), icon: Phone, moduleKey: "contact" },
         { id: "my-permissions", label: "My Permissions", href: HREF(siteId, "permissions"), icon: ShieldCheckIcon },
         { id: "site-users", label: "Site Users", href: HREF(siteId, "users"), icon: Users },
