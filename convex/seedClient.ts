@@ -223,6 +223,14 @@ export interface ClientSeedConfig {
       certificates?: boolean;
       bookingHistory?: boolean;
       messaging?: boolean;
+      // Canonical Client Portal™ feature keys — preferred over the legacy
+      // names above, which remain accepted as input for backward compat.
+      courses?: boolean;
+      events?: boolean;
+      documents?: boolean;
+      messages?: boolean;
+      invoices?: boolean;
+      support?: boolean;
     };
   };
 
@@ -580,10 +588,16 @@ export const seedPortalConfig = internalMutation({
       primaryColor: p.primaryColor,
       welcomeMessage: p.welcomeMessage,
       enabledFeatures: {
-        courseMaterials: p.enabledFeatures?.courseMaterials ?? true,
+        // Canonical Client Portal™ keys. Legacy names (courseMaterials,
+        // bookingHistory, messaging) still work at read time via
+        // lib/portalFeatures normalization, but seeds write canonical keys.
+        courses: p.enabledFeatures?.courses ?? p.enabledFeatures?.courseMaterials ?? true,
+        events: p.enabledFeatures?.events ?? p.enabledFeatures?.bookingHistory ?? true,
+        documents: p.enabledFeatures?.documents ?? true,
+        messages: p.enabledFeatures?.messages ?? p.enabledFeatures?.messaging ?? false,
+        invoices: p.enabledFeatures?.invoices ?? false,
         certificates: p.enabledFeatures?.certificates ?? true,
-        bookingHistory: p.enabledFeatures?.bookingHistory ?? true,
-        messaging: p.enabledFeatures?.messaging ?? false,
+        support: p.enabledFeatures?.support ?? false,
       },
     };
 

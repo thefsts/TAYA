@@ -1596,10 +1596,15 @@ export const seedPortalConfig = internalMutation({
       welcomeMessage:
         "Welcome to the Corsair Tactical Solutions Client Portal. Access your course materials, training certificates, and booking history here. Questions? Contact us at corsairtacticalsolutions@gmail.com.",
       enabledFeatures: {
-        courseMaterials: true,
+        // Canonical Client Portal™ keys (legacy seed names map at read time
+        // via lib/portalFeatures normalization).
+        courses: true,
+        events: true,
+        documents: true,
+        messages: false,
+        invoices: false,
         certificates: true,
-        bookingHistory: true,
-        messaging: false,
+        support: false,
       },
     };
 

@@ -8,6 +8,7 @@ import {
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { getCurrentUser } from "./lib/getCurrentUser";
+import { normalizeEnabledFeatures } from "./lib/portalFeatures";
 import type { Id } from "./_generated/dataModel";
 
 // ─── Crypto helpers (Web Crypto API — available in Convex V8 runtime) ─────────
@@ -62,6 +63,41 @@ export const _getPortalUserByEmail = internalQuery({
       .query("portalUsers")
       .withIndex("by_site_email", (q) => q.eq("siteId", siteId).eq("email", email))
       .first(),
+});
+
+export const _getPortalUserById = internalQuery({
+  args: { portalUserId: v.id("portalUsers") },
+  handler: async (ctx, { portalUserId }) => ctx.db.get(portalUserId) ?? null,
+});
+
+export const _updatePortalUserAuth = internalMutation({
+  args: {
+    portalUserId: v.id("portalUsers"),
+    passwordHash: v.string(),
+    passwordSalt: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.portalUserId, {
+      passwordHash: args.passwordHash,
+      passwordSalt: args.passwordSalt,
+    });
+  },
+});
+
+export const _updatePortalUserProfile = internalMutation({
+  args: {
+    portalUserId: v.id("portalUsers"),
+    firstName: v.string(),
+    lastName: v.string(),
+    profileData: v.any(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.portalUserId, {
+      firstName: args.firstName,
+      lastName: args.lastName,
+      profileData: args.profileData,
+    });
+  },
 });
 
 export const _getSessionByToken = internalQuery({
@@ -327,7 +363,102 @@ export const login = action({
   },
 });
 
-// ─── Public queries / mutations ───────────────────────────────────────────────
+// ─── Public queries / mutations ───────────────────────────────────────────
+
+/**
+ * PUBLIC — member self-service profile update.
+ * Authenticated by the opaque portal session token (no Clerk identity).
+ * Members may update their own first/last name and phone only — email and
+ * role changes stay admin-controlled (owner action) so a member can never
+ * re-point their identity at another account.
+ */
+export const updateMyProfile = action({
+  args: {
+    token: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    phone: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
+    const session = await ctx.runQuery(internal.portal._getSessionByToken, {
+      token: args.token,
+    });
+    if (!session) return { success: false, error: "Your session has expired. Please sign in again." };
+    const user = await ctx.runQuery(internal.portal._getPortalUserById, {
+      portalUserId: session.portalUserId,
+    });
+    if (!user || user.status !== "active")
+      return { success: false, error: "Your account is not active." };
+
+    const firstName = args.firstName !== undefined ? args.firstName.trim() : user.firstName;
+    const lastName = args.lastName !== undefined ? args.lastName.trim() : user.lastName;
+    if (!firstName) return { success: false, error: "First name cannot be empty." };
+    if (!lastName) return { success: false, error: "Last name cannot be empty." };
+
+    const profileData =
+      (typeof user.profileData === "object" && user.profileData !== null
+        ? (user.profileData as Record<string, unknown>)
+        : {}) ?? {};
+    let nextProfileData = profileData;
+    if (args.phone !== undefined) {
+      const trimmed = args.phone.trim();
+      if (trimmed && !/^[+()\-\s\d.]{5,25}$/.test(trimmed))
+        return { success: false, error: "That phone number does not look valid." };
+      nextProfileData = { ...profileData, phone: trimmed };
+    }
+
+    await ctx.runMutation(internal.portal._updatePortalUserProfile, {
+      portalUserId: session.portalUserId,
+      firstName,
+      lastName,
+      profileData: nextProfileData,
+    });
+    return { success: true };
+  },
+});
+
+/**
+ * PUBLIC — member self-service password change.
+ * Token-authenticated; requires the current password (re-verified with the
+ * stored salt) so a stolen session token cannot silently take over the
+ * account. Enforces the same minimum length as registration.
+ */
+export const updateMyPassword = action({
+  args: {
+    token: v.string(),
+    currentPassword: v.string(),
+    newPassword: v.string(),
+  },
+  handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
+    const session = await ctx.runQuery(internal.portal._getSessionByToken, {
+      token: args.token,
+    });
+    if (!session) return { success: false, error: "Your session has expired. Please sign in again." };
+    const user = await ctx.runQuery(internal.portal._getPortalUserById, {
+      portalUserId: session.portalUserId,
+    });
+    if (!user || user.status !== "active")
+      return { success: false, error: "Your account is not active." };
+
+    const currentHash = await hashPassword(args.currentPassword, user.passwordSalt);
+    if (currentHash !== user.passwordHash)
+      return { success: false, error: "Your current password is incorrect." };
+
+    if (args.newPassword.length < 8)
+      return { success: false, error: "New password must be at least 8 characters." };
+
+    const salt = randomHex(16);
+    const passwordHash = await hashPassword(args.newPassword, salt);
+    await ctx.runMutation(internal.portal._updatePortalUserAuth, {
+      portalUserId: session.portalUserId,
+      passwordHash,
+      passwordSalt: salt,
+    });
+    return { success: true };
+  },
+});
+
+// ─── Public queries / mutations ───
 
 export const getPublicSiteConfig = query({
   args: { siteSlug: v.string() },
@@ -352,7 +483,12 @@ export const getPublicSiteConfig = query({
       portalPrimaryColor: config?.primaryColor ?? null,
       registrationOpen: config?.registrationOpen ?? false,
       requireApproval: config?.requireApproval ?? false,
-      enabledFeatures: (config?.enabledFeatures as Record<string, boolean>) ?? {},
+      // Normalize legacy seed keys (courseMaterials/bookingHistory/messaging)
+      // onto the canonical set so member dashboards render every enabled
+      // section regardless of which era wrote the config.
+      enabledFeatures: normalizeEnabledFeatures(
+        (config?.enabledFeatures as Record<string, unknown>) ?? {},
+      ),
     };
   },
 });
@@ -408,9 +544,15 @@ export const getConfig = query({
     const user = await getCurrentUser(ctx);
     if (!user) return null;
     if (!user.isSuperAdmin && !user.roles.some((r) => r.siteId === siteId)) return null;
-    return (
-      (await ctx.db.query("portalConfigs").withIndex("by_site", (q) => q.eq("siteId", siteId)).first()) ?? null
-    );
+    const config =
+      (await ctx.db.query("portalConfigs").withIndex("by_site", (q) => q.eq("siteId", siteId)).first()) ?? null;
+    if (!config) return null;
+    // Legacy seed keys (courseMaterials/bookingHistory/messaging) map onto the
+    // canonical set here too, so the admin UI loads toggles that actually
+    // match what the member dashboard renders.
+    return { ...config, enabledFeatures: normalizeEnabledFeatures(
+      (config.enabledFeatures as Record<string, unknown>) ?? {},
+    ) };
   },
 });
 
@@ -430,14 +572,23 @@ export const saveConfig = mutation({
     if (!user) throw new Error("Not authenticated");
     if (!user.isSuperAdmin && !user.roles.some((r) => r.siteId === args.siteId))
       throw new Error("Access denied");
+    // Persist ONLY canonical feature keys: legacy seed aliases are mapped at
+    // read time, and any save rewrites the config without them, so configs
+    // converge on the canonical set instead of accumulating drift.
+    const normalizedArgs = {
+      ...args,
+      enabledFeatures: normalizeEnabledFeatures(
+        (args.enabledFeatures as Record<string, unknown>) ?? {},
+      ),
+    };
     const existing = await ctx.db
       .query("portalConfigs")
       .withIndex("by_site", (q) => q.eq("siteId", args.siteId))
       .first();
     if (existing) {
-      await ctx.db.patch(existing._id, args);
+      await ctx.db.patch(existing._id, normalizedArgs);
     } else {
-      await ctx.db.insert("portalConfigs", args);
+      await ctx.db.insert("portalConfigs", normalizedArgs);
     }
   },
 });
