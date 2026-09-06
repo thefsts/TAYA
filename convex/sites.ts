@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { requireAuth, provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
@@ -357,13 +358,212 @@ export const update = mutation({
   },
 });
 
+// ─── Site delete: full data-footprint cleanup (P4 follow-up) ────────────────
+//
+// Every table below stores per-site rows keyed by siteId. sites.remove
+// previously deleted ONLY the sites doc, so every one of these rows was left
+// dangling as an orphan: public queries keyed by siteId still "found" data
+// for a site that no longer existed, and deleting test sites in production
+// left permanent residue (20 orphaned navigationItems were found in prod).
+// Deleting a site now removes its complete data footprint so slugs and ids
+// can be safely reused.
+//
+// Deliberate exceptions:
+//   • users — platform-level identities. NEVER deleted here; their per-site
+//     roles are stripped instead (users.roles is the membership join record).
+//   • registrations — no standalone by_site index; swept via its
+//     by_site_entity prefix index instead.
+//   • activityLog — swept too: activityLog.list requires a LIVE siteId, so
+//     rows for a deleted site can never be read by anyone. Keeping them is
+//     pure dead weight (the exact orphan class found in production).
+//   • agencies / sites / addOnCatalog — global tables, not site-scoped.
+export const SITE_SCOPED_TABLES = [
+  // Content
+  "articles",
+  "courses",
+  "events",
+  "faqs",
+  "testimonials",
+  "teamMembers",
+  "jobPostings",
+  "siteServices",
+  "siteProducts",
+  "downloadableResources",
+  "pricingTiers",
+  "flyers",
+  "forms",
+  "formSubmissions",
+  "mediaAssets",
+  // Page / layout / config (seeded by sites.create + onboarding.launch)
+  "homepageContent",
+  "footerContent",
+  "contactInfo",
+  "seoSettings",
+  "navigationItems",
+  "announcementBanner",
+  "siteCtaConfig",
+  "popupConfig",
+  "siteSettings",
+  "siteRoleOverrides",
+  "contentVersions",
+  "policyPages",
+  // Bookings (siteId-prefixed by_site_entity index — no standalone by_site)
+  "registrations",
+  // Integrations / sync / commerce
+  "crmConnections",
+  "crmEntitySyncSettings",
+  "crmSyncLogs",
+  "crmInboundRecords",
+  "emailSettings",
+  "paymentConnectors",
+  "paymentEvents",
+  "squareConfig",
+  "squareCatalogItems",
+  "squareOrders",
+  "squareDiscounts",
+  "squareCatalogMappings",
+  "reviewSources",
+  "importedReviews",
+  "reviewDisplaySettings",
+  // Automation
+  "automationRules",
+  "automationRunLog",
+  // Client portal
+  "portalConfigs",
+  "portalUsers",
+  "portalSessions",
+  // Health / monitoring / ops / audit trail
+  "siteHealthLogs",
+  "websiteHealthScans",
+  "healthNotifications",
+  "backups",
+  "activityLog",
+  // Add-ons + onboarding
+  "siteAddOns",
+  "onboardingProgress",
+] as const;
+
+// Convex file-storage blobs owned by a mediaAssets row (mirrors media.ts).
+const MEDIA_STORAGE_FIELDS = [
+  "storageId",
+  "thumbStorageId",
+  "smallStorageId",
+  "mediumStorageId",
+  "largeStorageId",
+  "heroStorageId",
+] as const;
+
+/** Collect every row of a site-scoped table that belongs to `siteId`. */
+async function siteRows(ctx: MutationCtx, table: string, siteId: Id<"sites">) {
+  const index = table === "registrations" ? "by_site_entity" : "by_site";
+  return await (ctx.db as any)
+    .query(table)
+    .withIndex(index, (q: any) => q.eq("siteId", siteId))
+    .collect();
+}
+
+/** Release every storage blob referenced by a mediaAssets row. */
+async function deleteMediaBlobs(ctx: MutationCtx, row: any) {
+  for (const field of MEDIA_STORAGE_FIELDS) {
+    const storageId = row[field];
+    if (storageId) {
+      try {
+        await ctx.storage.delete(storageId);
+      } catch {
+        // Blob already gone — the doc delete below is what matters.
+      }
+    }
+  }
+}
+
+/**
+ * Delete a site's complete data footprint: every row in every site-scoped
+ * table, the media storage blobs those rows reference, and the per-site
+ * roles on platform users. Convex mutations are atomic — if any step fails
+ * the whole deletion rolls back.
+ */
+async function deleteSiteData(ctx: MutationCtx, siteId: Id<"sites">) {
+  for (const table of SITE_SCOPED_TABLES) {
+    const rows = await siteRows(ctx, table, siteId);
+    for (const row of rows) {
+      if (table === "mediaAssets") {
+        await deleteMediaBlobs(ctx, row);
+      }
+      await ctx.db.delete(row._id);
+    }
+  }
+
+  // users are platform identities — never deleted — but ghost site roles
+  // (the membership join record) must go with the site.
+  const users = await ctx.db.query("users").collect();
+  for (const u of users) {
+    if (u.roles.some((r: any) => r.siteId === siteId)) {
+      await ctx.db.patch(u._id, {
+        roles: u.roles.filter((r: any) => r.siteId !== siteId),
+      } as any);
+    }
+  }
+}
+
 export const remove = mutation({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     const user = await provisionUser(ctx);
     if (!user.isSuperAdmin) throw new Error("Forbidden");
+    const site = await ctx.db.get(siteId);
+    if (!site) throw new Error("Site not found");
+
+    await deleteSiteData(ctx, siteId);
     await ctx.db.delete(siteId);
     return { success: true };
+  },
+});
+
+/**
+ * One-time production maintenance mutation: sweep every site-scoped row whose
+ * siteId points at a site that no longer exists — orphans left behind by the
+ * OLD sites.remove that deleted only the sites doc (20 orphaned
+ * navigationItems were found in production this way). SuperAdmin only.
+ * Never touches rows that belong to a live site. Returns per-table deleted
+ * counts (+ stripped ghost user roles) so the cleanup is fully evidenced.
+ */
+export const purgeOrphanedSiteData = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await provisionUser(ctx);
+    if (!user.isSuperAdmin) throw new Error("Forbidden");
+
+    const liveSites = await ctx.db.query("sites").collect();
+    const liveIds = new Set(liveSites.map((s: any) => String(s._id)));
+
+    const deleted: Record<string, number> = {};
+    for (const table of SITE_SCOPED_TABLES) {
+      const rows = await (ctx.db as any).query(table).collect();
+      let count = 0;
+      for (const row of rows) {
+        if (!row.siteId || liveIds.has(String(row.siteId))) continue;
+        if (table === "mediaAssets") {
+          await deleteMediaBlobs(ctx, row);
+        }
+        await ctx.db.delete(row._id);
+        count++;
+      }
+      if (count > 0) deleted[table] = count;
+    }
+
+    // Strip ghost site roles (roles pointing at deleted sites) from users.
+    let rolesStripped = 0;
+    const users = await ctx.db.query("users").collect();
+    for (const u of users) {
+      if (u.roles.some((r: any) => !liveIds.has(String(r.siteId)))) {
+        await ctx.db.patch(u._id, {
+          roles: u.roles.filter((r: any) => liveIds.has(String(r.siteId))),
+        } as any);
+        rolesStripped++;
+      }
+    }
+
+    return { liveSites: liveIds.size, deleted, rolesStripped };
   },
 });
 
