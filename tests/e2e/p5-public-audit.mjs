@@ -293,24 +293,31 @@ console.log("\n═══ D. PUBLIC ENDPOINTS ═══");
       ["navigation", "navigation"], ["announcement", "announcement"], ["cta", "cta"],
       ["team", "team"], ["downloads", "downloads"], ["jobs", "jobs"],
       ["popup", "popup"], ["policy", "policy"], ["reviews", "reviews"],
-      ["products", "products"], ["services", "services"], ["form", "form"],
+      ["products", "products"], ["services", "services"],
     ];
+    // NOTE: /api/public/form is intentionally EXCLUDED from the blanket 200
+    // sweep. It is a form-detail endpoint requiring BOTH ?slug= and ?form=
+    // params and only returns 200 when that specific form is published; with
+    // no published forms in production, a 404 "form not found or not
+    // published" is CORRECT behavior, not a dead endpoint.
     let passCount = 0, failList = [];
     for (const [label, ep] of GETS) {
       for (const slug of [corsairSlug, fstsSlug]) {
         const r = await page.request.get(`${CONVEX_SITE}/api/public/${ep}?slug=${slug}`, { timeout: 20000 }).catch(() => null);
         if (r && r.status() === 200) {
           passCount++;
-          if (ep === "form" && slug === corsairSlug) {
-            const j = await r.json().catch(() => null);
-            record("info", "endpoints", `GET ${ep} (${slug})`, "200", `200 formCount=${j?.forms?.length ?? "?"}`, true);
-          }
         } else {
           failList.push(`${ep}/${slug}:${r ? r.status() : "ERR"}`);
         }
       }
     }
-    record("high", "endpoints", "24 public GET endpoints x 2 sites", "all 200", `${passCount}/48 ok; failures: ${failList.join(", ") || "none"}`, failList.length === 0);
+    // Form endpoint contract check (correct-cleanup, not blanket-200):
+    // missing form param and unknown form must both be clean 404 JSON.
+    const formNoParam = await page.request.get(`${CONVEX_SITE}/api/public/form?slug=${corsairSlug}`, { timeout: 15000 }).catch(() => null);
+    record("medium", "endpoints", "GET form without form param", "clean 404 (endpoint requires ?form=)", `status=${formNoParam?.status() ?? "ERR"}`, formNoParam?.status() === 404);
+    const formBadForm = await page.request.get(`${CONVEX_SITE}/api/public/form?slug=${corsairSlug}&form=does-not-exist`, { timeout: 15000 }).catch(() => null);
+    record("medium", "endpoints", "GET form unknown form", "clean 404 (no published form with that slug)", `status=${formBadForm?.status() ?? "ERR"}`, formBadForm?.status() === 404);
+    record("high", "endpoints", "public GET endpoints x 2 sites", "all 200", `${passCount}/${GETS.length * 2} ok; failures: ${failList.join(", ") || "none"}`, failList.length === 0);
 
     // D2: CORS preflight (browser-usable)
     const pre = await page.request.fetch(`${CONVEX_SITE}/api/public/homepage?slug=${corsairSlug}`, { method: "OPTIONS", timeout: 15000 }).catch(() => null);
@@ -477,16 +484,22 @@ const portalUserId = { id: null };
         for (const label of ["My Profile", "Account Settings", "Dashboard"]) {
           const nl = page.locator(`aside >> text=${JSON.stringify(label)}`).first();
           if ((await nl.count()) > 0) {
-            const before = page.url();
+            // Sectioned dashboards switch panels IN PLACE (no URL change), so
+            // record both URL and visible content before/after each click.
+            const beforeUrl = page.url();
+            const beforeTxt = (await page.locator("main, [role=main], body").first().innerText().catch(() => "")).trim();
             try { await nl.click({ timeout: 6000 }); } catch {}
             await page.waitForTimeout(1200);
-            const after = page.url();
-            const urlChanged = before !== after;
-            // A live click produces navigation; dead div produces nothing
-            if (!urlChanged) deadNavLinks.push(label);
+            const afterUrl = page.url();
+            const afterTxt = (await page.locator("main, [role=main], body").first().innerText().catch(() => "")).trim();
+            const urlChanged = beforeUrl !== afterUrl;
+            const uiChanged = beforeTxt !== afterTxt;
+            // A live click produces navigation OR a visible panel change; a
+            // dead element produces neither.
+            if (!urlChanged && !uiChanged) deadNavLinks.push(label);
           }
         }
-        record("high", "portal", "click sidebar NavLinks (Profile/Settings/Dashboard)", "each click navigates or opens panel", deadNavLinks.length ? `DEAD: ${deadNavLinks.join(", ")} (clicks produce no navigation)` : "all clicked links navigated", deadNavLinks.length === 0);
+        record("high", "portal", "click sidebar NavLinks (Profile/Settings/Dashboard)", "each click navigates or switches panel", deadNavLinks.length ? `DEAD: ${deadNavLinks.join(", ")} (clicks produce no navigation or panel change)` : "all clicked links navigated or switched panels", deadNavLinks.length === 0);
 
         // E2g: REAL click Sign out → returns to login
         const signOut = page.locator("aside >> button:has-text('Sign out')").first();
