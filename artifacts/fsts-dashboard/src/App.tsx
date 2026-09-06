@@ -28,6 +28,7 @@ const AdminAgencies = lazy(() => import("@/pages/app/admin/AdminAgencies"));
 const AdminPlatformControls = lazy(() => import("@/pages/app/admin/AdminPlatformControls"));
 const AdminSiteOnboarding = lazy(() => import("@/pages/app/admin/AdminSiteOnboarding"));
 const OnboardingWizard = lazy(() => import("@/pages/app/OnboardingWizard"));
+const SetupOnboarding = lazy(() => import("@/pages/app/SetupOnboarding"));
 const AdminPlatformRunbook = lazy(() => import("@/pages/app/admin/AdminPlatformRunbook"));
 const AdminRoles = lazy(() => import("@/pages/app/admin/AdminRoles"));
 const AdminRoadmap = lazy(() => import("@/pages/app/admin/AdminRoadmap"));
@@ -463,6 +464,10 @@ function AppRouter() {
           <Route path="/app/admin/platform-controls" component={AdminPlatformControls} />
           <Route path="/app/admin/onboarding" component={AdminSiteOnboarding} />
           <Route path="/app/onboard" component={OnboardingWizard} />
+          {/* Phase 1 — client self-service onboarding (spec §1/§13): a
+              zero-site client completes setup and lands in their own
+              workspace; no manual admin assignment. */}
+          <Route path="/app/setup" component={SetupOnboarding} />
           <Route path="/app/admin/runbook" component={AdminPlatformRunbook} />
           <Route path="/app/admin/roles" component={AdminRoles} />
           <Route path="/app/admin/roadmap" component={AdminRoadmap} />
