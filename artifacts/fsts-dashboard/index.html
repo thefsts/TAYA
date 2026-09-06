@@ -26,9 +26,8 @@
   <body>
     <div id="root"></div>
     <script>
-      // Safety net: normal TAYA client flows must never expose Clerk's hosted
-      // Account Portal. Existing dashboard links are intercepted here while the
-      // product UI is being consolidated so sign-out stays inside TAYA.
+      // Client account controls stay inside TAYA. Clerk remains the auth
+      // provider, but its hosted Account Portal is not part of the product UX.
       document.addEventListener("click", async function (event) {
         const target = event.target instanceof Element ? event.target.closest("a") : null;
         if (!target) return;
@@ -59,8 +58,12 @@
           return;
         }
 
-        // Do not expose Clerk's hosted user/account UI to normal clients.
-        // Keep them inside the TAYA workspace instead.
+        const siteMatch = window.location.pathname.match(/^\/app\/sites\/([^/]+)/);
+        if (siteMatch) {
+          window.location.assign(`/app/sites/${encodeURIComponent(siteMatch[1])}/permissions?tab=account`);
+          return;
+        }
+
         window.location.assign("/app");
       }, true);
     </script>
