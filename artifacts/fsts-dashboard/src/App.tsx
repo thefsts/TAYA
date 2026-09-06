@@ -3,12 +3,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk, useUser } from "@clerk/react";
 import { shadcn } from "@clerk/themes";
-import { ConvexProvider, ConvexReactClient, useConvexAuth, useMutation, useQuery } from "convex/react";
+import { ConvexProvider, ConvexReactClient, useAction, useConvexAuth, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
 import { tayaLogoUrl } from "@/lib/tayaBrand";
 import DesignLockGuard from "@/components/DesignLockGuard";
+import { useToast } from "@/hooks/use-toast";
 
 // Lazy-loaded pages — each route is its own chunk so clients only download
 // the code for the pages they actually visit.
@@ -220,20 +221,36 @@ const clerkAppearance = {
 
 function AuthBootstrap() {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const provisionMe = useMutation(api.users.provisionMe);
+  // provisionMeVerified resolves the account email server-side (JWT claim or
+  // Clerk Backend API) before provisioning, so an invited client whose Convex
+  // JWT carries no email claim is reconciled with their pending invitation
+  // instead of being provisioned as a claimless duplicate.
+  const provisionMe = useAction(api.users.provisionMeVerified);
   const provisioned = useRef(false);
   const { signOut } = useClerk();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isAuthenticated && !isLoading && !provisioned.current) {
       provisioned.current = true;
-      provisionMe().catch((err: Error) => {
-        if (err?.message?.includes("Account is deactivated")) {
+      provisionMe({}).catch((err: Error) => {
+        const message = err?.message ?? String(err);
+        console.error("TAYA account provisioning failed", message);
+        if (message.includes("Account is deactivated")) {
           signOut({ redirectUrl: `${basePath}/sign-in?deactivated=1` });
+          return;
         }
+        // Configuration/data-integrity errors stop the client at a clear,
+        // actionable message instead of silently leaving them with no site.
+        toast({
+          title: "Account setup incomplete",
+          description:
+            "TAYA could not finish setting up your account. Sign out and try again, or contact your administrator if this keeps happening.",
+          variant: "destructive",
+        });
       });
     }
-  }, [isAuthenticated, isLoading, provisionMe, signOut]);
+  }, [isAuthenticated, isLoading, provisionMe, signOut, toast]);
 
   return null;
 }
