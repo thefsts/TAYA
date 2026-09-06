@@ -1,4 +1,5 @@
 import { query, mutation } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAuth, provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
@@ -10,6 +11,63 @@ function toSiteResponse(site: any) {
     createdAt: new Date(site._creationTime).toISOString(),
     updatedAt: new Date(site._creationTime).toISOString(),
   };
+}
+
+// ── P4: slug + status helpers (ported from onboarding.ts wizard parity) ─────
+// The Global Sites "Create Site" dialog previously stored whatever slug the
+// caller typed (or nothing) with no normalization and no uniqueness check.
+// Public lookups (publicBrandBySlug, getSiteBySlug, getNavigationBySlug, ...)
+// resolve via by_slug .first(), so a duplicate or malformed slug would serve
+// one tenant's site to another — or break lookups entirely. The wizard path
+// (onboarding.launch) always slugifies and de-duplicates; this brings the
+// dialog path to parity.
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 60);
+}
+
+const SITE_STATUSES = ["active", "staging", "archived"] as const;
+
+// Module key -> primary nav entry. Mirrors the wizard's NAV_PAGE_MAP so a
+// site created from the dialog ships with the same visible menu the wizard
+// would seed (home + about + contact always; other pages when the matching
+// module is enabled). hrefs are the public website routes the seeded
+// navigationItems are consumed against (public.getNavigationBySlug).
+const MODULE_NAV_MAP: Record<string, { label: string; href: string }> = {
+  homepage: { label: "Home", href: "/" },
+  articles: { label: "Blog", href: "/blog" },
+  contact: { label: "Contact", href: "/contact" },
+  products: { label: "Products", href: "/products" },
+  events: { label: "Events", href: "/events" },
+  courses: { label: "Courses", href: "/courses" },
+  media: { label: "Media", href: "/media" },
+};
+
+// P4 helper: resolve a slug that is guaranteed unique (by_slug is not a
+// unique index, so uniqueness is enforced here before insert). Throws after
+// 50 collisions so a pathological caller cannot loop forever.
+async function resolveUniqueSlug(ctx: MutationCtx, base: string): Promise<string> {
+  let slug = base;
+  let attempt = 0;
+  while (true) {
+    const existing = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!existing) return slug;
+    attempt += 1;
+    if (attempt > 50) {
+      throw new Error(
+        "Could not generate a unique slug — please choose a different site name.",
+      );
+    }
+    slug = `${base}-${attempt + 1}`;
+  }
 }
 
 export const list = query({
@@ -154,11 +212,29 @@ export const create = mutation({
     const websiteType = args.websiteType ?? "business_website";
     const enabledModules = args.enabledModules ?? defaultModules(websiteType);
 
+    // ── P4: slug + status + domain normalization ──────────────────────────
+    // Slug: normalize what the caller sent; fall back to the site name when
+    // empty. Guaranteed unique (see resolveUniqueSlug) — the dialog path used
+    // to accept raw/duplicate slugs because by_slug is not a unique index.
+    const baseSlug = slugify(args.slug) || slugify(args.name) || "new-site";
+    const slug = await resolveUniqueSlug(ctx, baseSlug);
+
+    // Status: whitelist the three legal lifecycle states. Unknown values
+    // ("" or typos) previously fell through to the store verbatim.
+    const status = (SITE_STATUSES as readonly string[]).includes(args.status ?? "")
+      ? args.status!
+      : "active";
+
+    // Domain: strip protocol/trailing slash exactly like the wizard does.
+    const domain = args.domain?.trim()
+      ? args.domain.trim().replace(/^https?:\/\//, "").replace(/\/$/, "")
+      : undefined;
+
     const siteId = await ctx.db.insert("sites", {
       name: args.name,
-      slug: args.slug,
-      status: args.status ?? "active",
-      domain: args.domain,
+      slug,
+      status,
+      domain,
       logoUrl: args.logoUrl,
       faviconUrl: args.faviconUrl,
       brandColorPrimary: args.brandColorPrimary ?? "#1d4ed8",
@@ -208,10 +284,33 @@ export const create = mutation({
       description: `${args.name} — powered by Full Stack Tech Solutions.`,
     });
 
-    if (!user.isSuperAdmin) {
-      await ctx.db.patch(user._id, {
-        roles: [...user.roles, { siteId, role: "client_admin" }],
-      });
+    // ── P4: seed the public website menu from enabled modules ────────────
+    // A site created from the dialog previously shipped with ZERO nav items,
+    // so the client's public website rendered an empty menu. The wizard path
+    // seeds nav from its page selections (onboarding.launch); this seeds the
+    // equivalent entries from the dialog's enabled modules so both paths
+    // produce an identical, usable starting menu.
+    const navKeys = ["homepage", "about", "contact", "articles", "products", "events", "courses", "media"];
+    let order = 0;
+    for (const key of navKeys) {
+      // about/contact are core pages every site ships with; the rest require
+      // the matching module to be enabled.
+      const moduleEnabled =
+        key === "about" || key === "contact" ? true : enabledModules[key] === true;
+      const entry =
+        key === "about"
+          ? { label: "About", href: "/about" }
+          : MODULE_NAV_MAP[key];
+      if (moduleEnabled && entry) {
+        await ctx.db.insert("navigationItems", {
+          siteId,
+          label: entry.label,
+          href: entry.href,
+          isVisible: true,
+          order: order++,
+          openInNewTab: false,
+        });
+      }
     }
 
     await logActivity(ctx, {
@@ -219,7 +318,7 @@ export const create = mutation({
       actorName: user.name,
       action: "created",
       entityType: "site",
-      page: "Site Onboarding",
+      page: "Global Sites",
     });
 
     const site = await ctx.db.get(siteId);

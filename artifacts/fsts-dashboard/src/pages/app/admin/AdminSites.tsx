@@ -41,6 +41,16 @@ type SiteStatus = "active" | "staging" | "archived";
 type WebsiteType = string;
 type EnabledModules = Record<string, boolean>;
 
+function slugifyInput(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 60);
+}
+
 export default function AdminSites() {
   const me = useQuery(api.users.me);
   const sites = useQuery(api.sites.list);
@@ -58,7 +68,7 @@ export default function AdminSites() {
   const [form, setForm] = useState({
     name: "",
     slug: "",
-    status: "staging" as SiteStatus,
+    status: "active" as SiteStatus,
     domain: "",
     brandColorPrimary: "#1d4ed8",
     brandColorSecondary: "#0f172a",
@@ -67,6 +77,7 @@ export default function AdminSites() {
     websiteType: "business_website" as WebsiteType,
     enabledModules: defaultModulesForWebsiteType("business_website") as EnabledModules,
   });
+  const [slugTouched, setSlugTouched] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -78,7 +89,7 @@ export default function AdminSites() {
     setForm({
       name: "",
       slug: "",
-      status: "staging",
+      status: "active",
       domain: "",
       brandColorPrimary: "#1d4ed8",
       brandColorSecondary: "#0f172a",
@@ -87,6 +98,7 @@ export default function AdminSites() {
       websiteType: "business_website",
       enabledModules: defaultModulesForWebsiteType("business_website"),
     });
+    setSlugTouched(false);
     setDialogOpen(true);
   }
 
@@ -295,11 +307,40 @@ export default function AdminSites() {
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
               <div className="space-y-1.5">
                 <Label>Name</Label>
-                <Input aria-label="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Input
+                  aria-label="name"
+                  required
+                  value={form.name}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setForm((f) => ({
+                      ...f,
+                      name,
+                      // P4: auto-derive the slug from the name until the user
+                      // edits the slug field themselves. The backend
+                      // re-normalizes + de-duplicates regardless.
+                      slug: editing || slugTouched ? f.slug : slugifyInput(name),
+                    }));
+                  }}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Slug</Label>
-                <Input aria-label="slug" required disabled={!!editing} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+                <div>
+                  <Input
+                    aria-label="slug"
+                    required
+                    disabled={!!editing}
+                    value={form.slug}
+                    onChange={(e) => {
+                      setSlugTouched(true);
+                      setForm({ ...form, slug: e.target.value });
+                    }}
+                  />
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    Auto-filled from the name; lowercase letters, numbers and dashes. Used for the public site URL and branded sign-in link.
+                  </p>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Status</Label>
