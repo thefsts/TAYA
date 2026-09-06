@@ -2,14 +2,19 @@ import { useEffect } from "react";
 
 /**
  * TAYA marketing is deployed separately; the system root is an auth gate.
- * Clerk's hosted Account Portal is the production-safe login gateway while
- * the embedded Clerk widget is being repaired. The redirect_url returns the
- * authenticated user directly to the TAYA dashboard.
+ *
+ * All normal owner/admin sign-ins stay inside the TAYA application so every
+ * client sees the same branded Clerk experience. Tenant separation still
+ * happens after authentication from the authenticated user's server-side
+ * TAYA roles; this redirect does not choose or grant a site.
  */
 export default function Landing() {
   useEffect(() => {
-    const appUrl = `${window.location.origin}/app`;
-    const signInUrl = `https://accounts.app.fstsclientsystem.com/sign-in?redirect_url=${encodeURIComponent(appUrl)}`;
+    const params = new URLSearchParams(window.location.search);
+    const site = params.get("site");
+    const signInUrl = site
+      ? `/sign-in?site=${encodeURIComponent(site)}`
+      : "/sign-in";
     window.location.replace(signInUrl);
   }, []);
 
