@@ -4,6 +4,13 @@ import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { requireAuth, provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
+import {
+  slugify,
+  SITE_STATUSES,
+  resolveUniqueSlug,
+  defaultModules,
+  insertSiteWithSeedContent,
+} from "./lib/siteProvisioning";
 
 function toSiteResponse(site: any) {
   return {
@@ -14,62 +21,9 @@ function toSiteResponse(site: any) {
   };
 }
 
-// ── P4: slug + status helpers (ported from onboarding.ts wizard parity) ─────
-// The Global Sites "Create Site" dialog previously stored whatever slug the
-// caller typed (or nothing) with no normalization and no uniqueness check.
-// Public lookups (publicBrandBySlug, getSiteBySlug, getNavigationBySlug, ...)
-// resolve via by_slug .first(), so a duplicate or malformed slug would serve
-// one tenant's site to another — or break lookups entirely. The wizard path
-// (onboarding.launch) always slugifies and de-duplicates; this brings the
-// dialog path to parity.
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .slice(0, 60);
-}
-
-const SITE_STATUSES = ["active", "staging", "archived"] as const;
-
-// Module key -> primary nav entry. Mirrors the wizard's NAV_PAGE_MAP so a
-// site created from the dialog ships with the same visible menu the wizard
-// would seed (home + about + contact always; other pages when the matching
-// module is enabled). hrefs are the public website routes the seeded
-// navigationItems are consumed against (public.getNavigationBySlug).
-const MODULE_NAV_MAP: Record<string, { label: string; href: string }> = {
-  homepage: { label: "Home", href: "/" },
-  articles: { label: "Blog", href: "/blog" },
-  contact: { label: "Contact", href: "/contact" },
-  products: { label: "Products", href: "/products" },
-  events: { label: "Events", href: "/events" },
-  courses: { label: "Courses", href: "/courses" },
-  media: { label: "Media", href: "/media" },
-};
-
-// P4 helper: resolve a slug that is guaranteed unique (by_slug is not a
-// unique index, so uniqueness is enforced here before insert). Throws after
-// 50 collisions so a pathological caller cannot loop forever.
-async function resolveUniqueSlug(ctx: MutationCtx, base: string): Promise<string> {
-  let slug = base;
-  let attempt = 0;
-  while (true) {
-    const existing = await ctx.db
-      .query("sites")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .first();
-    if (!existing) return slug;
-    attempt += 1;
-    if (attempt > 50) {
-      throw new Error(
-        "Could not generate a unique slug — please choose a different site name.",
-      );
-    }
-    slug = `${base}-${attempt + 1}`;
-  }
-}
+// ── P4: slug + status conventions now live in lib/siteProvisioning.ts ────
+// (single source of truth shared by the superadmin dialog, the onboarding
+// wizard, and the client self-service onboarding path — spec §1/§3/§23.)
 
 export const list = query({
   args: {},
@@ -213,7 +167,7 @@ export const create = mutation({
     const websiteType = args.websiteType ?? "business_website";
     const enabledModules = args.enabledModules ?? defaultModules(websiteType);
 
-    // ── P4: slug + status + domain normalization ──────────────────────────
+    // ── P4: slug + status + domain normalization (lib/siteProvisioning) ────
     // Slug: normalize what the caller sent; fall back to the site name when
     // empty. Guaranteed unique (see resolveUniqueSlug) — the dialog path used
     // to accept raw/duplicate slugs because by_slug is not a unique index.
@@ -231,88 +185,23 @@ export const create = mutation({
       ? args.domain.trim().replace(/^https?:\/\//, "").replace(/\/$/, "")
       : undefined;
 
-    const siteId = await ctx.db.insert("sites", {
+    // Seed the site + its full content footprint via the SHARED provisioning
+    // path (identical starting site regardless of who created it — spec §23).
+    const { siteId } = await insertSiteWithSeedContent(ctx, {
       name: args.name,
       slug,
       status,
       domain,
       logoUrl: args.logoUrl,
       faviconUrl: args.faviconUrl,
-      brandColorPrimary: args.brandColorPrimary ?? "#1d4ed8",
-      brandColorSecondary: args.brandColorSecondary ?? "#0f172a",
-      whiteLabelEnabled: args.whiteLabelEnabled ?? false,
-      poweredByFsts: args.poweredByFsts ?? true,
+      brandColorPrimary: args.brandColorPrimary,
+      brandColorSecondary: args.brandColorSecondary,
+      whiteLabelEnabled: args.whiteLabelEnabled,
+      poweredByFsts: args.poweredByFsts,
       websiteType,
       enabledModules,
       agencyId: args.agencyId,
     });
-
-    await ctx.db.insert("crmConnections", {
-      siteId,
-      provider: "operon",
-      status: "not_connected",
-      authMethod: "api_key",
-      ssoEnabled: false,
-      apiHealth: "unknown",
-    });
-
-    await ctx.db.insert("homepageContent", {
-      siteId,
-      heroHeadline: `Welcome to ${args.name}`,
-      heroSubheadline: "Edit this hero section from the Homepage editor.",
-      sections: [],
-    });
-
-    await ctx.db.insert("footerContent", {
-      siteId,
-      columns: [],
-      socialLinks: [],
-      copyrightText: `© ${new Date().getFullYear()} ${args.name}. All rights reserved.`,
-    });
-
-    await ctx.db.insert("contactInfo", {
-      siteId,
-      email: "",
-      phone: "",
-      address: "",
-      hours: [],
-    });
-
-    await ctx.db.insert("seoSettings", {
-      siteId,
-      pagePath: "/",
-      title: args.name,
-      description: `${args.name} — powered by Full Stack Tech Solutions.`,
-    });
-
-    // ── P4: seed the public website menu from enabled modules ────────────
-    // A site created from the dialog previously shipped with ZERO nav items,
-    // so the client's public website rendered an empty menu. The wizard path
-    // seeds nav from its page selections (onboarding.launch); this seeds the
-    // equivalent entries from the dialog's enabled modules so both paths
-    // produce an identical, usable starting menu.
-    const navKeys = ["homepage", "about", "contact", "articles", "products", "events", "courses", "media"];
-    let order = 0;
-    for (const key of navKeys) {
-      // about/contact are core pages every site ships with; the rest require
-      // the matching module to be enabled.
-      const moduleEnabled =
-        key === "about" || key === "contact" ? true : enabledModules[key] === true;
-      const entry =
-        key === "about"
-          ? { label: "About", href: "/about" }
-          : MODULE_NAV_MAP[key];
-      if (moduleEnabled && entry) {
-        await ctx.db.insert("navigationItems", {
-          siteId,
-          label: entry.label,
-          href: entry.href,
-          isVisible: true,
-          order: order++,
-          openInNewTab: false,
-        });
-      }
-    }
 
     await logActivity(ctx, {
       siteId,
@@ -861,28 +750,6 @@ export const getEffectiveModules = query({
   },
 });
 
-function defaultModules(websiteType: string): Record<string, boolean> {
-  const ALL_ON = {
-    homepage: true, courses: true, events: true, articles: true,
-    media: true, contact: true, footer: true, seo: true,
-    payments: true, email: true, crm: true, reviews: true,
-  };
-  const OFF: Record<string, string[]> = {
-    business_website: ["courses", "events"],
-    ecommerce: ["courses", "events"],
-    church: ["courses"],
-    property_management: ["courses", "events"],
-    medical: ["courses", "events"],
-    legal: ["courses", "events"],
-    restaurant: ["courses", "articles"],
-    professional_services: ["courses", "events"],
-    construction: ["courses", "events"],
-    real_estate: ["courses", "events"],
-    manufacturing: ["courses", "events"],
-  };
-  const mods = { ...ALL_ON };
-  for (const key of (OFF[websiteType] ?? [])) {
-    (mods as any)[key] = false;
-  }
-  return mods;
-}
+// defaultModules now lives in lib/siteProvisioning.ts (shared with the
+// client self-service onboarding path — spec §23: one implementation,
+// no per-customer code paths).
