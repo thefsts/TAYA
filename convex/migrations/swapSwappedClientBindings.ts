@@ -55,9 +55,9 @@ const norm = (s: unknown) =>
 export const audit = query({
   args: {},
   handler: async (ctx) => {
-    const users = await ctx.db.query("users").collect();
-    const fsts = users.find((u) => norm(u.email) === FSTS_EMAIL);
-    const corsair = users.find((u) => norm(u.email) === CORSAIR_EMAIL);
+    const users: any[] = await ctx.db.query("users").collect();
+    const fsts = users.find((u: any) => norm(u.email) === FSTS_EMAIL);
+    const corsair = users.find((u: any) => norm(u.email) === CORSAIR_EMAIL);
     return {
       totalUsers: users.length,
       fstsRecord: fsts
@@ -99,9 +99,9 @@ export const audit = query({
 export const swap = mutation({
   args: {},
   handler: async (ctx) => {
-    const users = await ctx.db.query("users").collect();
-    const fsts = users.find((u) => norm(u.email) === FSTS_EMAIL);
-    const corsair = users.find((u) => norm(u.email) === CORSAIR_EMAIL);
+    const users: any[] = await ctx.db.query("users").collect();
+    const fsts = users.find((u: any) => norm(u.email) === FSTS_EMAIL);
+    const corsair = users.find((u: any) => norm(u.email) === CORSAIR_EMAIL);
 
     if (!fsts || !corsair) {
       throw new Error(
@@ -169,9 +169,9 @@ export const swap = mutation({
 });
 
 async function auditState(ctx: any) {
-  const users = await ctx.db.query("users").collect();
-  const fsts = users.find((u) => norm(u.email) === FSTS_EMAIL);
-  const corsair = users.find((u) => norm(u.email) === CORSAIR_EMAIL);
+  const users: any[] = await ctx.db.query("users").collect();
+  const fsts = users.find((u: any) => norm(u.email) === FSTS_EMAIL);
+  const corsair = users.find((u: any) => norm(u.email) === CORSAIR_EMAIL);
   return {
     totalUsers: users.length,
     fstsRecord: fsts
