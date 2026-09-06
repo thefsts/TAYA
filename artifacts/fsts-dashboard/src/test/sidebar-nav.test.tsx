@@ -267,7 +267,11 @@ describe("sidebarNav model — structure & client language", () => {
     const tayaManaged = groups.find((g) => g.id === "taya-managed")!;
     expect(tayaManaged.items.every((i) => i.isDesignLocked === true)).toBe(true);
     const siteGroup = groups.find((g) => g.id === "site")!;
-    expect(siteGroup.items.find((i) => i.id === "website-settings")?.isDesignLocked).toBe(true);
+    // P3 per-tab RBAC: Website Settings is a working client link (never blanket
+    // design-locked). The page itself tiers each tab — Contact/SEO/Legal/Events
+    // are client-editable (CONTENT_UPDATE), while Identity/Branding/Integrations/
+    // Modules are superadmin-only inside WebsiteSettings.tsx.
+    expect(siteGroup.items.find((i) => i.id === "website-settings")?.isDesignLocked).toBeUndefined();
     // Client-editable items are never design-locked.
     expect(siteGroup.items.find((i) => i.id === "my-permissions")?.isDesignLocked).toBeUndefined();
   });

@@ -80,6 +80,19 @@ async function seed(t: ReturnType<typeof convexTest>): Promise<Seeded> {
       roles: [{ siteId, role: "owner" }],
     });
 
+    // read_only — view-only client role; has CONTENT_VIEW but NOT
+    // CONTENT_UPDATE, so every siteSettings save mutation must reject it.
+    // (Mirrors the frontend view-only card in WebsiteSettings.tsx — the
+    // backend is authoritative and never allows a fake Save to succeed.)
+    await ctx.db.insert("users", {
+      clerkUserId: "read_only_user",
+      name: "Read Only",
+      email: "readonly@client.test",
+      isSuperAdmin: false,
+      isActive: true,
+      roles: [{ siteId, role: "read_only" }],
+    });
+
     return { siteId };
   });
 }
@@ -99,6 +112,7 @@ beforeEach(async () => {
 const asEditor  = () => t.withIdentity({ subject: "content_editor_user" });
 const asOwner   = () => t.withIdentity({ subject: "owner_user" });
 const asAdmin   = () => t.withIdentity({ subject: "superadmin" });
+const asReadOnly = () => t.withIdentity({ subject: "read_only_user" });
 
 // ── 1. content_editor is blocked by LAYOUT_MANAGE guard ──────────────────────
 
@@ -212,3 +226,80 @@ describe("content_editor calling CONTENT_UPDATE-gated mutation (siteSettings.upd
     expect(result).toMatchObject({ seoGlobalTitle: "My Site" });
   });
 });
+
+// -- 7. P3: Website Settings per-tab tiering contract -------------------------
+// The frontend WebsiteSettings.tsx now shows clients the tabs whose backend
+// mutations their role can actually save (Contact/SEO/Legal/Events on
+// CONTENT_UPDATE) and hides Identity/Branding (DESIGN_MANAGE) plus
+// Integrations (INTEGRATIONS_MANAGE). These cases certify that split against
+// the REAL handlers so a future RBAC refactor cannot silently mismatch the UI.
+
+describe("P3 tiering: client-editable mutations succeed for content roles", () => {
+  it("content_editor can updateContact (CONTENT_UPDATE)", async () => {
+    const result = await asEditor().mutation(api.siteSettings.updateContact, {
+      siteId: s.siteId,
+      phone: "555-0100",
+      email: "hello@client.test",
+    });
+    expect(result).toMatchObject({ phone: "555-0100", email: "hello@client.test" });
+  });
+
+  it("content_editor can updateLegal (CONTENT_UPDATE)", async () => {
+    const result = await asEditor().mutation(api.siteSettings.updateLegal, {
+      siteId: s.siteId,
+      privacyPolicyUrl: "/privacy",
+      termsOfServiceUrl: "/terms",
+    });
+    expect(result).toMatchObject({ privacyPolicyUrl: "/privacy", termsOfServiceUrl: "/terms" });
+  });
+
+  it("content_editor can updateEventDisplay (CONTENT_UPDATE)", async () => {
+    const result = await asEditor().mutation(api.siteSettings.updateEventDisplay, {
+      siteId: s.siteId,
+      showCancelledEvents: true,
+    });
+    expect(result).toMatchObject({ showCancelledEvents: true });
+  });
+});
+
+describe("P3 tiering: owner (highest client role) still blocked on design-tier", () => {
+  it("is blocked by DESIGN_MANAGE guard (siteSettings.updateIdentity)", async () => {
+    await expect(
+      asOwner().mutation(api.siteSettings.updateIdentity, {
+        siteId: s.siteId,
+        businessName: "Client Renamed Co",
+      }),
+    ).rejects.toThrow(/Forbidden/);
+  });
+});
+
+describe("P3 tiering: read_only role cannot save anything", () => {
+  it("is blocked on updateSeo (CONTENT_UPDATE)", async () => {
+    await expect(
+      asReadOnly().mutation(api.siteSettings.updateSeo, {
+        siteId: s.siteId,
+        seoGlobalTitle: "Should Not Save",
+      }),
+    ).rejects.toThrow(/Forbidden/);
+  });
+});
+
+describe("P3 tiering: superAdmin retains full Website Settings control", () => {
+  it("can updateIdentity (DESIGN_MANAGE)", async () => {
+    const result = await asAdmin().mutation(api.siteSettings.updateIdentity, {
+      siteId: s.siteId,
+      businessName: "SuperAdmin Co",
+      timezone: "America/New_York",
+    });
+    expect(result).toMatchObject({ businessName: "SuperAdmin Co" });
+  });
+
+  it("can updateContact (CONTENT_UPDATE)", async () => {
+    const result = await asAdmin().mutation(api.siteSettings.updateContact, {
+      siteId: s.siteId,
+      phone: "555-9999",
+    });
+    expect(result).toMatchObject({ phone: "555-9999" });
+  });
+});
+

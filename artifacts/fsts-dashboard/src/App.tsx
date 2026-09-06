@@ -417,8 +417,14 @@ const NavigationManagerGuarded = withDesignLock(NavigationManager);
 const VersionHistoryGuarded = withDesignLock(VersionHistory);
 const ActivityLogGuarded = withDesignLock(ActivityLog);
 const BackupsListGuarded = withDesignLock(BackupsList);
-// WebsiteSettings contains brand colors, fonts, and module toggles — all design-tier.
-const WebsiteSettingsGuarded = withDesignLock(WebsiteSettings);
+// WebsiteSettings is NOT blanket design-locked: its tabs tier per-section to
+// mirror the backend permission split exactly (siteSettings mutations gate
+// Contact/SEO/Legal/Events on CONTENT_UPDATE — client-editable — while
+// Identity/Branding require DESIGN_MANAGE, Integrations INTEGRATIONS_MANAGE,
+// and Modules is superadmin-only via sites.update). The page renders for any
+// site-assigned user and locks each tab individually. See PART 13: clients
+// manage business/contact/social settings; only Design Lock config stays
+// SuperAdmin-only.
 // PaymentProviders stores third-party payment API credentials — design-tier integration.
 const PaymentProvidersGuarded = withDesignLock(PaymentProviders);
 
@@ -492,8 +498,8 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/backups" component={BackupsListGuarded} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
 
-          {/* WOS Phase 2 — Website Settings (design-locked: brand colors, fonts, module toggles) */}
-          <Route path="/app/sites/:siteId/settings" component={WebsiteSettingsGuarded} />
+          {/* WOS Phase 2 — Website Settings (per-tab RBAC tiering inside the page; see WebsiteSettings.tsx) */}
+          <Route path="/app/sites/:siteId/settings" component={WebsiteSettings} />
 
           {/* Phase 3 — Form Builder */}
           <Route path="/app/sites/:siteId/forms" component={FormsList} />
