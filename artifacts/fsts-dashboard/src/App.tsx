@@ -9,6 +9,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
 import { tayaLogoUrl } from "@/lib/tayaBrand";
 import DesignLockGuard from "@/components/DesignLockGuard";
+import RequireAppAuth from "@/components/RequireAppAuth";
 import { useToast } from "@/hooks/use-toast";
 
 // Lazy-loaded pages — each route is its own chunk so clients only download
@@ -445,6 +446,7 @@ function AppRouter() {
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <AuthBootstrap />
         <DeactivationGuard />
+        <RequireAppAuth>
         <Suspense fallback={<div className="flex min-h-[100dvh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
         <Switch>
           <Route path="/" component={HomeRedirect} />
@@ -529,6 +531,7 @@ function AppRouter() {
           <Route component={NotFound} />
         </Switch>
         </Suspense>
+        </RequireAppAuth>
       </ConvexProviderWithClerk>
     </ClerkProvider>
   );

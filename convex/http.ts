@@ -253,6 +253,19 @@ http.route({
   }),
 });
 
+/* GET /api/public/policy?slug= - singular alias of /policies. Same class of
+ * defect as /jobs: preflight-registered, no GET handler. */
+http.route({
+  path: "/api/public/policy",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getPoliciesBySlug, { slug });
+    return ok(data);
+  }),
+});
+
 /* ── GET /api/public/navigation?slug= ───────────────────────────────────── */
 http.route({
   path: "/api/public/navigation",
@@ -325,6 +338,21 @@ http.route({
   }),
 });
 
+/* GET /api/public/jobs?slug= - singular alias of /careers. Registered for
+ * CORS preflight since Phase 2 but never had a GET handler, so public API
+ * audits correctly reported it as dead. Serves the same jobPostings-backed
+ * query as /careers so both spellings return identical data. */
+http.route({
+  path: "/api/public/jobs",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.public.getCareersBySlug, { slug });
+    return ok(data);
+  }),
+});
+
 /* ── GET /api/public/popup?slug= ─────────────────────────────────────────── */
 http.route({
   path: "/api/public/popup",
@@ -348,6 +376,15 @@ http.route({
       if (!slug || !formType) {
         return new Response(JSON.stringify({ error: "slug and formType required" }), { status: 400, headers: CORS });
       }
+      // Pre-check the slug BEFORE the insert so an unknown site returns a
+      // clean 404 instead of letting the mutation throw "Site not found"
+      // out of the generic catch (which previously produced a 500 with the
+      // server-side stack trace embedded in err.message - an info leak).
+      // Mirrors the pattern already used by /api/public/form/submit.
+      const site = await ctx.runQuery(internal.public.getSiteBySlug, { slug });
+      if (!site) {
+        return new Response(JSON.stringify({ error: "site not found" }), { status: 404, headers: CORS });
+      }
       const id = await ctx.runMutation(internal.formSubmissions.submitInternal, {
         siteSlug: slug,
         formType,
@@ -358,8 +395,12 @@ http.route({
         data: rest,
       });
       return ok({ id });
-    } catch (err: any) {
-      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+    } catch {
+      // Never echo raw error messages here: Convex error messages contain
+      // internal stack traces (file paths + line numbers), which leaked to
+      // public callers before this fix. Log server-side, return a generic 500.
+      console.error("[POST /api/public/submit] handler error");
+      return new Response(JSON.stringify({ error: "submission failed" }), { status: 500, headers: CORS });
     }
   }),
 });
