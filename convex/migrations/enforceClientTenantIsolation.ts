@@ -1,72 +1,108 @@
 import { mutation, query } from "../_generated/server";
 
 /**
- * One-off production guard/repair for the two live client owner accounts.
+ * Production repair for the two live client owner accounts.
  *
- * Owner-reported defect (2026-09-06): signing in as the FSTS client account
- * opened the Corsair workspace. These two accounts are intentionally
- * single-site owners today, so this migration pins each Clerk identity to the
- * one canonical site it is allowed to own.
+ * Verified directly in Clerk on 2026-09-06:
+ * - cdweemsbey@gmail.com -> user_3IqPwkRg7oeRLHcCRv0N4yxlMRs
+ * - corsairtacticalsolutions@gmail.com -> user_3IsuGrs6vmVY9rDYlZ86SZn7l9k
  *
- * Safe properties:
- * - resolves sites by canonical slug, never hard-coded site ids
- * - resolves users by the already-verified Clerk ids from the prior invitation
- *   repair
- * - refuses to run if either canonical site or user is missing
- * - only edits the two known client records
- * - idempotent
+ * Verified directly in Convex:
+ * - FSTS site qd74hpd1vk391fkpy797xk7dzh8drmz9 / httpswwwfstacktsolutionscom
+ * - Corsair site qd7cpjk68m0z4rme5hw4sqgeys8bk1zc / corsair-tactical-solutions
+ *
+ * The prior repair had the two Clerk subjects reversed. This mutation resolves
+ * rows by email, validates the exact canonical sites, then atomically restores
+ * the correct Clerk identity + tenant roles. It is idempotent.
  */
 
-const FSTS_CLERK_ID = "user_3IsuGrs6vmVY9rDYlZ86SZn7l9k";
 const FSTS_EMAIL = "cdweemsbey@gmail.com";
+const FSTS_CLERK_ID = "user_3IqPwkRg7oeRLHcCRv0N4yxlMRs";
 const FSTS_SITE_SLUG = "httpswwwfstacktsolutionscom";
+const FSTS_SITE_ID = "qd74hpd1vk391fkpy797xk7dzh8drmz9";
 
-const CORSAIR_CLERK_ID = "user_3IqPwkRg7oeRLHcCRv0N4yxlMRs";
 const CORSAIR_EMAIL = "corsairtacticalsolutions@gmail.com";
+const CORSAIR_CLERK_ID = "user_3IsuGrs6vmVY9rDYlZ86SZn7l9k";
 const CORSAIR_SITE_SLUG = "corsair-tactical-solutions";
+const CORSAIR_SITE_ID = "qd7cpjk68m0z4rme5hw4sqgeys8bk1zc";
+
+async function exactUserByEmail(ctx: any, email: string) {
+  const rows = await ctx.db
+    .query("users")
+    .withIndex("by_email", (q: any) => q.eq("email", email))
+    .collect();
+  if (rows.length !== 1) {
+    throw new Error(`Expected exactly one user row for ${email}; found ${rows.length}`);
+  }
+  return rows[0];
+}
+
+async function exactSiteBySlug(ctx: any, slug: string, expectedId: string) {
+  const rows = await ctx.db
+    .query("sites")
+    .withIndex("by_slug", (q: any) => q.eq("slug", slug))
+    .collect();
+  if (rows.length !== 1) {
+    throw new Error(`Expected exactly one site for ${slug}; found ${rows.length}`);
+  }
+  if (String(rows[0]._id) !== expectedId) {
+    throw new Error(`Site id mismatch for ${slug}: expected ${expectedId}, found ${rows[0]._id}`);
+  }
+  return rows[0];
+}
 
 async function snapshot(ctx: any) {
-  const [users, sites] = await Promise.all([
-    ctx.db.query("users").collect(),
-    ctx.db.query("sites").collect(),
+  const [fstsUser, corsairUser, fstsSite, corsairSite] = await Promise.all([
+    exactUserByEmail(ctx, FSTS_EMAIL),
+    exactUserByEmail(ctx, CORSAIR_EMAIL),
+    exactSiteBySlug(ctx, FSTS_SITE_SLUG, FSTS_SITE_ID),
+    exactSiteBySlug(ctx, CORSAIR_SITE_SLUG, CORSAIR_SITE_ID),
   ]);
+  return { fstsUser, corsairUser, fstsSite, corsairSite };
+}
 
-  const fstsSite = sites.find((s: any) => s.slug === FSTS_SITE_SLUG) ?? null;
-  const corsairSite = sites.find((s: any) => s.slug === CORSAIR_SITE_SLUG) ?? null;
-  const fstsUser = users.find((u: any) => u.clerkUserId === FSTS_CLERK_ID) ?? null;
-  const corsairUser = users.find((u: any) => u.clerkUserId === CORSAIR_CLERK_ID) ?? null;
-
-  return { fstsSite, corsairSite, fstsUser, corsairUser };
+function roleSiteIds(user: any): string[] {
+  return (user.roles ?? []).map((r: any) => String(r.siteId));
 }
 
 export const audit = query({
   args: {},
   handler: async (ctx) => {
-    const { fstsSite, corsairSite, fstsUser, corsairUser } = await snapshot(ctx);
+    const { fstsUser, corsairUser, fstsSite, corsairSite } = await snapshot(ctx);
     return {
       fsts: {
-        expectedEmail: FSTS_EMAIL,
-        expectedSiteSlug: FSTS_SITE_SLUG,
-        siteId: fstsSite?._id ?? null,
-        userId: fstsUser?._id ?? null,
-        actualEmail: fstsUser?.email ?? null,
-        active: fstsUser?.isActive ?? null,
-        roles: fstsUser?.roles ?? null,
-        hasForeignRole:
-          !!fstsUser && !!fstsSite &&
-          (fstsUser.roles ?? []).some((r: any) => String(r.siteId) !== String(fstsSite._id)),
+        email: fstsUser.email,
+        currentClerkUserId: fstsUser.clerkUserId,
+        expectedClerkUserId: FSTS_CLERK_ID,
+        siteId: fstsSite._id,
+        siteSlug: fstsSite.slug,
+        roles: fstsUser.roles,
+        roleSiteIds: roleSiteIds(fstsUser),
+        isSuperAdmin: fstsUser.isSuperAdmin,
+        isAgencyAdmin: fstsUser.isAgencyAdmin ?? false,
+        isActive: fstsUser.isActive,
+        correct:
+          fstsUser.clerkUserId === FSTS_CLERK_ID &&
+          fstsUser.isSuperAdmin === false &&
+          roleSiteIds(fstsUser).length === 1 &&
+          roleSiteIds(fstsUser)[0] === FSTS_SITE_ID,
       },
       corsair: {
-        expectedEmail: CORSAIR_EMAIL,
-        expectedSiteSlug: CORSAIR_SITE_SLUG,
-        siteId: corsairSite?._id ?? null,
-        userId: corsairUser?._id ?? null,
-        actualEmail: corsairUser?.email ?? null,
-        active: corsairUser?.isActive ?? null,
-        roles: corsairUser?.roles ?? null,
-        hasForeignRole:
-          !!corsairUser && !!corsairSite &&
-          (corsairUser.roles ?? []).some((r: any) => String(r.siteId) !== String(corsairSite._id)),
+        email: corsairUser.email,
+        currentClerkUserId: corsairUser.clerkUserId,
+        expectedClerkUserId: CORSAIR_CLERK_ID,
+        siteId: corsairSite._id,
+        siteSlug: corsairSite.slug,
+        roles: corsairUser.roles,
+        roleSiteIds: roleSiteIds(corsairUser),
+        isSuperAdmin: corsairUser.isSuperAdmin,
+        isAgencyAdmin: corsairUser.isAgencyAdmin ?? false,
+        isActive: corsairUser.isActive,
+        correct:
+          corsairUser.clerkUserId === CORSAIR_CLERK_ID &&
+          corsairUser.isSuperAdmin === false &&
+          roleSiteIds(corsairUser).length === 2 &&
+          roleSiteIds(corsairUser).every((id) => id === CORSAIR_SITE_ID),
       },
     };
   },
@@ -75,67 +111,49 @@ export const audit = query({
 export const repair = mutation({
   args: {},
   handler: async (ctx) => {
-    const { fstsSite, corsairSite, fstsUser, corsairUser } = await snapshot(ctx);
+    const { fstsUser, corsairUser, fstsSite, corsairSite } = await snapshot(ctx);
 
-    if (!fstsSite) throw new Error(`Missing canonical site: ${FSTS_SITE_SLUG}`);
-    if (!corsairSite) throw new Error(`Missing canonical site: ${CORSAIR_SITE_SLUG}`);
-    if (!fstsUser) throw new Error(`Missing FSTS user: ${FSTS_CLERK_ID}`);
-    if (!corsairUser) throw new Error(`Missing Corsair user: ${CORSAIR_CLERK_ID}`);
-
-    const log: string[] = [];
-
-    const fstsRole = (fstsUser.roles ?? []).find(
-      (r: any) => String(r.siteId) === String(fstsSite._id),
-    );
-    const corsairRoles = (corsairUser.roles ?? []).filter(
-      (r: any) => String(r.siteId) === String(corsairSite._id),
-    );
-
-    // FSTS is a single-site owner account. If its expected role disappeared,
-    // restore only the owner role on the canonical FSTS site.
-    const exactFstsRoles = fstsRole
-      ? [{ siteId: fstsSite._id, role: fstsRole.role }]
-      : [{ siteId: fstsSite._id, role: "owner" }];
-
-    // Corsair currently carries owner + content_editor. Preserve every role it
-    // already has on Corsair, but strip roles for all other tenants. If none
-    // remain, restore the minimum owner role so the account is not locked out.
-    const exactCorsairRoles = corsairRoles.length > 0
-      ? corsairRoles.map((r: any) => ({ siteId: corsairSite._id, role: r.role }))
-      : [{ siteId: corsairSite._id, role: "owner" }];
+    const fstsRoles = [{ siteId: fstsSite._id, role: "owner" }];
+    const corsairRoles = [
+      { siteId: corsairSite._id, role: "owner" },
+      { siteId: corsairSite._id, role: "content_editor" },
+    ];
 
     await ctx.db.patch(fstsUser._id, {
+      clerkUserId: FSTS_CLERK_ID,
       email: FSTS_EMAIL,
-      isActive: true,
+      roles: fstsRoles,
       isSuperAdmin: false,
-      roles: exactFstsRoles,
+      isAgencyAdmin: false,
+      isActive: true,
     });
-    log.push(`FSTS pinned to ${FSTS_SITE_SLUG}; foreign tenant roles removed`);
 
     await ctx.db.patch(corsairUser._id, {
+      clerkUserId: CORSAIR_CLERK_ID,
       email: CORSAIR_EMAIL,
-      isActive: true,
+      roles: corsairRoles,
       isSuperAdmin: false,
-      roles: exactCorsairRoles,
+      isAgencyAdmin: false,
+      isActive: true,
     });
-    log.push(`Corsair pinned to ${CORSAIR_SITE_SLUG}; foreign tenant roles removed`);
 
     return {
       repaired: true,
-      log,
       fsts: {
-        clerkUserId: FSTS_CLERK_ID,
+        userId: fstsUser._id,
         email: FSTS_EMAIL,
+        clerkUserId: FSTS_CLERK_ID,
         siteId: fstsSite._id,
         siteSlug: fstsSite.slug,
-        roles: exactFstsRoles,
+        roles: fstsRoles,
       },
       corsair: {
-        clerkUserId: CORSAIR_CLERK_ID,
+        userId: corsairUser._id,
         email: CORSAIR_EMAIL,
+        clerkUserId: CORSAIR_CLERK_ID,
         siteId: corsairSite._id,
         siteSlug: corsairSite.slug,
-        roles: exactCorsairRoles,
+        roles: corsairRoles,
       },
     };
   },
