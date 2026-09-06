@@ -1,4 +1,4 @@
-const APP_URL = "https://taya-fullstacksolutions.vercel.app/sign-in";
+const APP_URL = "https://app.fstsclientsystem.com/sign-in";
 const DEMO_EMAIL = "mailto:amorebey@gmail.com?subject=TAYA%20Demo%20Request";
 
 const featureData = [
