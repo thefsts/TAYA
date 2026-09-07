@@ -126,6 +126,20 @@ export function slugFromDomain(domain: string): string {
 }
 
 /**
+ * Phase 2 (§6) connection mode at provisioning time:
+ *  - No domain (or a TAYA-hosted subdomain) → TAYA_NATIVE: the site's
+ *    content lives in TAYA's own builder — full edit + publish.
+ *  - An external domain → undefined until the discovery crawl completes and
+ *    sets DISCOVERED_EXTERNAL (§16 — draft-only until a bridge connects it).
+ * The crawl, not this helper, is the authority for external domains.
+ */
+export function connectionModeForDomain(domain: string | undefined): "TAYA_NATIVE" | undefined {
+  if (!domain) return "TAYA_NATIVE";
+  const bare = domain.trim().toLowerCase();
+  return bare.endsWith(".fstsclientsystem.com") ? "TAYA_NATIVE" : undefined;
+}
+
+/**
  * Seed the full content footprint of a freshly created site — the exact
  * tables sites.create seeds, extracted so ALL provisioning paths produce an
  * identical starting site. Returns the created site id.
@@ -161,6 +175,10 @@ export async function insertSiteWithSeedContent(
     poweredByFsts: params.poweredByFsts ?? true,
     websiteType: params.websiteType,
     enabledModules: params.enabledModules,
+    // Spec §6: record the connection mode at provisioning time. No domain or
+    // a TAYA-hosted subdomain => TAYA_NATIVE; an external domain stays unset
+    // until the discovery crawl confirms it as DISCOVERED_EXTERNAL.
+    connectionMode: connectionModeForDomain(params.domain),
     agencyId: params.agencyId,
   });
 

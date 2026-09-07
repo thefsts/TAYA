@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireAuth, provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
@@ -211,6 +212,16 @@ export const create = mutation({
       page: "Global Sites",
     });
 
+    // Fire-and-forget auto-discovery (spec §4/§16). Only when an external
+    // domain was provided: no domain or a TAYA-hosted subdomain is
+    // TAYA_NATIVE — nothing external to crawl. Read-only, never blocks.
+    if (domain && !domain.endsWith(".fstsclientsystem.com")) {
+      await ctx.scheduler.runAfter(0, internal.discovery.run, {
+        siteId,
+        triggeredBy: user.email,
+      });
+    }
+
     const site = await ctx.db.get(siteId);
     return toSiteResponse(site!);
   },
@@ -330,6 +341,8 @@ export const SITE_SCOPED_TABLES = [
   // Add-ons + onboarding
   "siteAddOns",
   "onboardingProgress",
+  // Phase 2 — discovery snapshots are site-scoped crawl records (§4/§16)
+  "discoverySnapshots",
 ] as const;
 
 // Convex file-storage blobs owned by a mediaAssets row (mirrors media.ts).

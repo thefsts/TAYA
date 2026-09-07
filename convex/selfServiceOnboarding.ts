@@ -261,6 +261,16 @@ export const provisionSite = mutation({
       details: `Client self-service onboarding: ${user.email} → ${slug} (${domain})`,
     });
 
+    // ── Fire-and-forget auto-discovery (spec §4) ─────────────────────────
+    // provisionSite always has an external domain (normalizeDomain enforces
+    // it), so the read-only crawl always gets scheduled. The crawl is
+    // READ-ONLY (§16) and never blocks provisioning — the snapshot lands
+    // asynchronously and certify reports it as pending until then.
+    await ctx.scheduler.runAfter(0, internal.discovery.run, {
+      siteId,
+      triggeredBy: user.email,
+    });
+
     return {
       outcome: "created",
       siteId,
@@ -290,7 +300,7 @@ export const certify = action({
 
     const checks: Array<{
       check: string;
-      status: "pass" | "fail" | "pending_phase2";
+      status: "pass" | "fail" | "pending" | "pending_phase2";
       reason?: string;
     }> = [];
 
@@ -344,23 +354,62 @@ export const certify = action({
       ...(domainReason ? { reason: domainReason } : {}),
     });
 
-    // Phase 2 hooks — explicit reasons until the crawler ships (§14: never a
-    // silent pass).
-    checks.push({
-      check: "page_discovery_completed",
-      status: "pending_phase2",
-      reason: "Discovery crawler ships in Phase 2; no discovery snapshot exists yet.",
-    });
+    // Phase 2 checks — now backed by real discovery data (spec §4/§6/§14).
+    // Discovery runs asynchronously after provisioning, so a missing
+    // snapshot is a PENDING state with an explicit reason, never a silent
+    // pass; a failed crawl likewise reports its failureReason verbatim.
+    const discovery = core.discovery;
+    if (!discovery) {
+      checks.push({
+        check: "page_discovery_completed",
+        status: "pending",
+        reason:
+          "Discovery is running — no snapshot has been recorded yet. This resolves automatically.",
+      });
+    } else if (discovery.status === "completed") {
+      checks.push({
+        check: "page_discovery_completed",
+        status: "pass",
+        reason: `Crawled ${discovery.keyCount ?? "0"} stable content keys${discovery.kind === "refresh" ? " (latest refresh)" : ""}.`,
+      });
+    } else {
+      checks.push({
+        check: "page_discovery_completed",
+        status: "fail",
+        reason: discovery.failureReason ?? "The discovery crawl failed without a recorded reason.",
+      });
+    }
+
     checks.push({
       check: "visual_preview_responds",
       status: "pending_phase2",
       reason: "Visual preview ships in Phase 3; the workspace opens in the existing editor.",
     });
-    checks.push({
-      check: "publishing_mode_identified",
-      status: "pending_phase2",
-      reason: "Connection modes ship in Phase 2 (TAYA_NATIVE default until bridge detection).",
-    });
+
+    // Spec §6: publishing mode. TAYA_NATIVE sites (no external domain) are
+    // publish-ready through TAYA itself; a site with an external domain is
+    // DISCOVERED_EXTERNAL once the crawl confirms it — draft-only until the
+    // TAYA Web Bridge authorizes publishing (later Phase 2 slice).
+    const siteMode = core.site?.connectionMode ?? null;
+    if (siteMode) {
+      checks.push({
+        check: "publishing_mode_identified",
+        status: "pass",
+        reason:
+          siteMode === "TAYA_NATIVE"
+            ? "TAYA_NATIVE: the site is hosted by TAYA and publishes directly."
+            : siteMode === "DISCOVERED_EXTERNAL"
+              ? "DISCOVERED_EXTERNAL: the external site was discovered — publishing requires the TAYA Web Bridge (draft-only until connected)."
+              : `Publishing mode recorded: ${siteMode}.`,
+      });
+    } else {
+      checks.push({
+        check: "publishing_mode_identified",
+        status: "pending",
+        reason:
+          "Discovery is running — the connection mode is recorded once the crawl confirms the external site.",
+      });
+    }
 
     const required = [
       "clerk_user_exists",
@@ -420,6 +469,14 @@ export const _certifyCore = internalQuery({
         )
       : [];
 
+    // §16: latest discovery snapshot (the read-only crawl outcome the
+    // page_discovery_completed check reports on).
+    const latestSnapshot = await ctx.db
+      .query("discoverySnapshots")
+      .withIndex("by_site_startedAt", (q: any) => q.eq("siteId", siteId))
+      .order("desc")
+      .first();
+
     return {
       identityPresent,
       userPresent: !!user,
@@ -428,7 +485,23 @@ export const _certifyCore = internalQuery({
       ownerRoleValid,
       noUnauthorizedRoles: unauthorized.length === 0,
       site: site
-        ? { _id: site._id, name: site.name, slug: site.slug, domain: site.domain ?? null }
+        ? {
+            _id: site._id,
+            name: site.name,
+            slug: site.slug,
+            domain: site.domain ?? null,
+            // Spec §6: connection mode (TAYA_NATIVE at provisioning or
+            // DISCOVERED_EXTERNAL once the crawl confirmed an external site).
+            connectionMode: (site as any).connectionMode ?? null,
+          }
+        : null,
+      discovery: latestSnapshot
+        ? {
+            kind: latestSnapshot.kind,
+            status: latestSnapshot.status,
+            keyCount: (latestSnapshot as any).report?.keyCount ?? 0,
+            failureReason: (latestSnapshot as any).failureReason ?? null,
+          }
         : null,
     };
   },

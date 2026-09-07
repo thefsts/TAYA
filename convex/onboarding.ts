@@ -9,11 +9,13 @@
  */
 
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { provisionUser } from "./lib/getCurrentUser";
 import { logActivity } from "./lib/logActivity";
 import { insertPlaceholderProducts } from "./products";
 import { upsertClientAssignment } from "./users";
+import { connectionModeForDomain } from "./lib/siteProvisioning";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -253,6 +255,7 @@ export const launch = mutation({
       poweredByFsts: true,
       websiteType: industry,
       enabledModules: defaultModulesForType(industry, pages),
+      connectionMode: connectionModeForDomain(domain),
       agencyId,
     });
 
@@ -420,6 +423,17 @@ export const launch = mutation({
       siteId,
       stepData: d,
     });
+
+    // Fire-and-forget auto-discovery (spec §4/§16). Only when an external
+    // domain was chosen: a TAYA-hosted temp subdomain (".fstsclientsystem.com")
+    // is TAYA_NATIVE — nothing external to crawl. Read-only, never blocks
+    // provisioning; certify reports pending until the snapshot lands.
+    if (domain && !domain.endsWith(".fstsclientsystem.com")) {
+      await ctx.scheduler.runAfter(0, internal.discovery.run, {
+        siteId,
+        triggeredBy: user.email,
+      });
+    }
 
     // ── Assign client owner (Phase 1: coherent onboarding) ─────────────────────────────────────────────────
     let ownerResult: { outcome: string; email: string; role: string } | null = null;

@@ -77,9 +77,33 @@ beforeEach(async () => {
   vi.stubEnv("SUPERADMIN_EMAILS", SUPERADMIN_EMAIL);
   vi.stubEnv("SUPERADMIN_CLERK_USER_IDS", "");
   vi.stubEnv("INTERNAL_QA_EMAILS", "");
+  // Default fetch stub: every URL → 404. Tests that need real-looking
+  // responses re-stub fetch themselves (vi.stubGlobal replaces). This keeps
+  // any auto-fired discovery crawl (scheduled by provisionSite) from EVER
+  // touching the real network mid-test — the crawl just records an explicit
+  // §14 failureReason. Tests asserting "pending" certify states depend on
+  // this: a completed crawl would flip them to "pass".
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(null, { status: 404 })),
+  );
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // §4 wiring determinism: provisionSite schedules a fire-and-forget
+  // discovery crawl (ctx.scheduler.runAfter(0, internal.discovery.run)).
+  // convex-test auto-fires scheduled functions on a REAL setTimeout that
+  // only elapses AFTER the test body completes — without a drain, leaked
+  // crawls would run between tests against the REAL network. Stub a
+  // terminal 404 responder (the crawl records an explicit §14 failure,
+  // never a hang), yield one macrotask so the crawl starts, wait for it,
+  // then unstub. The drain never rejects: discovery.run try/catches.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(null, { status: 404 })),
+  );
+  await new Promise((r) => setTimeout(r, 0));
+  await t.finishInProgressScheduledFunctions();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
@@ -462,12 +486,23 @@ describe("selfServiceOnboarding.certify — setup self-certification (§14)", ()
       api.selfServiceOnboarding.provisionSite,
       VALID_ARGS,
     );
-    // The domain acmedental.com does not resolve in the sandbox — stub fetch
-    // to answer for the domain-resolution check.
+    // Serve a minimal crawlable homepage so the auto-fired §4 discovery
+    // crawl completes: an h1 for home.hero.heading and HTML content type.
+    // (getLatestSnapshot certification reads the real snapshot state.)
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => new Response(null, { status: 200 })),
+      vi.fn(async () =>
+        new Response(
+          "<html><body><h1>Acme Dental Studio</h1><p>Welcome to our practice, we serve the whole family.</p></body></html>",
+          { status: 200, headers: { "content-type": "text/html" } },
+        ),
+      ),
     );
+    // Drain: let the scheduled crawl run to completion (one macrotask yield
+    // then wait) so certify observes the landed snapshot — deterministic.
+    await new Promise((r) => setTimeout(r, 0));
+    await t.finishInProgressScheduledFunctions();
+
     const cert = await asNewClient().action(api.selfServiceOnboarding.certify, {
       siteId: provisioned.siteId,
     });
@@ -480,10 +515,77 @@ describe("selfServiceOnboarding.certify — setup self-certification (§14)", ()
     expect(byCheck.owner_role_references_site).toBe("pass");
     expect(byCheck.no_unauthorized_site_roles).toBe("pass");
     expect(byCheck.site_domain_resolves).toBe("pass");
-    // Phase 2 hooks reported with explicit reasons — never a silent pass.
-    expect(byCheck.page_discovery_completed).toBe("pending_phase2");
-    expect(byCheck.publishing_mode_identified).toBe("pending_phase2");
+    // Phase 2 checks now read REAL discovery state: the auto-scheduled §4
+    // crawl completed (stubbed homepage above) → both upgrade from the
+    // pending state to "pass" (§14: never a silent pass, never silent fail).
+    expect(byCheck.page_discovery_completed).toBe("pass");
+    expect(byCheck.publishing_mode_identified).toBe("pass");
     expect(byCheck.visual_preview_responds).toBe("pending_phase2");
+
+    // §6: the completed crawl also confirmed the external site's mode.
+    const latest: any = await asNewClient().query(api.discovery.getLatestSnapshot, {
+      siteId: provisioned.siteId,
+    });
+    expect(latest.status).toBe("completed");
+    expect(latest.domain).toBe("acmedental.com");
+    const site: any = await asNewClient().query(api.sites.get, {
+      siteId: provisioned.siteId,
+    });
+    expect(site.connectionMode).toBe("DISCOVERED_EXTERNAL");
+  });
+
+  it("reports discovery as pending with an explicit reason before the crawl lands (§14)", async () => {
+    // A DIRECTLY-inserted site (not provisionSite — no §4 crawl was ever
+    // scheduled) pins the pending state deterministically: no snapshot row,
+    // connectionMode unset, and certify reports both phase-2 checks as
+    // "pending" with explicit reasons — never a silent pass (§14). (The
+    // auto-scheduled path pending → drain → pass is pinned in the happy
+    // path above and in discovery.test.ts "§4 fire-and-forget".)
+    let siteId: any;
+    await t.run(async (ctx) => {
+      siteId = await ctx.db.insert("sites", {
+        name: "Pearl Bright Smiles",
+        slug: "pearl-bright-smiles",
+        status: "active",
+        domain: "pearlbrightsmiles.com",
+        brandColorPrimary: "#1d4ed8",
+        brandColorSecondary: "#0f172a",
+        whiteLabelEnabled: false,
+        poweredByFsts: true,
+        websiteType: "business_website",
+        enabledModules: {},
+      });
+      // The caller's canonical user, bound as owner on the site — mirroring
+      // provisionSite's single transaction (§1) WITHOUT its §4 scheduler
+      // wiring, so nothing is ever scheduled to crawl.
+      await ctx.db.insert("users", {
+        clerkUserId: NEW_CLIENT_CLERK,
+        name: "New Client",
+        email: NEW_CLIENT_EMAIL,
+        isSuperAdmin: false,
+        isActive: true,
+        roles: [{ siteId, role: "owner" }],
+      });
+    });
+    // Only certify's HEAD domain check uses fetch here (no crawl exists).
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 200 })),
+    );
+    const cert = await asNewClient().action(api.selfServiceOnboarding.certify, {
+      siteId,
+    });
+    expect(cert.complete).toBe(true);
+    const byCheck = Object.fromEntries(cert.checks.map((c: any) => [c.check, c.status]));
+    expect(byCheck.page_discovery_completed).toBe("pending");
+    expect(byCheck.publishing_mode_identified).toBe("pending");
+    expect(byCheck.visual_preview_responds).toBe("pending_phase2");
+    // §14 explicit reasons — the pending states must SAY why.
+    const pending = cert.checks.filter((c: any) => c.status === "pending");
+    expect(pending.length).toBeGreaterThanOrEqual(2);
+    for (const c of pending) {
+      expect(c.reason).toBeTruthy();
+    }
   });
 
   it("fails certification when the domain does not resolve (actionable error, not success)", async () => {

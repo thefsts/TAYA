@@ -22,7 +22,7 @@
  *
  * @vitest-environment edge-runtime
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "../../../convex/schema";
 import { api } from "../../../convex/_generated/api";
@@ -65,6 +65,24 @@ beforeEach(async () => {
 
 const asSuper = () => t.withIdentity({ subject: "superadmin" });
 const asRegular = () => t.withIdentity({ subject: "regular_user" });
+
+afterEach(async () => {
+  // §4 wiring determinism: sites.create schedules a fire-and-forget
+  // discovery crawl when an external domain is provided (only the
+  // "strips protocol and trailing slash" test passes a domain). Without a
+  // drain, that crawl would run between tests against the REAL network.
+  // Stub a terminal 404 responder (the crawl records an explicit §14
+  // failureReason — never a hang), yield one macrotask so the auto-fired
+  // crawl starts, wait for it, then unstub.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(null, { status: 404 })),
+  );
+  await new Promise((r) => setTimeout(r, 0));
+  await t.finishInProgressScheduledFunctions();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
 
 const BASE_ARGS = {
   name: "Acme Dental",
