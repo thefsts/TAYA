@@ -30,7 +30,16 @@ export default defineSchema({
     poweredByFsts: v.boolean(),
     websiteType: v.string(),
     enabledModules: v.any(),
-    // Phase 10 — Agency Edition™
+    // Phase 2 — Universal Website Adapter (spec §4–§6)
+    // How TAYA relates to the real website behind this workspace:
+    //   TAYA_NATIVE        — the site is served by TAYA's public content APIs.
+    //   TAYA_CONNECTED     — an external site with the TAYA Web Bridge installed.
+    //   DISCOVERED_EXTERNAL — a third-party site TAYA has crawled/mapped
+    //                        read-only; drafting allowed, publishing gated
+    //                        behind ownership verification (§6/§15/§16).
+    connectionMode: v.optional(v.string()),
+    // Set at discovery time when the crawl identified the website technology.
+    detectedPlatform: v.optional(v.string()),
     agencyId: v.optional(v.id("agencies")),
     reviewsWidgetCdnMigrated: v.optional(v.boolean()),
     reviewsWidgetInlineEverUsed: v.optional(v.boolean()),
@@ -1011,4 +1020,28 @@ export default defineSchema({
   })
     .index("by_site", ["siteId"])
     .index("by_site_addon", ["siteId", "addOnId"]),
+
+  // ── Phase 2 — Universal Website Adapter: Discovery Snapshots (§4–§5, §16) ──
+  // One READ-ONLY snapshot per crawl. The initial discovery snapshot is the
+  // immutable record of what the external site looked like when TAYA first
+  // mapped it — the reference against which the client reviews the editable
+  // content map. Discovery NEVER writes to the live site (§16).
+  discoverySnapshots: defineTable({
+    siteId: v.id("sites"),
+    // "initial" (first crawl, §16) | "refresh" (later re-crawls)
+    kind: v.string(),
+    status: v.string(), // "completed" | "failed"
+    domain: v.string(), // bare domain as crawled
+    // Read-only crawl outcome, null when status = "failed"
+    snapshot: v.optional(v.any()),
+    // Explicit failure reason (§14 discipline: never a silent pass)
+    failureReason: v.optional(v.string()),
+    // Raw user-facing onboarding report (§4 step 10)
+    report: v.optional(v.any()),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    triggeredBy: v.optional(v.string()), // email of the initiating user
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_startedAt", ["siteId", "startedAt"]),
 });

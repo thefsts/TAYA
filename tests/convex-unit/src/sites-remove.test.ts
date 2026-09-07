@@ -167,6 +167,7 @@ async function seedRow(
       activityLog: { siteId, actorName: "a", action: "created", entityType: "site" },
       siteAddOns: null, // requires addOnId FK — inserted separately
       onboardingProgress: { siteId, sessionKey: "s1", currentStep: 3, stepData: {}, status: "completed" },
+      discoverySnapshots: { siteId, kind: "initial", status: "completed", domain: "example.com", startedAt: 1 },
     };
     // FK-chained rows: create the parent row only when the child table is
     // the one being seeded (keeps global tables like addOnCatalog clean).
