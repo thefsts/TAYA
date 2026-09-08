@@ -399,6 +399,34 @@ export function collectBindings(html: string, path: string, url: string): Elemen
       add(attrInsertAt(contentAbs, headingMatch), `${roleSeg}.heading`, "text");
     }
 
+    // Section body (§5 roleSeg.body): an HONEST 1:1 binding only — the
+    // fold computes body text from the whole block, so the frame stamps it
+    // solely when that text lives in ONE paragraph element outside item
+    // containers and chrome. Sections whose body is list/scattered text
+    // have no single element to edit and stay unannotated (§26: never fake
+    // an editable binding).
+    if (!isHomeHero) {
+      const blockText = stripTags(block.lead ? stripPageChromeText(content) : content);
+      const bodyText =
+        sectionHeading && blockText.startsWith(sectionHeading)
+          ? blockText.slice(sectionHeading.length).trim()
+          : blockText;
+      if (bodyText) {
+        const containerRanges = matchAll(content, /<(ul|ol|article)\b[^>]*>[\s\S]*?<\/\1>/gi).map(
+          (c) => [(c.index ?? 0), (c.index ?? 0) + c[0].length] as [number, number],
+        );
+        const paragraphs = matchAll(content, /<p\b[^>]*>([\s\S]*?)<\/p>/gi).filter(
+          (p) =>
+            !inRanges(containerRanges, p.index ?? 0) &&
+            !skip(p.index ?? 0) &&
+            hasText(group(p, 1)),
+        );
+        if (paragraphs.length === 1) {
+          add(attrInsertAt(contentAbs, paragraphs[0]), `${roleSeg}.body`, "text");
+        }
+      }
+    }
+
     if (isHomeHero) return; // hero owns the homepage lead (mirror)
 
     // Images (global ordinal discipline).
@@ -445,6 +473,19 @@ export function collectBindings(html: string, path: string, url: string): Elemen
       add(attrInsertAt(contentAbs, a), `${roleSeg}.links[${linkOrdinal++}]`, "list_item");
     }
   });
+
+  // ── Footer text (mirrors footerTextOf): stamped on the <footer> element
+  // itself. The bridge applies footer.text via textContent on this exact
+  // element, so the frame binding matches publish-apply semantics 1:1.
+  {
+    const footerRegions = matchAll(body, /<footer\b[^>]*>([\s\S]*?)<\/footer>/gi);
+    for (const f of footerRegions.slice(0, 2)) {
+      if (stripTags(f[1] ?? "")) {
+        add(attrInsertAt(bodyOff, f), `${pageSeg}.footer.text`, "text");
+        break;
+      }
+    }
+  }
 
   // ── Positional headings (pageSeg.headings[n].text) for tags that did
   // not receive a semantic key. Ordinal = n-th non-empty heading in the

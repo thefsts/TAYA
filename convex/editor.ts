@@ -173,6 +173,7 @@ export const _frameSite = internalQuery({
 
     return {
       domain: site.domain,
+      slug: site.slug,
       path: routePath,
       mode: (site as any).connectionMode ?? null,
     };
