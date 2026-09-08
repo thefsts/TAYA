@@ -1122,4 +1122,27 @@ export default defineSchema({
     refreshedAt: v.optional(v.number()),
   })
     .index("by_site", ["siteId"]),
+
+  // ── Phase 3 — visual editor frame tokens (§9–§11, §26) ──────────────
+  // Short-lived, SINGLE-USE, user-scoped, site-scoped opaque tokens minted
+  // by an authenticated dashboard mutation and consumed exactly once by the
+  // /api/editor/frame HTTP action when the editor iframe loads. The token
+  // is the ONLY credential in the iframe URL (iframe requests cannot carry
+  // Authorization headers). Burning it on first use means a leaked token
+  // (browser history, referrers, logs) is dead before it can be replayed,
+  // and the siteId scope makes cross-tenant replay useless.
+  editorFrameTokens: defineTable({
+    // Site the frame is allowed to render (tenant scope).
+    siteId: v.id("sites"),
+    // Clerk user id of the minter (audience scope).
+    clerkUserId: v.string(),
+    // Opaque random token (64 hex chars — never derived from site/user ids).
+    token: v.string(),
+    // Single-use: cleared the moment the frame route consumes it.
+    usedAt: v.optional(v.number()),
+    // Mint time (for expiry — consumed within FRAME_TOKEN_TTL_MS).
+    mintedAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_site_clerk", ["siteId", "clerkUserId"]),
 });
