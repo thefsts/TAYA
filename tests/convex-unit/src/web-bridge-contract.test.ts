@@ -308,3 +308,267 @@ describe("web-bridge registry", () => {
     }
   });
 });
+
+/**
+ * SNIPPET EXECUTION REGRESSION (found live in prod verification 2026-09-08):
+ * the generated snippet once emitted
+ *   document.querySelectorAll('['+'"data-taya-edit"'+']')
+ * which concatenates to the string ["data-taya-edit"] — an INVALID CSS
+ * selector. Browsers throw SyntaxError inside the fetch .then chain, the
+ * trailing .catch(function(){}) swallowed it, and published values were
+ * silently never applied (the live proof site kept showing discovered text).
+ * Determinism tests could not catch this: the bytes were deterministic, just
+ * wrong. These tests EXECUTE the generated snippet against a DOM world whose
+ * selector parser is strict like a browser's, so any malformed selector —
+ * this one or a cousin — fails CI instead of failing silently in production.
+ */
+describe("web-bridge snippet — executes in a DOM world (selector regression)", () => {
+  const ATTR = "data-taya-edit";
+  const convexHttpUrl = "https://uncommon-cobra-336.convex.site";
+  const slug = "example-external-site";
+
+  /** Strict like a browser: only bare attribute selectors [name] parse. */
+  function assertValidSelector(sel: string) {
+    if (!/^\[[A-Za-z_][A-Za-z0-9_-]*\]$/.test(sel)) {
+      throw new Error(
+        `SyntaxError: '${sel}' is not a valid selector (mirrors browser querySelectorAll)`,
+      );
+    }
+  }
+
+  function makeElement(tag: string, attrs: Record<string, string> = {}) {
+    return {
+      tagName: tag,
+      attributes: { ...attrs } as Record<string, string>,
+      textContent: "",
+      parent: null as any,
+      getAttribute(n: string) {
+        return this.attributes[n] ?? null;
+      },
+      setAttribute(n: string, v: string) {
+        this.attributes[n] = String(v);
+      },
+      closest(sel: string) {
+        assertValidSelector(sel);
+        const name = sel.slice(1, -1);
+        let cur: any = this;
+        while (cur) {
+          if (cur.attributes && cur.attributes[name] !== undefined) return cur;
+          cur = cur.parent;
+        }
+        return null;
+      },
+    };
+  }
+
+  function makeWorld(opts: { published?: any; drafts?: any; search?: string } = {}) {
+    const events: Array<{ type: string; detail: any }> = [];
+    const fetches: string[] = [];
+    const beacons: Array<{ url: string; blob: any }> = [];
+
+    const doc: any = {
+      _nodes: [] as any[],
+      _handlers: {} as Record<string, Array<(ev: any) => void>>,
+      addEventListener(type: string, fn: (ev: any) => void) {
+        (this._handlers[type] ||= []).push(fn);
+      },
+      dispatchEvent(ev: any) {
+        events.push({ type: ev.type, detail: ev.detail });
+        return true;
+      },
+      querySelectorAll(sel: string) {
+        assertValidSelector(sel);
+        const name = sel.slice(1, -1);
+        return this._nodes.filter((n: any) => n.attributes[name] !== undefined);
+      },
+      fire(type: string, ev: any) {
+        for (const fn of this._handlers[type] ?? []) fn(ev);
+      },
+    };
+
+    const fetchImpl = (url: string) => {
+      fetches.push(url);
+      let payload: any = null;
+      if (url.includes("/api/bridge/content")) payload = { values: opts.published ?? {} };
+      if (url.includes("/api/bridge/draft"))
+        payload = { values: opts.published ?? {}, drafts: opts.drafts ?? {} };
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(payload) });
+    };
+
+    const nav: any = {
+      sendBeacon: (url: string, blob: any) => {
+        beacons.push({ url, blob });
+        return true;
+      },
+    };
+    const loc: any = { search: opts.search ?? "" };
+    class FakeCustomEvent {
+      type: string;
+      detail: any;
+      constructor(t: string, d: any) {
+        this.type = t;
+        this.detail = d?.detail;
+      }
+    }
+
+    return { doc, events, fetches, beacons, fetchImpl, nav, loc, FakeCustomEvent };
+  }
+
+  function jsBodyOf(s: string) {
+    return s.replace(/^<!--[\s\S]*?-->\s*<script>\s*/, "").replace(/\s*<\/script>\s*$/, "");
+  }
+
+  async function flushMicrotasks() {
+    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 0));
+  }
+
+  function execute(snippet: string, w: ReturnType<typeof makeWorld>) {
+    const run = new Function(
+      "document",
+      "navigator",
+      "fetch",
+      "location",
+      "CustomEvent",
+      jsBodyOf(snippet),
+    );
+    run(w.doc, w.nav, w.fetchImpl, w.loc, w.FakeCustomEvent as any);
+  }
+
+  function proofDom(w: ReturnType<typeof makeWorld>) {
+    const h1 = makeElement("h1", { [ATTR]: "home.hero.heading" });
+    const p = makeElement("p", { [ATTR]: "home.hero.subheading" });
+    const img = makeElement("img", {
+      [ATTR]: "home.hero.image",
+      "data-taya-type": "image",
+      src: "https://img.example/discovered.png",
+    });
+    const a = makeElement("a", {
+      [ATTR]: "home.hero.primaryButton.href",
+      "data-taya-type": "button",
+      href: "/discovered-cta",
+    });
+    const plainH2 = makeElement("h2"); // untagged — must never be touched
+    w.doc._nodes.push(h1, p, img, a, plainH2);
+    return { h1, p, img, a, plainH2 };
+  }
+
+  const PUBLISHED = {
+    "home.hero.heading": "PUBLISHED HEADING",
+    "home.hero.subheading": "PUBLISHED SUBHEADING",
+    "home.hero.image": "https://img.example/published.png",
+    "home.hero.primaryButton.href": "/published-cta",
+    "unmatched.key": "ignored by DOM",
+  };
+
+  it("the DOM world rejects the historical broken selector form (negative control)", () => {
+    const w = makeWorld();
+    // This is the EXACT string the pre-fix snippet produced by concatenation.
+    expect(() => w.doc.querySelectorAll('["data-taya-edit"]')).toThrow(/not a valid selector/);
+  });
+
+  it("the snippet never quotes the attribute name inside a string literal", () => {
+    const snippet = generateBridgeSnippet({ convexHttpUrl, slug });
+    // The broken generator emitted '"data-taya-edit"' (a quoted string INSIDE
+    // the attribute selector). The attribute name must only ever appear bare.
+    expect(snippet).not.toContain(`'"${ATTR}"'`);
+    expect(snippet).toContain(`querySelectorAll('[${ATTR}]')`);
+    expect(snippet).toContain(`closest('[${ATTR}]')`);
+  });
+
+  it("applies PUBLISHED values by type and leaves untagged elements alone", async () => {
+    const w = makeWorld({ published: PUBLISHED });
+    const dom = proofDom(w);
+    const snippet = generateBridgeSnippet({ convexHttpUrl, slug });
+    execute(snippet, w);
+    await flushMicrotasks();
+
+    expect(dom.h1.textContent).toBe("PUBLISHED HEADING");
+    expect(dom.p.textContent).toBe("PUBLISHED SUBHEADING");
+    expect(dom.img.getAttribute("src")).toBe("https://img.example/published.png");
+    expect(dom.a.getAttribute("href")).toBe("/published-cta");
+    expect(dom.plainH2.textContent).toBe("");
+    // no throw anywhere = the selectors parsed
+  });
+
+  it("fetches the content endpoint for the slug, with no token, and dispatches ready", async () => {
+    const w = makeWorld({ published: PUBLISHED });
+    proofDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(w.fetches[0]).toBe(
+      `${convexHttpUrl}/api/bridge/content?slug=${encodeURIComponent(slug)}`,
+    );
+    expect(w.fetches.filter((u) => u.includes("/api/bridge/draft"))).toEqual([]);
+    const ready = w.events.find((e) => e.type === "taya:bridge-ready");
+    expect(ready).toBeTruthy();
+    expect(ready!.detail.count).toBe(Object.keys(PUBLISHED).length);
+  });
+
+  it("reports clicks: dispatch + sendBeacon payload with slug and key", async () => {
+    const w = makeWorld({ published: PUBLISHED });
+    const dom = proofDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    w.doc.fire("click", { target: dom.img });
+    const click = w.events.find((e) => e.type === "taya:element-click");
+    expect(click).toBeTruthy();
+    expect(click!.detail.key).toBe("home.hero.image");
+    expect(click!.detail.type).toBe("image");
+
+    expect(w.beacons.length).toBe(1);
+    expect(w.beacons[0].url).toBe(`${convexHttpUrl}/api/bridge/click`);
+    const body = JSON.parse(await w.beacons[0].blob.text());
+    expect(body).toEqual({ slug, key: "home.hero.image", type: "image", path: null });
+  });
+
+  it("overlays DRAFT values in preview mode (?taya_preview=token) and dispatches preview-applied", async () => {
+    const w = makeWorld({
+      published: PUBLISHED,
+      drafts: {
+        "home.hero.heading": "DRAFT HEADING (owner preview)",
+        "home.hero.subheading": "DRAFT SUBHEADING (owner preview)",
+      },
+      search: "?taya_preview=abcdef123456abcdef123456",
+    });
+    const dom = proofDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    // drafts overlay ON TOP of published
+    expect(dom.h1.textContent).toBe("DRAFT HEADING (owner preview)");
+    expect(dom.p.textContent).toBe("DRAFT SUBHEADING (owner preview)");
+    // published-only keys still applied
+    expect(dom.img.getAttribute("src")).toBe("https://img.example/published.png");
+
+    expect(w.fetches).toContain(
+      `${convexHttpUrl}/api/bridge/draft?slug=${encodeURIComponent(
+        slug,
+      )}&token=abcdef123456abcdef123456`,
+    );
+    const applied = w.events.find((e) => e.type === "taya:preview-applied");
+    expect(applied).toBeTruthy();
+    expect(applied!.detail.draftCount).toBe(2);
+  });
+
+  it("survives an anonymous world (no sendBeacon, fetch rejects) without throwing", async () => {
+    const w = makeWorld({ published: PUBLISHED });
+    proofDom(w);
+    // strip sendBeacon → report() falls back to fetch; and make fetch throw
+    // for the click endpoint only (content still resolves)
+    w.nav.sendBeacon = undefined;
+    const realFetch = w.fetchImpl;
+    w.fetchImpl = (url: string) => {
+      if (url.includes("/api/bridge/click")) return Promise.reject(new Error("offline"));
+      return realFetch(url);
+    };
+    expect(() =>
+      execute(generateBridgeSnippet({ convexHttpUrl, slug }), w),
+    ).not.toThrow();
+    await flushMicrotasks(); // rejected click fetch must be swallowed
+    const dom = w.doc._nodes[0];
+    expect(dom.textContent).toBe("PUBLISHED HEADING");
+  });
+});
