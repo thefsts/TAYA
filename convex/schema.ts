@@ -40,6 +40,27 @@ export default defineSchema({
     connectionMode: v.optional(v.string()),
     // Set at discovery time when the crawl identified the website technology.
     detectedPlatform: v.optional(v.string()),
+    // Phase 2 PR-2 — ownership verification state machine (spec §15–§16).
+    // A DISCOVERED_EXTERNAL site can draft/preview, but PUBLISH is
+    // server-blocked until the domain owner proves control. This field is
+    // the authority the publishing gate reads; it is only written by
+    // ownershipVerification._applyVerificationResult (single writer).
+    ownershipVerification: v.optional(
+      v.object({
+        // unverified | verification_pending | verified
+        state: v.string(),
+        // dns_txt | html_meta_token | bridge_token | repo_connector | platform_api
+        method: v.optional(v.string()),
+        // The token the client must publish (shared secret).
+        token: v.optional(v.string()),
+        beganAt: v.optional(v.number()),
+        lastCheckedAt: v.optional(v.number()),
+        verifiedAt: v.optional(v.number()),
+        attempts: v.optional(v.number()),
+        // §14: explicit human-readable reason for the last failed check.
+        lastFailureReason: v.optional(v.string()),
+      }),
+    ),
     agencyId: v.optional(v.id("agencies")),
     reviewsWidgetCdnMigrated: v.optional(v.boolean()),
     reviewsWidgetInlineEverUsed: v.optional(v.boolean()),
@@ -1044,4 +1065,61 @@ export default defineSchema({
   })
     .index("by_site", ["siteId"])
     .index("by_site_startedAt", ["siteId", "startedAt"]),
+
+  // ── Phase 2 PR-2 — bridge telemetry (§5/§9 click events) ────────────────
+  bridgeClicks: defineTable({
+    siteId: v.id("sites"),
+    // The §5 semantic key the visitor clicked (data-taya-edit)
+    key: v.string(),
+    // text | image | url | list_item | button | link | repeatable
+    type: v.optional(v.string()),
+    // Page path reported by the bridge (best-effort)
+    path: v.optional(v.string()),
+    // Aggregate count (one row per site+key, incremented per click)
+    clicks: v.number(),
+    firstClickedAt: v.number(),
+    lastClickedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_key", ["siteId", "key"]),
+
+  // ── Phase 2 PR-2 — ownership verification evidence (§15–§16) ─────────────
+  siteVerifications: defineTable({
+    siteId: v.id("sites"),
+    // dns_txt | html_meta_token | bridge_token | repo_connector | platform_api
+    method: v.string(),
+    // pending | verified | failed — outcome of THIS attempt/attachment
+    result: v.string(),
+    // What was actually seen (e.g. `TXT "taya-verification=…" on acme.com`)
+    evidence: v.optional(v.string()),
+    // §14 explicit failure reason when result = "failed"
+    failureReason: v.optional(v.string()),
+    // Who/what performed the check: email, "system", or connector name.
+    checkedBy: v.optional(v.string()),
+    checkedAt: v.number(),
+  })
+    .index("by_site", ["siteId"])
+    .index("by_site_checkedAt", ["siteId", "checkedAt"]),
+
+  // ── Phase 2 PR-2 — durable §5 page/content map (§5, §7) ──────────────────
+  siteContentMaps: defineTable({
+    siteId: v.id("sites"),
+    // Page-map format version (1)
+    version: v.number(),
+    // Bare domain at crawl time
+    domain: v.string(),
+    // §5 pages list [{path, label, title, keyCount}]
+    pages: v.optional(v.any()),
+    // §5 entries: semantic key → {type, discovered, draft?, published?, stale?, evidence?}
+    entries: v.optional(v.any()),
+    // Total entry count (report stat)
+    keyCount: v.number(),
+    // True once discovery auto-conform has been applied for this map
+    conformed: v.optional(v.boolean()),
+    // When this map was built from a completed snapshot
+    builtFromSnapshotAt: v.optional(v.number()),
+    // When the map was last refreshed by a later crawl (drafts preserved)
+    refreshedAt: v.optional(v.number()),
+  })
+    .index("by_site", ["siteId"]),
 });

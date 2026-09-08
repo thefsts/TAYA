@@ -15,7 +15,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@convex/*": ["../../convex/*"],
-      "@workspace/embed-widget": ["../../lib/embed-widget/src/index.ts"]
+      "@workspace/embed-widget": ["../../lib/embed-widget/src/index.ts"],
+      "@workspace/web-bridge": ["../../lib/web-bridge/src/index.ts"]
     }
   }
 }

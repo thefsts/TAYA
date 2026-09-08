@@ -392,6 +392,21 @@ export default function SetupOnboarding() {
                       : (certification.error ??
                         "Your workspace is created and bound to your account, but TAYA could not verify every setup check.")}
                   </p>
+                  {certification.checks.some(
+                    (c) => c.check === "ownership_verification_state" && c.status !== "pass",
+                  ) && (
+                    <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4">
+                      <p className="text-sm font-semibold text-amber-900">
+                        Publishing connection required — verify ownership of your site
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-amber-800">
+                        TAYA has read your website (drafting and preview are enabled right now),
+                        but it will not publish to a site it does not own-proof. Open Site
+                        Verification in your workspace to add a one-line token to your site or
+                        DNS — verification lifts the publishing block immediately.
+                      </p>
+                    </div>
+                  )}
                   <ul className="mt-4 grid gap-1.5">
                     {certification.checks.map((c) => (
                       <li key={c.check} className="flex items-center gap-2 text-xs">

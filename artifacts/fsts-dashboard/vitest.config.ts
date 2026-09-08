@@ -13,6 +13,11 @@ export default defineConfig({
         import.meta.dirname,
         "src/test/__stubs__/embed-widget.ts",
       ),
+      // stub web-bridge so VerificationPanel doesn't need to build it
+      "@workspace/web-bridge": path.resolve(
+        import.meta.dirname,
+        "src/test/__stubs__/web-bridge.ts",
+      ),
     },
   },
   test: {

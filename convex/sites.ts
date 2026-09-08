@@ -343,6 +343,11 @@ export const SITE_SCOPED_TABLES = [
   "onboardingProgress",
   // Phase 2 — discovery snapshots are site-scoped crawl records (§4/§16)
   "discoverySnapshots",
+  // Phase 2 PR-2 — ownership verification evidence + durable §5 page maps
+  "siteVerifications",
+  "siteContentMaps",
+  // Phase 2 PR-2 — bridge click telemetry (§5/§9)
+  "bridgeClicks",
 ] as const;
 
 // Convex file-storage blobs owned by a mediaAssets row (mirrors media.ts).
