@@ -53,8 +53,7 @@ export function generateBridgeSnippet(options: SnippetOptions): string {
 !function(){
   var CFG=${config};
   var VER=1;
-  function q(s){return document.querySelectorAll('['+'"${BRIDGE_ATTR_KEY}"'+']'+s);}
-  function all(){return document.querySelectorAll('['+'"${BRIDGE_ATTR_KEY}"'+']');}
+  function all(){return document.querySelectorAll('[${BRIDGE_ATTR_KEY}]');}
   function apply(el,val){
     if(val==null)return;
     var t=el.getAttribute('${BRIDGE_ATTR_TYPE}');
@@ -76,7 +75,7 @@ export function generateBridgeSnippet(options: SnippetOptions): string {
     }catch(e){}
   }
   document.addEventListener('click',function(ev){
-    var el=ev.target&&ev.target.closest?ev.target.closest('['+'"${BRIDGE_ATTR_KEY}"'+']'):null;
+    var el=ev.target&&ev.target.closest?ev.target.closest('[${BRIDGE_ATTR_KEY}]'):null;
     if(!el)return;
     var key=el.getAttribute('${BRIDGE_ATTR_KEY}');
     dispatch('${BRIDGE_EVENT_CLICK}',{key:key,type:el.getAttribute('${BRIDGE_ATTR_TYPE}'),label:el.getAttribute('data-taya-label'),page:el.getAttribute('data-taya-page')});
