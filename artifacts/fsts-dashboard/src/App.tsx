@@ -49,6 +49,7 @@ const ActivityLog = lazy(() => import("@/pages/app/sites/ActivityLog"));
 const SiteUsers = lazy(() => import("@/pages/app/sites/SiteUsers"));
 const BackupsList = lazy(() => import("@/pages/app/sites/BackupsList"));
 const HelpCenter = lazy(() => import("@/pages/app/sites/HelpCenter"));
+const VerificationPanel = lazy(() => import("@/pages/app/sites/VerificationPanel"));
 const FaqManager = lazy(() => import("@/pages/app/sites/FaqManager"));
 const TestimonialsManager = lazy(() => import("@/pages/app/sites/TestimonialsManager"));
 const FormSubmissions = lazy(() => import("@/pages/app/sites/FormSubmissions"));
@@ -504,6 +505,10 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/users" component={SiteUsers} />
           <Route path="/app/sites/:siteId/backups" component={BackupsListGuarded} />
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
+          {/* Phase 2 PR-2 — ownership verification (spec §6/§7/§15): the
+              owner proves domain control; verified → TAYA_CONNECTED and the
+              server-side publish gate lifts. */}
+          <Route path="/app/sites/:siteId/verification" component={VerificationPanel} />
 
           {/* WOS Phase 2 — Website Settings (per-tab RBAC tiering inside the page; see WebsiteSettings.tsx) */}
           <Route path="/app/sites/:siteId/settings" component={WebsiteSettings} />

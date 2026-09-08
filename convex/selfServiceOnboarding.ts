@@ -411,6 +411,97 @@ export const certify = action({
       });
     }
 
+    // —— PR-2 §7: workspace auto-conform + ownership verification ——————————————
+    // Auto-conform (workspace_auto_conformed): TAYA_NATIVE sites get their
+    // module UI from the provisioning config directly; DISCOVERED_EXTERNAL
+    // sites get it from the discovery snapshot's conform plan, applied
+    // atomically with the snapshot. A missing map is PENDING (crawl still
+    // running), never a silent pass — and never a fail either, since the
+    // workspace exists and drafting works regardless.
+    const modeForConform = core.site?.connectionMode ?? null;
+    const map = core.contentMap;
+    if (modeForConform === "TAYA_NATIVE") {
+      checks.push({
+        check: "workspace_auto_conformed",
+        status: "pass",
+        reason:
+          "TAYA_NATIVE: the workspace module UI comes from the provisioning config — no external conform needed.",
+      });
+    } else if (!map) {
+      checks.push({
+        check: "workspace_auto_conformed",
+        status: "pending",
+        reason:
+          "Discovery is running — the workspace will be auto-conformed from the crawl snapshot when it lands. This resolves automatically.",
+      });
+    } else if (map.conformed) {
+      checks.push({
+        check: "workspace_auto_conformed",
+        status: "pass",
+        reason: `Workspace conformed to the discovered site — ${map.keyCount} content keys mapped.`,
+      });
+    } else {
+      checks.push({
+        check: "workspace_auto_conformed",
+        status: "pending",
+        reason:
+          "The discovery snapshot is recorded but the conform plan was not applied. Re-run discovery from the workspace.",
+      });
+    }
+
+    // Ownership verification state (ownership_verification_state): the
+    // publish gate is server-side (convex/publishing.ts), and an unverified
+    // DISCOVERED_EXTERNAL site is draft-only BY DESIGN — so unverified /
+    // verification_pending are PENDING with explicit reasons, never a fail
+    // (publishing is not expected yet). Verified sites pass. TAYA_NATIVE
+    // sites have nothing external to verify, so they pass with a native
+    // reason. Publishing remains server-blocked until this check passes.
+    const ownership = core.ownership;
+    const modeForOwnership = core.site?.connectionMode ?? null;
+    if (modeForOwnership === "TAYA_NATIVE") {
+      checks.push({
+        check: "ownership_verification_state",
+        status: "pass",
+        reason:
+          "TAYA_NATIVE: the site is hosted by TAYA — no external ownership proof is needed to publish.",
+      });
+    } else if (modeForOwnership === "TAYA_CONNECTED") {
+      checks.push({
+        check: "ownership_verification_state",
+        status: "pass",
+        reason:
+          "TAYA_CONNECTED: ownership is verified and publishing is unlocked server-side.",
+      });
+    } else if (!ownership || ownership.state === "unverified") {
+      checks.push({
+        check: "ownership_verification_state",
+        status: "pending",
+        reason:
+          "Publishing is blocked until you verify ownership — open Site Verification in your workspace and add the one-line token to your site or DNS. Drafting and preview work right now.",
+      });
+    } else if (ownership.state === "verification_pending") {
+      checks.push({
+        check: "ownership_verification_state",
+        status: "pending",
+        reason:
+          "Ownership verification is in progress — run “Check now” in Site Verification once the token is visible on your domain.",
+      });
+    } else if (ownership.state === "verified") {
+      checks.push({
+        check: "ownership_verification_state",
+        status: "pass",
+        reason: `Ownership verified via ${ownership.method ?? "bridge"} at ${new Date(
+          ownership.verifiedAt ?? 0,
+        ).toISOString()}.`,
+      });
+    } else {
+      checks.push({
+        check: "ownership_verification_state",
+        status: "pending",
+        reason: `Ownership verification state: ${ownership.state}.`,
+      });
+    }
+
     const required = [
       "clerk_user_exists",
       "convex_user_exists",
@@ -477,6 +568,13 @@ export const _certifyCore = internalQuery({
       .order("desc")
       .first();
 
+    // PR-2 §7: the durable §5 page/content map (workspace_auto_conformed)
+    // and the ownership verification sub-document (ownership_verification_state).
+    const contentMap = await ctx.db
+      .query("siteContentMaps")
+      .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+      .first();
+
     return {
       identityPresent,
       userPresent: !!user,
@@ -501,6 +599,23 @@ export const _certifyCore = internalQuery({
             status: latestSnapshot.status,
             keyCount: (latestSnapshot as any).report?.keyCount ?? 0,
             failureReason: (latestSnapshot as any).failureReason ?? null,
+          }
+        : null,
+      // PR-2 §7: auto-conform + ownership surfaces for the new checks.
+      contentMap: contentMap
+        ? {
+            keyCount: contentMap.keyCount ?? 0,
+            conformed: contentMap.conformed ?? false,
+            builtFromSnapshotAt: (contentMap as any).builtFromSnapshotAt ?? null,
+            refreshedAt: (contentMap as any).refreshedAt ?? null,
+          }
+        : null,
+      ownership: site
+        ? {
+            state: ((site as any).ownershipVerification?.state as string | undefined) ?? "unverified",
+            method:
+              ((site as any).ownershipVerification?.method as string | undefined) ?? null,
+            verifiedAt: ((site as any).ownershipVerification?.verifiedAt as number | undefined) ?? null,
           }
         : null,
     };

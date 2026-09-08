@@ -626,3 +626,194 @@ describe("selfServiceOnboarding.certify — setup self-certification (§14)", ()
     expect(ownerCheck.status).toBe("fail");
   });
 });
+
+// ── PR-2 §7: workspace_auto_conformed + ownership_verification_state ──────
+
+describe("selfServiceOnboarding.certify — PR-2 auto-conform + ownership checks (§7)", () => {
+  it("a completed crawl certifies the conform pass and ownership PENDING (§14: pending, never fail)", async () => {
+    const provisioned = await asNewClient().mutation(
+      api.selfServiceOnboarding.provisionSite,
+      VALID_ARGS,
+    );
+    // Same crawlable homepage as the happy path so the auto-fired §4 crawl
+    // completes: snapshot + conform + content map land deterministically.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          "<html><body><h1>Acme Dental Studio</h1><p>Welcome to our practice, we serve the whole family.</p></body></html>",
+          { status: 200, headers: { "content-type": "text/html" } },
+        ),
+      ),
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    await t.finishInProgressScheduledFunctions();
+
+    const cert = await asNewClient().action(api.selfServiceOnboarding.certify, {
+      siteId: provisioned.siteId,
+    });
+    // Ownership is unverified BY DESIGN on a fresh DISCOVERED_EXTERNAL site:
+    // pending with an explicit reason — NEVER a fail (publishing is not
+    // expected yet), and certification stays complete.
+    expect(cert.complete).toBe(true);
+    const byCheck = Object.fromEntries(cert.checks.map((c: any) => [c.check, c.status]));
+    expect(byCheck.workspace_auto_conformed).toBe("pass");
+    expect(byCheck.ownership_verification_state).toBe("pending");
+    const conformCheck = cert.checks.find((c: any) => c.check === "workspace_auto_conformed");
+    expect(conformCheck.reason).toContain("content keys mapped");
+    const ownershipCheck = cert.checks.find(
+      (c: any) => c.check === "ownership_verification_state",
+    );
+    expect(ownershipCheck.reason).toContain("verify ownership");
+
+    // §6/§15: the SAME verdict the dashboard renders — the publish gate is
+    // server-side and reports the exact block message.
+    const authority = await asNewClient().query(api.publishing.canPublish, {
+      siteId: provisioned.siteId,
+    });
+    expect(authority.canPublish).toBe(false);
+    expect(authority.blockedByOwnership).toBe(true);
+    expect(authority.connectionMode).toBe("DISCOVERED_EXTERNAL");
+  });
+
+  it("verification in progress stays pending; verified flips it to pass and unlocks canPublish (§6/§7)", async () => {
+    const provisioned = await asNewClient().mutation(
+      api.selfServiceOnboarding.provisionSite,
+      VALID_ARGS,
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          "<html><body><h1>Acme Dental Studio</h1><p>Welcome to our practice, we serve the whole family.</p></body></html>",
+          { status: 200, headers: { "content-type": "text/html" } },
+        ),
+      ),
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    await t.finishInProgressScheduledFunctions();
+
+    // Begin html_meta_token verification (owner self-serve, §6).
+    const begun = await asNewClient().action(api.ownershipVerification.beginVerification, {
+      siteId: provisioned.siteId,
+      method: "html_meta_token",
+    });
+    expect(begun.state).toBe("verification_pending");
+    expect(begun.token).toMatch(/^[a-z0-9]{12,64}$/i);
+    expect(begun.instructions).toBeTruthy();
+
+    // Certify mid-flight: the ownership check reports the in-progress reason.
+    const midCert = await asNewClient().action(api.selfServiceOnboarding.certify, {
+      siteId: provisioned.siteId,
+    });
+    expect(midCert.complete).toBe(true);
+    const midOwnership = midCert.checks.find(
+      (c: any) => c.check === "ownership_verification_state",
+    );
+    expect(midOwnership.status).toBe("pending");
+    expect(midOwnership.reason).toContain("in progress");
+
+    // Publish stays blocked while pending — even though the owner can draft.
+    const blocked = await asNewClient().query(api.publishing.canPublish, {
+      siteId: provisioned.siteId,
+    });
+    expect(blocked.canPublish).toBe(false);
+    expect(blocked.blockedByOwnership).toBe(true);
+    expect(blocked.reason).toBe(
+      "Publishing connection required: verify ownership of your site to enable publishing. Use Site Verification in your workspace.",
+    );
+
+    // The owner adds the meta tag to their homepage — the fetch stub now
+    // serves it (§14: the live check reads the REAL page over the network).
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          `<html><head><meta name="taya-verification" content="${begun.token}"></head><body><h1>Acme Dental Studio</h1></body></html>`,
+          { status: 200, headers: { "content-type": "text/html" } },
+        ),
+      ),
+    );
+    const verified = await asNewClient().action(api.ownershipVerification.checkVerification, {
+      siteId: provisioned.siteId,
+    });
+    expect(verified.state).toBe("verified");
+    expect(verified.method).toBe("html_meta_token");
+    expect(verified.connectionMode).toBe("TAYA_CONNECTED");
+
+    // Certify after verification: ownership passes and publishing unlocks.
+    const cert = await asNewClient().action(api.selfServiceOnboarding.certify, {
+      siteId: provisioned.siteId,
+    });
+    expect(cert.complete).toBe(true);
+    const ownershipCheck = cert.checks.find(
+      (c: any) => c.check === "ownership_verification_state",
+    );
+    expect(ownershipCheck.status).toBe("pass");
+    // Verified flips connectionMode to TAYA_CONNECTED (single-writer
+    // _applyVerificationResult), so certify reports the CONNECTED reason —
+    // explicit and consistent with the canPublish verdict below.
+    expect(ownershipCheck.reason).toContain("TAYA_CONNECTED");
+
+    const authority = await asNewClient().query(api.publishing.canPublish, {
+      siteId: provisioned.siteId,
+    });
+    expect(authority.canPublish).toBe(true);
+    expect(authority.connectionMode).toBe("TAYA_CONNECTED");
+    expect(authority.blockedByOwnership).toBe(false);
+
+    // §14 evidence: the verification attempt is recorded and queryable.
+    const status: any = await asNewClient().query(api.ownershipVerification.getStatus, {
+      siteId: provisioned.siteId,
+    });
+    expect(status.state).toBe("verified");
+    expect(Array.isArray(status.evidence)).toBe(true);
+    expect(status.evidence.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("a TAYA_NATIVE site passes both PR-2 checks with native reasons and can publish (§6)", async () => {
+    let siteId: any;
+    await t.run(async (ctx) => {
+      siteId = await ctx.db.insert("sites", {
+        name: "TAYA Hosted Studio",
+        slug: "taya-hosted-studio",
+        status: "active",
+        domain: "taya-hosted-studio.fstsclientsystem.com",
+        brandColorPrimary: "#1d4ed8",
+        brandColorSecondary: "#0f172a",
+        whiteLabelEnabled: false,
+        poweredByFsts: true,
+        websiteType: "business_website",
+        enabledModules: {},
+        connectionMode: "TAYA_NATIVE",
+      });
+      await ctx.db.insert("users", {
+        clerkUserId: NEW_CLIENT_CLERK,
+        name: "New Client",
+        email: NEW_CLIENT_EMAIL,
+        isSuperAdmin: false,
+        isActive: true,
+        roles: [{ siteId, role: "owner" }],
+      });
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 200 })),
+    );
+    const cert = await asNewClient().action(api.selfServiceOnboarding.certify, { siteId });
+    expect(cert.complete).toBe(true);
+    const byCheck = Object.fromEntries(cert.checks.map((c: any) => [c.check, c.status]));
+    expect(byCheck.workspace_auto_conformed).toBe("pass");
+    expect(byCheck.ownership_verification_state).toBe("pass");
+    const conformCheck = cert.checks.find((c: any) => c.check === "workspace_auto_conformed");
+    expect(conformCheck.reason).toContain("TAYA_NATIVE");
+    const ownershipCheck = cert.checks.find(
+      (c: any) => c.check === "ownership_verification_state",
+    );
+    expect(ownershipCheck.reason).toContain("TAYA_NATIVE");
+
+    const authority = await asNewClient().query(api.publishing.canPublish, { siteId });
+    expect(authority.canPublish).toBe(true);
+    expect(authority.connectionMode).toBe("TAYA_NATIVE");
+  });
+});

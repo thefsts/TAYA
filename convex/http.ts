@@ -1078,4 +1078,134 @@ http.route({
   }),
 });
 
+// ── Phase 2 PR-2 — TAYA Web Bridge (§5–§7, §9, §15–§16) ─────────────────────
+// Universally available to any external site that embeds the standard
+// bridge snippet. No customer-specific logic of any kind.
+
+/* OPTIONS preflights (browser POSTs carry JSON bodies). */
+const bridgePreflight = httpAction(async () =>
+  new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400",
+    },
+  }),
+);
+for (const path of [
+  "/api/bridge/content",
+  "/api/bridge/draft",
+  "/api/bridge/verify",
+  "/api/bridge/click",
+]) {
+  http.route({ path, method: "OPTIONS", handler: bridgePreflight });
+}
+
+/* ── GET /api/bridge/content?slug= — manifest + PUBLISHED values only ─── */
+http.route({
+  path: "/api/bridge/content",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const slug = new URL(request.url).searchParams.get("slug") ?? "";
+    if (!slug) return notFound("slug required");
+    const data = await ctx.runQuery(internal.bridge._content, { slug });
+    if (!data) return notFound("site not found");
+    return ok(data);
+  }),
+});
+
+/* ── GET /api/bridge/draft?slug=&token= — token-gated draft overlay ───── */
+http.route({
+  path: "/api/bridge/draft",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const params = new URL(request.url).searchParams;
+    const slug = params.get("slug") ?? "";
+    const token = params.get("token") ?? "";
+    if (!slug || !token) return notFound("slug and token params required");
+    const data = await ctx.runQuery(internal.bridge._draft, { slug, token });
+    if (!data) return notFound("site not found or token invalid");
+    return ok(data);
+  }),
+});
+
+/* ── POST /api/bridge/verify — ownership ping (bridge_token method) ───── */
+http.route({
+  path: "/api/bridge/verify",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json() as any;
+      const slug = body?.slug ?? "";
+      const token = body?.token ?? "";
+      if (!slug || !token) {
+        return new Response(
+          JSON.stringify({ error: "slug and token required" }),
+          { status: 400, headers: CORS },
+        );
+      }
+      const data = await ctx.runQuery(internal.bridge._verifyPing, { slug, token });
+      if (!data) return notFound("site not found");
+      return ok(data);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "invalid JSON body" }),
+        { status: 400, headers: CORS },
+      );
+    }
+  }),
+});
+
+/* ── POST /api/bridge/click — click telemetry ingest ──────────────────── */
+http.route({
+  path: "/api/bridge/click",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const params = new URL(request.url).searchParams;
+    const slug = params.get("slug") ?? "";
+    const key = params.get("key") ?? "";
+    if (!slug || !key) return notFound("slug and key params required");
+    const data = await ctx.runMutation(internal.bridge._recordClick, {
+      slug,
+      key,
+      ...(params.get("type") ? { type: params.get("type")! } : {}),
+      ...(params.get("path") ? { path: params.get("path")! } : {}),
+    });
+    if (!data) return notFound("site not found");
+    return ok(data);
+  }),
+});
+http.route({
+  path: "/api/bridge/click",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json() as any;
+      const slug = body?.slug ?? "";
+      const key = body?.key ?? "";
+      if (!slug || !key) {
+        return new Response(
+          JSON.stringify({ error: "slug and key required" }),
+          { status: 400, headers: CORS },
+        );
+      }
+      const data = await ctx.runMutation(internal.bridge._recordClick, {
+        slug,
+        key,
+        ...(body?.type ? { type: String(body.type) } : {}),
+        ...(body?.path ? { path: String(body.path) } : {}),
+      });
+      if (!data) return notFound("site not found");
+      return ok(data);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "invalid JSON body" }),
+        { status: 400, headers: CORS },
+      );
+    }
+  }),
+});
+
 export default http;

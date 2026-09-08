@@ -168,6 +168,9 @@ async function seedRow(
       siteAddOns: null, // requires addOnId FK — inserted separately
       onboardingProgress: { siteId, sessionKey: "s1", currentStep: 3, stepData: {}, status: "completed" },
       discoverySnapshots: { siteId, kind: "initial", status: "completed", domain: "example.com", startedAt: 1 },
+      siteVerifications: { siteId, method: "dns_txt", result: "verified", evidence: "TXT on example.com", checkedBy: "system", checkedAt: 1 },
+      siteContentMaps: { siteId, version: 1, domain: "example.com", pages: [], entries: {}, keyCount: 3, conformed: true },
+      bridgeClicks: { siteId, key: "home.hero.heading", type: "text", clicks: 2, firstClickedAt: 1, lastClickedAt: 2 },
     };
     // FK-chained rows: create the parent row only when the child table is
     // the one being seeded (keeps global tables like addOnCatalog clean).

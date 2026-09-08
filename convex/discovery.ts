@@ -37,11 +37,18 @@
  *
  * CONNECTION MODES (§6): every successful crawl sets
  * sites.connectionMode = "DISCOVERED_EXTERNAL" until a bridge is verified
- * (later Phase 2 slices flip it to TAYA_CONNECTED; TAYA_NATIVE is assigned at
- * provisioning when the site has no external domain). TAYA_NATIVE /
+ * (ownershipVerification flips it to TAYA_CONNECTED; TAYA_NATIVE is assigned
+ * at provisioning when the site has no external domain). TAYA_NATIVE /
  * TAYA_CONNECTED allow edit+publish; DISCOVERED_EXTERNAL is draft-edit-only
- * with "Publishing connection required" (enforced in Phase 3 publish paths —
- * this slice records the mode; it does not yet gate anything).
+ * with "Publishing connection required" — enforced server-side in
+ * publishing.publishContentMap, which no UI can bypass.
+ *
+ * §7 AUTO-CONFORM: persistSnapshot's completed branch applies
+ * conformWorkspace's plan atomically with the snapshot: enable-only module
+ * merge (UI configuration only), nav-row inserts for newly-enabled modules
+ * (deduped by href), and the durable §5 siteContentMaps upsert (draft/
+ * published overlays preserved; vanished keys marked stale). No RBAC
+ * grants, no admin modules, no per-customer logic.
  */
 
 import { query, action, internalAction, internalMutation, internalQuery } from "./_generated/server";
@@ -52,6 +59,11 @@ import { v } from "convex/values";
 import { checkSiteAccess } from "./lib/requireSiteAccess";
 import { logActivity } from "./lib/logActivity";
 import { crawlSite } from "./lib/discovery/crawl";
+import {
+  buildPageMap,
+  conformWorkspace,
+  mergeEnabledModules,
+} from "./lib/discovery/contentMap";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public read surface (site-scoped)
@@ -302,12 +314,127 @@ export const persistSnapshot = internalMutation({
       ...(args.triggeredBy ? { triggeredBy: args.triggeredBy } : {}),
     });
 
-    // §6/§4: a successful crawl identifies the publishing mode and platform.
+    // §6/§14: a successful crawl identifies the publishing mode and
+    // platform — but NEVER downgrades a stronger mode. TAYA_CONNECTED
+    // (ownership verified: the bridge stays live across refresh crawls)
+    // and TAYA_NATIVE (hosted by TAYA) survive a crawl; only an
+    // unidentified external site is set to DISCOVERED_EXTERNAL.
     if (args.status === "completed" && snap) {
+      const siteBeforePatch = await ctx.db.get(args.siteId);
+      const currentMode = (siteBeforePatch as any)?.connectionMode;
+      const nextMode =
+        currentMode === "TAYA_CONNECTED" || currentMode === "TAYA_NATIVE"
+          ? currentMode
+          : "DISCOVERED_EXTERNAL";
       await ctx.db.patch(args.siteId, {
-        connectionMode: "DISCOVERED_EXTERNAL",
+        connectionMode: nextMode,
         detectedPlatform: snap.platform ?? undefined,
       });
+
+      // ── §7 AUTO-CONFORM (same transaction, atomic with the snapshot) ──
+      // Route → module UI configuration ONLY: enable-only module merge,
+      // nav-row inserts for newly-enabled modules, and the durable §5
+      // page/content map upsert. NO RBAC grants, NO admin modules, no
+      // per-customer logic — pure derivation from the snapshot.
+      const plan = conformWorkspace(snap);
+      const siteForConform = await ctx.db.get(args.siteId);
+
+      if (siteForConform) {
+        // Enable-only merge (conformable keys only; never disables).
+        await ctx.db.patch(args.siteId, {
+          enabledModules: mergeEnabledModules(
+            (siteForConform as any).enabledModules,
+            plan.enabledModulesPatch,
+          ),
+        });
+
+        // Nav inserts, deduped by href (idempotent).
+        const existingNav = await ctx.db
+          .query("navigationItems")
+          .withIndex("by_site", (q: any) => q.eq("siteId", args.siteId))
+          .collect();
+        const seenHref = new Set(existingNav.map((n: any) => n.href));
+        let navInserted = 0;
+        for (const entry of plan.navEntries) {
+          if (seenHref.has(entry.href)) continue;
+          const count = existingNav.length + navInserted;
+          await ctx.db.insert("navigationItems", {
+            siteId: args.siteId,
+            label: entry.label,
+            href: entry.href,
+            isVisible: true,
+            order: count,
+            openInNewTab: false,
+          });
+          navInserted++;
+        }
+
+        // §5 content map upsert — preserve draft/published overlays; mark
+        // vanished keys stale (they stay in the map; discovery never
+        // deletes the reference baseline).
+        const pageMap = buildPageMap(snap);
+        const priorMap = await ctx.db
+          .query("siteContentMaps")
+          .withIndex("by_site", (q: any) => q.eq("siteId", args.siteId))
+          .first();
+        if (priorMap) {
+          const priorEntries: Record<string, any> = (priorMap.entries as any) ?? {};
+          const merged: Record<string, any> = {};
+          for (const [key, entry] of Object.entries(pageMap.entries)) {
+            const prior = priorEntries[key];
+            merged[key] = {
+              ...entry,
+              ...(prior?.draft !== undefined ? { draft: prior.draft } : {}),
+              ...(prior?.published !== undefined ? { published: prior.published } : {}),
+            };
+          }
+          // Keys the old map had that the new crawl no longer found: keep
+          // them, marked stale (§14 explicit, never silently deleted).
+          let staleCount = 0;
+          for (const [key, prior] of Object.entries(priorEntries)) {
+            if (merged[key]) continue;
+            merged[key] = { ...(prior as any), stale: true };
+            staleCount++;
+          }
+          await ctx.db.patch(priorMap._id, {
+            domain: pageMap.domain,
+            pages: pageMap.pages,
+            entries: merged,
+            keyCount: pageMap.keyCount,
+            builtFromSnapshotAt: pageMap.builtFromSnapshotAt ?? undefined,
+            conformed: priorMap.conformed ?? true,
+            refreshedAt: Date.now(),
+          });
+        } else {
+          await ctx.db.insert("siteContentMaps", {
+            siteId: args.siteId,
+            version: pageMap.version,
+            domain: pageMap.domain,
+            pages: pageMap.pages,
+            entries: pageMap.entries,
+            keyCount: pageMap.keyCount,
+            conformed: true,
+            builtFromSnapshotAt: pageMap.builtFromSnapshotAt ?? undefined,
+            refreshedAt: Date.now(),
+          });
+        }
+
+        const activityDetails =
+          `Workspace auto-conformed: enabled ${plan.enabledModuleKeys.length} module${
+            plan.enabledModuleKeys.length === 1 ? "" : "s"
+          }` +
+          (navInserted > 0 ? `, added ${navInserted} nav item${navInserted === 1 ? "" : "s"}` : "") +
+          `, ${pageMap.keyCount} content keys mapped.`;
+        await logActivity(ctx, {
+          siteId: args.siteId,
+          actorName: "TAYA Discovery",
+          action: "workspace_auto_conformed",
+          entityType: "site",
+          entityId: String(snapshotId),
+          page: "Discovery",
+          details: activityDetails,
+        });
+      }
     }
 
     const site = await ctx.db.get(args.siteId);
