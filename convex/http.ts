@@ -8,6 +8,10 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { annotatePage } from "./lib/editorAnnotate";
+import { buildFrameDocument } from "./lib/editorFrame";
+import { fetchPage } from "./lib/discovery/crawl";
+import { dashboardBaseUrl } from "./lib/adminLogin";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -1208,4 +1212,88 @@ http.route({
   }),
 });
 
+/* ── PHASE 3 — GET /api/editor/frame — client visual editor preview ──────
+ *
+ * Serves the customer's REAL page, EDITOR-SAFE, from the Convex origin:
+ *   1. BURN the single-use frame token FIRST (replays + concurrent loads
+ *      are dead before any work begins);
+ *   2. re-verify the burned token's user STILL has site access and the
+ *      requested path is one of THE SITE'S OWN discovered routes;
+ *   3. fetch the live page server-side (bounded: 8s timeout, 2MB, HTML
+ *      content-type only — never an unrestricted URL fetcher);
+ *   4. annotate editable elements with §5 keys, strip every site script,
+ *      neutralize top-level navigation, inject the TAYA editor bootstrap
+ *      (the only script), serve with frame-ancestors = dashboard origin.
+ *
+ * DRAFTS NEVER ENTER THIS RESPONSE: the frame renders the page exactly as
+ * an anonymous visitor sees it; draft values reach the frame only via
+ * postMessage from the authenticated dashboard parent (§16).
+ */
+http.route({
+  path: "/api/editor/frame",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const p = new URL(request.url).searchParams;
+    const token = p.get("token") ?? "";
+    const routePath = p.get("path") ?? "/";
+    if (!token) {
+      return new Response(JSON.stringify({ error: "token required" }), { status: 400, headers: CORS });
+    }
+
+    // 1 — burn first: single-use, race-safe.
+    const burn = await ctx.runMutation(internal.editor._burnFrameToken, { token });
+    if (!burn) {
+      return new Response(
+        JSON.stringify({ error: "This editor link has expired. Reopen the editor to continue." }),
+        { status: 401, headers: CORS },
+      );
+    }
+
+    // 2 — scope re-check + discovered-route allowlist.
+    const site = await ctx.runQuery(internal.editor._frameSite, {
+      siteId: burn.siteId,
+      clerkUserId: burn.clerkUserId,
+      path: routePath,
+    });
+    if (!site) {
+      return new Response(
+        JSON.stringify({ error: "This page isn't available in the editor." }),
+        { status: 404, headers: CORS },
+      );
+    }
+
+    // 3 — bounded fetch of the live page (same caps as discovery).
+    const origin = `https://${site.domain}`;
+    const outcome = await fetchPage(`${origin}${site.path}`);
+    if (!outcome.ok || !outcome.html) {
+      return new Response(
+        JSON.stringify({ error: "The website couldn't be reached. Try again shortly." }),
+        { status: 502, headers: CORS },
+      );
+    }
+
+    // 4 — annotate + editor-safe document.
+    const pageUrl = `${origin}${site.path}`;
+    const annotated = annotatePage(outcome.html, site.path, pageUrl);
+    const doc = buildFrameDocument(annotated, {
+      origin,
+      path: site.path,
+      slug: site.slug,
+      dashboardOrigin: dashboardBaseUrl(),
+    });
+
+    return new Response(doc, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Content-Security-Policy": `frame-ancestors ${dashboardBaseUrl()}`,
+        "Referrer-Policy": "no-referrer",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }),
+});
+
 export default http;
+

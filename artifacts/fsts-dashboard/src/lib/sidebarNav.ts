@@ -129,6 +129,7 @@ export function buildSidebarGroups(ctx: SidebarBuildContext): SidebarNavGroup[] 
       icon: SquarePen,
       items: [
         { id: "pages", label: "All Pages", href: HREF(siteId, "pages"), icon: FileStack },
+        { id: "visual-editor", label: "Visual Editor", href: HREF(siteId, "editor"), icon: MousePointerClick },
         { id: "homepage", label: "Homepage", href: HREF(siteId, "homepage"), icon: LayoutTemplate, moduleKey: "homepage" },
         {
           id: "blog",

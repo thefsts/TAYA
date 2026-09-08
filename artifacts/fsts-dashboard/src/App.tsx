@@ -91,6 +91,7 @@ const FlyerManager = lazy(() => import("@/pages/app/sites/FlyerManager"));
 const ReviewsManager = lazy(() => import("@/pages/app/sites/ReviewsManager"));
 
 // Products / Offerings Manager
+const VisualEditor = lazy(() => import("@/pages/app/sites/VisualEditor"));
 const ProductsManager = lazy(() => import("@/pages/app/sites/ProductsManager"));
 
 // Phase 80 — Client Portal™ / Multi-Portal Authentication System™
@@ -475,6 +476,7 @@ function AppRouter() {
 
           <Route path="/app/sites/:siteId" component={SiteDashboard} />
           <Route path="/app/sites/:siteId/pages" component={Pages} />
+          <Route path="/app/sites/:siteId/editor" component={VisualEditor} />
           <Route path="/app/sites/:siteId/homepage" component={HomepageEditor} />
           <Route path="/app/sites/:siteId/courses" component={CoursesList} />
           <Route path="/app/sites/:siteId/events" component={EventsList} />
