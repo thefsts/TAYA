@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * FSTS Improvement Roadmap PDF Generator
- * Generates artifacts/fsts-dashboard/public/fsts-dashboard-roadmap.pdf
+ * Generates exports/roadmap/fsts-dashboard-roadmap.pdf — a repo-internal
+ * location that is never deployed. The PDF must NOT be written into
+ * artifacts/fsts-dashboard/public/ (that directory ships unauthenticated).
  *
  * Data source: scripts/roadmap-data.json
  * Add new improvements to that file; this script reads it at run-time.
@@ -18,7 +20,7 @@ const ROOT = resolve(__dirname, "..");
 const CHROMIUM = "/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium";
 const TMP_HTML = "/tmp/fsts-roadmap.html";
 const TMP_PDF  = "/tmp/fsts-roadmap.pdf";
-const OUT_DIR  = resolve(ROOT, "artifacts/fsts-dashboard/public");
+const OUT_DIR  = resolve(ROOT, "exports/roadmap");
 const OUT_PDF  = resolve(OUT_DIR, "fsts-dashboard-roadmap.pdf");
 
 // --- Load data from canonical source ---

@@ -832,27 +832,21 @@ export default function AdminPlatformRunbook() {
           <div className="border-t border-slate-100 pt-4">
             <p className="text-sm font-medium text-slate-800 mb-1 flex items-center gap-2">
               <RefreshCw className="h-4 w-4 text-slate-400" />
-              Improvement Roadmap PDF
+              Improvement Roadmap
             </p>
             <p className="text-xs text-slate-500 mb-3">
-              The roadmap PDF is generated from{" "}
-              <code className="font-mono bg-slate-100 px-1 rounded">scripts/roadmap-data.json</code> and is
-              automatically regenerated on every post-merge run — no manual step required when improvements
-              are added or updated. Download the latest version below.
+              Browse the full improvement backlog — waves, priorities, categories, and live status — on the
+              internal Improvement Roadmap page. The roadmap data lives in{" "}
+              <code className="font-mono bg-slate-100 px-1 rounded">scripts/roadmap-data.json</code> and the
+              page stays in sync with it.
             </p>
             <div className="flex items-center gap-3">
-              <a
-                href="/fsts-dashboard-roadmap.pdf"
-                download="FSTS-Improvement-Roadmap.pdf"
+              <Link
+                href="/app/admin/roadmap"
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors border border-primary/30 hover:border-primary/60 rounded-md px-3 py-2 bg-primary/5 hover:bg-primary/10 no-underline"
               >
-                <Download className="h-3.5 w-3.5" />
-                Download Current Roadmap PDF
-              </a>
-              <span className="text-xs text-slate-400">
-                Regenerates automatically after every merge via{" "}
-                <code className="font-mono bg-slate-100 px-1 rounded">scripts/post-merge.sh</code>
-              </span>
+                Open Improvement Roadmap
+              </Link>
             </div>
           </div>
         </div>
@@ -897,14 +891,6 @@ export default function AdminPlatformRunbook() {
             <p>TAYA System™ — Internal Platform Runbook</p>
             <p className="mt-1">This document is for FSTS team members only. Do not share with clients.</p>
           </div>
-          <a
-            href="/fsts-dashboard-roadmap.pdf"
-            download="FSTS-Improvement-Roadmap.pdf"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors border border-primary/30 hover:border-primary/60 rounded-md px-3 py-1.5 bg-primary/5 hover:bg-primary/10 no-underline"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Download Improvement Roadmap PDF
-          </a>
         </div>
       </div>
     </div>

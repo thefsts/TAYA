@@ -41,5 +41,8 @@ jobs:
       - name: Design Lock tests
         run: pnpm run test:design-lock
 
+      - name: Internal-docs exposure guard (L4 regression)
+        run: pnpm run test:hygiene
+
       - name: Production build
         run: pnpm run build
