@@ -728,3 +728,123 @@ describe("VisualEditor — responsive structure", () => {
     expect(screen.getByRole("button", { name: "mobile" })).toBeInTheDocument();
   });
 });
+
+/* ── 6. Bug #2 regression: reopen with server-side drafts ──────── */
+
+describe("VisualEditor — reopen with server-side drafts (Bug #2)", () => {
+  // A draft saved in a PRIOR session lives server-side on the entry
+  // ({draft}). Bug #2: reopening the editor showed "All changes saved",
+  // kept Publish/Discard gated, and Previewed published values — the draft
+  // was invisible and unpublishable until re-edited. The adoption effect +
+  // preview union make the reopened editor honest about pending drafts.
+  const CONTENT_MAP_WITH_DRAFTS = {
+    ...CONTENT_MAP,
+    entries: {
+      ...CONTENT_MAP.entries,
+      "home.about.body": { type: "text", discovered: "About this studio.", published: "About this studio.", draft: "Prior Session Draft Body" },
+      "about.intro.heading": { type: "text", discovered: "About FSTS", published: "About FSTS", draft: "Prior Session Draft Heading" },
+    },
+  };
+
+  // Local mirror of the history-block helper (block-scoped there).
+  async function restoreRevisionLocal(
+    mutations: Record<string, ReturnType<typeof vi.fn>>,
+    restored: unknown,
+  ) {
+    mutations["api.editor.restoreAsDraft"].mockResolvedValue({
+      ok: true,
+      restoredKeys: Array.isArray(restored) ? restored.length : 0,
+      restored,
+    });
+    fireEvent.click(screen.getByRole("button", { name: /History/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Restore/ }));
+  }
+
+  it("Bug #2: adopts server-side drafts on open — Draft badge, Discard count, Publish enabled", async () => {
+    setup({ contentMap: CONTENT_MAP_WITH_DRAFTS });
+    await renderEditor();
+    // The badge honestly reports the pending draft state...
+    expect(await screen.findByText(/Draft saved/)).toBeInTheDocument();
+    // ...Publish is publishable through the EXISTING gate...
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeEnabled();
+    });
+    // ...and Discard can clear exactly the adopted server drafts.
+    expect(await screen.findByRole("button", { name: /Discard 2 draft changes/ })).toBeInTheDocument();
+  });
+
+  it("Bug #2: publishing a prior-session draft routes through the real server gate (no fake local save)", async () => {
+    const { mutations } = setup({ contentMap: CONTENT_MAP_WITH_DRAFTS });
+    await renderEditor();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeEnabled();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ }));
+    // The drafts already live server-side — no redundant saveDraft...
+    expect(mutations["api.publishing.saveDraft"]).not.toHaveBeenCalled();
+    // ...publish goes through the REAL authority gate.
+    await waitFor(() => {
+      expect(mutations["api.publishing.publishContentMap"]).toHaveBeenCalledWith(
+        expect.objectContaining({ siteId: SITE_ID }),
+      );
+    });
+    expect(await screen.findByText(/Published to the live website/)).toBeInTheDocument();
+  });
+
+  it("Bug #2: frame ready applies server-side drafts to the preview (drafts reach the frame only via postMessage)", async () => {
+    setup({ contentMap: CONTENT_MAP_WITH_DRAFTS });
+    await renderEditor();
+    frameSends({ source: "taya-editor", kind: "ready", path: "/", slug: "test" });
+    const applyDraft = parentToFrameMessages().filter((m) => m.kind === "apply-draft");
+    expect(applyDraft.length).toBeGreaterThan(0);
+    const entries = (applyDraft[applyDraft.length - 1] as { entries: Record<string, { value: string; type: string }> }).entries;
+    // Server-side drafts ride the apply-draft channel (§16)...
+    expect(entries["home.about.body"]).toEqual({ value: "Prior Session Draft Body", type: "text" });
+    expect(entries["about.intro.heading"]).toEqual({ value: "Prior Session Draft Heading", type: "text" });
+    // ...and keys without a draft or local edit are not pushed.
+    expect(entries["home.hero.heading"]).toBeUndefined();
+  });
+
+  it("Bug #2: a local edit wins over the server draft; Save Draft UNIONS pending keys (adopted drafts are never dropped)", async () => {
+    const { mutations } = setup({ contentMap: CONTENT_MAP_WITH_DRAFTS });
+    await renderEditor();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Discard 2 draft changes/ })).toBeInTheDocument();
+    });
+    // Fresh session edit on a key with NO server draft.
+    frameSends({ source: "taya-editor", kind: "element-click", key: "home.hero.heading" });
+    fireEvent.change(await screen.findByRole("textbox"), { target: { value: "Fresh Session Edit" } });
+    // Preview pushes the union: the local edit + both server drafts.
+    const previewButtons = screen.getAllByRole("button", { name: "Preview" });
+    fireEvent.click(previewButtons[previewButtons.length - 1]);
+    const applyDraft = parentToFrameMessages().filter((m) => m.kind === "apply-draft");
+    const entries = (applyDraft[applyDraft.length - 1] as { entries: Record<string, { value: string; type: string }> }).entries;
+    expect(entries["home.hero.heading"]).toEqual({ value: "Fresh Session Edit", type: "text" });
+    expect(entries["home.about.body"]).toEqual({ value: "Prior Session Draft Body", type: "text" });
+    // Save Draft unions: adopted server keys survive alongside the new key.
+    fireEvent.click(screen.getByRole("button", { name: /Save Draft/ }));
+    expect(await screen.findByRole("button", { name: /Discard 3 draft changes/ })).toBeInTheDocument();
+  });
+
+  it("Bug #2: restore unions with adopted server drafts (restoring must not drop other pending drafts)", async () => {
+    const { mutations } = setup({ contentMap: CONTENT_MAP_WITH_DRAFTS });
+    await renderEditor();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Discard 2 draft changes/ })).toBeInTheDocument();
+    });
+    await restoreRevisionLocal(mutations, [{ key: "home.hero.heading", value: "Restored Heading" }]);
+    // 2 adopted server drafts + 1 restored key = 3 pending keys.
+    expect(await screen.findByRole("button", { name: /Discard 3 draft changes/ })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeEnabled();
+    });
+  });
+
+  it("Bug #2: no server drafts → no fake pending state (honest baseline preserved)", async () => {
+    setup();
+    await renderEditor();
+    expect(screen.getByText(/All changes saved/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /draft change/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeDisabled();
+  });
+});
