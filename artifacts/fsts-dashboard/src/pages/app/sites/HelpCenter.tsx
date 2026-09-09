@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { LifeBuoy, Mail, Phone, BookOpen, ShieldCheck, History, Users, ExternalLink, Rocket, Eye, RotateCcw, ListChecks } from "lucide-react";
+import { LifeBuoy, Mail, Phone, BookOpen, ShieldCheck, History, Users, ExternalLink, Rocket, Eye, RotateCcw, ListChecks, Image, MousePointerClick, BadgeCheck, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { clearTourDismissal, TOUR_STEPS } from "@/components/WelcomeTour";
 import { gettingStartedDismissKey, buildGettingStartedItems } from "@/components/GettingStartedCard";
@@ -58,6 +58,42 @@ const FAQS: { question: string; answer: string; icon: any }[] = [
     question: "How do I connect my CRM?",
     answer:
       "Go to Marketing & CRM in the sidebar to configure the Operon Connector™. You can enable per-entity sync (contact forms, quote requests, orders, appointment status, and more) and monitor sync activity and API health from that page.",
+  },
+  {
+    icon: MousePointerClick,
+    question: "How do I change a button or a link on my website?",
+    answer:
+      "Open the page in the visual editor and click the button you want to change. You can update the button's text (the label visitors read) and where it goes (the destination). Save Draft keeps the change safe, Preview checks it looks right, and Publish makes it live.",
+  },
+  {
+    icon: Image,
+    question: "How do I replace a photo or image on my website?",
+    answer:
+      "Open the page in the visual editor and click the image you want to replace. Choose a new photo from your Media Library or upload one from your computer. The new image appears right away in the preview, so you can confirm it looks right before you Publish.",
+  },
+  {
+    icon: KeyRound,
+    question: "I can't sign in to my dashboard. What should I do?",
+    answer:
+      "Check that you are signing in with the email address your invitation was sent to, and use the 'Forgot password' link on the sign-in page if you need to reset it. If your account was deactivated, or you were invited but see no website after signing in, contact your support team and they will check your access.",
+  },
+  {
+    icon: BadgeCheck,
+    question: "How do I connect my website to the TAYA system (site verification)?",
+    answer:
+      "Website verification is how TAYA confirms you own your website before it can publish changes to it. The Website Verification panel in your dashboard shows your site's connection status and the steps to connect it. Your support team can complete this step with you if you prefer.",
+  },
+  {
+    icon: BookOpen,
+    question: "How do I update my services, products, courses, or events?",
+    answer:
+      "Each type of content has its own section in your sidebar: Services, Products (Commerce), Courses, and Events. Open the section and use its add or edit buttons. Your plan determines which sections are turned on — if you need one that is not visible, contact your support team.",
+  },
+  {
+    icon: Users,
+    question: "How do I change my own account settings or password?",
+    answer:
+      "Your account settings are managed from your account menu (the same place you sign out), where you can update your name and password. Your permissions — what you are allowed to see and change — are set by your support team, and you can review them any time on the My Permissions page.",
   },
 ];
 

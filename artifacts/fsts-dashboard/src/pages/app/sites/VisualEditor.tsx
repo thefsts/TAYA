@@ -330,6 +330,25 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentMap]);
 
+  // ADOPTION: server-side drafts from a prior session (Save Draft, or a
+  // restored revision not yet published) become the pending set exactly
+  // once when the map arrives - the same honest pending state a fresh
+  // saveDraft/restore creates in-session. Without this, a saved draft is
+  // invisible (badge "All changes saved") and unpublishable (Publish gate
+  // needs pendingDraftKeys) after the client reopens the editor.
+  // Runs AFTER localEditsRef could have been seeded only in this session,
+  // so adoption never clobbers a live editing session's fresher values.
+  const adoptedRef = useRef(false);
+  useEffect(() => {
+    if (adoptedRef.current || !contentMap) return;
+    adoptedRef.current = true;
+    const draftKeys = Object.keys(entries)
+      .filter((k) => typeof entries[k]?.draft === "string");
+    if (draftKeys.length === 0) return;
+    setPendingDraftKeys(draftKeys);
+    setWorkflow("draft");
+  }, [contentMap, entries]);
+
   /* ── parent → frame senders (exact bootstrap protocol) ─────────────── */
   const sendToFrame = useCallback((msg: Record<string, unknown>) => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -359,7 +378,16 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
       const direct = `${bk}.href`;
       return direct in entries ? direct : null;
     };
-    localEditsRef.current.forEach((value, key) => {
+    // Union of local edits + SERVER-side drafts: a draft from a prior
+    // session (or a restored revision still pending publish) must preview
+    // too - the frame itself loads published values only (§16). Local
+    // edits win where both exist (the freshest in-session intent).
+    const pending = new Map<string, string>();
+    for (const [k, e] of Object.entries(entries)) {
+      if (e && typeof e.draft === "string") pending.set(k, e.draft);
+    }
+    localEditsRef.current.forEach((value, key) => pending.set(key, value));
+    pending.forEach((value, key) => {
       if (key.endsWith(".href")) {
         const base = baseOfCompanion(key);
         if (base) {
@@ -369,8 +397,8 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
       }
       const type = entries[key]?.type ?? "text";
       const ck = companionOfBase(key);
-      payload[key] = ck && localEditsRef.current.has(ck)
-        ? { value, type, href: localEditsRef.current.get(ck) }
+      payload[key] = ck && pending.has(ck)
+        ? { value, type, href: pending.get(ck) }
         : { value, type };
     });
     sendToFrame({ kind: "apply-draft", entries: payload });
@@ -382,8 +410,11 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
       const d = ev.data as any;
       if (!d || d.source !== "taya-editor") return;
       if (d.kind === "ready") {
-        // Apply any local edits to the freshly loaded page.
-        if (localEditsRef.current.size > 0) applyDraftPreview();
+        // Apply local edits AND any server-side drafts (union - see
+        // applyDraftPreview) to the freshly loaded page. An empty union
+        // sends an empty apply-draft, a harmless frame-side no-op
+        // (applyOverlay({})), so the unconditional call is safe.
+        applyDraftPreview();
         return;
       }
       if (d.kind === "element-click") {
@@ -444,7 +475,13 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
       });
       localEditsRef.current.clear();
       setDraftCount(0);
-      setPendingDraftKeys(keys);
+      // Union with any server-side drafts already pending (prior session /
+      // restored revision): all pending drafts stay publishable together.
+      setPendingDraftKeys((prev) => {
+        const s = new Set(prev);
+        for (const k of keys) s.add(k);
+        return [...s];
+      });
       setWorkflow("draft");
       setNotice(null);
     } catch (e: any) {
@@ -505,7 +542,13 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
       localEditsRef.current.clear();
       for (const e of restored) localEditsRef.current.set(e.key, e.value);
       setDraftCount(restored.length);
-      setPendingDraftKeys(restored.map((e) => e.key));
+      // Union with any server-side drafts already pending: restoring does
+      // not discard other unpublished drafts the client may have.
+      setPendingDraftKeys((prev) => {
+        const s = new Set(prev);
+        for (const e of restored) s.add(e.key);
+        return [...s];
+      });
       // Honest badge: a draft exists only when entries were actually
       // restored. (The real server throws on empty; this guards the
       // defensive path so the UI never fakes a pending draft.)

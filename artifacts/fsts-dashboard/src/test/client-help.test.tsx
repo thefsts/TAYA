@@ -431,6 +431,17 @@ describe("HelpCenter \u2014 Getting Started section + tour controls", () => {
     expect(screen.getByText("How quickly do my published changes appear on my website?")).toBeVisible();
   });
 
+  it("Phase 4 client manual coverage: FAQs cover editing buttons/links, images, sign-in, verification, content sections, and account settings", () => {
+    useHelpWorkspace();
+    renderWithProviders(<HelpCenter params={{ siteId: SITE_ID }} />);
+    expect(screen.getByText("How do I change a button or a link on my website?")).toBeVisible();
+    expect(screen.getByText("How do I replace a photo or image on my website?")).toBeVisible();
+    expect(screen.getByText("I can't sign in to my dashboard. What should I do?")).toBeVisible();
+    expect(screen.getByText("How do I connect my website to the TAYA system (site verification)?")).toBeVisible();
+    expect(screen.getByText("How do I update my services, products, courses, or events?")).toBeVisible();
+    expect(screen.getByText("How do I change my own account settings or password?")).toBeVisible();
+  });
+
   it("Restart Tour clears the tour flag and confirms with a toast", () => {
     window.localStorage.setItem(tourDismissedKey(USER_ID, SITE_ID), "1");
     useHelpWorkspace();
