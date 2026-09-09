@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAccessDenied } from "@/components/ModuleAccessDenied";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -135,6 +136,15 @@ export default function FormsList({ params }: { params: { siteId: string } }) {
 
   const site = useQuery(api.sites.get, { siteId });
   const forms = useQuery(api.forms.list, { siteId });
+  // G-2 (Phase 5 UX closeout): forms.list returns [] (not null) when the forms
+  // module is disabled or the caller lacks site access, so the list alone can't
+  // distinguish "module disabled" from "no forms yet". Check the effective
+  // modules (same record the server's checkModuleEnabled derives from) so a
+  // disabled module renders the client-safe ModuleAccessDenied experience
+  // instead of an unexplained empty list. This is presentation only — the
+  // server still enforces authorization on every query and mutation.
+  const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId });
+  const formsDisabled = effectiveModules?.forms === false;
   const createForm = useMutation(api.forms.create);
   const removeForm = useMutation(api.forms.remove);
   const duplicateForm = useMutation(api.forms.duplicate);
@@ -206,13 +216,17 @@ export default function FormsList({ params }: { params: { siteId: string } }) {
           </h1>
           <p className="text-slate-500 mt-1">Build and publish custom forms. Submissions appear in Contact Inbox.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Form
-        </Button>
+        {!formsDisabled && (
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Form
+          </Button>
+        )}
       </div>
 
-      {forms === undefined ? (
+      {formsDisabled || forms === null ? (
+        <ModuleAccessDenied message="Unable to load Forms — you may not have access to this site or the forms module is disabled." />
+      ) : forms === undefined || effectiveModules === undefined ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
         </div>

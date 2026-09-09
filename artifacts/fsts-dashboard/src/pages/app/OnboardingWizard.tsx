@@ -237,24 +237,35 @@ function CheckboxCard({
 // ── Radio card helper ──────────────────────────────────────────────────────
 
 function RadioCard({
-  value, label, desc, selected, onSelect,
+  value, label, desc, selected, onSelect, disabled,
 }: {
-  value: string; label: string; desc?: string; selected: boolean; onSelect: () => void;
+  value: string; label: string; desc?: string; selected: boolean; onSelect: () => void; disabled?: boolean;
 }) {
   return (
     <label
-      className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors select-none ${
-        selected ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300 bg-white"
+      data-value={value}
+      aria-disabled={disabled ? "true" : undefined}
+      className={`flex items-start gap-3 p-3 rounded-lg border transition-colors select-none ${
+        disabled
+          ? "border-slate-200 bg-slate-50 opacity-70 cursor-not-allowed"
+          : `cursor-pointer ${selected ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300 bg-white"}`
       }`}
-      onClick={onSelect}
+      onClick={disabled ? undefined : onSelect}
     >
       <div className={`mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-        selected ? "border-blue-600" : "border-slate-300"
+        disabled ? "border-slate-300" : selected ? "border-blue-600" : "border-slate-300"
       }`}>
         {selected && <div className="h-2 w-2 rounded-full bg-blue-600" />}
       </div>
       <div>
-        <div className="text-sm font-medium text-slate-800">{label}</div>
+        <div className="text-sm font-medium text-slate-800 flex items-center gap-2">
+          {label}
+          {disabled && (
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              Coming soon
+            </span>
+          )}
+        </div>
         {desc && <div className="text-xs text-slate-500 mt-0.5">{desc}</div>}
       </div>
     </label>
@@ -518,7 +529,12 @@ function Step5({ data, set }: { data: StepData; set: (u: Partial<StepData>) => v
           <RadioCard
             key={o.value} value={o.value} label={o.label} desc={o.desc}
             selected={data.contentSetup === o.value}
-            onSelect={() => o.value !== "ai" && set({ contentSetup: o.value })}
+            // G-9 (Phase 5 UX closeout): the AI option is a future feature.
+            // It must look and behave disabled — visibly muted with a
+            // "Coming soon" badge, non-interactive, aria-disabled — instead of
+            // a clickable card that silently does nothing when selected.
+            disabled={o.value === "ai"}
+            onSelect={() => set({ contentSetup: o.value })}
           />
         ))}
       </div>
