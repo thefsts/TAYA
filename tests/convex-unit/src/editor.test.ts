@@ -643,6 +643,12 @@ describe("editor surface — revisions, restore-as-draft, draft isolation", () =
     });
     expect(restored.ok).toBe(true);
     expect(restored.restoredKeys).toBe(1);
+    // BUG #1 REGRESSION: the returned pending set is the EXACT applied
+    // key→value entries — the client seeds Publish/Discard gating and the
+    // apply-draft preview channel from precisely these pairs.
+    expect(restored.restored).toEqual([
+      { key: "home.hero.heading", value: "Original A" },
+    ]);
 
     // LIVE (published) overlay must be untouched by the restore.
     const map = await t.run(async (ctx) => {
@@ -671,6 +677,86 @@ describe("editor surface — revisions, restore-as-draft, draft isolation", () =
     await expect(
       asFsts.mutation(api.editor.restoreAsDraft, { siteId: fstsSiteId, revisionId: corsairRevs![0].revisionId as any })
     ).rejects.toThrow(/revision not found for this site/i);
+  });
+
+  it("restore returns only map-allowlist keys (a stale-key revision never over-reports the pending set)", async () => {
+    // A revision from before a map refresh carries a key the map no longer
+    // knows. The restore must apply and report ONLY the real keys — never
+    // count silently-skipped keys as publishable pending state.
+    const asFsts = t.withIdentity({ subject: FSTS_CLERK, email: FSTS_EMAIL });
+    await asFsts.mutation(api.publishing.saveDraft, { siteId: fstsSiteId, entries: [
+      { key: "home.hero.heading", value: "Real Value" },
+    ]});
+    await asFsts.mutation(api.publishing.publishContentMap, { siteId: fstsSiteId });
+
+    // Insert a revision whose snapshot carries one REAL key and one STALE
+    // key ("legacy.gone.heading" is not in the FSTS map's entries).
+    const staleRevisionId = await t.run(async (ctx) => {
+      return await ctx.db.insert("contentVersions", {
+        siteId: fstsSiteId,
+        entityType: "content_map_publish",
+        entityId: "",
+        snapshot: {
+          publishedAt: Date.now() - 60_000,
+          keys: {
+            "home.hero.heading": "Restored Heading",
+            "legacy.gone.heading": "Ghost Value",
+          },
+        },
+        createdByName: "FSTS Editor",
+      });
+    });
+
+    const restored = await asFsts.mutation(api.editor.restoreAsDraft, {
+      siteId: fstsSiteId, revisionId: staleRevisionId as any,
+    });
+    expect(restored.ok).toBe(true);
+    // Count and exact entries agree, and BOTH are honest: only the key the
+    // map actually has. The ghost key is neither applied nor reported.
+    expect(restored.restoredKeys).toBe(1);
+    expect(restored.restored).toEqual([{ key: "home.hero.heading", value: "Restored Heading" }]);
+
+    const map = await t.run(async (ctx) => {
+      const doc = await ctx.db.query("siteContentMaps")
+        .withIndex("by_site", (q: any) => q.eq("siteId", fstsSiteId)).first();
+      return doc;
+    });
+    expect(map.entries["home.hero.heading"].draft).toBe("Restored Heading");
+    expect(map.entries["legacy.gone.heading"]).toBeUndefined();
+  });
+
+  it("restored drafts publish through the REAL server authority gate (publish-from-restore goes live)", async () => {
+    const asFsts = t.withIdentity({ subject: FSTS_CLERK, email: FSTS_EMAIL });
+    await asFsts.mutation(api.publishing.saveDraft, { siteId: fstsSiteId, entries: [
+      { key: "home.hero.heading", value: "Original A" },
+    ]});
+    await asFsts.mutation(api.publishing.publishContentMap, { siteId: fstsSiteId });
+    await asFsts.mutation(api.publishing.saveDraft, { siteId: fstsSiteId, entries: [
+      { key: "home.hero.heading", value: "Newer B" },
+    ]});
+    await asFsts.mutation(api.publishing.publishContentMap, { siteId: fstsSiteId });
+
+    const revs = await asFsts.query(api.editor.editorRevisions, { siteId: fstsSiteId });
+    const oldest = revs![revs!.length - 1];
+    await asFsts.mutation(api.editor.restoreAsDraft, {
+      siteId: fstsSiteId, revisionId: oldest.revisionId as any,
+    });
+
+    // Publish after restore — no keys subset, the server publishes every
+    // drafted entry through publishAuthorityFor, exactly as the UI does.
+    const published = await asFsts.mutation(api.publishing.publishContentMap, { siteId: fstsSiteId });
+    expect(published.ok).toBe(true);
+
+    const map = await t.run(async (ctx) => {
+      const doc = await ctx.db.query("siteContentMaps")
+        .withIndex("by_site", (q: any) => q.eq("siteId", fstsSiteId)).first();
+      return doc;
+    });
+    // The restored revision's value went live through the gate, and the
+    // draft overlay was cleared by the publish.
+    const live = map.entries["home.hero.heading"].published ?? map.entries["home.hero.heading"].discovered;
+    expect(live).toBe("Original A");
+    expect(map.entries["home.hero.heading"].draft).toBeUndefined();
   });
 
   it("restore requires CONTENT_UPDATE (read_only member forbidden)", async () =>  {

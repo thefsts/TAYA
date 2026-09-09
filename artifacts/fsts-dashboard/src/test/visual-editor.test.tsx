@@ -562,18 +562,129 @@ describe("VisualEditor — workflow states", () => {
     expect(screen.getByRole("button", { name: /Publish \(blocked\)/ })).toBeInTheDocument();
   });
 
+  const RESTORED_ENTRIES = [
+    { key: "home.hero.heading", value: "Live Studio Heading" },
+    { key: "home.about.body", value: "About this studio." },
+  ];
+
+  async function restoreRevision(mutations: Record<string, ReturnType<typeof vi.fn>>, restored: unknown) {
+    mutations["api.editor.restoreAsDraft"].mockResolvedValue({
+      ok: true,
+      restoredKeys: Array.isArray(restored) ? restored.length : 0,
+      restored,
+    });
+    fireEvent.click(screen.getByRole("button", { name: /History/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Restore/ }));
+  }
+
+
   it("restore from history calls restoreAsDraft and reloads the frame", async () => {
     const { mutations } = setup();
     await renderEditor();
-    fireEvent.click(screen.getByRole("button", { name: /History/ }));
-    const restoreBtn = await screen.findByRole("button", { name: /Restore/ });
-    fireEvent.click(restoreBtn);
+    await restoreRevision(mutations, RESTORED_ENTRIES);
     await waitFor(() => {
       expect(mutations["api.editor.restoreAsDraft"]).toHaveBeenCalledWith(
         expect.objectContaining({ siteId: SITE_ID, revisionId: "rev1" }),
       );
     });
     expect(await screen.findByText(/restored as a draft/)).toBeInTheDocument();
+    // The restore reloads the frame (fresh single-use token per load).
+    await waitFor(() => {
+      expect(mutations["api.editor.createFrameToken"].mock.calls.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+
+  /* ── Bug #1 regression: History → Restore must leave Publish usable ── */
+
+  it("Bug #1: restore-as-draft populates publishable pending state — Publish and Discard become available", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    // Baseline: no draft changes anywhere → Publish disabled (regression guard).
+    expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeDisabled();
+
+    await restoreRevision(mutations, RESTORED_ENTRIES);
+
+    // The pending set is seeded → Publish is ENABLED through the existing gate.
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeEnabled();
+    });
+    // Draft state is honestly surfaced (badge + Discard with exact count).
+    expect(await screen.findByText(/Draft saved/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Discard 2 draft changes/ })).toBeInTheDocument();
+  });
+
+  it("Bug #1: restored keys are the exact restored revision keys — publish routes the exact entries through the server", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    await restoreRevision(mutations, RESTORED_ENTRIES);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ }));
+    // The restored entries are saved as drafts first (exact keys+values)…
+    await waitFor(() => {
+      expect(mutations["api.publishing.saveDraft"]).toHaveBeenCalledWith(
+        expect.objectContaining({
+          siteId: SITE_ID,
+          entries: RESTORED_ENTRIES,
+        }),
+      );
+    });
+    // …then publishContentMap is called through the REAL server authority
+    // gate — no keys subset, the server publishes every drafted entry.
+    await waitFor(() => {
+      expect(mutations["api.publishing.publishContentMap"]).toHaveBeenCalledWith(
+        expect.objectContaining({ siteId: SITE_ID }),
+      );
+    });
+    expect(await screen.findByText(/Published to the live website/)).toBeInTheDocument();
+  });
+
+  it("Bug #1: Preview shows the restored draft BEFORE publish — apply-draft carries the restored values, nothing published", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    await restoreRevision(mutations, RESTORED_ENTRIES);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeEnabled();
+    });
+
+    // The frame reloads after restore; its "ready" handshake re-applies the
+    // seeded local edits over the apply-draft channel (§16: drafts never
+    // enter an HTTP response — only this postMessage channel).
+    frameSends({ source: "taya-editor", kind: "ready", path: "/", slug: "test" });
+    const applyDraft = parentToFrameMessages().filter((m) => m.kind === "apply-draft");
+    expect(applyDraft.length).toBeGreaterThan(0);
+    const entries = (applyDraft[applyDraft.length - 1] as { entries: Record<string, { value: string; type: string }> }).entries;
+    expect(entries["home.hero.heading"]).toEqual({ value: "Live Studio Heading", type: "text" });
+    expect(entries["home.about.body"]).toEqual({ value: "About this studio.", type: "text" });
+
+    // Preview button also pushes the restored draft. Two "Preview" buttons
+    // exist (mobile tab + action bar); only the ACTION-BAR one applies the
+    // draft overlay — the mobile tab just switches the visible pane.
+    const before = parentToFrameMessages().filter((m) => m.kind === "apply-draft").length;
+    const previewButtons = screen.getAllByRole("button", { name: "Preview" });
+    fireEvent.click(previewButtons[previewButtons.length - 1]);
+    expect(parentToFrameMessages().filter((m) => m.kind === "apply-draft").length).toBe(before + 1);
+
+    // Nothing has been published yet — Preview is purely the draft channel.
+    expect(mutations["api.publishing.publishContentMap"]).not.toHaveBeenCalled();
+  });
+
+  it("Bug #1: Publish remains DISABLED when there truly are no draft changes (empty restore, honest notice)", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    // Restore returns nothing restorable → no fake pending state, and the
+    // UI says so honestly instead of claiming a draft was created.
+    await restoreRevision(mutations, []);
+    await waitFor(() => {
+      expect(screen.getByText(/Nothing to restore from that version/)).toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: /^Publish$|^Publish \(blocked\)$| Publish$/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Save Draft/ })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /Discard/ })).not.toBeInTheDocument();
+    expect(mutations["api.publishing.publishContentMap"]).not.toHaveBeenCalled();
   });
 
   it("history shows client-safe summaries (no raw snapshot JSON)", async () => {

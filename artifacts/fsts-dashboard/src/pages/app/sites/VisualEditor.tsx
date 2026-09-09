@@ -485,12 +485,36 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
   const onRestore = useCallback(async (revisionId: string) => {
     try {
       setBusy(true);
-      await restore({ siteId: siteId as Id<"sites">, revisionId: revisionId as Id<"contentVersions"> });
+      const r = await restore({ siteId: siteId as Id<"sites">, revisionId: revisionId as Id<"contentVersions"> });
+      // The server returns the EXACT keys+values it applied to the draft
+      // overlay. Seed the pending state with precisely those keys — the
+      // same contract as a freshly saved draft — so the editor honestly
+      // reflects the restored revision:
+      //   • pendingDraftKeys → Publish / Discard enable through the
+      //     EXISTING gates (Publish still routes through the real
+      //     publishContentMap server-authority gate — nothing is bypassed)
+      //   • localEditsRef    → Preview rides the existing apply-draft
+      //     channel, and the frame "ready" handler re-applies it after the
+      //     reload below (§16: the frame never fetches drafts itself)
+      // No restored entries → no fake publishable state; Publish stays
+      // disabled, exactly as when there truly are no draft changes.
+      const restored = ((r as { restored?: { key: string; value: string }[] } | null | undefined)?.restored ?? []) as {
+        key: string;
+        value: string;
+      }[];
       localEditsRef.current.clear();
-      setDraftCount(0);
-      setPendingDraftKeys([]);
-      setWorkflow("draft");
-      setNotice("Previous version restored as a draft. Review it, then publish when ready.");
+      for (const e of restored) localEditsRef.current.set(e.key, e.value);
+      setDraftCount(restored.length);
+      setPendingDraftKeys(restored.map((e) => e.key));
+      // Honest badge: a draft exists only when entries were actually
+      // restored. (The real server throws on empty; this guards the
+      // defensive path so the UI never fakes a pending draft.)
+      setWorkflow(restored.length > 0 ? "draft" : "saved");
+      setNotice(
+        restored.length > 0
+          ? "Previous version restored as a draft. Review it, then publish when ready."
+          : "Nothing to restore from that version \u2014 no draft changes were created.",
+      );
       if (pagePathRef.current) void loadFrame(pagePathRef.current);
     } catch (e: any) {
       setNotice(e?.message ?? "Couldn't restore that version.");
