@@ -1086,17 +1086,51 @@ http.route({
 // Universally available to any external site that embeds the standard
 // bridge snippet. No customer-specific logic of any kind.
 
-/* OPTIONS preflights (browser POSTs carry JSON bodies). */
-const bridgePreflight = httpAction(async () =>
-  new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
+/* §9 fix (Phase 3): navigator.sendBeacon posts cross-origin with credentials
+   mode "include" per spec, so a wildcard Access-Control-Allow-Origin is
+   REJECTED by the browser ("must not be the wildcard '*' when the request's
+   credentials mode is 'include'") and beacon telemetry is silently dropped.
+   Bridge routes therefore echo the caller's Origin + Allow-Credentials when an
+   Origin header is present, and keep the wildcard for origin-less callers
+   (curl, server-to-server). Vary: Origin prevents cache cross-contamination.
+   Scope: bridge routes ONLY — the shared CORS const above is untouched. */
+function bridgeCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("Origin");
+  if (origin) {
+    return {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Credentials": "true",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",
-    },
-  }),
+      "Vary": "Origin",
+    };
+  }
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+function bridgeOk(request: Request, data: unknown) {
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { ...bridgeCorsHeaders(request), "Content-Type": "application/json" },
+  });
+}
+
+function bridgeErr(request: Request, status: number, msg: string) {
+  return new Response(JSON.stringify({ error: msg }), {
+    status,
+    headers: { ...bridgeCorsHeaders(request), "Content-Type": "application/json" },
+  });
+}
+
+/* OPTIONS preflights (browser POSTs carry JSON bodies). */
+const bridgePreflight = httpAction(async (_ctx, request) =>
+  new Response(null, { status: 204, headers: bridgeCorsHeaders(request) }),
 );
 for (const path of [
   "/api/bridge/content",
@@ -1113,10 +1147,10 @@ http.route({
   method: "GET",
   handler: httpAction(async (ctx, request) => {
     const slug = new URL(request.url).searchParams.get("slug") ?? "";
-    if (!slug) return notFound("slug required");
+    if (!slug) return bridgeErr(request, 404, "slug required");
     const data = await ctx.runQuery(internal.bridge._content, { slug });
-    if (!data) return notFound("site not found");
-    return ok(data);
+    if (!data) return bridgeErr(request, 404, "site not found");
+    return bridgeOk(request, data);
   }),
 });
 
@@ -1128,10 +1162,10 @@ http.route({
     const params = new URL(request.url).searchParams;
     const slug = params.get("slug") ?? "";
     const token = params.get("token") ?? "";
-    if (!slug || !token) return notFound("slug and token params required");
+    if (!slug || !token) return bridgeErr(request, 404, "slug and token params required");
     const data = await ctx.runQuery(internal.bridge._draft, { slug, token });
-    if (!data) return notFound("site not found or token invalid");
-    return ok(data);
+    if (!data) return bridgeErr(request, 404, "site not found or token invalid");
+    return bridgeOk(request, data);
   }),
 });
 
@@ -1145,19 +1179,13 @@ http.route({
       const slug = body?.slug ?? "";
       const token = body?.token ?? "";
       if (!slug || !token) {
-        return new Response(
-          JSON.stringify({ error: "slug and token required" }),
-          { status: 400, headers: CORS },
-        );
+        return bridgeErr(request, 400, "slug and token required");
       }
       const data = await ctx.runQuery(internal.bridge._verifyPing, { slug, token });
-      if (!data) return notFound("site not found");
-      return ok(data);
+      if (!data) return bridgeErr(request, 404, "site not found");
+      return bridgeOk(request, data);
     } catch {
-      return new Response(
-        JSON.stringify({ error: "invalid JSON body" }),
-        { status: 400, headers: CORS },
-      );
+      return bridgeErr(request, 400, "invalid JSON body");
     }
   }),
 });
@@ -1170,15 +1198,15 @@ http.route({
     const params = new URL(request.url).searchParams;
     const slug = params.get("slug") ?? "";
     const key = params.get("key") ?? "";
-    if (!slug || !key) return notFound("slug and key params required");
+    if (!slug || !key) return bridgeErr(request, 404, "slug and key params required");
     const data = await ctx.runMutation(internal.bridge._recordClick, {
       slug,
       key,
       ...(params.get("type") ? { type: params.get("type")! } : {}),
       ...(params.get("path") ? { path: params.get("path")! } : {}),
     });
-    if (!data) return notFound("site not found");
-    return ok(data);
+    if (!data) return bridgeErr(request, 404, "site not found");
+    return bridgeOk(request, data);
   }),
 });
 http.route({
@@ -1190,10 +1218,7 @@ http.route({
       const slug = body?.slug ?? "";
       const key = body?.key ?? "";
       if (!slug || !key) {
-        return new Response(
-          JSON.stringify({ error: "slug and key required" }),
-          { status: 400, headers: CORS },
-        );
+        return bridgeErr(request, 400, "slug and key required");
       }
       const data = await ctx.runMutation(internal.bridge._recordClick, {
         slug,
@@ -1201,13 +1226,10 @@ http.route({
         ...(body?.type ? { type: String(body.type) } : {}),
         ...(body?.path ? { path: String(body.path) } : {}),
       });
-      if (!data) return notFound("site not found");
-      return ok(data);
+      if (!data) return bridgeErr(request, 404, "site not found");
+      return bridgeOk(request, data);
     } catch {
-      return new Response(
-        JSON.stringify({ error: "invalid JSON body" }),
-        { status: 400, headers: CORS },
-      );
+      return bridgeErr(request, 400, "invalid JSON body");
     }
   }),
 });

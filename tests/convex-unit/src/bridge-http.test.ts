@@ -381,6 +381,163 @@ describe("GET /api/bridge/click (image-pixel fallback)", () => {
   });
 });
 
+// ── §9 Phase 3 fix: credentialed cross-origin requests (sendBeacon) ────────
+//
+// navigator.sendBeacon posts cross-origin with credentials mode "include" per
+// spec, so the browser REJECTS a wildcard Access-Control-Allow-Origin on the
+// preflight ("must not be the wildcard '*' when the request's credentials
+// mode is 'include'") and beacon telemetry is silently dropped. Bridge routes
+// must therefore echo the caller's Origin + Allow-Credentials: true whenever
+// an Origin header is present, while keeping the wildcard for origin-less
+// callers (curl, server-to-server).
+
+describe("bridge CORS — sendBeacon credentials-mode include fix (§9)", () => {
+  const CLIENT_ORIGIN = "https://www.corsairtacticalsolution.com";
+
+  function originReq(url: string, init?: RequestInit) {
+    return new Request(url, {
+      ...init,
+      headers: { Origin: CLIENT_ORIGIN, ...((init?.headers as Record<string, string>) ?? {}) },
+    });
+  }
+
+  it("every OPTIONS preflight echoes Origin + Allow-Credentials + Vary for beacon callers", async () => {
+    for (const path of [
+      "/api/bridge/content",
+      "/api/bridge/draft",
+      "/api/bridge/verify",
+      "/api/bridge/click",
+    ]) {
+      const res = await capturedRoutes.get(`OPTIONS:${path}`)!(
+        {},
+        originReq(`https://convex.test${path}`, { method: "OPTIONS" })
+      );
+      expect(res.status, `${path} preflight status`).toBe(204);
+      expect(res.headers.get(ACAO), `${path} ACAO echoes origin, never wildcard`).toBe(CLIENT_ORIGIN);
+      expect(res.headers.get("Access-Control-Allow-Credentials"), `${path} credentials`).toBe("true");
+      expect(res.headers.get("Vary"), `${path} vary`).toBe("Origin");
+      expect(res.headers.get("Access-Control-Allow-Methods"), `${path} methods`).toBe("GET, POST, OPTIONS");
+      expect(res.headers.get("Access-Control-Allow-Headers"), `${path} headers`).toBe("Content-Type");
+    }
+  });
+
+  it("origin-less OPTIONS preflight keeps the wildcard (curl / server-to-server)", async () => {
+    const res = await capturedRoutes.get("OPTIONS:/api/bridge/click")!(
+      {},
+      new Request("https://convex.test/api/bridge/click", { method: "OPTIONS" })
+    );
+    expect(res.status).toBe(204);
+    expect(res.headers.get(ACAO)).toBe("*");
+    expect(res.headers.get("Access-Control-Allow-Credentials")).toBeNull();
+    expect(res.headers.get("Vary")).toBeNull();
+  });
+
+  it("POST /api/bridge/click (beacon shape: Origin + JSON body) echoes Origin on 200", async () => {
+    const ctx = ctxWith(null, { ok: true, clicks: 7 });
+    const res = await capturedRoutes.get("POST:/api/bridge/click")!(
+      ctx,
+      originReq("https://convex.test/api/bridge/click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: "corsair-tactical-solutions",
+          key: "home.headings[4].text",
+          type: "text",
+          path: "/",
+        }),
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get(ACAO)).toBe(CLIENT_ORIGIN);
+    expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(res.headers.get("Vary")).toBe("Origin");
+    expect(await res.json()).toEqual({ ok: true, clicks: 7 });
+    expect(ctx.runMutation).toHaveBeenCalledTimes(1);
+    expect(ctx.runMutation.mock.calls[0][1]).toEqual({
+      slug: "corsair-tactical-solutions",
+      key: "home.headings[4].text",
+      type: "text",
+      path: "/",
+    });
+  });
+
+  it("400 error responses carry the echo too (invalid JSON body with Origin)", async () => {
+    const res = await capturedRoutes.get("POST:/api/bridge/click")!(
+      ctxWith(null, null),
+      originReq("https://convex.test/api/bridge/click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{oops",
+      })
+    );
+    expect(res.status).toBe(400);
+    expect(res.headers.get(ACAO)).toBe(CLIENT_ORIGIN);
+    expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(res.headers.get("Vary")).toBe("Origin");
+    expect(await res.json()).toEqual({ error: "invalid JSON body" });
+  });
+
+  it("404 error responses carry the echo too (unknown slug on content)", async () => {
+    const res = await capturedRoutes.get("GET:/api/bridge/content")!(
+      ctxWith(null),
+      originReq("https://convex.test/api/bridge/content?slug=no-such-site")
+    );
+    expect(res.status).toBe(404);
+    expect(res.headers.get(ACAO)).toBe(CLIENT_ORIGIN);
+    expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(await res.json()).toEqual({ error: "site not found" });
+  });
+
+  it("GET /api/bridge/content echoes Origin for browser callers, wildcards for curl", async () => {
+    const manifest = { version: 1, values: { "home.hero.heading": "Published Hero" } };
+    const browserRes = await capturedRoutes.get("GET:/api/bridge/content")!(
+      ctxWith(manifest),
+      originReq("https://convex.test/api/bridge/content?slug=proof-site")
+    );
+    expect(browserRes.status).toBe(200);
+    expect(browserRes.headers.get(ACAO)).toBe(CLIENT_ORIGIN);
+    expect(browserRes.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(browserRes.headers.get("Content-Type")).toBe("application/json");
+    expect(await browserRes.json()).toEqual(manifest);
+
+    const curlRes = await capturedRoutes.get("GET:/api/bridge/content")!(
+      ctxWith(manifest),
+      new Request("https://convex.test/api/bridge/content?slug=proof-site")
+    );
+    expect(curlRes.status).toBe(200);
+    expect(curlRes.headers.get(ACAO)).toBe("*");
+    expect(curlRes.headers.get("Access-Control-Allow-Credentials")).toBeNull();
+  });
+
+  it("GET /api/bridge/draft echoes Origin (owner preview browser fetch)", async () => {
+    const preview = { version: 1, values: {}, drafts: { "home.hero.heading": "Drafted Hero" } };
+    const res = await capturedRoutes.get("GET:/api/bridge/draft")!(
+      ctxWith(preview),
+      originReq("https://convex.test/api/bridge/draft?slug=proof-site&token=correct-token")
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get(ACAO)).toBe(CLIENT_ORIGIN);
+    expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(await res.json()).toEqual(preview);
+  });
+
+  it("POST /api/bridge/verify echoes Origin (token ping from the browser)", async () => {
+    const verdict = { slug: "proof-site", matches: true, method: "bridge_token", state: "verified" };
+    const res = await capturedRoutes.get("POST:/api/bridge/verify")!(
+      ctxWith(verdict),
+      originReq("https://convex.test/api/bridge/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: "proof-site", token: "correct-token" }),
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get(ACAO)).toBe(CLIENT_ORIGIN);
+    expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(await res.json()).toEqual(verdict);
+  });
+});
+
 // ─── Part 2: the internal queries against a real database ──────────────────
 
 let t: ReturnType<typeof convexTest>;
