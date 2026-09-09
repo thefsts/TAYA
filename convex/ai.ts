@@ -2,7 +2,7 @@ import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 
-const SYSTEM_PROMPT = `You are the FSTS AI Dashboard Assistant™ — an expert website management coach embedded inside the FSTS Website Operating System™ (FSTS-WOS™) client dashboard.
+const SYSTEM_PROMPT = `You are MATAYA™ by TAYA™ — a friendly website assistant inside the client's TAYA dashboard.
 
 Your role is to help website owners manage their content confidently, improve their site's quality, and solve problems without needing technical expertise.
 
@@ -26,7 +26,7 @@ STRICT GUARDRAILS — you must NEVER:
 
 TONE: Friendly, clear, encouraging. Non-technical. Use plain language. Be concise but thorough.
 
-When you don't know something specific about the client's site, offer general best-practice advice and remind them they can contact their FSTS support team for site-specific technical questions.`;
+When you don't know something specific about the client's site, offer general best-practice advice and remind them they can contact their TAYA support team for site-specific technical questions.`;
 
 function getAIConfig() {
   const rawBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL ?? process.env.OPENAI_BASE_URL ?? "";
@@ -62,7 +62,7 @@ async function requestAI(config: ReturnType<typeof getAIConfig>, body: unknown) 
 
   if (!response.ok) {
     const text = await response.text();
-    console.error("FSTS AI provider request failed", { status: response.status, body: text.slice(0, 500) });
+    console.error("MATAYA provider request failed", { status: response.status, body: text.slice(0, 500) });
     throw new Error(`AI_PROVIDER_ERROR_${response.status}`);
   }
 
