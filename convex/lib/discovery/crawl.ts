@@ -28,6 +28,7 @@ import {
   parseSitemap,
   pageKeySegment,
   sectionKeyRoot,
+  sanitizeUnicode,
   type DiscoveredRoute,
   type PageModel,
 } from "./html";
@@ -123,6 +124,34 @@ export async function fetchPage(url: string, allowXml = false): Promise<FetchOut
       error: error?.message?.slice(0, 200) ?? "fetch failed",
     };
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Snapshot wire-safety (\u00a716 review artifact integrity)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Deep, pair-aware replacement of UNPAIRED UTF-16 surrogates with U+FFFD
+ * across the whole snapshot, applied before the snapshot crosses the
+ * action \u2192 mutation wire (ctx.runMutation). Convex's wire format rejects
+ * lone surrogates inside function arguments ("Received invalid json:
+ * unexpected end of hex escape") \u2014 one half-emoji anywhere in the payload
+ * kills the entire crawl, leaving ZERO persisted rows and no reason (\u00a714
+ * violation). Extraction can produce halves two ways: fixed-width .slice()
+ * cuts that split an emoji pair, and raw &#55296;–&#57343; entities. This walk
+ * covers every path at once, regardless of what the remote vantage served.
+ */
+function sanitizeSnapshotUnicode<T>(value: T): T {
+  if (typeof value === "string") return sanitizeUnicode(value) as unknown as T;
+  if (Array.isArray(value)) return value.map((item) => sanitizeSnapshotUnicode(item)) as unknown as T;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      out[sanitizeUnicode(k)] = sanitizeSnapshotUnicode(v);
+    }
+    return out as unknown as T;
+  }
+  return value;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -372,7 +401,7 @@ export async function crawlSite(domain: string): Promise<CrawlResult> {
   const crawlCompletedAt = Date.now();
 
   return {
-    snapshot: {
+    snapshot: sanitizeSnapshotUnicode({
       domain,
       origin,
       crawlStartedAt,
@@ -383,7 +412,7 @@ export async function crawlSite(domain: string): Promise<CrawlResult> {
       pages,
       routes: crawlable,
       siteMeta,
-    },
+    }),
     failureReason: null,
   };
 }

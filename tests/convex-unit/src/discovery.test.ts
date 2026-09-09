@@ -37,6 +37,8 @@ import {
   extractNavLinks,
   parseSitemap,
   extractPageModel,
+  decodeEntities,
+  sanitizeUnicode,
 } from "../../../convex/lib/discovery/html";
 import { crawlSite } from "../../../convex/lib/discovery/crawl";
 
@@ -265,6 +267,89 @@ const asSuperadmin = () => t.withIdentity({ subject: SUPERADMIN_CLERK, email: SU
 // A client with no prior TAYA presence — mirrors the §1 self-service path.
 const asFresh = () =>
   t.withIdentity({ subject: FRESH_CLERK, email: FRESH_EMAIL, name: "Riley Chen" });
+
+
+// ── Wire-safety: unpaired surrogates never reach the mutation wire ────────
+
+describe("snapshot wire-safety — unpaired surrogates are repaired (production regression)", () => {
+  it("sanitizeUnicode keeps valid emoji pairs intact", () => {
+    expect(sanitizeUnicode("Family care \ud83e\udd7a in Springfield")).toBe(
+      "Family care \ud83e\udd7a in Springfield",
+    );
+    // A BMP astrological sign (U+264D) — untouched.
+    expect(sanitizeUnicode("Virgo \u264d daily")).toBe("Virgo \u264d daily");
+  });
+
+  it("sanitizeUnicode replaces a lone high surrogate with U+FFFD", () => {
+    const broken = "half emoji \ud83e no pair";
+    const fixed = sanitizeUnicode(broken);
+    expect(fixed).toBe("half emoji \ufffd no pair");
+    expect(() => JSON.stringify(fixed)).not.toThrow();
+  });
+
+  it("sanitizeUnicode replaces a lone low surrogate with U+FFFD", () => {
+    expect(sanitizeUnicode("low half \ude0a alone")).toBe("low half \ufffd alone");
+  });
+
+  it("decodeEntities no longer emits lone surrogates from numeric entities", () => {
+    // &#55296; is a raw high-surrogate half — previously passed through
+    // String.fromCodePoint silently, now replaced with U+FFFD.
+    expect(decodeEntities("broken &#55296; entity")).toBe("broken \ufffd entity");
+    // A well-formed astral entity (emoji) still decodes to a full pair.
+    expect(decodeEntities("emoji &#128512; ok")).toBe("emoji \ud83d\ude00 ok");
+  });
+
+  it("crawlSite produces a wire-safe snapshot from hostile HTML (end-to-end)", async () => {
+    // A page whose extracted text carries lone surrogate halves — exactly
+    // what Convex's vantage saw on corsairtacticalsolution.com. The crawl
+    // must still complete and the snapshot must contain no unpaired
+    // surrogates (it would otherwise die at the runMutation wire).
+    const hostileTitle = "Tactical training \ud83d\udde1 defense";
+    const HOME = `<!doctype html><html><head><title>${hostileTitle}</title></head><body>
+<nav><a href="/">Home</a> <a href="/courses">Courses</a></nav>
+<h1>${hostileTitle}</h1>
+<p>Low-half orphan: \ude0a and sliced-pair victim \ud83d\ude68 — half \ud83d gone.</p>
+</body></html>`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: any) => {
+        const url = String(input);
+        if (url === "https://wirehostile.example") {
+          return new Response(HOME, { status: 200, headers: { "content-type": "text/html" } });
+        }
+        return new Response(null, { status: 404 });
+      }),
+    );
+    const result = await crawlSite("wirehostile.example");
+    expect(result.snapshot).toBeTruthy();
+    expect(result.failureReason).toBeNull();
+    if (!result.snapshot) return;
+    // Walk every string in the snapshot: none may contain an unpaired half.
+    const walk = (v: any): void => {
+      if (typeof v === "string") {
+        for (let i = 0; i < v.length; i++) {
+          const c = v.charCodeAt(i);
+          if (c >= 0xd800 && c <= 0xdbff) {
+            const n = i + 1 < v.length ? v.charCodeAt(i + 1) : NaN;
+            expect(n >= 0xdc00 && n <= 0xdfff).toBe(true); // must be paired
+            i++;
+          } else if (c >= 0xdc00 && c <= 0xdfff) {
+            expect(false).toBe(true); // lone low half — forbidden
+          }
+        }
+      } else if (Array.isArray(v)) {
+        v.forEach(walk);
+      } else if (v && typeof v === "object") {
+        Object.entries(v).forEach(([k, val]) => {
+          walk(k);
+          walk(val);
+        });
+      }
+    };
+    walk(result.snapshot);
+    expect(result.snapshot.keyCount).toBeGreaterThan(0);
+  });
+});
 
 // ─── §4/§5 pure helpers: URL + route + key grammar ──────────────────────────
 

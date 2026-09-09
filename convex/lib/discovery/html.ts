@@ -56,11 +56,60 @@ export function decodeEntities(text: string): string {
     .replace(/&#39;|&apos;/g, "'")
     .replace(/&#(\d+);/g, (_, code) => {
       try {
-        return String.fromCodePoint(parseInt(code, 10));
+        const cp = parseInt(code, 10);
+        // Surrogate halves (0xD800–0xDFFF) have no meaning alone: if a page
+        // carries them as raw entities (\&#55296;), String.fromCodePoint would
+        // silently emit a LONE half — a string Convex's strict JSON parser
+        // rejects ("unexpected end of hex escape"). Replace with U+FFFD.
+        if (cp >= 0xd800 && cp <= 0xdfff) return "\ufffd";
+        return String.fromCodePoint(cp);
       } catch {
         return " ";
       }
     });
+}
+
+/**
+ * Replace UNPAIRED UTF-16 surrogates with U+FFFD, pair-aware.
+ *
+ * Extraction slices text at fixed widths (labels ≤80, descriptions ≤300,
+ * headings ≤300…), which can cut a surrogate PAIR in half, leaving a dangling
+ * high or low half in an extracted value. Convex's wire format rejects lone
+ * surrogates in function arguments ("Received invalid json: unexpected end of
+ * hex escape"), killing the whole discovery run. This walk keeps every VALID
+ * pair (incl. emoji and zodiac grapheme pairs) and replaces only unpaired
+ * halves — the same repair Node's WHATWG streams apply on invalid bytes.
+ */
+export function sanitizeUnicode(text: string): string {
+  // Fast path: BMP-only and properly paired strings pass through untouched.
+  let hasSurrogate = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdfff) {
+      hasSurrogate = true;
+      break;
+    }
+  }
+  if (!hasSurrogate) return text;
+
+  const out: string[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = i + 1 < text.length ? text.charCodeAt(i + 1) : NaN;
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        out.push(text.slice(i, i + 2)); // valid pair — keep intact
+        i++;
+      } else {
+        out.push("\ufffd"); // unpaired high half
+      }
+    } else if (code >= 0xdc00 && code <= 0xdfff) {
+      out.push("\ufffd"); // unpaired low half
+    } else {
+      out.push(text[i]);
+    }
+  }
+  return out.join("");
 }
 
 /** True when a string is present after entity decoding + trim. */
