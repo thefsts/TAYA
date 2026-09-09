@@ -258,9 +258,13 @@ export const restoreAsDraft = mutation({
 
     // Restored values \u2192 DRAFT overlay (allowlist: unknown keys are ignored
     // by _applyOverlay \u2014 a revision older than a map refresh stays safe).
+    // Allowlist-honesty: filter the revision's keys against the map's own
+    // keys HERE (not just inside _applyOverlay, which silently skips
+    // unknown keys) so the returned pending set can never over-report.
+    const mapEntries: Record<string, unknown> = (map as any).entries ?? {};
     const keys: Record<string, string> = (revision.snapshot as any)?.keys ?? {};
     const entries = Object.entries(keys)
-      .filter(([, value]) => typeof value === "string")
+      .filter(([key, value]) => typeof value === "string" && key in mapEntries)
       .map(([key, value]) => ({ key, value }));
     if (entries.length === 0) {
       throw new ConvexError("Revision contains no restorable content");
@@ -283,6 +287,11 @@ export const restoreAsDraft = mutation({
       } (publish to go live)`,
     });
 
-    return { ok: true, restoredKeys: entries.length };
+    // The exact applied entries. The client seeds its publishable pending
+    // state (Publish/Discard gating + the apply-draft preview channel)
+    // from precisely these keys. This is keys+values only — no ids, no
+    // snapshot JSON — and it publishes nothing: publishContentMap still
+    // owns every live-site write through its server-side authority gate.
+    return { ok: true, restoredKeys: entries.length, restored: entries };
   },
 });
