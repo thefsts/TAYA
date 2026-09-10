@@ -330,10 +330,20 @@ describe("§4 route → module table — generic, data-driven", () => {
 describe("§7 conformable universe — a crawl can never expose admin/system modules", () => {
   // The admin/system half of the dashboard module universe: a crawl of a
   // CLIENT'S WEBSITE must never derive any of these.
+  // NOTE (Phase 6 adaptive dashboard): the RBAC DASHBOARD_MODULES universe
+  // gained 8 additive keys (services, products, reviews, flyers, portal,
+  // automation, site_users, payment_providers). services/products are
+  // CONFORMABLE (they exist on real client sites). The remaining six are
+  // dashboard-only surfaces (review management, flyer manager, portal
+  // admin, automation engine, site-user admin, payment connector config) —
+  // they are admin/system by definition and joined this half of the
+  // partition. No behavior change: CONFORMABLE_MODULES is untouched.
   const ADMIN_SYSTEM = [
     "dashboard", "forms", "inbox", "navigation", "announcement", "cta",
     "popup", "policy", "payments", "commerce", "email", "crm", "health",
     "history", "activity", "backups", "help",
+    // Phase 6 additive keys — dashboard-only surfaces:
+    "reviews", "flyers", "portal", "automation", "site_users", "payment_providers",
   ];
 
   it("CONFORMABLE excludes every admin/system dashboard module", () => {
@@ -343,7 +353,7 @@ describe("§7 conformable universe — a crawl can never expose admin/system mod
   });
 
   it("every dashboard module partitions cleanly: client-facing OR admin/system", () => {
-    // The complete invariant: each of the 30 DASHBOARD_MODULES keys is
+    // The complete invariant: each of the 38 DASHBOARD_MODULES keys is
     // either a conform-eligible client-facing module or an admin/system
     // module — nothing ambiguous, nothing missing.
     for (const dm of DASHBOARD_MODULES) {
@@ -352,13 +362,14 @@ describe("§7 conformable universe — a crawl can never expose admin/system mod
       expect(conformable || admin).toBe(true);
       expect(conformable && admin).toBe(false);
     }
-    // The two module universes: CONFORMABLE also contains services and
-    // products — module keys in the enabledModules universe that the RBAC
-    // dashboard list does not carry (like the default-seeded reviews key).
+    // The two module universes: since Phase 6 folded services and products
+    // into the RBAC DASHBOARD_MODULES list (they were previously outside
+    // it, living only in the enabledModules universe), every CONFORMABLE
+    // key is now inside the RBAC list — the outside set is empty.
     const outside = CONFORMABLE_MODULES.filter(
       (k) => !(DASHBOARD_MODULES as readonly string[]).includes(k),
     );
-    expect(outside.sort()).toEqual(["products", "services"]);
+    expect(outside.sort()).toEqual([]);
   });
 
   it("no customer names anywhere in the route table or conformable set", () => {

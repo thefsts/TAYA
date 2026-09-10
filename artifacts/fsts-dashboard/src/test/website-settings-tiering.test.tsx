@@ -96,6 +96,7 @@ vi.mock("@/components/SmartImageUploader", () => ({
 // ── Lazy page import (after mocks) ───────────────────────────────────────────
 
 import WebsiteSettings from "@/pages/app/sites/WebsiteSettings";
+import { buildSidebarGroups } from "@/lib/sidebarNav";
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -362,7 +363,7 @@ describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
   });
 });
 
-// ── Static wiring audits (App.tsx + sidebarNav.ts) ───────────────────────────
+// ── Static wiring audits (App.tsx + capability registry / derived sidebar) ───
 
 describe("WebsiteSettings route & sidebar wiring (static audit)", () => {
   const appSrc = readFileSync("src/App.tsx", "utf8");
@@ -380,13 +381,31 @@ describe("WebsiteSettings route & sidebar wiring (static audit)", () => {
     );
   });
 
-  it("sidebarNav.ts never blanket-locks website-settings (working client link)", () => {
-    const sidebarSrc = readFileSync("src/lib/sidebarNav.ts", "utf8");
-    const settingsItem = sidebarSrc.match(
-      /\{[^{}]*id:\s*"website-settings"[^{}]*\}/,
+  it("website-settings is never blanket-locked: registry entry + derived sidebar keep it a working client link", () => {
+    // Phase 6: sidebarNav.ts is DERIVED from capabilityRegistry.ts (no
+    // hardcoded item literals remain), so the audit asserts on the registry
+    // entry — the single source of truth the sidebar derives from.
+    const registrySrc = readFileSync("src/lib/capabilityRegistry.ts", "utf8");
+    const settingsEntry = registrySrc.match(
+      /\{[^{}]*key:\s*"website-settings"[^{}]*\}/,
     );
-    expect(settingsItem).not.toBeNull();
-    expect(settingsItem![0]).not.toContain("isDesignLocked");
-    expect(settingsItem![0]).toContain('href: HREF(siteId, "settings")');
+    expect(settingsEntry).not.toBeNull();
+    expect(settingsEntry![0]).not.toContain("designLocked");
+    expect(settingsEntry![0]).toContain('route: "settings"');
+
+    // Derived model: the built sidebar item is a plain working client link
+    // (never isDesignLocked, core tier, no module gate, no role gate).
+    const groups = buildSidebarGroups({
+      siteId: "site_audit",
+      enabledModules: null,
+      isSuperAdmin: false,
+    });
+    const settingsItem = groups
+      .flatMap((g) => g.items)
+      .find((i) => i.id === "website-settings");
+    expect(settingsItem).toBeDefined();
+    expect(settingsItem!.isDesignLocked).toBeUndefined();
+    expect(settingsItem!.href).toBe("/app/sites/site_audit/settings");
+    expect(settingsItem!.moduleKey).toBeUndefined();
   });
 });
