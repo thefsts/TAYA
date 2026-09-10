@@ -156,12 +156,6 @@ export const TERMINOLOGY_PROFILES: Record<string, TerminologyProfile> = {
     labels: {
       courses: "Culinary Classes",
       events: "Events & Specials",
-      // products as Menu Items: SAFE ALIAS for basic items — Square catalog
-      // fields (name/price/description/image/category) genuinely fit a menu
-      // board. Modifiers, dietary sections, and sold-out rotation are NOT
-      // supported and are recorded as the FUTURE "menu-items" capability.
-      // ⚠ Flagged for PM veto (critical product rule exception judgment).
-      products: "Menu Items",
       team: "Staff",
       careers: "Careers",
       reviews: "Reviews",
@@ -169,7 +163,17 @@ export const TERMINOLOGY_PROFILES: Record<string, TerminologyProfile> = {
       // (slots, party size, holds) is a FUTURE capability.
       forms: "Reservation Requests",
     },
-    hiddenByDefault: ["services", "downloads", "articles", "policy", "testimonials"],
+    // PM VETO (post-acceptance correction): products must NOT be relabeled
+    // "Menu Items". The Square catalog fields (name/price/description/
+    // image/category) do not constitute a real restaurant menu contract —
+    // no menu sections/categories, modifiers/options, availability/sold-out
+    // state, dietary/allergen info, or ordering-relationship support exists.
+    // Until that contract is built (tracked as the FUTURE "menu-items"
+    // capability below), restaurant products follow safe business-fit
+    // default behavior: hidden unless the site owner explicitly enables
+    // Products as actual commerce for that site (explicit true always wins
+    // over hiddenByDefault — see isHiddenByBusinessFit).
+    hiddenByDefault: ["services", "downloads", "articles", "policy", "testimonials", "products"],
   },
 
   training_academy: {

@@ -891,7 +891,7 @@ export const FUTURE_CAPABILITIES: FutureCapability[] = [
     label: "Menu Items",
     websiteTypes: ["restaurant"],
     missingContract:
-      "No restaurant menu structure (courses/sections, dietary tags, modifiers, sold-out state, seasonal rotation). NOTE: products → \u201cMenu Items\u201d is classified SAFE ALIAS for basic name/price/description/image items via the Square catalog, but modifiers/dietary sections remain missing. Flagged for PM veto; see capabilityTerminology.ts restaurant profile.",
+      "No restaurant menu structure or contract exists: no menu sections/categories, modifiers/options, availability/sold-out state, dietary/allergen information, pricing model, images/descriptions, or ordering relationship distinct from a generic catalog. PM VETOED the products\u2192\u201cMenu Items\u201d SAFE ALIAS (post-acceptance correction) \u2014 products must NOT be relabeled or presented as a restaurant menu. Restaurant products stays hidden-by-default (safe business-fit) until this contract is built; see capabilityTerminology.ts restaurant profile.",
   },
   {
     key: "donations",

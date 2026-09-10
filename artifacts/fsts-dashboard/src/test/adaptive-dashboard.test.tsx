@@ -332,13 +332,25 @@ describe("3. module gating \u2014 explicit owner decisions", () => {
     // services:true \u2014 explicit owner decision beats the restaurant
     // profile's hiddenByDefault (owner said yes \u2192 no de-clutter hiding).
     expect(model.byKey.services.visible).toBe(true);
-    // products unset but not hidden by the restaurant profile \u2192 visible.
+    // products is unset here, but restaurant hides products by default
+    // post-veto (PM VETO: products must NOT be presented as a restaurant
+    // menu \u2014 see capabilityTerminology.ts restaurant profile). Safe
+    // business-fit default \u2014 hidden unless explicitly enabled.
+    expect(model.byKey.products.visible).toBe(false);
+  });
+
+  it("explicit true on products beats restaurant's hiddenByDefault (safe business-fit escape hatch)", () => {
+    const model = renderCapabilities({ products: true }, OWNER, { websiteType: "restaurant" }).result.current;
+    // Owner explicitly enabled Products as real commerce for this site \u2014
+    // that decision always wins over the profile's default de-clutter.
     expect(model.byKey.products.visible).toBe(true);
+    // Label stays the generic default \u2014 no restaurant alias exists.
+    expect(model.byKey.products.label).toBe("Products");
   });
 
   it("unset module entries under a profile \u2192 hiddenByDefault de-clutter (restaurant)", () => {
     const model = renderCapabilities({}, OWNER, { websiteType: "restaurant" }).result.current;
-    for (const key of ["services", "downloads", "articles", "policy", "testimonials"]) {
+    for (const key of ["services", "downloads", "articles", "policy", "testimonials", "products"]) {
       expect(model.byKey[key].visible).toBe(false);
     }
     // Other optional capabilities stay visible (unset = on by default).
@@ -434,15 +446,26 @@ describe("5. terminology \u2014 presentation only", () => {
     const restaurant = renderCapabilities({}, OWNER, { websiteType: "restaurant" }).result.current;
     expect(generic.byKey.courses.label).toBe("Courses & Classes");
     expect(restaurant.byKey.courses.label).toBe("Culinary Classes");
-    expect(restaurant.byKey.products.label).toBe("Menu Items");
+    // PM VETO: products is NOT relabeled "Menu Items" \u2014 no restaurant
+    // menu contract exists (sections, modifiers, availability, dietary,
+    // ordering). Products keeps its generic default label everywhere.
+    expect(restaurant.byKey.products.label).toBe("Products");
     expect(restaurant.byKey.events.label).toBe("Events & Specials");
     expect(restaurant.byKey.forms.label).toBe("Reservation Requests");
     expect(restaurant.byKey.team.label).toBe("Staff");
     // Presentation only: same levels, same visibility for renamed items.
-    for (const key of ["courses", "products", "events", "forms", "team"]) {
+    for (const key of ["courses", "events", "forms", "team"]) {
       expect(restaurant.byKey[key].level).toBe(generic.byKey[key].level);
       expect(restaurant.byKey[key].visible).toBe(generic.byKey[key].visible);
     }
+    // products is the one deliberate exception: label AND visibility both
+    // differ under the restaurant profile (safe business-fit hides it by
+    // default; the generic/no-profile model does not), but the LEVEL
+    // (role permission) is unaffected by terminology/business-fit \u2014
+    // presentation-only still holds for permission level.
+    expect(restaurant.byKey.products.level).toBe(generic.byKey.products.level);
+    expect(restaurant.byKey.products.visible).toBe(false);
+    expect(generic.byKey.products.visible).toBe(true);
   });
 
   it("site overrides beat the profile; explainCapabilityLabel reports the winner", () => {
@@ -526,9 +549,18 @@ describe("6. FUTURE capabilities \u2014 the critical product rule", () => {
   });
 
   it("documents the SAFE ALIAS boundaries and veto flags in missingContract", () => {
+    // PM VETO (post-acceptance correction): products \u2192 "Menu Items" is no
+    // longer a SAFE ALIAS \u2014 the missingContract now records the veto and
+    // the required contract elements (sections, modifiers, availability,
+    // dietary/allergen, pricing, images/descriptions, ordering relationship)
+    // that must exist before any restaurant menu presentation ships.
     const menuItems = FUTURE_CAPABILITIES.find((c) => c.key === "menu-items")!;
-    expect(menuItems.missingContract).toContain("SAFE ALIAS");
-    expect(menuItems.missingContract).toContain("veto");
+    expect(menuItems.missingContract).toContain("VETOED");
+    expect(menuItems.missingContract).toContain("must NOT be relabeled or presented as a restaurant menu");
+    expect(menuItems.missingContract).toContain("menu sections/categories");
+    expect(menuItems.missingContract).toContain("modifiers/options");
+    expect(menuItems.missingContract).toContain("availability/sold-out state");
+    expect(menuItems.missingContract).toContain("dietary/allergen");
     const agents = FUTURE_CAPABILITIES.find((c) => c.key === "agents")!;
     expect(agents.missingContract).toContain("SAFE ALIAS");
     expect(agents.missingContract).toContain("ROSTER");
@@ -672,18 +704,33 @@ describe("10. persistence compat \u2014 legacy group ids", () => {
 // \u2500\u2500 11. Accessibility spot checks (full a11y in sidebar-nav.test.tsx) \u2500\u2500\u2500
 
 describe("11. accessibility", () => {
-  it("restaurant Menu Items carries aria-current when active", () => {
-    mockLocation.value = `/app/sites/${SITE_ID}/products`;
+  it("restaurant Culinary Classes (a real SAFE ALIAS) carries aria-current when active", () => {
+    // products \u2192 "Menu Items" was PM-vetoed (no restaurant menu contract);
+    // courses \u2192 "Culinary Classes" remains a genuine SAFE ALIAS (the
+    // course catalog fields fit a class listing), so it stays the a11y
+    // proof target for renamed-and-active nav items.
+    mockLocation.value = `/app/sites/${SITE_ID}/courses`;
     renderSidebarWith({
       enabledModules: {},
       rolePermissions: ROLE_CAPABILITIES.owner,
       websiteType: "restaurant",
     });
-    const menuItems = within(screen.getByRole("navigation", { name: "Website sections" }))
-      .getByText("Menu Items")
+    const culinaryClasses = within(screen.getByRole("navigation", { name: "Website sections" }))
+      .getByText("Culinary Classes")
       .closest("button");
-    expect(menuItems).not.toBeNull();
-    expect(menuItems?.getAttribute("aria-current")).toBe("page");
+    expect(culinaryClasses).not.toBeNull();
+    expect(culinaryClasses?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("restaurant Products (generic label, veto\u2019d alias) does not render unless explicitly enabled", () => {
+    renderSidebarWith({
+      enabledModules: {},
+      rolePermissions: ROLE_CAPABILITIES.owner,
+      websiteType: "restaurant",
+    });
+    const nav = screen.getByRole("navigation", { name: "Website sections" });
+    expect(within(nav).queryByText("Menu Items")).toBeNull();
+    expect(within(nav).queryByText("Products")).toBeNull();
   });
 
   it("group toggle carries aria-expanded; nav is labelled", () => {
@@ -756,13 +803,23 @@ describe("12. business profiles", () => {
     expect(isFutureCapability("plans")).toBe(true);
   });
 
-  it("restaurant: Menu Items SAFE ALIAS; reservations FUTURE and undefined in the model", () => {
+  it("restaurant: products hidden by default (Menu Items alias PM-vetoed); reservations FUTURE and undefined in the model", () => {
     const model = renderCapabilities({}, OWNER, { websiteType: "restaurant" }).result.current;
-    expect(model.byKey.products.label).toBe("Menu Items");
-    expect(model.byKey.products.visible).toBe(true);
+    // PM VETO (post-acceptance correction): products must NOT be presented
+    // as "Menu Items" \u2014 no restaurant menu contract exists. Safe
+    // business-fit default: hidden unless the owner explicitly enables it.
+    expect(model.byKey.products.label).toBe("Products");
+    expect(model.byKey.products.visible).toBe(false);
+    // Owner can still explicitly opt in as real commerce for this site.
+    const explicit = renderCapabilities({ products: true }, OWNER, { websiteType: "restaurant" }).result.current;
+    expect(explicit.byKey.products.visible).toBe(true);
+    expect(explicit.byKey.products.label).toBe("Products");
     expect(model.byKey.reservations).toBeUndefined();
     expect(isFutureCapability("reservations")).toBe(true);
     expect(FUTURE_CAPABILITIES.find((c) => c.key === "reservations")!.websiteTypes).toEqual(["restaurant"]);
+    // menu-items stays FUTURE/UNSUPPORTED and is never in the live registry.
+    expect(model.byKey["menu-items" as keyof typeof model.byKey]).toBeUndefined();
+    expect(isFutureCapability("menu-items")).toBe(true);
   });
 
   it("real_estate: Agents & Brokers roster (SAFE ALIAS); products hidden; listings/showings FUTURE", () => {
