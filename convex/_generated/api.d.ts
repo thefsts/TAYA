@@ -104,6 +104,7 @@ import type * as seedCorsair from "../seedCorsair.js";
 import type * as selfServiceOnboarding from "../selfServiceOnboarding.js";
 import type * as seo from "../seo.js";
 import type * as services from "../services.js";
+import type * as siteProfiles from "../siteProfiles.js";
 import type * as siteSettings from "../siteSettings.js";
 import type * as sites from "../sites.js";
 import type * as square from "../square.js";
@@ -216,6 +217,7 @@ declare const fullApi: ApiFromModules<{
   selfServiceOnboarding: typeof selfServiceOnboarding;
   seo: typeof seo;
   services: typeof services;
+  siteProfiles: typeof siteProfiles;
   siteSettings: typeof siteSettings;
   sites: typeof sites;
   square: typeof square;
