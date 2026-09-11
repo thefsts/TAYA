@@ -11,8 +11,10 @@
  *   §3  Persisted capability profile on siteContentMaps.siteProfile,
  *       exposed read-only (siteProfiles.getProfile / getRecommendations).
  *   §4  External-site editability classification — never claims unsupported
- *       editability (READ_ONLY for third-party-hosted assets, UNSUPPORTED
- *       for platform-owned flows).
+ *       editability: bridge-based sites are replacement-only (REPLACE_CONTENT,
+ *       never REORDER/ADD_CONTENT/FULL_EDIT), READ_ONLY for third-party-hosted
+ *       assets, UNSUPPORTED for platform-owned flows; FULL_EDIT/REORDER/
+ *       ADD_CONTENT are TAYA_NATIVE-only (TAYA's own editors/managers).
  *   §5  MATAYA recommendation surface: suggest-only — never grants a
  *       permission, enables a module, or alters tenant state.
  *   §6  Idempotency + safety: no duplicate sites, manual overrides are
@@ -741,7 +743,7 @@ describe("§1 connection flow — auto-built workspace from discovery", () => {
 // ————————————————————————————————————————————————————————
 
 describe("§4 external-site editability classification", () => {
-  it("external site: text REPLACE_CONTENT, items REORDER, videos/downloads READ_ONLY, pages ADD_CONTENT", async () => {
+  it("external site: text/items/pages all REPLACE_CONTENT (bridge is replacement-only), videos/downloads READ_ONLY", async () => {
     const siteId = await provisionFixture(
       "Peak Skills Academy",
       ACADEMY_DOMAIN,
@@ -756,14 +758,19 @@ describe("§4 external-site editability classification", () => {
 
     // Text bands → REPLACE_CONTENT (draft now, publish after verification).
     expect(byClass("REPLACE_CONTENT").length).toBeGreaterThan(0);
-    // Repeatable course items → REORDER.
-    expect(byClass("REORDER").length).toBeGreaterThan(0);
-    // Pages → ADD_CONTENT (drafting is native).
-    expect(byClass("ADD_CONTENT").length).toBeGreaterThan(0);
+    // Bridge v1 replaces values on existing elements — it has NO reorder and
+    // NO insertion mechanism, so an external site NEVER claims them (§4:
+    // "external site with replacement only → do not recommend ADD_CONTENT";
+    // "no safe insertion zone → do not advertise insertion").
+    expect(byClass("REORDER").length).toBe(0);
+    expect(byClass("ADD_CONTENT").length).toBe(0);
+    expect(byClass("FULL_EDIT").length).toBe(0);
     // Third-party videos + PDF downloads → READ_ONLY.
     expect(byClass("READ_ONLY").length).toBe(2);
-    // External unverified site → NO FULL_EDIT areas claimed.
-    expect(byClass("FULL_EDIT").length).toBe(0);
+    // Mapped pages are replacement surfaces, not insertion zones: each
+    // fetched page area is classified REPLACE_CONTENT.
+    const pageAreas = byClass("REPLACE_CONTENT").filter((a: any) => a.keyPrefixes.every((k: any) => k.startsWith("/")));
+    expect(pageAreas.length).toBeGreaterThan(0);
     // Summary counts add up.
     const total = Object.values(profile.editability.summary).reduce(
       (a: any, b: any) => a + b,
@@ -772,7 +779,7 @@ describe("§4 external-site editability classification", () => {
     expect(total).toBe(profile.editability.areas.length);
   });
 
-  it("TAYA_NATIVE site: mapped content is FULL_EDIT — no external constraints", async () => {
+  it("TAYA_NATIVE site: mapped content is FULL_EDIT, pages ADD_CONTENT — no external constraints", async () => {
     // TAYA_NATIVE classification needs a snapshot to classify — build one
     // synthetically through the pure library (TAYA_NATIVE sites are not
     // crawled; classifyEditability is the shared pure fn).
@@ -801,9 +808,57 @@ describe("§4 external-site editability classification", () => {
     const classification = classifyEditability(snapshot, "TAYA_NATIVE");
     const byClass = (level: string) =>
       classification.areas.filter((a: any) => a.classification === level);
+    // TAYA_NATIVE content is edited through TAYA's own editors/managers
+    // (homepage sections, CoursesList/ProductsManager/…), which genuinely
+    // support full edit and add — FULL_EDIT + ADD_CONTENT are honest here.
     expect(byClass("FULL_EDIT").length).toBeGreaterThan(0);
+    expect(byClass("ADD_CONTENT").length).toBeGreaterThan(0);
     expect(byClass("REPLACE_CONTENT").length).toBe(0);
     expect(byClass("READ_ONLY").length).toBe(1); // video still READ_ONLY
+  });
+
+  it("TAYA_CONNECTED site: bridge is replacement-only — verification unlocks publishing, NOT stronger editability", async () => {
+    // TAYA_CONNECTED is an EXTERNAL site with the bridge verified (schema
+    // connectionMode docs). The bridge runtime applies values to existing
+    // [data-taya-edit] elements only — no reorder, no insertion. So a
+    // verified site classifies exactly like the unverified external lane:
+    // REPLACE_CONTENT / READ_ONLY / UNSUPPORTED, never FULL_EDIT / REORDER /
+    // ADD_CONTENT. Ownership verification unlocks PUBLISHING of the
+    // replacements; it does not add edit operations the bridge lacks.
+    const { classifyEditability } = await import(
+      "../../../convex/lib/discovery/siteProfile"
+    );
+    const snapshot = {
+      domain: "verifiedshop.example",
+      origin: "https://verifiedshop.example",
+      crawlStartedAt: 1,
+      crawlCompletedAt: 2,
+      platform: "shopify",
+      contentMap: {
+        "home.hero.heading": { type: "text", value: "Verified Shop", evidence: "x" },
+        "home.products.items[0].title": { type: "text", value: "Widget", evidence: "x" },
+        "home.videos[0].src": { type: "video", value: "https://youtu.be/x", evidence: "x" },
+      },
+      keyCount: 3,
+      pages: [
+        { path: "/", status: "fetched", url: "https://verifiedshop.example", httpStatus: 200, bytes: 100, model: null, error: null },
+      ],
+      routes: [{ path: "/cart", source: "nav", label: "Cart" }],
+      siteMeta: { title: null, description: null, ogImage: null },
+    } as any;
+    const classification = classifyEditability(snapshot, "TAYA_CONNECTED");
+    const byClass = (level: string) =>
+      classification.areas.filter((a: any) => a.classification === level);
+    // Replacement-only lane: text/items/pages all REPLACE_CONTENT.
+    expect(byClass("REPLACE_CONTENT").length).toBeGreaterThan(0);
+    // NEVER the operations the bridge does not have.
+    expect(byClass("FULL_EDIT").length).toBe(0);
+    expect(byClass("REORDER").length).toBe(0);
+    expect(byClass("ADD_CONTENT").length).toBe(0);
+    // Third-party video still READ_ONLY; platform cart route still UNSUPPORTED
+    // — verification never unlocks platform-owned regions.
+    expect(byClass("READ_ONLY").length).toBe(1);
+    expect(byClass("UNSUPPORTED").length).toBe(1);
   });
 
   it("platform-owned routes are UNSUPPORTED — never claim checkout/account editability", async () => {

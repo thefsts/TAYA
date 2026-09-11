@@ -31,10 +31,13 @@
  *                                    (capabilities that require owner/FSTS
  *                                    approval; NEVER auto-granted).
  *   classifyEditability(...)      — per-region editability classification
- *                                    for EXTERNAL sites TAYA did not build:
+ *                                    for sites TAYA did not build (and, via
+ *                                    the shared pure fn, native ones too):
  *                                    FULL EDIT / REPLACE CONTENT / REORDER /
  *                                    ADD CONTENT / READ ONLY / UNSUPPORTED.
- *                                    Never claims unsupported editability.
+ *                                    Never claims unsupported editability —
+ *                                    bridge-based sites cap at REPLACE
+ *                                    CONTENT / READ ONLY / UNSUPPORTED.
  *   buildSiteProfile(...)         — the assembled profile document.
  *
  * DIRECTIVE SAFETY (Chat C §5/§6): this module only DESCRIBES the site and
@@ -608,21 +611,35 @@ function classifyKeyBand(
  * Classify discovered regions for editability (§4). For sites TAYA did NOT
  * build, this is the honest map of what TAYA can and cannot do — it NEVER
  * claims editability beyond what the §5 map + connection mode support.
+ * The honest boundary is the bridge runtime (lib/web-bridge/src/snippet.ts):
+ * it applies published/draft VALUES to existing [data-taya-edit] elements
+ * (textContent/src/href) — replacement only. Bridge v1 has no reordering
+ * and no insertion mechanism, so bridge-based modes never claim FULL_EDIT,
+ * REORDER, or ADD_CONTENT:
  *
- *  - TAYA_NATIVE / TAYA_CONNECTED (bridge verified): mapped content is
- *    FULL_EDIT; platform-locked routes remain UNSUPPORTED.
- *  - DISCOVERED_EXTERNAL: text/imagery is REPLACE_CONTENT (drafted now,
- *    published after ownership verification); repeatable lists add REORDER;
- *    sections/pages offer ADD_CONTENT (draft-only); external embeds/assets
+ *  - TAYA_NATIVE: content is served by TAYA's own editors/managers
+ *    (CoursesList/ProductsManager/ServicesManager/homepage sections), which
+ *    genuinely support full edit, reorder, and add — FULL_EDIT / REORDER /
+ *    ADD_CONTENT are honest claims for native mapped regions.
+ *  - TAYA_CONNECTED / DISCOVERED_EXTERNAL (bridge-based external sites):
+ *    text, images, links, and repeatable entries are REPLACE_CONTENT
+ *    (drafted now, published after ownership verification); mapped pages
+ *    are replacement surfaces, not insertion zones; external embeds/assets
  *    (videos, downloads) are READ_ONLY (they point at third-party hosts);
- *    platform-locked routes are UNSUPPORTED.
+ *    platform-locked routes are UNSUPPORTED. Verification (TAYA_CONNECTED)
+ *    unlocks PUBLISHING of replacements — it does not add editing
+ *    operations the bridge does not have.
  */
 export function classifyEditability(
   snapshot: DiscoverySnapshot,
   connectionMode: string | null,
 ): EditabilityClassification {
   const areas: EditabilityArea[] = [];
-  const native = connectionMode === "TAYA_NATIVE" || connectionMode === "TAYA_CONNECTED";
+  // Only TAYA-served sites get full/reorder/add claims: their content is
+  // edited through TAYA's real editors and managers. TAYA_CONNECTED is an
+  // external site with the bridge installed (schema connectionMode docs) —
+  // the bridge is replacement-only, so it classifies with the external lane.
+  const native = connectionMode === "TAYA_NATIVE";
 
   // Band the §5 keys by suffix family. Index segments normalize to [*] so
   // services.items[0]…[11] fold into ONE band (services.items[*].title).
@@ -651,14 +668,14 @@ export function classifyEditability(
   if (textBands.length > 0) {
     areas.push(
       native
-        ? classifyKeyBand("FULL_EDIT", "Text content is fully editable through the verified connection.", textBands)
+        ? classifyKeyBand("FULL_EDIT", "Text content is fully editable through TAYA's own editors.", textBands)
         : classifyKeyBand("REPLACE_CONTENT", "Text can be replaced in drafts; publishing unlocks after ownership verification.", textBands),
     );
   }
   if (imageBands.length > 0) {
     areas.push(
       native
-        ? classifyKeyBand("FULL_EDIT", "Images are fully editable through the verified connection.", imageBands)
+        ? classifyKeyBand("FULL_EDIT", "Images are fully editable through TAYA's own editors.", imageBands)
         : classifyKeyBand("REPLACE_CONTENT", "Images can be swapped in drafts; publishing unlocks after ownership verification.", imageBands),
     );
   }
@@ -666,9 +683,12 @@ export function classifyEditability(
     areas.push(
       native
         ? classifyKeyBand("FULL_EDIT", "Repeatable items are fully editable.", itemBands)
-        : classifyKeyBand(
-            "REORDER",
-            "Repeatable lists can be reordered and their entries replaced in drafts; publishing unlocks after ownership verification.",
+        : // Bridge v1 replaces values on existing elements; it cannot
+          // reorder DOM nodes. Entries are replaceable in place — honest
+          // classification is REPLACE_CONTENT, never REORDER.
+          classifyKeyBand(
+            "REPLACE_CONTENT",
+            "Repeatable entry values (titles, descriptions, links) can be replaced in drafts; the bridge cannot reorder or insert list items, so list structure stays as-is.",
             itemBands,
           ),
     );
@@ -681,17 +701,26 @@ export function classifyEditability(
     );
   }
 
-  // Sections/pages: adding content is drafting-native in both modes.
+  // Sections/pages: mapped pages are honest ADD_CONTENT ONLY for TAYA_NATIVE
+  // (TAYA's own managers add real sections/pages through its content APIs).
+  // Bridge-based sites have no insertion mechanism — the draft overlay
+  // applies values to EXISTING [data-taya-edit] elements only, so "no safe
+  // insertion zone → do not advertise insertion" (§4). Verified ownership
+  // publishes replacements; it never manufactures an insertion zone.
   const pagePaths = snapshot.pages.filter((p) => p.status === "fetched").map((p) => p.path);
   if (pagePaths.length > 0) {
     areas.push(
-      classifyKeyBand(
-        "ADD_CONTENT",
-        native
-          ? "New sections/pages can be added and published through TAYA."
-          : "New sections/pages can be drafted now; publishing unlocks after ownership verification.",
-        pagePaths.map((p) => p),
-      ),
+      native
+        ? classifyKeyBand(
+            "ADD_CONTENT",
+            "New sections/pages can be added and published through TAYA.",
+            pagePaths.map((p) => p),
+          )
+        : classifyKeyBand(
+            "REPLACE_CONTENT",
+            "Existing mapped content on these pages can be replaced in drafts; the bridge has no insertion mechanism, so new sections/pages cannot be added — publishing unlocks after ownership verification.",
+            pagePaths.map((p) => p),
+          ),
     );
   }
 
