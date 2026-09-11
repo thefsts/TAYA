@@ -343,7 +343,10 @@ export const persistSnapshot = internalMutation({
       // nav-row inserts for newly-enabled modules, and the durable §5
       // page/content map upsert. NO RBAC grants, NO admin modules, no
       // per-customer logic — pure derivation from the snapshot.
-      const plan = conformWorkspace(snap);
+      // The inferred site type (built above in the same transaction) gates
+      // the restaurant commerce policy: a restaurant never gets `products`
+      // auto-enabled from its routes, even with genuine storefront evidence.
+      const plan = conformWorkspace(snap, profile.siteType.type);
       const siteForConform = await ctx.db.get(args.siteId);
 
       if (siteForConform) {

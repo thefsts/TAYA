@@ -515,14 +515,40 @@ const FEATURE_SUGGESTED: Array<{ feature: keyof SiteFeatures; capabilityId: stri
 ];
 
 /** Recommend capabilities from FEATURES (reusable across all site types). PURE. */
-export function recommendCapabilities(features: SiteFeatures): CapabilityRecommendations {
+export function recommendCapabilities(
+  features: SiteFeatures,
+  /** Inferred site type (§2 inference) — the restaurant commerce policy
+   *  below keys off it. Optional: pure/legacy callers without a type keep
+   *  the universal behavior. */
+  inferredSiteType?: string | null,
+): CapabilityRecommendations {
   const autoEnabled: CapabilityRecommendation[] = [];
   const seenModules = new Set<string>();
+  // PM locked rule (restaurant convergence): a restaurant site NEVER gets
+  // the generic `products` module auto-enabled — even when genuine
+  // storefront/catalog evidence exists. That evidence surfaces honestly as
+  // an ADVISORY (suggested) recommendation for the owner instead; only an
+  // explicit owner/FSTS decision turns Products on (§6). All other site
+  // types keep the existing universal behavior.
+  const restaurantNoProducts = inferredSiteType === "restaurant" ? "products" : null;
+  const advisory: CapabilityRecommendation[] = [];
   for (const row of FEATURE_MODULES) {
     if (!features[row.feature]) continue;
     if (!CONFORMABLE_MODULES.includes(row.module)) continue;
     if (seenModules.has(row.module)) continue;
     seenModules.add(row.module);
+    if (row.module === restaurantNoProducts) {
+      // Genuine catalog/storefront signals on a restaurant site: report
+      // them (transparency, §14) but require an owner decision — never an
+      // automatic enablement.
+      advisory.push({
+        capabilityId: `module:${row.module}`,
+        label: "Products",
+        reason: "Storefront/catalog signals discovered on a restaurant site — enable the Products module only if you sell online (owner decision).",
+        moduleKey: null,
+      });
+      continue;
+    }
     autoEnabled.push({
       capabilityId: `module:${row.module}`,
       label: capabilityLabel(`module:${row.module}`) === `module:${row.module}` ? row.module : row.module,
@@ -543,6 +569,15 @@ export function recommendCapabilities(features: SiteFeatures): CapabilityRecomme
       reason: row.reason,
       moduleKey: null,
     });
+  }
+
+  // Restaurant commerce advisory (PM locked rule): the products-module
+  // recommendation displaced from autoEnabled lands here, with moduleKey
+  // null so it can never be mistaken for an automatic enablement.
+  for (const item of advisory) {
+    if (!suggested.some((s) => s.capabilityId === item.capabilityId)) {
+      suggested.push(item);
+    }
   }
 
   // SEO is universally recommended (content tier, always safe to suggest).
@@ -819,7 +854,7 @@ export function buildSiteProfile(
   const features = deriveFeatures(signals);
   const siteType = inferSiteType(signals, features);
   const terminology = businessTerminology(signals, features);
-  const capabilities = recommendCapabilities(features);
+  const capabilities = recommendCapabilities(features, siteType.type);
   const editability = classifyEditability(snapshot, connectionMode);
 
   const discoveredTypes = new Set<string>();

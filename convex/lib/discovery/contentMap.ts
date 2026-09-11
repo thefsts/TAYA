@@ -279,13 +279,27 @@ export interface ConformPlan {
  * Idempotent by construction: applying the same plan twice changes nothing
  * the second time.
  */
-export function conformWorkspace(snapshot: DiscoverySnapshot): ConformPlan {
+export function conformWorkspace(
+  snapshot: DiscoverySnapshot,
+  /** Inferred site type (§2 siteProfile inference) — the restaurant
+   * commerce policy gate below keys off it. Optional for pure-plan callers. */
+  inferredSiteType?: string | null,
+): ConformPlan {
   const pageMap = buildPageMap(snapshot);
   const modules: Record<string, boolean> = {};
 
+  // PM locked rule (restaurant convergence): a restaurant site NEVER gets
+  // the generic `products` module auto-enabled — even with genuine
+  // storefront evidence (/shop, /products, cart vocabulary). The route
+  // still becomes a page in the navigator; the module waits for an
+  // explicit owner/FSTS enablement decision. All other site types keep
+  // the existing universal behavior.
+  const restaurantNoProducts =
+    inferredSiteType === "restaurant" ? "products" : null;
+
   for (const route of snapshot.routes) {
     const moduleKey = moduleForRoute(route.path);
-    if (moduleKey) modules[moduleKey] = true;
+    if (moduleKey && moduleKey !== restaurantNoProducts) modules[moduleKey] = true;
   }
   const enabledModuleKeys = Object.keys(modules);
 

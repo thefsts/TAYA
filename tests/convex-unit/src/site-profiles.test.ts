@@ -34,6 +34,14 @@ import {
   EDITABILITY_LEVELS,
   SITE_TYPE_CANDIDATES,
 } from "../../../convex/lib/discovery/siteProfile";
+import {
+  CONFORMABLE_MODULES,
+  ROUTE_MODULE_TABLE,
+} from "../../../convex/lib/discovery/contentMap";
+import {
+  MODULE_NAV_MAP,
+  defaultModules,
+} from "../../../convex/lib/siteProvisioning";
 
 const modules = import.meta.glob("../../../convex/**/*.ts");
 
@@ -451,6 +459,90 @@ const BISTRO_PAGES: Record<string, string> = {
   [`https://${BISTRO_DOMAIN}/menu`]: BISTRO_MENU,
 };
 
+// ———— FIXTURE 5b — RESTAURANT WITH A GENUINE STOREFRONT (PM locked rule) ——
+// A restaurant whose site ALSO sells real goods through a /products catalog
+// route (one priced pantry item). GENUINE commerce evidence — the catalog
+// route makes features.productCatalog true — yet the site stays a
+// RESTAURANT by inference (menu route + booking CTA + about/team route =
+// 6 vs ecommerce's 5), and the PM locked rule applies: the generic
+// `products` module is NEVER auto-enabled for it. The storefront evidence
+// surfaces as an ADVISORY (suggested) recommendation only.
+//
+// Inference arithmetic (kept honest on purpose): menu cards carry NO
+// dollar prices (market-price wording) so priceKeyCount stays 1 — priced
+// menu cards + a catalog route would stack to ecommerce and flip the type
+// (the §2 weights are evidence-driven, not industry-hardcoded).
+
+const BISTRO_MARKET_DOMAIN = "harvesthearth.example";
+
+const BISTRO_MARKET_NAV = `<nav><a href="/">Home</a> <a href="/menu">Menu</a> <a href="/products">Pantry Shop</a> <a href="/about">About</a> <a href="/contact">Contact</a></nav>`;
+
+const BISTRO_MARKET_HOME = `<!doctype html>
+<html><head>
+<title>Harvest &amp; Hearth — seasonal dining and pantry goods</title>
+<meta name="description" content="A seasonal dinner menu plus a pantry shelf of sourced goods.">
+</head><body>
+${BISTRO_MARKET_NAV}
+<h1>Harvest &amp; Hearth</h1>
+<p>A seasonal dinner menu from a small kitchen, plus a pantry shelf of sourced goods and preserves.</p>
+<a class="btn" href="/contact">Book a Table</a>
+<section>
+  <h2>Our Menu</h2>
+  <ul>
+    <li><h3>Seared Scallops</h3><p>With brown butter and lemon — market price, ask your server.</p></li>
+    <li><h3>Bistro Steak Frites</h3><p>Grass-fed strip with hand-cut fries.</p></li>
+    <li><h3>Seasonal Tart</h3><p>Fruit from the morning market.</p></li>
+  </ul>
+</section>
+<footer>© 2025 Harvest &amp; Hearth.</footer>
+</body></html>`;
+
+const BISTRO_MARKET_MENU = `<!doctype html>
+<html><head><title>Menu — Harvest &amp; Hearth</title></head><body>
+${BISTRO_MARKET_NAV}
+<h1>Full Menu</h1>
+<p>Our menu changes with the seasons; reservations are recommended.</p>
+<section>
+  <h2>Dinner Menu</h2>
+  <ul>
+    <li><h3>Seared Scallops</h3><p>Brown butter, lemon — market price, ask your server.</p></li>
+    <li><h3>Bistro Steak Frites</h3><p>Grass-fed strip, fries.</p></li>
+    <li><h3>Seasonal Tart</h3><p>Morning-market fruit.</p></li>
+  </ul>
+</section>
+<footer>© 2025 Harvest &amp; Hearth.</footer>
+</body></html>`;
+
+const BISTRO_MARKET_PRODUCTS = `<!doctype html>
+<html><head><title>Pantry Goods — Harvest &amp; Hearth</title></head><body>
+${BISTRO_MARKET_NAV}
+<h1>Pantry Goods</h1>
+<p>Shelf-stable goods from our kitchen, labeled and ready to ship.</p>
+<section>
+  <h2>Pantry Shelf</h2>
+  <ul>
+    <li><h3>Kitchen Preserves</h3><p>$18.00 — two jars, seasonal fruit.</p></li>
+    <li><h3>House Milled Flour</h3><p>Availability varies with the harvest.</p></li>
+  </ul>
+</section>
+<footer>© 2025 Harvest &amp; Hearth.</footer>
+</body></html>`;
+
+const BISTRO_MARKET_ABOUT = `<!doctype html>
+<html><head><title>About — Harvest &amp; Hearth</title></head><body>
+${BISTRO_MARKET_NAV}
+<h1>About Us</h1>
+<p>A small kitchen and pantry run by the same family since 2019.</p>
+<footer>© 2025 Harvest &amp; Hearth.</footer>
+</body></html>`;
+
+const BISTRO_MARKET_PAGES: Record<string, string> = {
+  [`https://${BISTRO_MARKET_DOMAIN}`]: BISTRO_MARKET_HOME,
+  [`https://${BISTRO_MARKET_DOMAIN}/menu`]: BISTRO_MARKET_MENU,
+  [`https://${BISTRO_MARKET_DOMAIN}/products`]: BISTRO_MARKET_PRODUCTS,
+  [`https://${BISTRO_MARKET_DOMAIN}/about`]: BISTRO_MARKET_ABOUT,
+};
+
 // ————— Shared assertion helpers ————————————————————
 
 async function readProfile(siteId: any): Promise<any> {
@@ -643,6 +735,258 @@ describe("§7 five fixtures — different sites, different capability outputs", 
     // AND five distinct module sets — the workspace adapts per site.
     const modSets = rows.map((r) => r.mods.join(","));
     expect(new Set(modSets).size).toBe(5);
+  });
+});
+
+// ————————————————————————————————————————————————————————————————
+// PM LOCKED RULE — RESTAURANT PRODUCTS AUTO-ENABLE CONVERGENCE
+// A restaurant-inferred site NEVER gets the generic `products` module
+// auto-enabled — even with genuine storefront/catalog evidence. Genuine
+// storefront evidence surfaces as an ADVISORY (suggested) recommendation
+// only. Explicit owner TRUE/FALSE decisions are preserved; with no owner
+// decision, restaurant Products stays disabled/hidden downstream. The
+// `products` module keeps its "Products" label, stays in the universal
+// capability system, and NO Menu Items/Reservations/Orders module is
+// introduced (menu-items is FUTURE/UNSUPPORTED).
+// ————————————————————————————————————————————————————————————————
+
+describe("PM locked rule — restaurant never auto-enables the products module", () => {
+  // T1 — restaurant + menu/pricing evidence → Products NOT auto-enabled.
+  it("T1: restaurant (menu route, priced menu cards) → products NOT in enabledModules and NOT in autoEnabled", async () => {
+    const siteId = await provisionFixture(
+      "Petite Bistro",
+      BISTRO_DOMAIN,
+      "restaurant",
+      BISTRO_PAGES,
+      FRESH_CLERK,
+      FRESH_EMAIL,
+    );
+    const site = await readSite(siteId);
+    const profile = await readProfile(siteId);
+
+    // The site is inferred as a restaurant (§2 — owner-supplied type is
+    // "restaurant" but inference must agree from evidence).
+    expect(profile.siteType.type).toBe("restaurant");
+    expect(site.inferredWebsiteType).toBe("restaurant");
+    // Priced menu cards are present (real pricing evidence)…
+    expect(profile.signals.priceKeyCount).toBeGreaterThanOrEqual(3);
+    // …but they are repeatable content, NOT storefront evidence.
+    expect(profile.capabilities.autoEnabled.map((c: any) => c.moduleKey)).not.toContain("products");
+    // The workspace module patch honors the gate: no products enablement.
+    expect(site.enabledModules.products).not.toBe(true);
+    // No products nav row is inserted either (hidden downstream).
+    const nav = await t.run(async (ctx) =>
+      ctx.db
+        .query("navigationItems")
+        .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+        .collect(),
+    );
+    expect(nav.map((n: any) => n.href)).not.toContain("/products");
+  });
+
+  // T2 — restaurant + GENUINE storefront evidence → advisory only.
+  it("T2: restaurant with a genuine /products catalog route → products suggested (advisory), NEVER auto-enabled", async () => {
+    const siteId = await provisionFixture(
+      "Harvest & Hearth",
+      BISTRO_MARKET_DOMAIN,
+      "restaurant",
+      BISTRO_MARKET_PAGES,
+      FRESH_CLERK,
+      FRESH_EMAIL,
+    );
+    const site = await readSite(siteId);
+    const profile = await readProfile(siteId);
+
+    // Genuine storefront evidence IS discovered (the /products catalog
+    // route + a priced pantry item make productCatalog true).
+    expect(profile.siteType.type).toBe("restaurant");
+    const evidence = profile.siteType.evidence.join(" ");
+    expect(evidence).toContain("Product catalog signals");
+    expect(evidence).toContain("Restaurant signals");
+    // The storefront recommendation is ADVISORY ONLY — suggested, with
+    // moduleKey null (it can never be mistaken for an enablement).
+    const autoModuleKeys = profile.capabilities.autoEnabled.map((c: any) => c.moduleKey);
+    expect(autoModuleKeys).not.toContain("products");
+    const advisory = profile.capabilities.suggested.find((c: any) => c.capabilityId === "module:products");
+    expect(advisory).toBeTruthy();
+    expect(advisory.label).toBe("Products");
+    expect(advisory.moduleKey).toBeNull();
+    expect(advisory.reason).toContain("restaurant site");
+    // And the hard surface: no automatic enablement, no nav row.
+    expect(site.enabledModules.products).not.toBe(true);
+    const nav = await t.run(async (ctx) =>
+      ctx.db
+        .query("navigationItems")
+        .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+        .collect(),
+    );
+    expect(nav.map((n: any) => n.href)).not.toContain("/products");
+    // The advisory reaches the suggest-only MATAYA surface unchanged.
+    const recs = await asFresh().query(api.siteProfiles.getRecommendations, { siteId });
+    expect(recs.suggested.map((c: any) => c.capabilityId)).toContain("module:products");
+    expect(recs.suggested.every((c: any) => c.moduleKey === null)).toBe(true);
+  });
+
+  // T3 — restaurant + explicit owner TRUE → preserved across re-crawl.
+  it("T3: restaurant + owner explicitly enables products (TRUE) → decision preserved across re-crawl", async () => {
+    const siteId = await provisionFixture(
+      "Harvest & Hearth",
+      BISTRO_MARKET_DOMAIN,
+      "restaurant",
+      BISTRO_MARKET_PAGES,
+      FRESH_CLERK,
+      FRESH_EMAIL,
+    );
+    // Owner decision (superadmin-gated sites.update with an explicit
+    // enabledModules payload): products ON.
+    await asSuperadmin().mutation(api.sites.update, {
+      siteId,
+      enabledModules: { products: true },
+    });
+    let site = await readSite(siteId);
+    expect(site.enabledModules.products).toBe(true);
+    expect((site.moduleOverrides ?? {}).products).toBe(true);
+
+    // Re-crawl: the restaurant gate suppresses AUTO enablement, but the
+    // owner's explicit TRUE decision is authoritative and survives.
+    await asFresh().action(api.discovery.triggerDiscovery, { siteId });
+    site = await readSite(siteId);
+    expect(site.enabledModules.products).toBe(true);
+    expect((site.moduleOverrides ?? {}).products).toBe(true);
+  });
+
+  // T4 — restaurant + explicit owner FALSE → preserved across re-crawl.
+  it("T4: restaurant + owner explicitly disables products (FALSE) → decision preserved across re-crawl", async () => {
+    const siteId = await provisionFixture(
+      "Harvest & Hearth",
+      BISTRO_MARKET_DOMAIN,
+      "restaurant",
+      BISTRO_MARKET_PAGES,
+      FRESH_CLERK,
+      FRESH_EMAIL,
+    );
+    // Owner decision: products OFF.
+    await asSuperadmin().mutation(api.sites.update, {
+      siteId,
+      enabledModules: { products: false },
+    });
+    let site = await readSite(siteId);
+    expect(site.enabledModules.products).toBe(false);
+    expect((site.moduleOverrides ?? {}).products).toBe(false);
+
+    // Re-crawl: auto-conform can never re-enable it (§6 override
+    // preservation + the restaurant gate agree here).
+    await asFresh().action(api.discovery.triggerDiscovery, { siteId });
+    site = await readSite(siteId);
+    expect(site.enabledModules.products).toBe(false);
+    expect((site.moduleOverrides ?? {}).products).toBe(false);
+  });
+
+  // T5 — non-restaurant ecommerce keeps the universal auto-conform behavior.
+  it("T5: ecommerce with a genuine catalog → products auto-conform behavior INTACT (universal rule unchanged)", async () => {
+    const siteId = await provisionFixture(
+      "GearForge Tools",
+      SHOP_DOMAIN,
+      "business_website",
+      SHOP_PAGES,
+      SECOND_CLERK,
+      SECOND_EMAIL,
+    );
+    const site = await readSite(siteId);
+    const profile = await readProfile(siteId);
+
+    expect(profile.siteType.type).toBe("ecommerce");
+    // Products IS auto-enabled for a genuine ecommerce storefront…
+    expect(profile.capabilities.autoEnabled.map((c: any) => c.moduleKey)).toContain("products");
+    expect(site.enabledModules.products).toBe(true);
+    // …and its nav row is inserted (the universal behavior is untouched).
+    const nav = await t.run(async (ctx) =>
+      ctx.db
+        .query("navigationItems")
+        .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+        .collect(),
+    );
+    expect(nav.map((n: any) => n.href)).toContain("/products");
+  });
+
+  // T6 — the products module label remains "Products" (no renaming).
+  it("T6: products module label remains \"Products\" — no Menu Items renaming", async () => {
+    const siteId = await provisionFixture(
+      "GearForge Tools",
+      SHOP_DOMAIN,
+      "business_website",
+      SHOP_PAGES,
+      SECOND_CLERK,
+      SECOND_EMAIL,
+    );
+    const profile = await readProfile(siteId);
+    // The autoEnabled recommendation row keeps its shipped module-key label
+    // (unchanged by this correction — no renaming anywhere).
+    const productsRow = profile.capabilities.autoEnabled.find(
+      (c: any) => c.moduleKey === "products",
+    );
+    expect(productsRow).toBeTruthy();
+    expect(productsRow.label).toBe("products");
+    expect(productsRow.label).not.toMatch(/^menu items/i);
+    // The seeded nav label for the products module is "Products".
+    expect(MODULE_NAV_MAP.products.label).toBe("Products");
+    expect(MODULE_NAV_MAP.products.href).toBe("/products");
+    // And the route-module table's label is "Products".
+    const tableRow = ROUTE_MODULE_TABLE.find((r) => r.path === "/products");
+    expect(tableRow?.label).toBe("Products");
+    // The module key itself is unchanged in the universal system.
+    expect(CONFORMABLE_MODULES).toContain("products");
+    expect(CONFORMABLE_MODULES).not.toContain("menu-items");
+    expect(CONFORMABLE_MODULES).not.toContain("menuItems");
+  });
+
+  // T7 — NO Menu Items/Reservations/Orders functional module introduced.
+  it("T7: no Menu Items / Reservations / Orders module or capability introduced anywhere", async () => {
+    const restaurantModules = defaultModules("restaurant");
+    expect(restaurantModules).not.toHaveProperty("menu-items");
+    expect(restaurantModules).not.toHaveProperty("menuItems");
+    expect(restaurantModules).not.toHaveProperty("reservations");
+    expect(restaurantModules).not.toHaveProperty("orders");
+
+    // The universal conformable surface has no such module keys either.
+    for (const key of ["menu-items", "menuItems", "reservations", "orders"]) {
+      expect(CONFORMABLE_MODULES).not.toContain(key);
+      expect(Object.keys(MODULE_NAV_MAP)).not.toContain(key);
+      for (const row of ROUTE_MODULE_TABLE) {
+        expect(row.module).not.toBe(key);
+      }
+    }
+
+    // And a crawled restaurant site's profile never recommends one.
+    const siteId = await provisionFixture(
+      "Petite Bistro",
+      BISTRO_DOMAIN,
+      "restaurant",
+      BISTRO_PAGES,
+      FRESH_CLERK,
+      FRESH_EMAIL,
+    );
+    const profile = await readProfile(siteId);
+    const allCapabilityIds = [
+      ...profile.capabilities.autoEnabled.map((c: any) => c.capabilityId),
+      ...profile.capabilities.suggested.map((c: any) => c.capabilityId),
+    ];
+    for (const id of allCapabilityIds) {
+      expect(id).not.toMatch(/menu[-_]?items|reservations|orders/i);
+      expect(id).not.toBe("module:menu-items");
+      expect(id).not.toBe("module:reservations");
+      expect(id).not.toBe("module:orders");
+    }
+    const allLabels = [
+      ...profile.capabilities.autoEnabled.map((c: any) => c.label),
+      ...profile.capabilities.suggested.map((c: any) => c.label),
+    ];
+    for (const label of allLabels) {
+      expect(label).not.toMatch(/^Menu Items/);
+    }
+    // menu-items remains FUTURE/UNSUPPORTED: no capability id or module
+    // key introduced it anywhere in this correction.
+    expect(profile.capabilities.autoEnabled.every((c: any) => c.moduleKey !== "menu-items")).toBe(true);
   });
 });
 
