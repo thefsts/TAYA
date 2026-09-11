@@ -13,6 +13,7 @@
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "test:design-lock": "pnpm --filter @workspace/design-lock-tests run test",
+    "test:hygiene": "pnpm --filter @workspace/fsts-dashboard run test:hygiene",
     "test:health-monitor": "pnpm --filter @workspace/health-monitor-tests run test",
     "test:visual": "pnpm --filter @workspace/visual-regression run test",
     "test:visual:update": "pnpm --filter @workspace/visual-regression run test:update",

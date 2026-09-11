@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { LifeBuoy, Mail, Phone, BookOpen, ShieldCheck, History, Users, ExternalLink, Rocket, Eye, RotateCcw, ListChecks, Image, MousePointerClick, BadgeCheck, KeyRound } from "lucide-react";
+import { LifeBuoy, Mail, BookOpen, ShieldCheck, History, Users, ExternalLink, Rocket, Eye, RotateCcw, ListChecks, Image, MousePointerClick, BadgeCheck, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { clearTourDismissal, TOUR_STEPS } from "@/components/WelcomeTour";
 import { gettingStartedDismissKey, buildGettingStartedItems } from "@/components/GettingStartedCard";
@@ -45,7 +45,7 @@ const FAQS: { question: string; answer: string; icon: any }[] = [
     icon: Users,
     question: "What can each team role do?",
     answer:
-      "Administrator (FSTS) has full access across all sites. Website Manager (Client) can manage all content and settings for their site. Editor can create and edit content but not publish. Marketing can manage SEO, articles, and campaigns. Read Only can view everything without making changes.",
+      "Your team members are given one of these roles: Owner or Manager can manage the site's content and settings. Content Editor can edit pages, articles, and media. Course Manager can manage courses. Events Manager can manage events. Marketing can manage marketing content, SEO, and flyers. Finance can manage payments. Support can manage the contact inbox. Read Only can view everything without making changes. Your support team can change a team member's role for you, and you can see each person's role on the Site Users page.",
   },
   {
     icon: ShieldCheck,
@@ -93,7 +93,7 @@ const FAQS: { question: string; answer: string; icon: any }[] = [
     icon: Users,
     question: "How do I change my own account settings or password?",
     answer:
-      "Your account settings are managed from your account menu (the same place you sign out), where you can update your name and password. Your permissions — what you are allowed to see and change — are set by your support team, and you can review them any time on the My Permissions page.",
+      "Your account settings are shown in the Account Settings page — your name, email, role, and status. To change your name or email, contact your support team and they will update it for you. To change your password, use the 'Forgot password' link on the sign-in page. Your permissions — what you are allowed to see and change — are set by your support team, and you can review them any time on the My Permissions page.",
   },
 ];
 
@@ -120,7 +120,7 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
   const doneCount = gettingStartedItems.filter((i) => i.done).length;
   const checklistText =
     gettingStartedItems.length > 0 && doneCount === gettingStartedItems.length
-      ? "You're all set \u2014 the basics are done!"
+      ? "You're all set — the basics are done!"
       : `${doneCount} of ${gettingStartedItems.length} steps done.`;
 
   function handleRestartTour() {
@@ -234,11 +234,6 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
               >
                 <Mail className="h-4 w-4" /> {supportEmail}
               </a>
-              {!agency && (
-                <a href="tel:+18005551234" className="flex items-center gap-2 text-primary hover:underline">
-                  <Phone className="h-4 w-4" /> (800) 555-1234
-                </a>
-              )}
               {helpCenterUrl && (
                 <a
                   href={helpCenterUrl}
@@ -252,7 +247,7 @@ export default function HelpCenter({ params }: { params: { siteId: string } }) {
               <p className="text-slate-500 pt-2 border-t border-slate-100">
                 {agency
                   ? `For support, contact your ${agencyName} account team at the email above.`
-                  : "Support hours: Monday–Friday, 8am–6pm ET. For urgent website outages, call the number above for priority response."}
+                  : "Support hours: Monday–Friday, 8am–6pm ET. Email us any time and we will reply during support hours."}
               </p>
             </CardContent>
           </Card>
