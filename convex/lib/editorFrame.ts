@@ -181,7 +181,12 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
     "[data-taya-edit]{outline:1px dashed rgba(37,99,235,.55);outline-offset:2px;cursor:pointer;}",
     "[data-taya-edit]:hover{outline:2px solid rgba(37,99,235,.9);outline-offset:2px;}",
     "[data-taya-edit].taya-selected{outline:2px solid #2563eb;outline-offset:2px;}",
-    "html.taya-editing a[href]{cursor:pointer;}"
+    "html.taya-editing a[href]{cursor:pointer;}",
+    "[data-taya-edit].taya-selected{outline:3px solid #2563eb;outline-offset:2px;box-shadow:0 0 0 6px rgba(37,99,235,.18);}",
+    "[data-taya-edit]:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px;}",
+    ".taya-block[data-taya-block-id]{outline:1px dashed rgba(37,99,235,.45);outline-offset:4px;}",
+    ".taya-block[data-taya-block-id]:hover{outline:2px solid rgba(37,99,235,.8);outline-offset:4px;}",
+    ".taya-block[data-taya-block-id].taya-selected{outline:3px solid #2563eb;outline-offset:4px;box-shadow:0 0 0 6px rgba(37,99,235,.18);}"
   ].join("\\n");
   try{
     (document.head||document.documentElement).appendChild(CSS);
@@ -193,6 +198,23 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
     if(selected)selected.classList.remove("taya-selected");
     selected=el;el.classList.add("taya-selected");
   }
+  function deselect(){
+    if(selected)selected.classList.remove("taya-selected");
+    selected=null;
+  }
+  // Content kind in client language (no zone ids, no keys, no internals).
+  function kindOf(el){
+    var type=el.getAttribute("data-taya-type");
+    var tag=el.tagName;
+    if(type==="image"||tag==="IMG")return "image";
+    if(tag==="H1"||tag==="H2"||tag==="H3"||tag==="H4"||tag==="H5"||tag==="H6")return "heading";
+    var key=el.getAttribute("data-taya-edit")||"";
+    if(tag==="A"||type==="url"||type==="link"||type==="button"||key.indexOf("button")>-1)return "button";
+    if(tag==="A")return "link";
+    if(tag==="P")return "paragraph";
+    if(type==="list_item"||key.indexOf("items[")>-1)return "list_item";
+    return "text";
+  }
 
   // ── click-to-edit ──────────────────────────────────────────────────────
   document.addEventListener("click",function(ev){
@@ -203,11 +225,25 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
       post({kind:"element-click",
         key:el.getAttribute("data-taya-edit"),
         type:el.getAttribute("data-taya-type"),
+        contentKind:kindOf(el),
         label:labelFor(el),
         alt:el.getAttribute("alt")||null,
         text:(el.textContent||"").trim().slice(0,200)||null,
         href:el.getAttribute("href")||null,
         itemId:itemIdOf(el)});
+      return;
+    }
+    // Added content blocks carry a stable id; report the block so the parent
+    // can open its edit form.
+    var bl=ev.target&&ev.target.closest?ev.target.closest("[data-taya-block-id]"):null;
+    if(bl){
+      ev.preventDefault();ev.stopPropagation();
+      select(bl);
+      var z=bl.closest("[data-taya-zone]");
+      post({kind:"block-click",
+        blockId:bl.getAttribute("data-taya-block-id"),
+        zone:z?z.getAttribute("data-taya-zone"):null,
+        label:labelFor(bl)});
       return;
     }
     // Intercept same-site nav links while editing \u2014 parent navigates.
@@ -221,14 +257,68 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
         if(abs){
           var u=new URL(abs);
           if(u.origin===CFG.origin){
+            ev.preventDefault();ev.stopPropagation();
             post({kind:"navigate",path:u.pathname+u.search});
+            return;
           }
+          // Off-site link while editing: never navigate silently.
+          ev.preventDefault();ev.stopPropagation();
+          post({kind:"locked-click",label:labelFor(a),external:true});
+          return;
         }
       }
     }
+    // Anything else (locked layout, decorative area): say so, never silent.
+    ev.preventDefault();
+    post({kind:"locked-click",label:labelFor(ev.target),external:false});
   },true);
 
   // ── draft overlay application (parent \u2192 frame) ────────────────────────
+  // Keyboard selection (a11y): tabbable content, Enter/Space to select,
+  // Escape to clear the selection.
+  function makeFocusable(){
+    var els=document.querySelectorAll("[data-taya-edit],[data-taya-block-id]");
+    for(var i=0;i<els.length;i++){
+      var el=els[i];
+      var n=el.getAttribute("tabindex");
+      if(n==null&&el.tabIndex<0)el.setAttribute("tabindex","0");
+    }
+  }
+  document.addEventListener("keydown",function(ev){
+    if(ev.key==="Escape"){
+      if(selected){deselect();post({kind:"selection-cleared"});}
+      return;
+    }
+    if(ev.key!=="Enter"&&ev.key!==" ")return;
+    var t=ev.target;
+    if(!t||!t.closest)return;
+    var el=t.closest("[data-taya-edit]");
+    if(el&&t===el){
+      ev.preventDefault();
+      select(el);
+      post({kind:"element-click",
+        key:el.getAttribute("data-taya-edit"),
+        type:el.getAttribute("data-taya-type"),
+        contentKind:kindOf(el),
+        label:labelFor(el),
+        alt:el.getAttribute("alt")||null,
+        text:(el.textContent||"").trim().slice(0,200)||null,
+        href:el.getAttribute("href")||null,
+        itemId:itemIdOf(el)});
+      return;
+    }
+    var bl=t.closest("[data-taya-block-id]");
+    if(bl&&t===bl){
+      ev.preventDefault();
+      select(bl);
+      var z=bl.closest("[data-taya-zone]");
+      post({kind:"block-click",
+        blockId:bl.getAttribute("data-taya-block-id"),
+        zone:z?z.getAttribute("data-taya-zone"):null,
+        label:labelFor(bl)});
+    }
+  });
+
   function applyValue(el,val,type){
     if(val==null)return false;
     if(type==="image"||el.tagName==="IMG"){el.setAttribute("src",val);return true;}
@@ -271,6 +361,34 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
     }
     return map;
   }
+  function itemRootOf(els){
+    // The item ROOT is the closest ancestor that contains ALL of the
+    // item's annotated elements and NO OTHER item's elements: walk up
+    // from the first element while the parent still owns the whole item
+    // exclusively. That resolves a card (ul>li with h3+p+img) to its li,
+    // and a lone link in a nav to the link itself -- never a bare h3
+    // dragged into another card, never the shared ul.
+    var id=itemIdOf(els[0]);
+    var foreign=[];
+    var allEls=document.querySelectorAll("[data-taya-edit]");
+    for(var q=0;q<allEls.length;q++){
+      var fid=itemIdOf(allEls[q]);
+      if(fid!==null&&fid!==id)foreign.push(allEls[q]);
+    }
+    var root=els[0];
+    while(root.parentElement){
+      var p=root.parentElement;
+      if(p===document.body||p===document.documentElement)break;
+      var owns=true;
+      for(var i=0;i<els.length;i++){if(!p.contains(els[i])){owns=false;break;}}
+      if(!owns)break;
+      var shared=false;
+      for(var f=0;f<foreign.length;f++){if(p.contains(foreign[f])){shared=true;break;}}
+      if(shared)break;
+      root=p;
+    }
+    return root;
+  }
 
   function opRemove(op){
     var m=itemBlocks();
@@ -287,27 +405,70 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
   }
 
   function opReorder(op){
-    // Move the FIRST container element of each item block to match order.
-    // The parent sends {itemIds:[...]} in desired order; blocks hide/show
-    // by index \u2014 visual reorder preview only (the draft carries the real
-    // reorder intent; publish writes the map).
+    // Reorder the ITEM ROOTS (the card/list-item containing all of an
+    // item's annotated elements), never a bare annotated element: the
+    // first element's parent is the WRONG home for a multi-element card
+    // (it would move a bare h3 into another card). The parent sends
+    // {itemIds:[...]} in desired order; this is visual preview only (the
+    // draft carries the real reorder intent; publish writes the map).
     try{
       var m=itemBlocks();
       var anchors=[];
       for(var i=0;i<op.itemIds.length;i++){
         var els=m[op.itemIds[i]];
-        if(els&&els.length)anchors.push(els[0]);
+        if(els&&els.length)anchors.push(itemRootOf(els));
       }
-      // find common parent of first anchors; re-append in order
       if(anchors.length>1){
-        var parent=anchors[0].parentElement;
-        if(parent){
-          for(var j=0;j<anchors.length;j++){
-            parent.insertBefore(anchors[j],parent.children[Math.min(j,parent.children.length)]||null);
-          }
+        // A page can hold SEVERAL repeatable lists (e.g. services + faq on
+        // the same page) and the parent sends ONE itemIds array covering
+        // them all. An item may only be reordered INSIDE its own list:
+        // group the item roots by the DOM container they live in and
+        // reorder each group on its own, preserving the relative order
+        // from itemIds. (Using a single shared parent would drag cards
+        // across lists.)
+        var groups=new Map();
+        for(var g=0;g<anchors.length;g++){
+          var gp=anchors[g].parentElement;
+          if(!gp)continue;
+          if(!groups.has(gp))groups.set(gp,[]);
+          groups.get(gp).push(anchors[g]);
         }
+        groups.forEach(function(list,parent){
+          if(list.length>1){
+            for(var j=0;j<list.length;j++){
+              parent.insertBefore(list[j],parent.children[Math.min(j,parent.children.length)]||null);
+            }
+          }
+        });
       }
       post({kind:"preview-applied",applied:0,op:"reorder"});
+    }catch(e){}
+  }
+
+  function opZoneRefresh(op){
+    // §6 block preview — REBUILD every zone container from the parent's
+    // server-rendered payload. The frame document has no [data-taya-zone]
+    // markers of its own (the annotator stamps data-taya-edit only), so
+    // every marker present was created by a previous preview pass —
+    // removing and re-appending is always safe and keeps preview stateless
+    // across reloads (the parent re-sends the full draft state on ready).
+    // Wrapper tags mirror renderZoneHtml: <section> for the additive zones,
+    // <div> for discovered ones — preview matches published rendering.
+    try{
+      var zones=op.zones||[];
+      var host=document.querySelector("main")||document.body;
+      if(!host)return;
+      for(var i=0;i<zones.length;i++){
+        var z=zones[i];
+        if(!z||!z.zone||typeof z.html!=="string")continue;
+        var stale=host.querySelectorAll('[data-taya-zone="'+z.zone+'"]');
+        for(var r=0;r<stale.length;r++){stale[r].parentNode&&stale[r].parentNode.removeChild(stale[r]);}
+        if(z.html){
+          var tag=(z.zone==="video-section"||z.zone==="cta-stack")?"section":"div";
+          host.insertAdjacentHTML("beforeend",'<'+tag+' class="taya-zone taya-zone-'+z.zone+'" data-taya-zone="'+z.zone+'">'+z.html+'</'+tag+'>');
+        }
+      }
+      post({kind:"preview-applied",applied:0,op:"zone-refresh"});
     }catch(e){}
   }
 
@@ -316,7 +477,13 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
     // client-side template in the dashboard, key-annotated). It is preview
     // only until the draft is published.
     try{
-      if(op.html&&op.containerSelector){
+      if(op.html&&op.zone){
+        // §6 zone-aware container — append INTO the zone container if a
+        // preview pass already created one, else into the page's main
+        // content flow (the snippet's honest fallback chain).
+        var c=document.querySelector('[data-taya-zone="'+op.zone+'"]')||document.querySelector("main")||document.body;
+        if(c){c.insertAdjacentHTML("beforeend",op.html);}
+      } else if(op.html&&op.containerSelector){
         var c=document.querySelector(op.containerSelector);
         if(c){c.insertAdjacentHTML("beforeend",op.html);}
       } else if(op.html){
@@ -343,9 +510,31 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
       else if(d.op==="restore")opRestore(d);
       else if(d.op==="reorder")opReorder(d);
       else if(d.op==="add")opAdd(d);
+      else if(d.op==="zone-refresh")opZoneRefresh(d);
     }
     else if(d.kind==="ping"){post({kind:"pong",path:CFG.path});}
   });
+
+  // Scroll preservation: remember where the client was on this page.
+  try{
+    var sp=sessionStorage.getItem("taya-editor-scroll");
+    var so=sp?JSON.parse(sp):null;
+    if(so&&so[CFG.path])window.scrollTo(0,so[CFG.path]);
+  }catch(e){}
+  var lastSave=0;
+  window.addEventListener("scroll",function(){
+    var now=Date.now();
+    if(now-lastSave<250)return;
+    lastSave=now;
+    try{
+      var sp=sessionStorage.getItem("taya-editor-scroll");
+      var so=sp?JSON.parse(sp):null;
+      if(!so)so={};
+      so[CFG.path]=window.scrollY||window.pageYOffset||0;
+      sessionStorage.setItem("taya-editor-scroll",JSON.stringify(so));
+    }catch(e){}
+  },{passive:true});
+  makeFocusable();
 
   post({kind:"ready",path:CFG.path,slug:CFG.slug});
 }();

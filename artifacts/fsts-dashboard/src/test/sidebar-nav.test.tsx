@@ -275,9 +275,20 @@ describe("sidebarNav model \u2014 registry groups & client language", () => {
     expect(items).toContain("Portal Manager\u2122");
   });
 
+  it("edit-website group exposes the Visual Editor entry (Edit Website group)", () => {
+    const groups = buildSidebarGroups(ctx());
+    const editWebsite = groups.find((g) => g.id === "edit-website");
+    expect(editWebsite).toBeTruthy();
+    const item = editWebsite!.items.find((i) => i.id === "visual-editor");
+    expect(item).toBeTruthy();
+    expect(item!.label).toBe("Visual Editor");
+    expect(item!.href).toBe(`/app/sites/${SITE_ID}/editor`);
+    // The editor is the primary client entry point: never design-locked away.
+    expect(item!.isDesignLocked ?? false).toBe(false);
+  });
+
   it("routes every site item under /app/sites/:siteId (User Management excepted)", () => {
-    const groups = buildSidebarGroups(ctx({ isSuperAdmin: true }));
-    for (const item of allItems(groups)) {
+    const groups = buildSidebarGroups(ctx({ isSuperAdmin: true }));    for (const item of allItems(groups)) {
       if (item.superAdminOnly) {
         expect(item.href).toBe("/app/admin/users");
       } else {

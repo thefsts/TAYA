@@ -16,6 +16,11 @@
  *   4. buildPreviewUrl joining semantics.
  *   5. Registry: buildRegistry allowlist enforcement, keyBelongsToPage
  *      longest-segment attribution, pageSegment normalization, BRIDGE_ATTRS.
+ *   6. §2/§3 mirror parity: safeLinks.classifyLink and videoEmbeds.parseVideoUrl
+ *      agree between convex/lib (canonical, server-side guard) and
+ *      lib/web-bridge/src (mirror, dashboard inline validation) on a full
+ *      accept/reject corpus — the dashboard's client-side reason shown to
+ *      the client is the exact reason the server would reject with.
  *
  * PURE tests (node environment, no Convex runtime).
  */
@@ -30,6 +35,18 @@ import {
   BRIDGE_ATTRS,
 } from "../../../lib/web-bridge/src/registry";
 import { generateBridgeSnippet, buildPreviewUrl } from "../../../lib/web-bridge/src/snippet";
+import {
+  classifyLink as canonClassifyLink,
+  MAX_LINK_LENGTH as canonMaxLinkLength,
+} from "../../../convex/lib/safeLinks";
+import {
+  classifyLink as mirrorClassifyLink,
+  MAX_LINK_LENGTH as mirrorMaxLinkLength,
+} from "../../../lib/web-bridge/src/safeLinks";
+import { parseVideoUrl as canonParseVideoUrl } from "../../../convex/lib/videoEmbeds";
+import { parseVideoUrl as mirrorParseVideoUrl } from "../../../lib/web-bridge/src/videoEmbeds";
+import type { SafeLinkKind } from "../../../lib/web-bridge/src/safeLinks";
+import type { VideoProvider } from "../../../lib/web-bridge/src/videoEmbeds";
 
 const CUSTOMER_NAMES = ["corsair", "fsts"];
 
@@ -41,9 +58,12 @@ describe("web-bridge contract — mirror parity (canonical ⇄ dashboard)", () =
     expect(MIRROR.BRIDGE_ATTR_LABEL).toBe(CANON.BRIDGE_ATTR_LABEL);
     expect(MIRROR.BRIDGE_ATTR_REPEATABLE).toBe(CANON.BRIDGE_ATTR_REPEATABLE);
     expect(MIRROR.BRIDGE_ATTR_PAGE).toBe(CANON.BRIDGE_ATTR_PAGE);
+    expect(MIRROR.BRIDGE_ATTR_ZONE).toBe(CANON.BRIDGE_ATTR_ZONE);
     expect(MIRROR.BRIDGE_EVENT_READY).toBe(CANON.BRIDGE_EVENT_READY);
     expect(MIRROR.BRIDGE_EVENT_CLICK).toBe(CANON.BRIDGE_EVENT_CLICK);
     expect(MIRROR.BRIDGE_EVENT_PREVIEW_APPLIED).toBe(CANON.BRIDGE_EVENT_PREVIEW_APPLIED);
+    expect(MIRROR.BRIDGE_EVENT_BLOCKS_APPLIED).toBe(CANON.BRIDGE_EVENT_BLOCKS_APPLIED);
+    expect(MIRROR.BRIDGE_EVENT_STRUCTURAL_APPLIED).toBe(CANON.BRIDGE_EVENT_STRUCTURAL_APPLIED);
     expect(MIRROR.BRIDGE_PATH_CONTENT).toBe(CANON.BRIDGE_PATH_CONTENT);
     expect(MIRROR.BRIDGE_PATH_DRAFT).toBe(CANON.BRIDGE_PATH_DRAFT);
     expect(MIRROR.BRIDGE_PATH_VERIFY).toBe(CANON.BRIDGE_PATH_VERIFY);
@@ -55,12 +75,14 @@ describe("web-bridge contract — mirror parity (canonical ⇄ dashboard)", () =
     expect(MIRROR.BRIDGE_FIELD_PAGES).toBe(CANON.BRIDGE_FIELD_PAGES);
     expect(MIRROR.BRIDGE_FIELD_MODE).toBe(CANON.BRIDGE_FIELD_MODE);
     expect(MIRROR.BRIDGE_FIELD_VERSION).toBe(CANON.BRIDGE_FIELD_VERSION);
+    expect(MIRROR.BRIDGE_FIELD_BLOCKS).toBe(CANON.BRIDGE_FIELD_BLOCKS);
+    expect(MIRROR.BRIDGE_FIELD_STRUCTURAL).toBe(CANON.BRIDGE_FIELD_STRUCTURAL);
     expect([...MIRROR.BRIDGE_ENTRY_TYPES]).toEqual([...CANON.BRIDGE_ENTRY_TYPES]);
     expect([...MIRROR.BRIDGE_SNIPPET_PARAMS]).toEqual([...CANON.BRIDGE_SNIPPET_PARAMS]);
   });
 
   it("locks the concrete wire values the protocol depends on", () => {
-    expect(CANON.TAYA_BRIDGE_VERSION).toBe(1);
+    expect(CANON.TAYA_BRIDGE_VERSION).toBe(2);
     expect(CANON.BRIDGE_ATTR_KEY).toBe("data-taya-edit");
     expect(CANON.BRIDGE_ENTRY_TYPES).toEqual([
       "text",
@@ -81,6 +103,12 @@ describe("web-bridge contract — mirror parity (canonical ⇄ dashboard)", () =
     expect(CANON.BRIDGE_PARAM_SLUG).toBe("slug");
     expect(CANON.BRIDGE_PARAM_TOKEN).toBe("token");
     expect(CANON.BRIDGE_SNIPPET_PARAMS).toEqual(["slug"]);
+    // v2 additions — safe insertion zones (§6)
+    expect(CANON.BRIDGE_ATTR_ZONE).toBe("data-taya-zone");
+    expect(CANON.BRIDGE_EVENT_BLOCKS_APPLIED).toBe("taya:blocks-applied");
+    expect(CANON.BRIDGE_EVENT_STRUCTURAL_APPLIED).toBe("taya:structural-applied");
+    expect(CANON.BRIDGE_FIELD_BLOCKS).toBe("blocks");
+    expect(CANON.BRIDGE_FIELD_STRUCTURAL).toBe("structural");
   });
 
   it("isValidBridgeKey agrees between the two files on the sample corpus", () => {
@@ -196,7 +224,26 @@ describe("web-bridge snippet — universality and determinism", () => {
     expect(snippet).not.toMatch(/\bimport\s/);
     expect(snippet).not.toMatch(/\brequire\s*\(/);
     expect(snippet).not.toContain("from \"./contract\"");
-    expect(snippet.startsWith("<!-- TAYA Web Bridge v1 -->")).toBe(true);
+    expect(snippet.startsWith("<!-- TAYA Web Bridge v2 -->")).toBe(true);
+  });
+
+  it("v2: renders zone blocks into [data-taya-zone] containers with honest fallback", () => {
+    expect(snippet).toContain('data-taya-zone="');
+    // container resolution: zone marker first, main/body fallback
+    expect(snippet).toContain("document.querySelector(zoneSelector(z.zone))");
+    expect(snippet).toContain("document.querySelector('main')||document.body");
+    // appended HTML is server-sanitized; the snippet only inserts it
+    expect(snippet).toContain("insertAdjacentHTML('beforeend',z.html)");
+    expect(snippet).toContain("taya:blocks-applied");
+  });
+
+  it("v2: applies published structural ops (hide + reorder §6 repeatables)", () => {
+    expect(snippet).toContain("hiddenItems");
+    expect(snippet).toContain("itemOrder");
+    expect(snippet).toContain("taya:structural-applied");
+    // hidden items get display:none; ordered items get DOM-reordered
+    expect(snippet).toContain(".style.display='none'");
+    expect(snippet).toContain("parent.insertBefore(anchors[a],");
   });
 
   it("stabilizes against URL-joiner variants of the base", () => {
@@ -327,6 +374,21 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
   const convexHttpUrl = "https://uncommon-cobra-336.convex.site";
   const slug = "example-external-site";
 
+  /**
+   * Strict like a browser: bare attribute selectors [name], attribute
+   * equals [name="value"], and single tag names parse; anything else
+   * (combinators, quoted names, pseudo-classes) throws SyntaxError.
+   */
+  function parseSelector(sel: string) {
+    let m = /^[a-z][a-z0-9-]*$/i.exec(sel);
+    if (m) return { kind: "tag" as const, tag: m[0].toLowerCase() };
+    m = /^\[([A-Za-z_][A-Za-z0-9_-]*)(?:="([^"\\]*)")?\]$/.exec(sel);
+    if (m) return { kind: "attr" as const, name: m[1], value: m[2] };
+    throw new Error(
+      `SyntaxError: '${sel}' is not a valid selector (mirrors browser querySelector)`,
+    );
+  }
+
   /** Strict like a browser: only bare attribute selectors [name] parse. */
   function assertValidSelector(sel: string) {
     if (!/^\[[A-Za-z_][A-Za-z0-9_-]*\]$/.test(sel)) {
@@ -337,11 +399,43 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
   }
 
   function makeElement(tag: string, attrs: Record<string, string> = {}) {
-    return {
+    const el: any = {
       tagName: tag,
       attributes: { ...attrs } as Record<string, string>,
       textContent: "",
       parent: null as any,
+      children: [] as any[],
+      style: {} as Record<string, string>,
+      _inserted: [] as Array<{ pos: string; html: string }>,
+      get parentElement() {
+        return this.parent;
+      },
+      appendChild(child: any) {
+        child.parent = this;
+        this.children.push(child);
+        return child;
+      },
+      insertAdjacentHTML(pos: string, html: string) {
+        if (!/^(beforebegin|afterbegin|beforeend|afterend)$/.test(pos)) {
+          throw new Error(`SyntaxError: '${pos}' is not an insert position`);
+        }
+        // The mock records the server-sanitized html verbatim; the snippet
+        // only appends, never parses it back out.
+        this._inserted.push({ pos, html: String(html) });
+      },
+      insertBefore(node: any, ref: any) {
+        // DOM pre-insert semantics: inserting before yourself is a no-op.
+        if (node === ref) return node;
+        if (node.parent && Array.isArray(node.parent.children)) {
+          const i = node.parent.children.indexOf(node);
+          if (i !== -1) node.parent.children.splice(i, 1);
+        }
+        node.parent = this;
+        const idx = ref == null ? this.children.length : this.children.indexOf(ref);
+        if (idx === -1) this.children.push(node);
+        else this.children.splice(idx, 0, node);
+        return node;
+      },
       getAttribute(n: string) {
         return this.attributes[n] ?? null;
       },
@@ -359,15 +453,40 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
         return null;
       },
     };
+    return el;
   }
 
-  function makeWorld(opts: { published?: any; drafts?: any; search?: string } = {}) {
+  function makeWorld(
+    opts: {
+      published?: any;
+      drafts?: any;
+      search?: string;
+      pathname?: string;
+      pages?: any;
+      blocks?: any;
+      structural?: any;
+      draftBlocks?: any;
+      draftStructural?: any;
+    } = {},
+  ) {
     const events: Array<{ type: string; detail: any }> = [];
     const fetches: string[] = [];
     const beacons: Array<{ url: string; blob: any }> = [];
 
+    // The document tree: body (with a <main> child) is the honest fallback
+    // container for zone blocks without a [data-taya-zone] marker.
+    const body = makeElement("body");
+    const main = makeElement("main");
+    body.appendChild(main);
+
     const doc: any = {
-      _nodes: [] as any[],
+      _nodes: [body, main] as any[],
+      body,
+      main,
+      addNode(el: any) {
+        this._nodes.push(el);
+        return el;
+      },
       _handlers: {} as Record<string, Array<(ev: any) => void>>,
       addEventListener(type: string, fn: (ev: any) => void) {
         (this._handlers[type] ||= []).push(fn);
@@ -381,6 +500,24 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
         const name = sel.slice(1, -1);
         return this._nodes.filter((n: any) => n.attributes[name] !== undefined);
       },
+      querySelector(sel: string) {
+        const s = parseSelector(sel);
+        if (s.kind === "tag") {
+          return (
+            this._nodes.find(
+              (n: any) =>
+                typeof n.tagName === "string" && n.tagName.toLowerCase() === s.tag,
+            ) ?? null
+          );
+        }
+        return (
+          this._nodes.find((n: any) =>
+            s.value === undefined
+              ? n.attributes[s.name] !== undefined
+              : n.attributes[s.name] === s.value,
+          ) ?? null
+        );
+      },
       fire(type: string, ev: any) {
         for (const fn of this._handlers[type] ?? []) fn(ev);
       },
@@ -389,9 +526,26 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
     const fetchImpl = (url: string) => {
       fetches.push(url);
       let payload: any = null;
-      if (url.includes("/api/bridge/content")) payload = { values: opts.published ?? {} };
-      if (url.includes("/api/bridge/draft"))
-        payload = { values: opts.published ?? {}, drafts: opts.drafts ?? {} };
+      if (url.includes("/api/bridge/content")) {
+        payload = {
+          values: opts.published ?? {},
+          pages: opts.pages ?? [],
+          blocks: opts.blocks ?? {},
+          structural: opts.structural ?? {},
+        };
+      }
+      if (url.includes("/api/bridge/draft")) {
+        payload = {
+          values: opts.published ?? {},
+          drafts: opts.drafts ?? {},
+          pages: opts.pages ?? [],
+          // Draft preview overlays the OWNER's pending blocks/structural on
+          // top of the published ones (draft isolation still holds for the
+          // public /content endpoint).
+          blocks: opts.draftBlocks ?? opts.blocks ?? {},
+          structural: opts.draftStructural ?? opts.structural ?? {},
+        };
+      }
       return Promise.resolve({ ok: true, json: () => Promise.resolve(payload) });
     };
 
@@ -401,7 +555,7 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
         return true;
       },
     };
-    const loc: any = { search: opts.search ?? "" };
+    const loc: any = { search: opts.search ?? "", pathname: opts.pathname ?? "/" };
     class FakeCustomEvent {
       type: string;
       detail: any;
@@ -449,7 +603,12 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
       href: "/discovered-cta",
     });
     const plainH2 = makeElement("h2"); // untagged — must never be touched
-    w.doc._nodes.push(h1, p, img, a, plainH2);
+    // Attach the proof tree under <main>: a real document shape, so zone
+    // containers/fallbacks and item parents resolve like a browser would.
+    for (const el of [h1, p, img, a, plainH2]) {
+      w.doc.main.appendChild(el);
+      w.doc._nodes.push(el);
+    }
     return { h1, p, img, a, plainH2 };
   }
 
@@ -568,7 +727,297 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
       execute(generateBridgeSnippet({ convexHttpUrl, slug }), w),
     ).not.toThrow();
     await flushMicrotasks(); // rejected click fetch must be swallowed
-    const dom = w.doc._nodes[0];
+    const dom = w.doc.querySelectorAll("[data-taya-edit]")[0];
     expect(dom.textContent).toBe("PUBLISHED HEADING");
+  });
+
+  // ── v2 execution: zone blocks + structural ops in the DOM world ──────
+  const ZONE_ATTR = "data-taya-zone";
+
+  function zoneDom(w: ReturnType<typeof makeWorld>) {
+    // A services list: 3 repeatable items, each with a title keyed by the
+    // §5 grammar. All share parent <main> — same as the frame's world.
+    const items = [0, 1, 2].map((i) =>
+      makeElement("article", {
+        [ATTR]: `home.services.items[${i}].title`,
+        "data-taya-type": "list_item",
+      }),
+    );
+    for (const it of items) {
+      w.doc.main.appendChild(it);
+      w.doc._nodes.push(it);
+    }
+    return { items };
+  }
+
+  it("v2: renders published zone blocks into the [data-taya-zone] container (not main fallback)", async () => {
+    const w = makeWorld({
+      pages: [{ path: "/" }],
+      blocks: {
+        "/": [{ zone: "cta-stack", html: '<div class="taya-block cta">BOOK NOW</div>' }],
+      },
+    });
+    // The site author placed a zone marker container in their own markup.
+    const zoneBox = makeElement("div", { [ZONE_ATTR]: "cta-stack" });
+    w.doc.main.appendChild(zoneBox);
+    w.doc._nodes.push(zoneBox);
+
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(zoneBox._inserted).toEqual([
+      { pos: "beforeend", html: '<div class="taya-block cta">BOOK NOW</div>' },
+    ]);
+    // fallback container untouched — the marker wins
+    expect(w.doc.main._inserted).toEqual([]);
+    const blocksEvt = w.events.find((e) => e.type === "taya:blocks-applied");
+    expect(blocksEvt).toBeTruthy();
+    expect(blocksEvt!.detail.count).toBe(1);
+  });
+
+  it("v2: honest fallback — no zone marker → main is the container", async () => {
+    const w = makeWorld({
+      pages: [{ path: "/" }],
+      blocks: {
+        "/": [{ zone: "hero", html: "<h2 class=\"taya-block\">Drafted heading</h2>" }],
+      },
+    });
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(w.doc.main._inserted).toEqual([
+      { pos: "beforeend", html: '<h2 class="taya-block">Drafted heading</h2>' },
+    ]);
+    expect(w.events.find((e) => e.type === "taya:blocks-applied")).toBeTruthy();
+  });
+
+  it("v2: resolves the page by route path from the payload (trailing slash + index.html variants)", async () => {
+    const w = makeWorld({
+      pathname: "/services/index.html",
+      pages: [{ path: "/services" }],
+      blocks: { "/services": [{ zone: "service-list", html: "<p>SERVE</p>" }] },
+    });
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(w.doc.main._inserted).toEqual([{ pos: "beforeend", html: "<p>SERVE</p>" }]);
+  });
+
+  it("v2: unknown page → honest no-op (no blocks rendered, no events faked)", async () => {
+    const w = makeWorld({
+      pathname: "/not-in-payload",
+      pages: [{ path: "/" }],
+      blocks: { "/": [{ zone: "hero", html: "<p>HOME ONLY</p>" }] },
+    });
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(w.doc.main._inserted).toEqual([]);
+    expect(w.events.find((e) => e.type === "taya:blocks-applied")).toBeUndefined();
+    // ready still fires — values applied regardless of blocks
+    expect(w.events.find((e) => e.type === "taya:bridge-ready")).toBeTruthy();
+  });
+
+  it("v2: hides removed items (display:none) and reorders the rest (DOM move)", async () => {
+    const w = makeWorld({
+      pages: [{ path: "/" }],
+      structural: {
+        "/": {
+          hiddenItems: ["home.services.items[1]"],
+          itemOrder: ["home.services.items[2]", "home.services.items[0]"],
+        },
+      },
+    });
+    const { items } = zoneDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(items[1].style.display).toBe("none");
+    expect(items[0].style.display).not.toBe("none");
+    // anchor children of main now ordered [2, 0, 1]
+    expect(w.doc.main.children).toEqual([items[2], items[0], items[1]]);
+    const stEvt = w.events.find((e) => e.type === "taya:structural-applied");
+    expect(stEvt).toBeTruthy();
+    expect(stEvt!.detail).toEqual({ hidden: 1, reordered: 2 });
+  });
+
+  it("v2: preview mode defers blocks/structural to the single token-gated draft pass (no double render)", async () => {
+    const w = makeWorld({
+      search: "?taya_preview=abcdef123456abcdef123456",
+      pages: [{ path: "/" }],
+      blocks: { "/": [{ zone: "hero", html: "<p>PUBLISHED BLOCK</p>" }] },
+      draftBlocks: { "/": [{ zone: "hero", html: "<p>DRAFT BLOCK (owner)</p>" }] },
+    });
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    // exactly ONE render — the token-gated draft pass (complete draft
+    // state); the public pass deferred blocks/structural to it so
+    // unchanged blocks never render twice.
+    expect(w.doc.main._inserted).toEqual([
+      { pos: "beforeend", html: "<p>DRAFT BLOCK (owner)</p>" },
+    ]);
+    const evts = w.events.filter((e) => e.type === "taya:blocks-applied");
+    expect(evts.length).toBe(1);
+    expect(evts[0]!.detail).toEqual({ count: 1, draft: true });
+    // values still applied by the public pass (graceful fallback if the
+    // draft fetch were to fail — the owner still sees published values)
+    const applied = w.events.find((e) => e.type === "taya:preview-applied");
+    expect(applied).toBeTruthy();
+    expect(applied!.detail.draftCount).toBe(0);
+  });
+});
+
+// ──────────────────────────────────────────────────────
+// §2/§3 MIRROR PARITY — safeLinks + videoEmbeds (canonical ⇄ dashboard)
+// ─────────────────────────────────────────────────────────────────────
+
+const LINK_CORPUS: Array<{ raw: string; kind: SafeLinkKind | "empty" | "reject" }> = [
+  { raw: "", kind: "empty" },
+  { raw: "#", kind: "anchor" },
+  { raw: "#pricing", kind: "anchor" },
+  { raw: "/about", kind: "internal" },
+  { raw: "/services", kind: "internal" },
+  { raw: "/blog/post-one", kind: "internal" },
+  { raw: "https://example.com", kind: "external" },
+  { raw: "https://example.com/page?x=1", kind: "external" },
+  { raw: "http://example.com", kind: "external" },
+  { raw: "example.com/pricing", kind: "external" },
+  { raw: "www.example.com", kind: "external" },
+  { raw: "tel:5551234567", kind: "phone" },
+  { raw: "tel:+1 (555) 123-4567", kind: "phone" },
+  { raw: "tel:5551234567x22", kind: "phone" }, // extension via x/X marker
+  { raw: "tel:5551234567,ext=22", kind: "reject" }, // comma-ext NOT supported
+  { raw: "mailto:hi@example.com", kind: "email" },
+  { raw: "mailto:hi@example.com?subject=Hello", kind: "email" },
+  // pasted-URL whitespace trims (WHATWG URL discipline — paste UX)
+  { raw: " https://example.com", kind: "external" },
+  { raw: "https://example.com ", kind: "external" },
+  // anchors with a space are harmless in-page fragments (kept verbatim)
+  { raw: "#a b", kind: "anchor" },
+];
+
+const LINK_REJECTS: string[] = [
+  "javascript:alert(1)",
+  "JaVaScRiPt:alert(1)",
+  "data:text/html;base64,PHNjcmlwdD4=",
+  "vbscript:msgbox(1)",
+  "//example.com",
+  "https://user:pass@example.com",
+  "ftp://files.example.com",
+  "mailto:not-an-email",
+  "mailto:a@b",
+  "tel:",
+  "tel:abc",
+  "tel:+",
+  "https://",
+  "https://.com",
+  "about:blank",
+  "file:///etc/passwd",
+  "/" + "a".repeat(3000),
+];
+
+describe("web-bridge §2 safeLinks — mirror parity (canonical ⇄ dashboard)", () => {
+  it("classifyLink agrees on every corpus entry (accept side)", () => {
+    for (const { raw, kind } of LINK_CORPUS) {
+      const c = canonClassifyLink(raw);
+      const m = mirrorClassifyLink(raw);
+      // parity is the core pin — both files decide identically
+      expect(m).toEqual(c);
+      if (kind === "reject") {
+        // corpus-marked rejects (syntax the module intentionally rejects)
+        expect(c.ok).toBe(false);
+        continue;
+      }
+      expect(c.ok).toBe(true);
+      if (c.ok) {
+        if (kind === "empty") expect(c.normalized).toBe("");
+        else expect(c.kind).toBe(kind);
+      }
+    }
+  });
+
+  it("classifyLink agrees on every corpus entry (reject side)", () => {
+    for (const raw of LINK_REJECTS) {
+      const c = canonClassifyLink(raw);
+      const m = mirrorClassifyLink(raw);
+      expect(m).toEqual(c);
+      expect(c.ok).toBe(false);
+      if (!c.ok) expect(typeof c.reason).toBe("string");
+    }
+  });
+
+  it("normalizes phones to compact tel: form identically", () => {
+    for (const raw of ["tel:5551234567", "tel:+1 (555) 123-4567"]) {
+      expect(mirrorClassifyLink(raw)).toEqual(canonClassifyLink(raw));
+    }
+  });
+
+  it("MAX_LINK_LENGTH pins equal", () => {
+    expect(mirrorMaxLinkLength).toBe(canonMaxLinkLength);
+  });
+});
+
+const VIDEO_ACCEPTS: Array<{ raw: string; provider: VideoProvider }> = [
+  { raw: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", provider: "youtube" },
+  { raw: "https://youtu.be/dQw4w9WgXcQ", provider: "youtube" },
+  { raw: "https://m.youtube.com/watch?v=dQw4w9WgXcQ", provider: "youtube" },
+  { raw: "https://music.youtube.com/watch?v=dQw4w9WgXcQ", provider: "youtube" },
+  { raw: "https://www.youtube.com/shorts/abc123XYZ_-", provider: "youtube" },
+  { raw: "https://www.youtube.com/embed/dQw4w9WgXcQ", provider: "youtube" },
+  { raw: "https://www.youtube.com/live/dQw4w9WgXcQ", provider: "youtube" },
+  { raw: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ", provider: "youtube" },
+  { raw: "https://vimeo.com/76979871", provider: "vimeo" },
+  { raw: "https://player.vimeo.com/video/76979871", provider: "vimeo" },
+  { raw: "https://vimeo.com/76979871?h=2f66e2b3c9", provider: "vimeo" },
+  { raw: "https://vimeo.com/76979871/2f66e2b3c9", provider: "vimeo" },
+];
+
+const VIDEO_REJECTS: string[] = [
+  "",
+  "not a url",
+  '<iframe src="https://youtube.com/embed/x"></iframe>',
+  "javascript:alert(1)",
+  "https://example.com/watch?v=dQw4w9WgXcQ",
+  "https://youtube.com/watch?v=short",
+  "https://youtube.com/watch",
+  "https://youtube.com/browse",
+  "https://vimeo.com/abc",
+  "https://vimeo.com/12345678901234567890",
+  "dQw4w9WgXcQ",
+];
+
+describe("web-bridge §3 videoEmbeds — mirror parity (canonical ⇄ dashboard)", () => {
+  it("parseVideoUrl agrees on every corpus entry (accept side)", () => {
+    for (const { raw, provider } of VIDEO_ACCEPTS) {
+      const c = canonParseVideoUrl(raw);
+      const m = mirrorParseVideoUrl(raw);
+      expect(m).toEqual(c);
+      expect(c.ok).toBe(true);
+      if (c.ok) {
+        expect(c.provider).toBe(provider);
+        expect(c.embedUrl).toContain(provider === "youtube" ? "youtube" : "vimeo");
+        expect(c.watchUrl).toContain(provider === "youtube" ? "watch" : "vimeo.com");
+      }
+    }
+  });
+
+  it("parseVideoUrl agrees on every corpus entry (reject side)", () => {
+    for (const raw of VIDEO_REJECTS) {
+      const c = canonParseVideoUrl(raw);
+      const m = mirrorParseVideoUrl(raw);
+      expect(m).toEqual(c);
+      expect(c.ok).toBe(false);
+      if (!c.ok) expect(typeof c.reason).toBe("string");
+    }
+  });
+
+  it("embed URLs are provider-hosted only — no arbitrary embed HTML", () => {
+    for (const { raw } of VIDEO_ACCEPTS) {
+      const c = canonParseVideoUrl(raw);
+      if (c.ok) {
+        expect(c.embedUrl).toMatch(/^https:\/\/(www\.)?(youtube(-nocookie)?\.com|player\.vimeo\.com|youtube\.com)\//);
+      }
+    }
   });
 });

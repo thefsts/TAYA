@@ -142,7 +142,7 @@ describe("GET /api/bridge/content", () => {
   it("returns 200 + CORS + the manifest payload verbatim", async () => {
     const manifest = {
       version: 1,
-      bridgeVersion: 1,
+      bridgeVersion: 2,
       domain: "proof.example",
       mode: "TAYA_CONNECTED",
       publishedAt: 1700000000000,
@@ -189,7 +189,7 @@ describe("GET /api/bridge/draft", () => {
   it("returns 200 + the owner-preview payload (values + drafts) verbatim", async () => {
     const preview = {
       version: 1,
-      bridgeVersion: 1,
+      bridgeVersion: 2,
       domain: "proof.example",
       mode: "DISCOVERED_EXTERNAL",
       pages: [],
@@ -252,7 +252,7 @@ describe("POST /api/bridge/verify", () => {
       matches: true,
       method: "bridge_token",
       state: "verification_pending",
-      bridgeVersion: 1,
+      bridgeVersion: 2,
     };
     const res = await capturedRoutes.get(KEY)!(
       ctxWith(verdict),
@@ -715,7 +715,7 @@ describe("bridge._content — PUBLISHED-ONLY manifest (no draft ever leaks)", ()
     const data: any = await t.query(internal.bridge._content, { slug: ALPHA_SLUG });
     expect(data).toBeTruthy();
     expect(data.version).toBe(1);
-    expect(data.bridgeVersion).toBe(1);
+    expect(data.bridgeVersion).toBe(2);
     expect(data.domain).toBe("alphabridge.example");
     expect(data.mode).toBe("DISCOVERED_EXTERNAL");
     expect(data.publishedAt).toBe(1700000000000);
@@ -851,7 +851,7 @@ describe("bridge._verifyPing — the bridge_token exchange contract", () => {
       matches: true,
       method: "html_meta_token",
       state: "verification_pending",
-      bridgeVersion: 1,
+      bridgeVersion: 2,
     });
   });
 

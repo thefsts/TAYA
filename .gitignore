@@ -56,3 +56,11 @@ corsair-source/
 
 # Playwright generated reports
 tests/corsair-e2e/playwright-report/
+
+# Live UX harness: generated artifacts (evidence screenshots, TLS certs,
+# bundled pipeline copies, playwright run output) - regenerate via
+# scripts/make-cert.mjs, scripts/bundle.mjs and the spec runs themselves.
+tests/live-ux/evidence/
+tests/live-ux/evidence-boot*.png
+tests/live-ux/certs/
+tests/live-ux/test-results/
