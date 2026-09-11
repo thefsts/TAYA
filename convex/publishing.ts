@@ -41,6 +41,7 @@ import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
 import { recordVersion } from "./lib/recordVersion";
 import { ownershipState } from "./ownershipVerification";
+import { classifyLink } from "./lib/safeLinks";
 
 /** The three connection modes (§6) — the full locked set. */
 export const CONNECTION_MODES = [
@@ -165,14 +166,37 @@ async function loadContentMapDoc(ctx: MutationCtx, siteId: any) {
 }
 
 /**
- * Write overlays (draft or published) onto the site's content map.
- * INTERNAL-ONLY — the public mutations below gate access + permission
- * first, then call this. This keeps the write surface auditably small:
- * no client can write overlays except through saveDraft / discardDraft /
- * publishContentMap.
+ * URL/link validation guard (§2 — safe button/link editing).
+ *
+ * saveDraft is the ONLY client-writable path into map overlays, so unsafe
+ * destinations must die HERE, server-side: a compromised client (or any
+ * future surface that calls saveDraft) can never smuggle javascript:/data:/
+ * scheme-relative or malformed URLs into the map — even though the frame
+ * bootstrap and the bridge also never execute those values.
+ *
+ * Applies to entries the discovery grammar types as link-bearing:
+ *   - type "url"   (hero primaryButton.href + list_item .href companions)
+ *   - type "image" (Media Library CDN https URLs, or discovered /path.src)
+ *   - type "button"/"link" (normalized crawl types for anchor elements)
+ *
+ * The NORMALIZED value is stored (bare domains upgrade to https://, phone
+ * numbers compact to tel:+…), and rejections carry the same client-safe
+ * reason the editor control shows. Empty values are always allowed
+ * (clearing a draft). Text and list_item label entries pass through —
+ * their values render as text, not URLs.
  */
-export const _applyOverlay = internalMutation({
-  args: {
+function guardLinkValue(key: string, value: string, entryType: string | undefined): string {
+  const type = entryType ?? "text";
+  if (type !== "url" && type !== "image" && type !== "button" && type !== "link") return value;
+  if (value === "") return value; // clearing is always allowed
+  const verdict = classifyLink(value);
+  if (!verdict.ok) {
+    throw new ConvexError(`Unsafe destination on "${key}": ${verdict.reason}`);
+  }
+  return verdict.normalized;
+}
+
+export const _applyOverlay = internalMutation({  args: {
     siteId: v.id("sites"),
     /** "draft" | "published" | "discard" */
     overlay: v.string(),
@@ -232,10 +256,24 @@ export const saveDraft = mutation({
     const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     if (entries.length === 0) throw new ConvexError("No draft entries provided.");
 
+    // §2 href guard — validate + normalize link-bearing drafts BEFORE they
+    // land in the map (the map doc is loaded once, then each entry checked).
+    const map = await loadContentMapDoc(ctx, siteId);
+    if (!map) {
+      throw new ConvexError(
+        "No content map for this site yet — discovery must complete first.",
+      );
+    }
+    const existingTypes: Record<string, any> = (map.entries ?? {}) as Record<string, any>;
+    const guarded = entries.map((e) => ({
+      key: e.key,
+      value: guardLinkValue(e.key, e.value, existingTypes[e.key]?.type),
+    }));
+
     const applied = await ctx.runMutation(internal.publishing._applyOverlay, {
       siteId,
       overlay: "draft",
-      entries,
+      entries: guarded,
     });
 
     await logActivity(ctx, {

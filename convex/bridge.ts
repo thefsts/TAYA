@@ -42,6 +42,8 @@
 import { internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { TAYA_BRIDGE_VERSION } from "./lib/webBridgeContract";
+import { renderBlockHtml, renderZoneHtml } from "./lib/editorBlocks";
+import type { BlockContent, ZoneId } from "./lib/editorZones";
 
 /** Resolve a site by public slug. */
 async function siteBySlug(ctx: any, slug: string) {
@@ -79,6 +81,11 @@ export function publishedValue(entry: any): string | null {
  * For a site with no published overlays yet, this equals the discovered
  * baseline (the crawl's read-only snapshot of the site's own content —
  * serving it back is not a leak; the site already renders it publicly).
+ *
+ * v2 additions (§6 safe insertion zones): `blocks` (rendered sanitized
+ * HTML per zone per page, PUBLISHED only — never draft blocks) and
+ * `structural` (published itemOrder/hiddenItems per page). v1 consumers
+ * ignore unknown fields — the value surface is untouched.
  */
 export const _content = internalQuery({
   args: { slug: v.string() },
@@ -104,9 +111,97 @@ export const _content = internalQuery({
       publishedAt: (map as any).refreshedAt ?? null,
       pages: map.pages ?? [],
       values,
+      blocks: await publishedBlocksFor(ctx, site._id),
+      structural: await publishedStructuralFor(ctx, site._id),
     };
   },
 });
+
+/**
+ * PUBLISHED-ONLY zone blocks for the bridge payload: rendered sanitized
+ * HTML per (page, zone), in editorial order. Drafts never reach this
+ * payload (draft isolation for anonymous visitors). Mirrors the shape of
+ * editorZones._publishedZones but re-rendered here (same lib) so the
+ * bridge module owns its own payload assembly.
+ */
+async function publishedBlocksFor(ctx: any, siteId: any) {
+  const blocks: Record<string, Array<{ zone: string; html: string }>> = {};
+  const rows = (await ctx.db
+    .query("siteEditorBlocks")
+    .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+    .collect()) as Array<any>;
+  const byZone = new Map<string, Array<any>>();
+  for (const b of rows) {
+    if (b.pendingDelete) continue;
+    const published = b.published;
+    if (!published || typeof published !== "object") continue;
+    const key = `${b.pagePath}\u0000${b.zone}`;
+    (byZone.get(key) ?? byZone.set(key, []).get(key)!).push(b);
+  }
+  for (const [key, zoneBlocks] of byZone) {
+    const [pagePath, zone] = key.split("\u0000");
+    const sorted = zoneBlocks.sort((a: any, b: any) => a.order - b.order);
+    const html = sorted
+      .map((b: any) => renderBlockHtmlSafe(publishedToBlockContent(b.published)))
+      .filter((h: string) => h !== "");
+    if (html.length > 0) {
+      blocks[pagePath] = blocks[pagePath] ?? [];
+      blocks[pagePath].push({ zone, html: renderZoneSafe(zone, html) });
+    }
+  }
+  return blocks;
+}
+
+/** Type-narrow a stored published value to BlockContent for rendering. */
+function publishedToBlockContent(published: unknown): BlockContent | null {
+  if (!published || typeof published !== "object") return null;
+  const candidate = published as { kind?: unknown };
+  if (typeof candidate.kind !== "string") return null;
+  return published as BlockContent;
+}
+
+/** Render + sanitize one block; empty string on any failure (fail closed). */
+function renderBlockHtmlSafe(content: BlockContent | null): string {
+  if (!content) return "";
+  try {
+    return renderBlockHtml(content);
+  } catch {
+    return "";
+  }
+}
+
+/** Wrap a zone's block HTML in its container div; empty string on failure. */
+function renderZoneSafe(zone: string, html: Array<string>): string {
+  try {
+    return renderZoneHtml(zone as ZoneId, html);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * PUBLISHED-ONLY structural ops per page (itemOrder/hiddenItems). Drafts
+ * never reach this payload. Entries only exist for pages with published
+ * structural changes — absent pages mean "site's own order" (no-op).
+ */
+async function publishedStructuralFor(ctx: any, siteId: any) {
+  const structural: Record<string, { itemOrder?: string[]; hiddenItems?: string[] }> = {};
+  const rows = (await ctx.db
+    .query("siteEditorStructuralOps")
+    .withIndex("by_site", (q: any) => q.eq("siteId", siteId))
+    .collect()) as Array<any>;
+  for (const s of rows) {
+    const page: { itemOrder?: string[]; hiddenItems?: string[] } = {};
+    if (Array.isArray(s.publishedItemOrder) && s.publishedItemOrder.length > 0) {
+      page.itemOrder = s.publishedItemOrder;
+    }
+    if (Array.isArray(s.publishedHiddenItems) && s.publishedHiddenItems.length > 0) {
+      page.hiddenItems = s.publishedHiddenItems;
+    }
+    if (Object.keys(page).length > 0) structural[s.pagePath] = page;
+  }
+  return structural;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/bridge/draft — token-gated draft overlay
@@ -146,6 +241,52 @@ export const _draft = internalQuery({
       if (entry?.draft !== undefined) drafts[key] = entry.draft;
     }
 
+    // v2: draft blocks + structural overlay for owner preview (§6). The
+    // token gate above already restricted this payload to the owner —
+    // drafts here are the OWNER'S OWN unpublished work, exactly like the
+    // map drafts above.
+    const blockRows = (await ctx.db
+      .query("siteEditorBlocks")
+      .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
+      .collect()) as Array<any>;
+    const blocksDraft: Record<string, Array<{ zone: string; html: string }>> = {};
+    const byZone = new Map<string, Array<any>>();
+    for (const b of blockRows) {
+      if (b.pendingDelete) continue; // draft-removed → hide in preview
+      // Draft preview renders the DRAFT content (b.content) — pending edits,
+      // not the last published state. Never-published blocks (b.published
+      // undefined) appear here too: they are owner drafts.
+      const content = b.content as any;
+      if (!content || typeof content !== "object") continue;
+      const key = `${b.pagePath}\u0000${b.zone}`;
+      (byZone.get(key) ?? byZone.set(key, []).get(key)!).push(b);
+    }
+    for (const [key, zoneBlocks] of byZone) {
+      const [pagePath, zone] = key.split("\u0000");
+      const sorted = zoneBlocks.sort((a: any, b: any) => a.order - b.order);
+      const html = sorted
+        .map((b: any) => renderBlockHtmlSafe(publishedToBlockContent(b.content)))
+        .filter((h: string) => h !== "");
+      if (html.length > 0) {
+        blocksDraft[pagePath] = blocksDraft[pagePath] ?? [];
+        blocksDraft[pagePath].push({ zone, html: renderZoneSafe(zone, html) });
+      }
+    }
+
+    const structuralRows = (await ctx.db
+      .query("siteEditorStructuralOps")
+      .withIndex("by_site", (q: any) => q.eq("siteId", site._id))
+      .collect()) as Array<any>;
+    const structuralDraft: Record<string, { itemOrder?: string[]; hiddenItems?: string[] }> = {};
+    for (const s of structuralRows) {
+      const page: { itemOrder?: string[]; hiddenItems?: string[] } = {};
+      const draftOrder = s.itemOrder ?? s.publishedItemOrder;
+      const draftHidden = s.hiddenItems ?? s.publishedHiddenItems;
+      if (Array.isArray(draftOrder) && draftOrder.length > 0) page.itemOrder = draftOrder;
+      if (Array.isArray(draftHidden) && draftHidden.length > 0) page.hiddenItems = draftHidden;
+      if (Object.keys(page).length > 0) structuralDraft[s.pagePath] = page;
+    }
+
     return {
       version: map.version,
       bridgeVersion: TAYA_BRIDGE_VERSION,
@@ -154,6 +295,8 @@ export const _draft = internalQuery({
       pages: map.pages ?? [],
       values,
       drafts,
+      blocks: blocksDraft,
+      structural: structuralDraft,
     };
   },
 });
