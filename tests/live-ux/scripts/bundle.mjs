@@ -16,15 +16,40 @@
  *                        its sources exist).
  */
 import { createRequire } from "node:module";
-import { build } from "/workspace/repo/node_modules/.pnpm/esbuild@0.27.3/node_modules/esbuild/lib/main.js";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-void createRequire;
 
+// Portability (Phase 6 convergence): resolve esbuild from THIS clone's
+// pnpm store instead of an absolute path from the authoring machine
+// (/workspace/repo/...). esbuild is not a declared workspace dependency,
+// so we resolve it directly from the root store the same way pnpm
+// symlinks it — version pinned by the existing lockfile (0.27.3).
+const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
 const LIVE_UX = join(here, "..");
 const REPO = join(LIVE_UX, "..", "..");
+
+let { build } = (() => {
+  const candidates = [
+    join(REPO, "node_modules", ".pnpm", "esbuild@0.27.3", "node_modules", "esbuild", "lib", "main.js"),
+    join(REPO, "node_modules", "esbuild", "lib", "main.js"),
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) {
+      const esbuild = require(p);
+      return { build: esbuild.build };
+    }
+  }
+  // Fallback: standard resolution (works when esbuild is hoisted/declared).
+  try {
+    return { build: require("esbuild").build };
+  } catch {
+    throw new Error(
+      "live-ux bundle: esbuild not found — run `pnpm install` at the repo root first (esbuild@0.27.3 from the lockfile store)",
+    );
+  }
+})();
 const outDir = join(LIVE_UX, "dist");
 
 const common = {
