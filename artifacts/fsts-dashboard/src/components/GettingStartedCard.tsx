@@ -26,6 +26,13 @@ import { Button } from "@/components/ui/button";
  *
  * Dismissal is per-user + per-site via localStorage. This is a client-facing
  * component: labels use plain client language, never developer terminology.
+ *
+ * Phase 6 (Adaptive Dashboard): the card accepts an optional `isVisible`
+ * resolver from the single capability model (useSiteCapabilities). When
+ * provided, it replaces the legacy module-map check, so Getting Started
+ * links obey the same support → module → role → business-fit pipeline as
+ * the sidebar and the dashboard stat cards. When omitted (legacy callers
+ * and tests), the previous module-map behavior is preserved exactly.
  */
 
 export type GettingStartedSummary = {
@@ -40,12 +47,24 @@ export type GettingStartedSummary = {
 
 type ModuleMap = Record<string, boolean | null> | null | undefined;
 
+/**
+ * Optional capability-model visibility resolver: `(capabilityKey) => boolean`.
+ * Supplied by SiteDashboard via useSiteCapabilities; takes precedence over
+ * the legacy module map when provided. Keys used here are capability keys
+ * (contact, courses, events, articles, services, media, team).
+ */
+export type CapabilityVisibility = (capabilityKey: string) => boolean;
+
 export function buildGettingStartedItems(
   domain: string | null | undefined,
   summary: GettingStartedSummary | null | undefined,
   modules: ModuleMap,
+  isVisible?: CapabilityVisibility,
 ): Array<{ key: string; label: string; done: boolean; href: string | null; reason: string }> {
-  const moduleVisible = (key: string) => modules == null || modules[key] !== false;
+  // Phase 6: prefer the single capability model when a resolver is supplied;
+  // fall back to the legacy module-map check for old callers and tests.
+  const moduleVisible = (key: string) =>
+    isVisible ? isVisible(key) : modules == null || modules[key] !== false;
 
   const contentCount =
     (summary?.courseCount ?? 0) +
@@ -112,6 +131,7 @@ export default function GettingStartedCard({
   summary,
   modules,
   userId,
+  isVisible,
 }: {
   siteId: string;
   siteName?: string | null;
@@ -119,6 +139,7 @@ export default function GettingStartedCard({
   summary?: GettingStartedSummary | null;
   modules?: ModuleMap;
   userId?: string | null;
+  isVisible?: CapabilityVisibility;
 }) {
   const [dismissed, setDismissed] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -131,7 +152,7 @@ export default function GettingStartedCard({
 
   if (dismissed) return null;
 
-  const items = buildGettingStartedItems(domain, summary, modules);
+  const items = buildGettingStartedItems(domain, summary, modules, isVisible);
   const doneCount = items.filter((i) => i.done).length;
   const allDone = doneCount === items.length && items.length > 0;
 

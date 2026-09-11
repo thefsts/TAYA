@@ -1,3 +1,13 @@
+/**
+ * DEPRECATED — DO NOT EXTEND (Phase 6, PM decision 6).
+ *
+ * This component is an unrouted, unmaintained duplicate of SquareCommerce
+ * (the commerce capability's real surface; registry key "commerce", route
+ * "commerce"). It is flagged deprecated only and deliberately NOT deleted:
+ * no route mounts it, no module imports it, and removal is out of this
+ * lane's scope. New commerce work belongs in SquareCommerce.tsx.
+ */
+
 import { useState } from "react";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useAction } from "convex/react";

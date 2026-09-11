@@ -92,6 +92,7 @@ import WelcomeTour, {
 } from "@/components/WelcomeTour";
 import HelpCenter from "@/pages/app/sites/HelpCenter";
 import SiteDashboard from "@/pages/app/SiteDashboard";
+import { ROLE_CAPABILITIES } from "@/lib/roleCapabilities";
 
 // ── Fixtures ───────────────────────────────────────────────────────────
 
@@ -108,6 +109,13 @@ const SITE = {
 const CLIENT = { _id: USER_ID, isSuperAdmin: false, roles: [] };
 const SUPERADMIN = { _id: "user_super", isSuperAdmin: true, roles: [] };
 const QA_USER = { _id: "user_qa", isSuperAdmin: false, roles: [{ role: "internal_qa" }] };
+
+/** Phase 6: truthful owner viewer (getMyPermissions shape, owner matrix row). */
+const OWNER_PERMISSIONS = {
+  isSuperAdmin: false,
+  role: "owner",
+  permissions: ROLE_CAPABILITIES.owner,
+};
 
 function summary(overrides: Record<string, unknown> = {}) {
   return {
@@ -566,7 +574,11 @@ describe("SiteDashboard integration — checklist + tour together", () => {
     const dispatch: Record<string, unknown> = {
       "api.sites.getDashboardSummary": summary(),
       "api.sites.get": SITE,
-      "api.sites.getEffectiveModules": null,
+      // Phase 6 truthful viewer: module map present (empty = defaults, not
+      // "unknown") + owner permission row from the real matrix. With these,
+      // optional-tier surfaces resolve instead of core-only hiding them.
+      "api.sites.getEffectiveModules": {},
+      "api.accessControl.getMyPermissions": OWNER_PERMISSIONS,
       "api.healthScans.getLatestScan": null,
       "api.healthScans.getNotifications": null,
       "api.courses.listActionRequired": null,
@@ -593,7 +605,11 @@ describe("SiteDashboard integration — checklist + tour together", () => {
     expect(screen.getByText(/Getting Started with FSTS Test Site/)).toBeVisible();
     // SITE has a domain, so exactly 1 of 5 real steps is done.
     expect(screen.getByText("1 of 5 done")).toBeVisible();
-    expect(screen.getByText("Courses")).toBeVisible();
+    // Stat card label comes from the capability model (same source as the
+    // sidebar); the registry default for courses is "Courses & Classes".
+    // Both the stat card and the Quick Edit action resolve this label, so
+    // more than one element can match.
+    expect(screen.getAllByText("Courses & Classes").length).toBeGreaterThan(0);
   });
 
   it("shows the welcome tour for a first-visit client", () => {
@@ -603,7 +619,17 @@ describe("SiteDashboard integration — checklist + tour together", () => {
   });
 
   it("hides the tour for superadmin (integration)", () => {
-    dashboardWorkspace({ "api.users.me": SUPERADMIN });
+    dashboardWorkspace({
+      "api.users.me": SUPERADMIN,
+      // Truthful superAdmin viewer: getMyPermissions reports the bypass.
+      // Optional surfaces still require a decided module map (superAdmin
+      // bypasses role gating, not module gating).
+      "api.accessControl.getMyPermissions": {
+        isSuperAdmin: true,
+        role: null,
+        permissions: {},
+      },
+    });
     renderWithProviders(<SiteDashboard />);
     expect(screen.queryByText("Welcome to your website dashboard")).toBeNull();
     // Superadmin still gets the checklist (it is state, not role-gated);
@@ -618,7 +644,8 @@ describe("SiteDashboard integration — checklist + tour together", () => {
     renderWithProviders(<SiteDashboard />);
     expect(screen.queryByText(/of 5 done/)).toBeNull();
     expect(screen.queryByText("Welcome to your website dashboard")).toBeNull();
-    // Dashboard body still renders.
-    expect(screen.getByText("Courses")).toBeVisible();
+    // Dashboard body still renders (capability-model stat label; the Quick
+    // Edit action shares the same resolved label).
+    expect(screen.getAllByText("Courses & Classes").length).toBeGreaterThan(0);
   });
 });
