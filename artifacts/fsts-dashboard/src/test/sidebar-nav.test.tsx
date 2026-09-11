@@ -275,14 +275,20 @@ describe("sidebarNav model \u2014 registry groups & client language", () => {
     expect(items).toContain("Portal Manager\u2122");
   });
 
-  it("edit-website group exposes the Visual Editor entry (Edit Website group)", () => {
+  it("website group (legacy edit-website) exposes the Visual Editor entry", () => {
+    // Phase 6 convergence: Chat A's capability registry renamed the group
+    // "edit-website" -> "website" (LEGACY_GROUP_ALIASES maps persisted state
+    // forward). Chat B's guarantee is preserved unchanged: the Visual Editor
+    // is the primary client entry point — visible in the website group,
+    // correct href, and never design-locked away.
     const groups = buildSidebarGroups(ctx());
-    const editWebsite = groups.find((g) => g.id === "edit-website");
-    expect(editWebsite).toBeTruthy();
-    const item = editWebsite!.items.find((i) => i.id === "visual-editor");
+    const website = groups.find((g) => g.id === "website");
+    expect(website).toBeTruthy();
+    const item = website!.items.find((i) => i.id === "visual-editor");
     expect(item).toBeTruthy();
     expect(item!.label).toBe("Visual Editor");
     expect(item!.href).toBe(`/app/sites/${SITE_ID}/editor`);
+    expect(website!.items.find((i) => i.id === "edit-website")).toBeUndefined();
     // The editor is the primary client entry point: never design-locked away.
     expect(item!.isDesignLocked ?? false).toBe(false);
   });
