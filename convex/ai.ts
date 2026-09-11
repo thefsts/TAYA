@@ -69,6 +69,42 @@ async function requestAI(config: ReturnType<typeof getAIConfig>, body: unknown) 
   return await response.json() as any;
 }
 
+/**
+ * Build the Phase 6 site-context block for the chat system prompt (§5
+ * suggest-only). Reads the discovery-built site profile from the site's
+ * content map. Pure read — no mutation, no grant, nothing suggested here
+ * is ever applied automatically. Returns "" when the site has no profile
+ * yet (§14: honest absence, never a fabricated business type).
+ */
+async function buildSiteContext(ctx: any, siteId: any): Promise<string> {
+  try {
+    const result = await ctx.runQuery(internal.siteProfiles.internalGetProfile, { siteId });
+    const profile = (result as any)?.siteProfile;
+    if (!profile?.siteType) return "";
+    const t = profile.siteType;
+    const parts: string[] = [];
+    parts.push(`Site context (discovered automatically by TAYA):`);
+    parts.push(`- Business type: ${t.type} (confidence ${t.confidence})`);
+    const terminology = profile.terminology;
+    if (terminology?.primaryNoun) parts.push(`- The client calls what they offer "${terminology.primaryNoun}"`);
+    if (terminology?.primaryAction) parts.push(`- The client's main call-to-action is "${terminology.primaryAction}"`);
+    const capabilities = profile.capabilities;
+    if (Array.isArray(capabilities?.suggested) && capabilities.suggested.length > 0) {
+      const names = capabilities.suggested
+        .slice(0, 5)
+        .map((c: any) => `${c.label} (${c.reason})`)
+        .join("; ");
+      parts.push(
+        `- Capabilities TAYA discovered evidence for, that this site does not use yet (SUGGEST to the user when relevant — these are suggestions only, the owner decides): ${names}`,
+      );
+    }
+    return `\n\n${parts.join("\n")}`;
+  } catch {
+    // A read failure must never break chat — degrade to no site context.
+    return "";
+  }
+}
+
 export const status = action({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
@@ -105,9 +141,17 @@ export const chat = action({
       ? `\n\nCurrent page content summary (use this to give specific, relevant advice):\n${pageContext}`
       : "";
 
+    // ── Phase 6 site context (§5 suggest-only) ─────────────────────────────
+    // The discovery-built site profile (business type + terminology +
+    // capability recommendations) grounds the assistant in what THIS site
+    // actually is. It is advisory context ONLY — the assistant never gains
+    // authority from it, and recommendations are suggestions the owner can
+    // decline. Absent profile → no context block (§14: never fabricate).
+    const siteContext = await buildSiteContext(ctx, siteId);
+
     const systemMessage = {
       role: "system",
-      content: SYSTEM_PROMPT + sectionContext + pageContentContext,
+      content: SYSTEM_PROMPT + sectionContext + pageContentContext + siteContext,
     };
 
     const data = await requestAI(config, {

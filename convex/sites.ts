@@ -250,6 +250,28 @@ export const update = mutation({
     const patch: Record<string, unknown> = { ...fields };
     if (fields.websiteType && !fields.enabledModules) {
       patch.enabledModules = defaultModules(fields.websiteType);
+      // The wholesale default reset IS the newest module decision — stale
+      // owner overrides from the old website type must not fight the new
+      // defaults on the next auto-conform (§6: never disable valid caps,
+      // but also never let dead overrides win).
+      patch.moduleOverrides = {};
+    }
+    // §6 override preservation: an EXPLICIT enabledModules payload is an
+    // owner decision for every key it carries. Record it so a later
+    // discovery re-crawl (auto-conform) never re-enables a module the
+    // owner explicitly disabled (mergeEnabledModules honors these).
+    if (fields.enabledModules && typeof fields.enabledModules === "object") {
+      const overrides: Record<string, boolean> = {};
+      for (const [key, value] of Object.entries(fields.enabledModules as Record<string, unknown>)) {
+        if (typeof value === "boolean") overrides[key] = value;
+      }
+      if (Object.keys(overrides).length > 0) {
+        // Merge onto prior overrides — successive explicit updates keep
+        // earlier owner decisions for keys the new payload didn't carry.
+        const site = await ctx.db.get(siteId);
+        const priorOverrides = (site as any)?.moduleOverrides as Record<string, boolean> | undefined;
+        patch.moduleOverrides = { ...(priorOverrides ?? {}), ...overrides };
+      }
     }
     await ctx.db.patch(siteId, patch as any);
     const site = await ctx.db.get(siteId);
