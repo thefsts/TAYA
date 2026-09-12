@@ -288,12 +288,19 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
     support: "native",
   },
   {
+    /* HOTFIX (production no-go, BLOCKER 1): Site Verification is an FSTS admin /
+       connection-management surface, not client navigation. scope "admin" removes
+       it from every client sidebar + dashboard card surface (enforced in BOTH
+       sidebarNav.ts pipeline and useSiteCapabilities.ts); the route itself is
+       superAdmin-guarded in App.tsx. A client-safe verification workflow may be
+       defined later — until then clients are told the publishing connection is
+       FSTS-completed (HelpCenter + SetupOnboarding copy). */
     key: "site-verification",
     defaultLabel: "Site Verification",
     route: "verification",
     group: "website",
     tier: "core",
-    scope: "client",
+    scope: "admin",
     icon: BadgeCheck,
     support: "native",
   },

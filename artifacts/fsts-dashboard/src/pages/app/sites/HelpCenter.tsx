@@ -81,7 +81,7 @@ const FAQS: { question: string; answer: string; icon: any }[] = [
     icon: BadgeCheck,
     question: "How do I connect my website to the TAYA system (site verification)?",
     answer:
-      "Website verification is how TAYA confirms you own your website before it can publish changes to it. The Website Verification panel in your dashboard shows your site's connection status and the steps to connect it. Your support team can complete this step with you if you prefer.",
+      "Website verification is how TAYA confirms you own your website before it can publish changes to it. Your publishing connection is set up by your FSTS support team — contact them and it will be enabled once the connection is set up. There is nothing you need to do in your dashboard, and drafting and preview are always available.",
   },
   {
     icon: BookOpen,

@@ -578,6 +578,10 @@ export default function SiteDashboard() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const expiringFlyers = useQuery((api as any).flyers.listExpiringSoon, { siteId });
 
+  // HOTFIX (production no-go, BLOCKER 1): the connection-mode chip below needs
+  // superAdmin truth in THIS export (AppLayout has its own copy at line ~167).
+  const isSuperAdmin = me?.isSuperAdmin ?? false;
+
   const healthScore = latestScan?.overallScore;
   const healthColor = healthScore == null ? "text-slate-400"
     : healthScore >= 75 ? "text-green-600"
@@ -618,13 +622,32 @@ export default function SiteDashboard() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Welcome back, {site?.name ?? "there"}</h1>
           <p className="mt-1 text-sm text-slate-500 sm:text-base">Your website activity, content status, and operational alerts in one place.</p>
           {(site as any)?.connectionMode && (
-            <Link
-              href={`/app/sites/${siteId}/verification`}
-              className="mt-2 inline-flex"
-              title="Site connection mode & publishing status"
-            >
+            isSuperAdmin ? (
+              <Link
+                href={`/app/sites/${siteId}/verification`}
+                className="mt-2 inline-flex"
+                title="Site connection mode & publishing status"
+              >
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+                    (site as any).connectionMode === "TAYA_NATIVE"
+                      ? "border-green-300 bg-green-100 text-green-800"
+                      : (site as any).connectionMode === "TAYA_CONNECTED"
+                        ? "border-emerald-300 bg-emerald-100 text-emerald-800"
+                        : (site as any).connectionMode === "DISCOVERED_EXTERNAL"
+                          ? "border-amber-300 bg-amber-100 text-amber-800"
+                          : "border-slate-300 bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {(site as any).connectionMode === "TAYA_NATIVE" ? "TAYA Native" : (site as any).connectionMode === "TAYA_CONNECTED" ? "TAYA Connected" : (site as any).connectionMode === "DISCOVERED_EXTERNAL" ? "Discovered — External · Verify to publish" : String((site as any).connectionMode)}
+                </span>
+              </Link>
+            ) : (
+              /* HOTFIX (BLOCKER 1): clients never get a link into Site
+                 Verification — the status renders as plain client language
+                 with no destination. Only FSTS superAdmins keep the link. */
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+                className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
                   (site as any).connectionMode === "TAYA_NATIVE"
                     ? "border-green-300 bg-green-100 text-green-800"
                     : (site as any).connectionMode === "TAYA_CONNECTED"
@@ -633,10 +656,17 @@ export default function SiteDashboard() {
                         ? "border-amber-300 bg-amber-100 text-amber-800"
                         : "border-slate-300 bg-slate-100 text-slate-700"
                 }`}
+                title="Your publishing connection status"
               >
-                {(site as any).connectionMode === "TAYA_NATIVE" ? "TAYA Native" : (site as any).connectionMode === "TAYA_CONNECTED" ? "TAYA Connected" : (site as any).connectionMode === "DISCOVERED_EXTERNAL" ? "Discovered — External · Verify to publish" : String((site as any).connectionMode)}
+                {(site as any).connectionMode === "TAYA_NATIVE"
+                  ? "Website live — publishing ready"
+                  : (site as any).connectionMode === "TAYA_CONNECTED"
+                    ? "Connected — publishing enabled"
+                    : (site as any).connectionMode === "DISCOVERED_EXTERNAL"
+                      ? "Publishing setup in progress"
+                      : String((site as any).connectionMode)}
               </span>
-            </Link>
+            )
           )}
           {site?.domain && (
             <a

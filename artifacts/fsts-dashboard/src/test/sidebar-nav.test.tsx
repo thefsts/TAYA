@@ -254,7 +254,7 @@ describe("sidebarNav model \u2014 registry groups & client language", () => {
     const items = allItems(buildSidebarGroups(ctx())).map((i) => i.label);
     for (const label of [
       "All Pages", "Visual Editor", "Homepage", "Menu Builder", "Footer", "Website Settings",
-      "Site Verification", "Blog & Articles", "FAQ", "Flyers", "Announcement Banner",
+      "Blog & Articles", "FAQ", "Flyers", "Announcement Banner",
       "CTA Buttons", "Popup", "Policy Pages", "Media Library", "Services", "Products",
       "Courses & Classes", "Events", "Square Payments", "Commerce", "Forms", "Contact Inbox",
       "Team", "Careers", "Downloads", "SEO Settings", "Reviews", "Testimonials",
@@ -379,8 +379,10 @@ describe("sidebarNav model \u2014 gating, core-only & hide-empty", () => {
     expect(modulesUnknown.map((g) => g.id)).toEqual(["website", "account"]);
     // help is core-tier (with a roleModuleKey): core surfaces render even
     // while truth is unknown — only optional surfaces hide.
+    // HOTFIX (BLOCKER 1): site-verification is admin-scope now — the
+    // scope gate denies it before tier is even considered.
     expect(allItems(modulesUnknown).map((i) => i.id).sort()).toEqual([
-      "help", "my-permissions", "pages", "site-users", "site-verification", "visual-editor", "website-settings",
+      "help", "my-permissions", "pages", "site-users", "visual-editor", "website-settings",
     ]);
     // Permissions unknown \u2192 same honest fallback for optional surfaces.
     const permsUnknown = buildSidebarGroups(ctx({ rolePermissions: null }));
