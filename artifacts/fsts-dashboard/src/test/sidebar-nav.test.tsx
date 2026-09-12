@@ -293,10 +293,20 @@ describe("sidebarNav model \u2014 registry groups & client language", () => {
     expect(item!.isDesignLocked ?? false).toBe(false);
   });
 
-  it("routes every site item under /app/sites/:siteId (User Management excepted)", () => {
-    const groups = buildSidebarGroups(ctx({ isSuperAdmin: true }));    for (const item of allItems(groups)) {
+  it("routes every site item under /app/sites/:siteId (admin-scope items excepted)", () => {
+    // HOTFIX (BLOCKER 1): two admin-scope surfaces now exist. user-management
+    // lives at the platform route /app/admin/users; site-verification stays
+    // site-scoped (/app/sites/:siteId/verification) but is superAdmin-only
+    // AND route-guarded (App.tsx withSuperAdminGuard). Every other item must
+    // remain a normal client site route.
+    const groups = buildSidebarGroups(ctx({ isSuperAdmin: true }));
+    const ADMIN_HREFS: Record<string, string> = {
+      "user-management": "/app/admin/users",
+      "site-verification": `/app/sites/${SITE_ID}/verification`,
+    };
+    for (const item of allItems(groups)) {
       if (item.superAdminOnly) {
-        expect(item.href).toBe("/app/admin/users");
+        expect(ADMIN_HREFS[item.id]).toBe(item.href);
       } else {
         expect(item.href.startsWith(`/app/sites/${SITE_ID}/`)).toBe(true);
       }
