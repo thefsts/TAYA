@@ -17,17 +17,54 @@ class RootErrorBoundary extends Component<{ children: ReactNode }, { error: Erro
 
   render() {
     if (this.state.error) {
-      const err = this.state.error as Error;
+      // HOTFIX (production no-go, BLOCKER 2 §3): the last-resort boundary
+      // renders client-safe language — never raw error text or stack
+      // traces. Full diagnostics go to the browser console only.
       return (
-        <div style={{ fontFamily: "monospace", padding: "2rem", background: "#fff1f2", minHeight: "100dvh" }}>
-          <h1 style={{ color: "#b91c1c", fontSize: "1.25rem", marginBottom: "1rem" }}>
-            App failed to start
-          </h1>
-          <pre style={{ color: "#991b1b", whiteSpace: "pre-wrap", wordBreak: "break-all", fontSize: "0.8rem" }}>
-            {err.message}
-            {"\n\n"}
-            {err.stack}
-          </pre>
+        <div
+          style={{
+            fontFamily: "system-ui, sans-serif",
+            padding: "2rem",
+            background: "#faf5ff",
+            minHeight: "100dvh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div style={{ maxWidth: "28rem", textAlign: "center" }}>
+            <h1
+              style={{
+                color: "#86198f",
+                fontSize: "1.25rem",
+                fontWeight: 700,
+                marginBottom: "0.75rem",
+              }}
+            >
+              Something went wrong
+            </h1>
+            <p style={{ color: "#581c87", fontSize: "0.95rem", lineHeight: 1.6 }}>
+              We're sorry — we hit an unexpected problem and can't show your dashboard right now. Your website and
+              your saved work are safe. Please try again in a few minutes, or contact your FSTS support team if it
+              keeps happening.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={{
+                marginTop: "1.25rem",
+                padding: "0.5rem 1.25rem",
+                borderRadius: "9999px",
+                border: "1px solid #d8b4fe",
+                background: "white",
+                color: "#86198f",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Try again
+            </button>
+          </div>
         </div>
       );
     }

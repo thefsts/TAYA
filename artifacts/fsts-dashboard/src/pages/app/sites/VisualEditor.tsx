@@ -31,6 +31,11 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { AppLayout } from "@/pages/app/SiteDashboard";
 import { useQuery, useMutation } from "convex/react";
+// HOTFIX (production no-go, BLOCKER 2 §3): the editorZones functions are
+// missing from the deployed backend (frontend 542d340 predates
+// 20260909T184550Z-5919c54edbed). Plain useQuery THROWS on that server
+// error and unmounts the whole app; these queries degrade instead.
+import { useClientSafeQuery } from "@/hooks/useClientSafeQuery";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -862,16 +867,34 @@ function WorkflowBanner({ state, reason, canPublish }: {
 
 export default function VisualEditor() {
   const { siteId } = useParams<{ siteId: string }>();
+  // HOTFIX (BLOCKER 2 §3): remount-based retry. Bumping `attempt` unmounts
+  // VisualEditorInner wholesale — convex fully deletes the zone-query
+  // subscriptions when their last subscriber leaves (local_state.js
+  // removeSubscriber), so the fresh mount re-subscribes with pristine args
+  // and genuinely re-fetches. (An in-component retry had two defects: a
+  // conditional hook broke the rules of hooks, and a retry marker inside
+  // args could trip server-side validators — see useClientSafeQuery header.)
+  const [attempt, setAttempt] = useState(0);
   return (
     <AppLayout siteId={siteId} pageContext="Visual Editor">
-      <VisualEditorInner siteId={siteId} />
+      <VisualEditorInner
+        key={attempt}
+        siteId={siteId}
+        retryEditor={() => setAttempt((n) => n + 1)}
+      />
     </AppLayout>
   );
 }
 
 type FrameState = "loading" | "ready";
 
-function VisualEditorInner({ siteId }: { siteId: string }) {
+function VisualEditorInner({
+  siteId,
+  retryEditor,
+}: {
+  siteId: string;
+  retryEditor: () => void;
+}) {
   const contentMap = useQuery(api.contentMap.get, { siteId: siteId as Id<"sites"> });
   const authority = useQuery(api.publishing.canPublish, { siteId: siteId as Id<"sites"> });
   const revisions = useQuery(api.editor.editorRevisions, { siteId: siteId as Id<"sites"> });
@@ -882,9 +905,20 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
   const discardDraft = useMutation(api.publishing.discardDraft);
   // §6 zone blocks + structural ops, §4 PDF resources, §5 forms — all
   // server-read; the client projects them, it never invents state.
-  const zoneBlocks = useQuery(api.editorZones.listZoneBlocks, { siteId: siteId as Id<"sites"> });
-  const zoneSummaries = useQuery(api.editorZones.zoneSummaries, { siteId: siteId as Id<"sites"> });
-  const structurals = useQuery(api.editorZones.structuralsFor, { siteId: siteId as Id<"sites"> });
+  // HOTFIX (BLOCKER 2 §3): degrade, never throw — missing backend functions
+  // must show a plain-language unavailable state, not "App failed to start".
+  const zoneBlocksQ = useClientSafeQuery(api.editorZones.listZoneBlocks, { siteId: siteId as Id<"sites"> });
+  const zoneSummariesQ = useClientSafeQuery(api.editorZones.zoneSummaries, { siteId: siteId as Id<"sites"> });
+  const structuralsQ = useClientSafeQuery(api.editorZones.structuralsFor, { siteId: siteId as Id<"sites"> });
+  const zoneBlocks = zoneBlocksQ.status === "success" ? zoneBlocksQ.data : null;
+  const zoneSummaries = zoneSummariesQ.status === "success" ? zoneSummariesQ.data : null;
+  const structurals = structuralsQ.status === "success" ? structuralsQ.data : null;
+  const zoneQueryError: Error | null =
+    zoneBlocksQ.status === "error" ? zoneBlocksQ.error :
+    zoneSummariesQ.status === "error" ? zoneSummariesQ.error :
+    structuralsQ.status === "error" ? structuralsQ.error : null;
+  /* Retry is remount-based (parent `attempt` counter) — see useClientSafeQuery
+     header note 3. No retry object exists here by design. */
   const downloads = useQuery(api.downloads.list, { siteId: siteId as Id<"sites"> });
   const forms = useQuery(api.forms.list, { siteId: siteId as Id<"sites"> });
   const addBlock = useMutation(api.editorZones.addBlock);
@@ -1562,6 +1596,33 @@ function VisualEditorInner({ siteId }: { siteId: string }) {
       ?? entryValue(entries, companionKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companionKey, entries, draftCount]);
+
+  /* HOTFIX (BLOCKER 2 §3): degraded state for the zone-truth queries.
+     Production 542d340 vs backend 20260909T184550Z: editorZones functions
+     missing → these queries error. The editor cannot render truthfully
+     without zone truth; show a plain-language unavailable state + Retry.
+     The dashboard shell (this AppLayout) NEVER unmounts; no raw error text,
+     no [CONVEX …] identifiers, no stack ever reaches the client. */
+  if (zoneQueryError) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader><CardTitle>Visual Editor</CardTitle></CardHeader>
+          <CardContent>
+            <EmptyState
+              title="The editor is temporarily unavailable"
+              body="We're updating the website editor right now and it will be back shortly. Your website and your saved work are safe — nothing was lost. You can retry below, or check back in a few minutes."
+            />
+            <div className="mt-2 flex justify-center">
+              <Button variant="outline" size="sm" onClick={retryEditor} className="gap-2">
+                <RefreshCw className="h-4 w-4" /> Try again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   /* ── no content map yet (discovery incomplete) ─────────────────────── */
   if (contentMap === null || contentMap === undefined) {
