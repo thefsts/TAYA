@@ -64,6 +64,7 @@ import {
   conformWorkspace,
   mergeEnabledModules,
 } from "./lib/discovery/contentMap";
+import { buildSiteProfile } from "./lib/discovery/siteProfile";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public read surface (site-scoped)
@@ -326,9 +327,15 @@ export const persistSnapshot = internalMutation({
         currentMode === "TAYA_CONNECTED" || currentMode === "TAYA_NATIVE"
           ? currentMode
           : "DISCOVERED_EXTERNAL";
+      // ── Phase 6 site profile (§2/§3) — built in the same transaction ──
+      const profile = buildSiteProfile(snap, nextMode);
       await ctx.db.patch(args.siteId, {
         connectionMode: nextMode,
         detectedPlatform: snap.platform ?? undefined,
+        // The adaptive layer's own inference — never touches the owner's
+        // websiteType choice (§2: no hardcoded rigid industry apps).
+        inferredWebsiteType: profile.siteType.type,
+        inferredSiteTypeConfidence: profile.siteType.confidence,
       });
 
       // ── §7 AUTO-CONFORM (same transaction, atomic with the snapshot) ──
@@ -336,15 +343,22 @@ export const persistSnapshot = internalMutation({
       // nav-row inserts for newly-enabled modules, and the durable §5
       // page/content map upsert. NO RBAC grants, NO admin modules, no
       // per-customer logic — pure derivation from the snapshot.
-      const plan = conformWorkspace(snap);
+      // The inferred site type (built above in the same transaction) gates
+      // the restaurant commerce policy: a restaurant never gets `products`
+      // auto-enabled from its routes, even with genuine storefront evidence.
+      const plan = conformWorkspace(snap, profile.siteType.type);
       const siteForConform = await ctx.db.get(args.siteId);
 
       if (siteForConform) {
-        // Enable-only merge (conformable keys only; never disables).
+        // Enable-only merge (conformable keys only; never disables). The
+        // owner's explicit module decisions (moduleOverrides, set only by
+        // sites.update) outrank the crawl's inference — a refresh re-crawl
+        // can never re-enable a module the owner disabled (§6).
         await ctx.db.patch(args.siteId, {
           enabledModules: mergeEnabledModules(
             (siteForConform as any).enabledModules,
             plan.enabledModulesPatch,
+            (siteForConform as any).moduleOverrides,
           ),
         });
 
@@ -404,6 +418,10 @@ export const persistSnapshot = internalMutation({
             builtFromSnapshotAt: pageMap.builtFromSnapshotAt ?? undefined,
             conformed: priorMap.conformed ?? true,
             refreshedAt: Date.now(),
+            // §3: the profile is re-derived on every completed crawl and
+            // replaced wholesale (it is a derived artifact — the previous
+            // crawl's inference is not "user data" to preserve).
+            siteProfile: profile,
           });
         } else {
           await ctx.db.insert("siteContentMaps", {
@@ -416,6 +434,7 @@ export const persistSnapshot = internalMutation({
             conformed: true,
             builtFromSnapshotAt: pageMap.builtFromSnapshotAt ?? undefined,
             refreshedAt: Date.now(),
+            siteProfile: profile,
           });
         }
 
@@ -424,7 +443,8 @@ export const persistSnapshot = internalMutation({
             plan.enabledModuleKeys.length === 1 ? "" : "s"
           }` +
           (navInserted > 0 ? `, added ${navInserted} nav item${navInserted === 1 ? "" : "s"}` : "") +
-          `, ${pageMap.keyCount} content keys mapped.`;
+          `, ${pageMap.keyCount} content keys mapped` +
+          `, site profile inferred (${profile.siteType.type}, confidence ${profile.siteType.confidence.toFixed(2)}).`;
         await logActivity(ctx, {
           siteId: args.siteId,
           actorName: "TAYA Discovery",

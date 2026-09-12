@@ -1,6 +1,25 @@
 /**
  * Client-side copy of role capability definitions.
  * Keep in sync with convex/lib/roleCapabilities.ts.
+ *
+ * Phase 6 (adaptive dashboard) — additive module keys:
+ *   services, products, reviews, flyers, portal, automation, site_users,
+ *   payment_providers. These describe surfaces that ALREADY exist behind
+ *   named permissions or site-membership gates. Levels are mirrored from
+ *   convex/lib/roleCapabilities.ts (the enforcement source of truth) and
+ *   describe only what the backend already enforces — no widening:
+ *     - services/products: list = checkSiteAccess; mutations = CONTENT_*.
+ *     - reviews: list = checkSiteAccess; sync/import = INTEGRATIONS_MANAGE
+ *       (superAdmin-only) → truthful ceiling for site roles is "edit".
+ *     - flyers: reads require FLYERS_CREATE (checkFlyerReadAccess) → "none"
+ *       for every role without flyer permissions, including read_only.
+ *     - automation: reads = checkSiteAccess; mutations = CONTENT_*.
+ *     - site_users / payment_providers: views allowed for site members;
+ *       writes superAdmin-only → truthful level for site roles is "view".
+ *     - portal: convex/portal.ts saveConfig/updateUserStatus are gated by
+ *       site membership ONLY (any role can write via the API). Known
+ *       frontend/backend disagreement — the dashboard will surface portal
+ *       editing only to owner/manager; never grant beyond backend reality.
  */
 
 import { PERMISSIONS, type Permission, SUPERADMIN_ONLY_PERMISSIONS } from "./permissions";
@@ -77,6 +96,17 @@ export const DASHBOARD_MODULES = [
   "activity",
   "backups",
   "help",
+  // Phase 6 (adaptive dashboard) — additive keys describing surfaces that
+  // already exist behind named permissions / site-membership gates. Levels
+  // mirror convex/lib/roleCapabilities.ts exactly (verified against gates).
+  "services",
+  "products",
+  "reviews",
+  "flyers",
+  "portal",
+  "automation",
+  "site_users",
+  "payment_providers",
 ] as const;
 
 export type DashboardModule = (typeof DASHBOARD_MODULES)[number];
@@ -112,20 +142,28 @@ export const MODULE_LABELS: Record<DashboardModule, string> = {
   activity: "Activity Log",
   backups: "Backups",
   help: "Help Center",
+  services: "Services",
+  products: "Products",
+  reviews: "Reviews",
+  flyers: "Flyers",
+  portal: "Portal Manager",
+  automation: "Automation Engine",
+  site_users: "Site Users",
+  payment_providers: "Payment Providers",
 };
 
 export const MODULE_SECTIONS: { label: string; modules: DashboardModule[] }[] = [
   {
     label: "Content",
-    modules: ["dashboard", "homepage", "courses", "events", "articles", "media", "faq", "testimonials", "forms", "inbox"],
+    modules: ["dashboard", "homepage", "courses", "events", "articles", "media", "faq", "testimonials", "forms", "inbox", "services", "products"],
   },
   {
     label: "Site Modules",
-    modules: ["navigation", "announcement", "cta", "team", "careers", "downloads", "popup", "policy"],
+    modules: ["navigation", "announcement", "cta", "team", "careers", "downloads", "popup", "policy", "reviews", "flyers", "automation", "portal"],
   },
   {
     label: "Configuration",
-    modules: ["contact", "footer", "seo", "payments", "commerce", "email"],
+    modules: ["contact", "footer", "seo", "payments", "commerce", "email", "site_users", "payment_providers"],
   },
   {
     label: "Marketing & CRM",
@@ -166,8 +204,11 @@ const VIEW_ALL: RoleCapabilityMap = Object.fromEntries(
 ) as RoleCapabilityMap;
 
 export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
-  internal_qa: MANAGE_ALL,
-  owner: MANAGE_ALL,
+  // Truthful overrides on MANAGE_ALL for Phase 6 keys: reviews sync/import,
+  // site-user writes, and connector saves are INTEGRATIONS_MANAGE / superAdmin
+  // gates — "manage" would overstate what these roles can actually do.
+  internal_qa: { ...MANAGE_ALL, reviews: "edit", site_users: "view", payment_providers: "view" },
+  owner: { ...MANAGE_ALL, reviews: "edit", site_users: "view", payment_providers: "view" },
 
   manager: {
     dashboard: "manage", homepage: "edit", courses: "edit", events: "edit",
@@ -178,6 +219,8 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
     seo: "edit", payments: "view", commerce: "view", email: "view",
     crm: "edit", health: "view", history: "view", activity: "view",
     backups: "view", help: "view",
+    services: "edit", products: "edit", reviews: "edit", flyers: "manage",
+    portal: "manage", automation: "edit", site_users: "view", payment_providers: "view",
   },
 
   marketing: {
@@ -189,6 +232,8 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
     seo: "edit", payments: "none", commerce: "none", email: "none",
     crm: "manage", health: "none", history: "none", activity: "none",
     backups: "none", help: "view",
+    services: "edit", products: "edit", reviews: "edit", flyers: "manage",
+    portal: "view", automation: "edit", site_users: "view", payment_providers: "view",
   },
 
   content_editor: {
@@ -200,6 +245,8 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
     seo: "view", payments: "none", commerce: "none", email: "none",
     crm: "none", health: "none", history: "view", activity: "view",
     backups: "none", help: "view",
+    services: "edit", products: "edit", reviews: "edit", flyers: "none",
+    portal: "view", automation: "edit", site_users: "view", payment_providers: "view",
   },
 
   course_manager: {
@@ -211,6 +258,8 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
     seo: "none", payments: "none", commerce: "none", email: "none",
     crm: "none", health: "none", history: "none", activity: "none",
     backups: "none", help: "view",
+    services: "view", products: "view", reviews: "view", flyers: "none",
+    portal: "view", automation: "view", site_users: "view", payment_providers: "view",
   },
 
   events_manager: {
@@ -222,6 +271,8 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
     seo: "none", payments: "none", commerce: "none", email: "none",
     crm: "none", health: "none", history: "none", activity: "none",
     backups: "none", help: "view",
+    services: "view", products: "view", reviews: "view", flyers: "none",
+    portal: "view", automation: "view", site_users: "view", payment_providers: "view",
   },
 
   finance: {
@@ -233,6 +284,8 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
     seo: "none", payments: "manage", commerce: "manage", email: "none",
     crm: "none", health: "none", history: "view", activity: "view",
     backups: "none", help: "view",
+    services: "view", products: "view", reviews: "view", flyers: "none",
+    portal: "view", automation: "view", site_users: "view", payment_providers: "view",
   },
 
   support: {
@@ -244,9 +297,14 @@ export const ROLE_CAPABILITIES: Record<Role, RoleCapabilityMap> = {
     seo: "none", payments: "none", commerce: "none", email: "none",
     crm: "view", health: "view", history: "none", activity: "view",
     backups: "none", help: "view",
+    services: "view", products: "view", reviews: "view", flyers: "none",
+    portal: "view", automation: "view", site_users: "view", payment_providers: "view",
   },
 
-  read_only: VIEW_ALL,
+  // Read Only: view-everything EXCEPT Flyers, whose read gate requires
+  // FLYERS_CREATE (see convex/flyers.ts checkFlyerReadAccess). The override
+  // keeps this row truthful against the backend instead of over-granting.
+  read_only: { ...VIEW_ALL, flyers: "none" },
 };
 
 export function permissionAtLeast(a: PermissionLevel, b: PermissionLevel): boolean {

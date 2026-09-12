@@ -40,6 +40,20 @@ export default defineSchema({
     connectionMode: v.optional(v.string()),
     // Set at discovery time when the crawl identified the website technology.
     detectedPlatform: v.optional(v.string()),
+    // ── Phase 6 — auto-conform site profiles (Chat C §2/§3) ─────────────────
+    // Inferred business/site type from the discovery crawl (training_academy,
+    // ecommerce, travel, restaurant, …). NEVER overwrites the owner's chosen
+    // websiteType — it is the adaptive layer's own inference, read-only for
+    // every UI, and purely advisory.
+    inferredWebsiteType: v.optional(v.string()),
+    // 0–1 confidence in the inferred type (§14 evidence: how strongly the
+    // crawl's signals support it).
+    inferredSiteTypeConfidence: v.optional(v.number()),
+    // Explicit owner module decisions (§6 override preservation). Written
+    // ONLY by sites.update when the caller supplies an explicit
+    // enabledModules payload. discovery's auto-conform reads it and never
+    // re-enables a module the owner explicitly disabled.
+    moduleOverrides: v.optional(v.any()),
     // Phase 2 PR-2 — ownership verification state machine (spec §15–§16).
     // A DISCOVERED_EXTERNAL site can draft/preview, but PUBLISH is
     // server-blocked until the domain owner proves control. This field is
@@ -1120,6 +1134,12 @@ export default defineSchema({
     builtFromSnapshotAt: v.optional(v.number()),
     // When the map was last refreshed by a later crawl (drafts preserved)
     refreshedAt: v.optional(v.number()),
+    // ── Phase 6 — the assembled site profile (Chat C §3) ─────────────────────
+    // Built by discovery.persistSnapshot via buildSiteProfile: inferred
+    // site type + terminology + capability recommendations + content types +
+    // the §4 editability classification. Additive + optional — older rows
+    // simply lack it until the next crawl.
+    siteProfile: v.optional(v.any()),
   })
     .index("by_site", ["siteId"]),
 
@@ -1145,4 +1165,58 @@ export default defineSchema({
   })
     .index("by_token", ["token"])
     .index("by_site_clerk", ["siteId", "clerkUserId"]),
+
+  // ── Chat B — visual editor safe insertion zones (§6) + structural ops ──
+  // Blocks are ADDITIVE content a client places inside approved insertion
+  // zones (hero, content, article-feed, …). Draft/published mirrors the
+  // content-map overlay discipline: edits land in `content` (draft) and go
+  // live only when publishBlocks copies them into `published`. The map
+  // itself is NEVER modified — blocks live in their own table so a later
+  // discovery re-crawl cannot delete or stale-mark them.
+  siteEditorBlocks: defineTable({
+    // Site (tenant scope).
+    siteId: v.id("sites"),
+    // Page path the block is placed on ("/", "/services", …).
+    pagePath: v.string(),
+    // Approved insertion zone (§6 registry — convex/lib/editorZones.ts).
+    zone: v.string(),
+    // Insertion kind (text/image/button/video/pdf/cta/faq_item/link).
+    kind: v.string(),
+    // Display order within (pagePath, zone).
+    order: v.number(),
+    // VALIDATED block content (draft overlay — the working copy).
+    content: v.any(),
+    // Published content (set at publish; absent until then).
+    published: v.optional(v.any()),
+    // True when the client removed a published block (hidden until publish).
+    pendingDelete: v.optional(v.boolean()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_site_page_zone", ["siteId", "pagePath", "zone"])
+    .index("by_site", ["siteId"]),
+
+  // Structural operations on DISCOVERED repeatable items (§8 repeatable
+  // blocks): soft-removal + manual ordering of the §5 items[i] blocks the
+  // discovery crawler found. Draft fields hold the working state; publish
+  // promotes them to publishedItemOrder/publishedHiddenItems. Soft removal
+  // (hiddenItems) keeps the underlying map entries intact — restoring is
+  // always possible and the map's own keys are never deleted.
+  siteEditorStructuralOps: defineTable({
+    // Site (tenant scope).
+    siteId: v.id("sites"),
+    // Page path the ordering applies to.
+    pagePath: v.string(),
+    // Draft: ordered list of item key prefixes ("home.services.items[1]").
+    itemOrder: v.optional(v.array(v.string())),
+    // Draft: item key prefixes soft-removed (hidden).
+    hiddenItems: v.optional(v.array(v.string())),
+    // Published ordering (set at publish).
+    publishedItemOrder: v.optional(v.array(v.string())),
+    // Published hidden items (set at publish).
+    publishedHiddenItems: v.optional(v.array(v.string())),
+    updatedAt: v.number(),
+  })
+    .index("by_site_page", ["siteId", "pagePath"])
+    .index("by_site", ["siteId"]),
 });

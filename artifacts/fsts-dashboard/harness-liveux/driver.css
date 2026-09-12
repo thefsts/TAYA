@@ -1,0 +1,16 @@
+/* Live-UX parent driver CSS.
+ *
+ * Copies the dashboard's design system (index.css) and forces Tailwind v4
+ * auto-detection to scan the REAL component sources - vite's `root` is the
+ * tiny harness-liveux dir, so without @source the utility scan would only
+ * see this file and emit no component classes.
+ *
+ * NOTE: the dashboard ships a .dark-mode variant of this stylesheet for
+ * client-preference dark mode; the harness uses the default (light) theme
+ * the production app serves by default, matching how index.html loads it.
+ */
+@import "../src/index.css";
+
+/* Force Tailwind to scan the REAL dashboard components + driver. */
+@source "../src/**/*.{ts,tsx}";
+@source "./main.tsx";

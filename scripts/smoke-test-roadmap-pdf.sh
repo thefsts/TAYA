@@ -18,7 +18,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_FILE="$SCRIPT_DIR/roadmap-data.json"
 BACKUP_FILE="$SCRIPT_DIR/roadmap-data.json.smoke-backup"
-OUT_PDF="$(cd "$SCRIPT_DIR/.." && pwd)/artifacts/fsts-dashboard/public/fsts-dashboard-roadmap.pdf"
+OUT_PDF="$(cd "$SCRIPT_DIR/.." && pwd)/exports/roadmap/fsts-dashboard-roadmap.pdf"
 MIN_PDF_BYTES=10240  # 10 KB
 
 CHROMIUM="/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium"

@@ -189,6 +189,26 @@ export interface PageMeta {
   generator: string | null;
 }
 
+/** A discovered video: an HTML5 <video> file or a YouTube/Vimeo/… embed. */
+export interface VideoModel {
+  src: string;
+  /** Where the video lives: "youtube" | "vimeo" | "wistia" | "html5" | "embed". */
+  source: string;
+  /** Best-effort title (title/aria-label attribute), null when absent. */
+  title: string | null;
+  key: string;
+}
+
+/** A discovered downloadable asset link (pdf/doc/zip/csv/…). */
+export interface DownloadModel {
+  href: string;
+  /** File extension lowercased: "pdf" | "doc" | "zip" | "csv" | … */
+  fileType: string;
+  /** Anchor label, or the filename when the anchor has no text. */
+  label: string;
+  key: string;
+}
+
 /** Full structured model of ONE page (the per-page slice of the §5 map). */
 export interface PageModel {
   path: string;
@@ -211,12 +231,18 @@ export interface PageModel {
       title: string | null;
       description: string | null;
       image: string | null;
+      /** A price-like value found on the card ("$49.00"), null when absent. */
+      price: string | null;
     }>;
     keys: string[];
   }>;
   images: Array<{ src: string; alt: string; key: string }>;
   buttons: Array<{ label: string; href: string; key: string }>;
   links: Array<{ label: string; href: string; key: string }>;
+  /** Discovered videos (§1 media/videos signal — embeds + video files). */
+  videos: VideoModel[];
+  /** Discovered download links (§1 downloads/PDFs signal). */
+  downloads: DownloadModel[];
   navItems: Array<{ label: string; href: string }>;
   footerText: string | null;
   forms: Array<{ action: string | null; method: string | null; fields: string[] }>;
@@ -591,6 +617,11 @@ function sectionRoleFor(
   }
   if (/(^|\W)(products|shop|store|catalog)(\W|$)/.test(h)) return "products";
   if (/(^|\W)(courses|training|classes|programs)(\W|$)/.test(h)) return "services";
+  // Phase 6 (§2 features): tour/menu vocabulary \u2014 keeps sectionRoleFor
+  // consistent with the SiteFeatures vocabulary (deriveFeatures reads
+  // roleCount("tours") / roleCount("menu"), previously unreachable).
+  if (/(^|\W)(tours|trips|destinations|itineraries|excursions)(\W|$)/.test(h)) return "tours";
+  if (/(^|\W)(menu|dining|food menu|drinks)(\W|$)/.test(h)) return "menu";
   if (/(^|\W)(gallery|photos|portfolio|our work)(\W|$)/.test(h)) return "gallery";
   if (/(^|\W)(contact|get in touch|reach us)(\W|$)/.test(h)) return "contact";
   if (/(^|\W)(team|our staff|instructors|people)(\W|$)/.test(h)) return "team";
@@ -647,8 +678,8 @@ function extractRepeatableItems(block: string): PageModel["sections"][number]["i
   return [];
 }
 
-/** Parse one card-like element into { title, description, image }. */
-function parseCardish(inner: string): { title: string | null; description: string | null; image: string | null } {
+/** Parse one card-like element into { title, description, image, price }. */
+function parseCardish(inner: string): { title: string | null; description: string | null; image: string | null; price: string | null } {
   const headingMatch = /<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/i.exec(inner);
   const title = hasText(group(headingMatch, 2)) ? stripTags(group(headingMatch, 2)!) : null;
   const paraMatch = /<p\b[^>]*>([\s\S]*?)<\/p>/i.exec(inner);
@@ -656,7 +687,152 @@ function parseCardish(inner: string): { title: string | null; description: strin
   const imgMatch = /<img\b[^>]*>/i.exec(inner);
   const imgTag = imgMatch ? imgMatch[0] : null;
   const image = imgTag ? tagAttr(imgTag, "src") ?? tagAttr(imgTag, "data-src") : null;
-  return { title, description, image };
+  const price = extractPrice(inner);
+  return { title, description, image, price };
+}
+
+/** Price patterns found on cards/products: "$49.99", "$1,200", "USD 25".
+ * The currency prefix is optional where the symbol alone carries it: a bare
+ * "$189" is a price; requiring "US$" first silently dropped every normal
+ * dollar price (priceKeyCount was always 0 for US sites — §14 honesty gap
+ * fixed in Phase 6). */
+const PRICE_RE =
+  /(?:U?S?\$|USD\s?|€|£)\s?\d[\d,]*(?:\.\d{2})?|\d[\d,]*(?:\.\d{2})?\s?(?:USD|usd)/;
+
+/**
+ * Extract a leading price-like token from a card's inner HTML. Returns the
+ * FIRST match (deterministic) or null. Deliberately narrow — a bare "5" or
+ * a date never matches (§14: no fabricated prices).
+ */
+function extractPrice(inner: string): string | null {
+  const match = PRICE_RE.exec(stripTags(inner));
+  return match ? match[0].trim() : null;
+}
+
+// ─────────────\u───────────────────────────────────────────────────────────
+// Media + download discovery (§1 signals: videos, downloads/PDFs)
+// ─────────────\u──────────────────────────────────────────────────────────────
+
+/** Bounded video extraction per page (both <video> files and embeds). */
+export const MAX_VIDEOS = 8;
+/** Bounded download-link extraction per page. */
+export const MAX_DOWNLOADS = 12;
+
+/** Known video-host URL shapes → normalized source label. DATA, not branches. */
+const VIDEO_HOSTS: Array<{ pattern: RegExp; source: string }> = [
+  { pattern: /(^|\.)youtube\.com$|^youtu\.be$/i, source: "youtube" },
+  { pattern: /(^|\.)vimeo\.com$/i, source: "vimeo" },
+  { pattern: /(^|\.)wistia\.(com|net)$|^wi\.st$/i, source: "wistia" },
+  { pattern: /(^|\.)vidyard\.com$/i, source: "vidyard" },
+  { pattern: /(^|\.)dailymotion\.com$|^dai\.ly$/i, source: "dailymotion" },
+  { pattern: /(^|\.)loom\.com$/i, source: "loom" },
+];
+
+/** Resolve a video URL to its host family, or "embed" for other hosts. */
+function videoSourceOf(url: string): string {
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    for (const h of VIDEO_HOSTS) {
+      if (h.pattern.test(host)) return h.source;
+    }
+  } catch {
+    /* not a parseable absolute URL \u2014 degrade to "embed" */
+  }
+  return "embed";
+}
+
+/**
+ * Extract videos for one page: <video src> elements + iframe embeds of
+ * known video hosts (YouTube/Vimeo/\u2026). The same video appearing as both
+ * a <video> tag and an iframe is deduped by src. Keys are page-scoped and
+ * positional (§5 grammar): home.videos[0].src \u2022 .source \u2022 .title.
+ */
+function extractVideos(body: string, path: string): VideoModel[] {
+  const pageSeg = pageKeySegment(path);
+  const videos: VideoModel[] = [];
+  const seenSrc = new Set<string>();
+
+  const push = (src: string, title: string | null, source?: string) => {
+    if (!src || seenSrc.has(src) || videos.length >= MAX_VIDEOS) return;
+    if (src.length > MAX_URL_LENGTH) return;
+    seenSrc.add(src);
+    videos.push({
+      src,
+      source: source ?? videoSourceOf(src),
+      title: title ? title.slice(0, 120) : null,
+      key: `${pageSeg}.videos[${videos.length}].src`,
+    });
+  };
+
+  // HTML5 <video src="…"> (and <source> children of <video>).
+  for (const v of matchAll(body, /<video\b([^>]*)>([\s\S]*?)<\/video>|<video\b([^>]*)\/>/gi)) {
+    const attrs = v[1] ?? v[3] ?? "";
+    const inner = v[2] ?? "";
+    const title = tagAttr(attrs, "title") ?? tagAttr(attrs, "aria-label");
+    const directSrc = tagAttr(attrs, "src");
+    if (directSrc) push(directSrc, title, "html5");
+    for (const s of matchAll(inner, /<source\b[^>]*>/gi)) {
+      push(tagAttr(s[0], "src") ?? "", title, "html5");
+    }
+  }
+
+  // iframe embeds — only hosts that actually serve video (§14: a generic
+  // map iframe is NOT a video).
+  for (const f of matchAll(body, /<iframe\b[^>]*src\s*=\s*("[^"]*"|'[^']*')[^>]*>/gi)) {
+    const rawSrc = decodeEntities(f[1].slice(1, -1)).trim();
+    const absolute = absoluteUrl(rawSrc, "https://placeholder.invalid");
+    // Only track absolute http(s) URLs; relative iframe srcs are not video.
+    if (!absolute) continue;
+    const host = videoSourceOf(absolute);
+    if (host === "embed") continue;
+    const attrs = f[0];
+    const title = tagAttr(attrs, "title") ?? tagAttr(attrs, "aria-label");
+    push(absolute, title, host);
+  }
+
+  return videos;
+}
+
+/** Downloadable file extensions TAYA recognizes (§1 downloads/PDFs). */
+const DOWNLOAD_EXTENSIONS = /\.(pdf|docx?|xlsx?|pptx?|zip|csv|epub|txt|rtf|mp3)(?:$|\?|#)/i;
+
+/**
+ * Extract download links for one page: anchors whose href ends in a known
+ * document/archive extension. Keys follow the §5 grammar:
+ * home.downloads[0].href \u2022 .fileType \u2022 .label.
+ */
+function extractDownloads(body: string, path: string, url: string): DownloadModel[] {
+  const pageSeg = pageKeySegment(path);
+  const downloads: DownloadModel[] = [];
+
+  for (const a of matchAll(
+    body,
+    /<a\s[^>]*href\s*=\s*("[^"]*"|'[^']*')[^>]*>([\s\S]*?)<\/a>/gi,
+  )) {
+    if (downloads.length >= MAX_DOWNLOADS) break;
+    const rawHref = decodeEntities(a[1].slice(1, -1)).trim();
+    if (!rawHref) continue;
+    const extMatch = DOWNLOAD_EXTENSIONS.exec(rawHref);
+    if (!extMatch) continue;
+    const absolute = absoluteUrl(rawHref, url);
+    if (!absolute) continue;
+    const label = (stripTags(a[2]).trim() || basenameOf(rawHref)).slice(0, 120);
+    downloads.push({
+      href: absolute,
+      fileType: extMatch[1].toLowerCase(),
+      label,
+      key: `${pageSeg}.downloads[${downloads.length}].href`,
+    });
+  }
+
+  return downloads;
+}
+
+/** Last path segment of a URL, or the URL itself when bare. */
+function basenameOf(href: string): string {
+  const clean = href.split(/[?#]/)[0];
+  const seg = clean.split("/").filter(Boolean).pop();
+  return seg ?? clean;
 }
 
 /**
@@ -874,6 +1050,10 @@ export function extractPageModel(html: string, path: string, url: string): PageM
     }
   });
 
+  // ── Media + downloads (§1 signals, page-scoped) ──────────────────────────
+  const videos = extractVideos(body, path);
+  const downloads = extractDownloads(body, path, url);
+
   return {
     path,
     url,
@@ -884,6 +1064,8 @@ export function extractPageModel(html: string, path: string, url: string): PageM
     images,
     buttons,
     links,
+    videos,
+    downloads,
     navItems,
     footerText: footerTextOf(body),
     forms,

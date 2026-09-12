@@ -38,6 +38,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { SidebarNav } from "@/components/SidebarNav";
 import { useSidebarUi } from "@/hooks/useSidebarUi";
 import GettingStartedCard from "@/components/GettingStartedCard";
+import {
+  useSiteCapabilities,
+  getSiteCapability,
+} from "@/hooks/useSiteCapabilities";
 import WelcomeTour from "@/components/WelcomeTour";
 
 function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
@@ -152,11 +156,22 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const me = useQuery(api.users.me);
   const [location] = useLocation();
   const effectiveModules = useQuery(api.sites.getEffectiveModules, { siteId: siteId as Id<"sites"> });
+  // Phase 6 (adaptive dashboard): the viewer's truthful role-capability
+  // levels (38-key matrix incl. the Phase B2 additive keys). null/undefined
+  // while loading/failed → the sidebar falls back to core-only (Decision 3:
+  // never guess an optional surface into existence).
+  const myPermissions = useQuery(api.accessControl.getMyPermissions, { siteId: siteId as Id<"sites"> });
   const unreadNotifications = useQuery(api.healthScans.getUnreadNotificationCount, { siteId: siteId as Id<"sites"> });
   const mediaHealth = useQuery(api.media.healthStats, { siteId: siteId as Id<"sites"> });
   const markAllRead = useMutation(api.healthScans.markAllNotificationsRead);
   const isSuperAdmin = me?.isSuperAdmin ?? false;
   const isInternalQa = !!me?.roles?.some((r: any) => r.role === "internal_qa");
+
+  // Phase 6 terminology inputs: business profile from the site record +
+  // per-site label overrides (frontend extension point — no backend table
+  // yet; stays null and labels resolve default → profile until it ships).
+  const websiteType = (site as any)?.websiteType ?? null;
+  const terminologyOverrides: Record<string, string> | null = null;
 
   // WordPress-like sidebar state (collapsible groups + compact rail), persisted per user.
   const sidebarUi = useSidebarUi(me?._id ?? null);
@@ -352,6 +367,9 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             siteId={String(siteId)}
             enabledModules={(effectiveModules ?? (site as any)?.enabledModules) as Record<string, boolean> | null | undefined}
             isSuperAdmin={isSuperAdmin}
+            rolePermissions={myPermissions?.permissions ?? null}
+            websiteType={websiteType}
+            terminologyOverrides={terminologyOverrides}
             collapsedGroups={sidebarUi.collapsedGroups}
             onToggleGroup={sidebarUi.toggleGroup}
             badges={{ mediaBroken: mediaHealth?.broken ?? 0 }}
@@ -571,8 +589,27 @@ export default function SiteDashboard() {
         : "bg-red-50 border-red-200";
   const activeNotifications = notifications?.filter((n: any) => !n.readAt && !n.dismissedAt) ?? [];
 
-  // Module visibility for Quick Edit (mirrors sidebar gating: null → show, false → hide).
-  const moduleIsVisible = (key: string) => effectiveModules == null || effectiveModules[key] !== false;
+  // Phase 6 (adaptive dashboard): THE single capability model. Stat cards,
+  // Getting Started, Quick Edit and upcoming cards gate through this — the
+  // same registry + permission truth the sidebar derives from. While either
+  // truth source is loading/failed the model is core-only (optional surfaces
+  // hidden, never guessed — PM decision 3).
+  const capabilities = useSiteCapabilities(siteId, {
+    websiteType: (site as any)?.websiteType ?? null,
+  });
+
+  /**
+   * Phase 6 gate for dashboard surfaces. Mirrors the sidebar pipeline:
+   * registry-visible (support + scope + module + role + business-fit).
+   * Falls back to the legacy module-only gate when the capability model
+   * cannot resolve the key (unknown key → legacy behavior, never guessed).
+   */
+  const capabilityIsVisible = (key: string) => {
+    const cap = getSiteCapability(capabilities, key);
+    if (cap) return cap.visible;
+    // Unknown capability key → legacy module-only gating (defensive).
+    return effectiveModules == null || effectiveModules[key] !== false;
+  };
 
   return (
     <AppLayout siteId={siteId}>
@@ -690,25 +727,46 @@ export default function SiteDashboard() {
         </>
       ) : summary ? (
         <>
-          {/* Phase 5: Getting Started checklist with real completion state */}
+          {/* Phase 5: Getting Started checklist with real completion state.
+              Phase 6: gated through the same single capability model as the
+              sidebar and stat cards (support → module → role → business-fit),
+              via the isVisible resolver — no separate truth here. */}
           <GettingStartedCard
             siteId={siteId as unknown as string}
             siteName={site?.name}
             domain={site?.domain}
             summary={summary as any}
             modules={effectiveModules as any}
+            isVisible={capabilityIsVisible}
             userId={me?._id}
           />
 
-          {/* Content counts stat cards */}
+          {/* Content counts stat cards — Phase 6: gated through the single
+              capability model (support → module → role → business-fit), the
+              same truth the sidebar derives from. Published/Drafts are
+              facets of the Articles capability and share its gate. */}
           <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-7">
-            <StatCard title="Courses" value={summary.courseCount} label="Catalog items" />
-            <StatCard title="Events" value={summary.eventCount} label="Scheduled" />
-            <StatCard title="Articles" value={summary.articleCount} label="Total posts" />
-            <StatCard title="Services" value={summary.serviceCount} label="Offerings" />
-            <StatCard title="Published" value={summary.publishedArticles} label="Live articles" />
-            <StatCard title="Drafts" value={summary.draftArticles} label="Pending" />
-            <StatCard title="Media" value={summary.mediaCount} label="Assets" />
+            {capabilityIsVisible("courses") && (
+              <StatCard title={getSiteCapability(capabilities, "courses")?.label ?? "Courses"} value={summary.courseCount} label="Catalog items" />
+            )}
+            {capabilityIsVisible("events") && (
+              <StatCard title={getSiteCapability(capabilities, "events")?.label ?? "Events"} value={summary.eventCount} label="Scheduled" />
+            )}
+            {capabilityIsVisible("articles") && (
+              <StatCard title={getSiteCapability(capabilities, "articles")?.label ?? "Articles"} value={summary.articleCount} label="Total posts" />
+            )}
+            {capabilityIsVisible("services") && (
+              <StatCard title={getSiteCapability(capabilities, "services")?.label ?? "Services"} value={summary.serviceCount} label="Offerings" />
+            )}
+            {capabilityIsVisible("articles") && (
+              <StatCard title="Published" value={summary.publishedArticles} label="Live articles" />
+            )}
+            {capabilityIsVisible("articles") && (
+              <StatCard title="Drafts" value={summary.draftArticles} label="Pending" />
+            )}
+            {capabilityIsVisible("media") && (
+              <StatCard title="Media" value={summary.mediaCount} label="Assets" />
+            )}
           </div>
 
           {(() => {
@@ -808,8 +866,8 @@ export default function SiteDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Upcoming Events */}
-              {summary.upcomingEvents && (
+              {/* Upcoming Events — Phase 6: gated through the single capability model */}
+              {capabilityIsVisible("events") && summary.upcomingEvents && (
                 <Card className="rounded-2xl border-slate-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-lg">
@@ -855,8 +913,8 @@ export default function SiteDashboard() {
                 </Card>
               )}
 
-              {/* Upcoming Courses */}
-              {summary.upcomingCourses && (
+              {/* Upcoming Courses — Phase 6: gated through the single capability model */}
+              {capabilityIsVisible("courses") && summary.upcomingCourses && (
                 <Card className="rounded-2xl border-slate-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-lg">
@@ -902,8 +960,10 @@ export default function SiteDashboard() {
                 </Card>
               )}
 
-              {/* Recent Media */}
-              {summary.recentMedia && (
+              {/* Recent Media — Phase 6: same Media capability gate as the
+                  stat card (never advertise an upload workflow the viewer
+                  cannot use). */}
+              {capabilityIsVisible("media") && summary.recentMedia && (
                 <Card className="rounded-2xl border-slate-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-lg">
@@ -1087,7 +1147,7 @@ export default function SiteDashboard() {
                   <CardTitle className="text-sm">Quick Edit</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {moduleIsVisible("homepage") && (
+                  {capabilityIsVisible("homepage") && (
                     <Link href={`/app/sites/${siteId}/homepage`}>
                       <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
                         <LayoutTemplate className="mr-2 h-4 w-4 text-slate-400" />
@@ -1095,7 +1155,7 @@ export default function SiteDashboard() {
                       </Button>
                     </Link>
                   )}
-                  {moduleIsVisible("articles") && (
+                  {capabilityIsVisible("articles") && (
                     <Link href={`/app/sites/${siteId}/articles`}>
                       <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
                         <FileText className="mr-2 h-4 w-4 text-slate-400" />
@@ -1103,7 +1163,7 @@ export default function SiteDashboard() {
                       </Button>
                     </Link>
                   )}
-                  {moduleIsVisible("events") && (
+                  {capabilityIsVisible("events") && (
                     <Link href={`/app/sites/${siteId}/events`}>
                       <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
                         <Calendar className="mr-2 h-4 w-4 text-slate-400" />
@@ -1111,7 +1171,7 @@ export default function SiteDashboard() {
                       </Button>
                     </Link>
                   )}
-                  {moduleIsVisible("courses") && (
+                  {capabilityIsVisible("courses") && (
                     <Link href={`/app/sites/${siteId}/courses`}>
                       <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
                         <BookOpen className="mr-2 h-4 w-4 text-slate-400" />
@@ -1119,7 +1179,7 @@ export default function SiteDashboard() {
                       </Button>
                     </Link>
                   )}
-                  {moduleIsVisible("media") && (
+                  {capabilityIsVisible("media") && (
                     <Link href={`/app/sites/${siteId}/media`}>
                       <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
                         <ImageIcon className="mr-2 h-4 w-4 text-slate-400" />

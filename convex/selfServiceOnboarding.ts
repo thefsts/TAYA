@@ -449,6 +449,57 @@ export const certify = action({
       });
     }
 
+    // ——— Phase 6 auto-conform: capability profile built ————————————————
+    // The site profile (inferred site type, business terminology, capability
+    // recommendations, editability classification) is built from the crawl
+    // snapshot and persisted atomically with the content map by discovery.
+    // Like workspace_auto_conformed it is advisory for external sites (the
+    // workspace exists and drafting works regardless), so a missing profile
+    // is PENDING with an honest reason — never a silent pass, never a fail.
+    // TAYA_NATIVE sites have no external content to profile, so they pass
+    // with a native reason. This check is not in the required list: it never
+    // blocks setup completion.
+    const modeForProfile = core.site?.connectionMode ?? null;
+    const profile = (core as any).siteProfile;
+    if (modeForProfile === "TAYA_NATIVE") {
+      checks.push({
+        check: "capability_profile_built",
+        status: "pass",
+        reason:
+          "TAYA_NATIVE: the workspace is provisioned from your choices directly — no external content to profile.",
+      });
+    } else if (!map || !profile) {
+      checks.push({
+        check: "capability_profile_built",
+        status: "pending",
+        reason:
+          "Discovery is running — the capability profile (site type, terminology, recommendations) is built from the crawl snapshot when it lands. This resolves automatically.",
+      });
+    } else {
+      const t = profile.siteType ?? {};
+      const type = typeof t.type === "string" ? t.type : "unknown";
+      const confidence =
+        typeof t.confidence === "number" ? t.confidence.toFixed(2) : "0.00";
+      const capsRaw = profile.capabilities ?? {};
+      const capCount =
+        (Array.isArray(capsRaw.autoEnabled) ? capsRaw.autoEnabled.length : 0) +
+        (Array.isArray(capsRaw.suggested) ? capsRaw.suggested.length : 0);
+      const editLevel =
+        typeof profile.editability?.level === "string"
+          ? profile.editability.level
+          : null;
+      const reasonParts = [
+        `Capability profile built — site type ${type} (confidence ${confidence})`,
+      ];
+      if (editLevel) reasonParts.push(`editability ${editLevel}`);
+      if (capCount > 0) reasonParts.push(`${capCount} capabilities identified`);
+      checks.push({
+        check: "capability_profile_built",
+        status: "pass",
+        reason: reasonParts.join(", ") + ".",
+      });
+    }
+
     // Ownership verification state (ownership_verification_state): the
     // publish gate is server-side (convex/publishing.ts), and an unverified
     // DISCOVERED_EXTERNAL site is draft-only BY DESIGN — so unverified /
@@ -610,6 +661,12 @@ export const _certifyCore = internalQuery({
             refreshedAt: (contentMap as any).refreshedAt ?? null,
           }
         : null,
+      // Phase 6 auto-conform: the site capability profile (site type,
+      // terminology, capability recommendations, editability) built
+      // atomically with the content map by discovery. Surfaced for the
+      // capability_profile_built check — null while the crawl runs and for
+      // maps written before this phase (honest absence, §14).
+      siteProfile: contentMap ? ((contentMap as any).siteProfile ?? null) : null,
       ownership: site
         ? {
             state: ((site as any).ownershipVerification?.state as string | undefined) ?? "unverified",

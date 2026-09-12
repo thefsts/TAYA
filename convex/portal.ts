@@ -538,6 +538,43 @@ export const logout = mutation({
 
 // ─── Admin queries / mutations (require Clerk/dashboard auth) ─────────────────
 
+
+/**
+ * ADMIN AUTHORIZATION GATE — Phase 6 security contract.
+ *
+ * Portal administration is NOT a membership privilege. The previous gate
+ * authorized ANY role assigned on the site (read_only, support, marketing,
+ * finance, …) to save the portal config, change member roles, deactivate
+ * members, or delete member accounts. The dashboard happened not to show
+ * these controls to non-admin roles, but frontend hiding is not
+ * authorization: every client of the Convex API (dashboard, portal, any
+ * future surface) talks to these mutations directly.
+ *
+ * Intended policy (owner/manager/server only — matches the PM security
+ * directive and the admin-surface ownership comments above):
+ *   - FSTS SuperAdmin: always allowed (server-side authority).
+ *   - Site role "owner" or "manager": allowed for THEIR site only.
+ *   - Every other role (marketing, content_editor, course_manager,
+ *     events_manager, finance, support, read_only, internal_qa, or any
+ *     future role): denied — never a silent pass.
+ *
+ * Never widened: passing someone else's siteId is denied even for
+ * owner/manager, and an inactive or missing user record is denied.
+ */
+const PORTAL_ADMIN_ROLES = new Set(["owner", "manager"]);
+
+function portalAdminGate(
+  user: { isSuperAdmin: boolean; isActive: boolean; roles: Array<{ siteId: unknown; role: string }> } | null,
+  siteId: unknown,
+): void {
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isActive) throw new Error("Account is deactivated");
+  if (user.isSuperAdmin) return;
+  const siteRole = user.roles.find((r) => String(r.siteId) === String(siteId));
+  if (!siteRole || !PORTAL_ADMIN_ROLES.has(siteRole.role)) {
+    throw new Error("Access denied");
+  }
+}
 export const getConfig = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
@@ -569,9 +606,7 @@ export const saveConfig = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    if (!user) throw new Error("Not authenticated");
-    if (!user.isSuperAdmin && !user.roles.some((r) => r.siteId === args.siteId))
-      throw new Error("Access denied");
+    portalAdminGate(user, args.siteId);
     // Persist ONLY canonical feature keys: legacy seed aliases are mapped at
     // read time, and any save rewrites the config without them, so configs
     // converge on the canonical set instead of accumulating drift.
@@ -621,11 +656,9 @@ export const updateUserStatus = mutation({
   args: { portalUserId: v.id("portalUsers"), status: v.string() },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    if (!user) throw new Error("Not authenticated");
     const portalUser = await ctx.db.get(args.portalUserId);
     if (!portalUser) throw new Error("User not found");
-    if (!user.isSuperAdmin && !user.roles.some((r) => r.siteId === portalUser.siteId))
-      throw new Error("Access denied");
+    portalAdminGate(user, portalUser.siteId);
     await ctx.db.patch(args.portalUserId, { status: args.status });
   },
 });
@@ -634,11 +667,9 @@ export const updateUserRole = mutation({
   args: { portalUserId: v.id("portalUsers"), role: v.string() },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    if (!user) throw new Error("Not authenticated");
     const portalUser = await ctx.db.get(args.portalUserId);
     if (!portalUser) throw new Error("User not found");
-    if (!user.isSuperAdmin && !user.roles.some((r) => r.siteId === portalUser.siteId))
-      throw new Error("Access denied");
+    portalAdminGate(user, portalUser.siteId);
     await ctx.db.patch(args.portalUserId, { role: args.role });
   },
 });
@@ -647,11 +678,9 @@ export const deletePortalUser = mutation({
   args: { portalUserId: v.id("portalUsers") },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    if (!user) throw new Error("Not authenticated");
     const portalUser = await ctx.db.get(args.portalUserId);
     if (!portalUser) throw new Error("User not found");
-    if (!user.isSuperAdmin && !user.roles.some((r) => r.siteId === portalUser.siteId))
-      throw new Error("Access denied");
+    portalAdminGate(user, portalUser.siteId);
     const sessions = await ctx.db
       .query("portalSessions")
       .withIndex("by_user", (q) => q.eq("portalUserId", args.portalUserId))
@@ -665,11 +694,9 @@ export const updateUserNotes = mutation({
   args: { portalUserId: v.id("portalUsers"), notes: v.string() },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    if (!user) throw new Error("Not authenticated");
     const portalUser = await ctx.db.get(args.portalUserId);
     if (!portalUser) throw new Error("User not found");
-    if (!user.isSuperAdmin && !user.roles.some((r) => r.siteId === portalUser.siteId))
-      throw new Error("Access denied");
+    portalAdminGate(user, portalUser.siteId);
     await ctx.db.patch(args.portalUserId, { notes: args.notes });
   },
 });

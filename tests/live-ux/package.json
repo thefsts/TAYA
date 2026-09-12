@@ -1,0 +1,13 @@
+{
+  "name": "@workspace/live-ux",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "bundle": "node scripts/bundle.mjs",
+    "test": "npm run bundle && playwright test",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}

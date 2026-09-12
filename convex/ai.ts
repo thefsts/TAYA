@@ -2,7 +2,7 @@ import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 
-const SYSTEM_PROMPT = `You are the FSTS AI Dashboard Assistant™ — an expert website management coach embedded inside the FSTS Website Operating System™ (FSTS-WOS™) client dashboard.
+const SYSTEM_PROMPT = `You are MATAYA™ by TAYA™ — a friendly website assistant inside the client's TAYA dashboard.
 
 Your role is to help website owners manage their content confidently, improve their site's quality, and solve problems without needing technical expertise.
 
@@ -26,7 +26,7 @@ STRICT GUARDRAILS — you must NEVER:
 
 TONE: Friendly, clear, encouraging. Non-technical. Use plain language. Be concise but thorough.
 
-When you don't know something specific about the client's site, offer general best-practice advice and remind them they can contact their FSTS support team for site-specific technical questions.`;
+When you don't know something specific about the client's site, offer general best-practice advice and remind them they can contact their TAYA support team for site-specific technical questions.`;
 
 function getAIConfig() {
   const rawBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL ?? process.env.OPENAI_BASE_URL ?? "";
@@ -62,11 +62,47 @@ async function requestAI(config: ReturnType<typeof getAIConfig>, body: unknown) 
 
   if (!response.ok) {
     const text = await response.text();
-    console.error("FSTS AI provider request failed", { status: response.status, body: text.slice(0, 500) });
+    console.error("MATAYA provider request failed", { status: response.status, body: text.slice(0, 500) });
     throw new Error(`AI_PROVIDER_ERROR_${response.status}`);
   }
 
   return await response.json() as any;
+}
+
+/**
+ * Build the Phase 6 site-context block for the chat system prompt (§5
+ * suggest-only). Reads the discovery-built site profile from the site's
+ * content map. Pure read — no mutation, no grant, nothing suggested here
+ * is ever applied automatically. Returns "" when the site has no profile
+ * yet (§14: honest absence, never a fabricated business type).
+ */
+async function buildSiteContext(ctx: any, siteId: any): Promise<string> {
+  try {
+    const result = await ctx.runQuery(internal.siteProfiles.internalGetProfile, { siteId });
+    const profile = (result as any)?.siteProfile;
+    if (!profile?.siteType) return "";
+    const t = profile.siteType;
+    const parts: string[] = [];
+    parts.push(`Site context (discovered automatically by TAYA):`);
+    parts.push(`- Business type: ${t.type} (confidence ${t.confidence})`);
+    const terminology = profile.terminology;
+    if (terminology?.primaryNoun) parts.push(`- The client calls what they offer "${terminology.primaryNoun}"`);
+    if (terminology?.primaryAction) parts.push(`- The client's main call-to-action is "${terminology.primaryAction}"`);
+    const capabilities = profile.capabilities;
+    if (Array.isArray(capabilities?.suggested) && capabilities.suggested.length > 0) {
+      const names = capabilities.suggested
+        .slice(0, 5)
+        .map((c: any) => `${c.label} (${c.reason})`)
+        .join("; ");
+      parts.push(
+        `- Capabilities TAYA discovered evidence for, that this site does not use yet (SUGGEST to the user when relevant — these are suggestions only, the owner decides): ${names}`,
+      );
+    }
+    return `\n\n${parts.join("\n")}`;
+  } catch {
+    // A read failure must never break chat — degrade to no site context.
+    return "";
+  }
 }
 
 export const status = action({
@@ -105,9 +141,17 @@ export const chat = action({
       ? `\n\nCurrent page content summary (use this to give specific, relevant advice):\n${pageContext}`
       : "";
 
+    // ── Phase 6 site context (§5 suggest-only) ─────────────────────────────
+    // The discovery-built site profile (business type + terminology +
+    // capability recommendations) grounds the assistant in what THIS site
+    // actually is. It is advisory context ONLY — the assistant never gains
+    // authority from it, and recommendations are suggestions the owner can
+    // decline. Absent profile → no context block (§14: never fabricate).
+    const siteContext = await buildSiteContext(ctx, siteId);
+
     const systemMessage = {
       role: "system",
-      content: SYSTEM_PROMPT + sectionContext + pageContentContext,
+      content: SYSTEM_PROMPT + sectionContext + pageContentContext + siteContext,
     };
 
     const data = await requestAI(config, {

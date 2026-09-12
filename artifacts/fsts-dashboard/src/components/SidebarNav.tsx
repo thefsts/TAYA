@@ -35,6 +35,15 @@ export interface SidebarNavProps {
   siteId: string;
   enabledModules?: Record<string, boolean> | null;
   isSuperAdmin: boolean;
+  /**
+   * Phase 6: viewer's role permission levels (accessControl.getMyPermissions
+   * `permissions` map). null/undefined = loading/failed → core-only sidebar.
+   */
+  rolePermissions?: Record<string, "none" | "view" | "edit" | "manage"> | null;
+  /** Phase 6: site business type (terminology profile + hiddenByDefault). */
+  websiteType?: string | null;
+  /** Phase 6: per-site label overrides (site terminology settings). */
+  terminologyOverrides?: Record<string, string> | null;
   /** Collapsed group ids (managed by useSidebarUi in the layout). */
   collapsedGroups: string[];
   onToggleGroup: (groupId: string) => void;
@@ -348,13 +357,21 @@ function SidebarGroup(props: SidebarGroupProps) {
 }
 
 export function SidebarNav(props: SidebarNavProps) {
-  const { siteId, enabledModules, isSuperAdmin, collapsedGroups, onToggleGroup, badges, compact, onNavigate } = props;
+  const {
+    siteId, enabledModules, isSuperAdmin, rolePermissions, websiteType,
+    terminologyOverrides, collapsedGroups, onToggleGroup, badges, compact, onNavigate,
+  } = props;
   const [location] = useLocation();
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
 
-  const ctx: SidebarBuildContext = { siteId, enabledModules, isSuperAdmin };
+  const ctx: SidebarBuildContext = {
+    siteId, enabledModules, isSuperAdmin, rolePermissions, websiteType, terminologyOverrides,
+  };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const groups = useMemo(() => buildSidebarGroups(ctx), [siteId, enabledModules, isSuperAdmin]);
+  const groups = useMemo(
+    () => buildSidebarGroups(ctx),
+    [siteId, enabledModules, isSuperAdmin, rolePermissions, websiteType, terminologyOverrides],
+  );
 
   // Auto-expand a submenu whose child is the active route (WordPress-like).
   useEffect(() => {

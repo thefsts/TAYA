@@ -18,8 +18,9 @@
  *      messages from the frame load a new page.
  *   6. No content map (discovery incomplete) → honest empty state, no fake
  *      editing surface.
- *   7. Honest editing: no remove/reorder buttons for repeatable items
- *      (structural ops aren't persisted server-side — never faked).
+ *   7. Repeatable items: persisted remove/restore/reorder (ordered XOR
+ *      hidden) routed through §6 setStructuralOps — server-validated,
+ *      never faked client-side.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -32,6 +33,8 @@ const mockUseQuery = vi.hoisted(() => vi.fn());
 const mockUseMutation = vi.hoisted(() => vi.fn());
 const mockUseAction = vi.hoisted(() => vi.fn());
 const mockLocation = vi.hoisted(() => ({ value: "/" }));
+/** wouter navigate spy (FormsPanel routes to FormBuilder — §5). */
+const mockNavigate = vi.hoisted(() => vi.fn());
 /** Captured postMessage messages sent to the frame (parent → frame). */
 const postMessageToFrame = vi.hoisted(() => vi.fn());
 
@@ -62,7 +65,7 @@ vi.mock("@convex/_generated/api", () => {
 vi.mock("@convex/_generated/dataModel", () => ({}));
 
 vi.mock("wouter", () => ({
-  useLocation: () => [mockLocation.value, vi.fn()],
+  useLocation: () => [mockLocation.value, mockNavigate],
   useSearch: () => mockLocation.value.split("?")[1] ?? "",
   useParams: () => ({ siteId: "site_test123" }),
   useRoute: () => [false, {}],
@@ -141,6 +144,64 @@ const REVISIONS = [
   },
 ];
 
+/**
+ * §6 zone summaries fixture — zonesForPageKeys resolution of CONTENT_MAP's
+ * pages ("/" → home keys: hero + about + services + gallery; "/about" →
+ * about keys: intro) plus the additive zones (video-section, cta-stack).
+ */
+const ZONE_SUMMARIES = {
+  connected: true,
+  pages: [
+    {
+      path: "/",
+      label: "Home",
+      zones: [
+        { zone: "hero", label: "Hero area", kinds: ["text", "button", "video"] },
+        { zone: "content", label: "Content section", kinds: ["text", "image", "button", "video", "pdf"] },
+        { zone: "service-list", label: "Service list", kinds: ["text", "button", "pdf"] },
+        { zone: "video-section", label: "Video section", kinds: ["video", "text"] },
+        { zone: "cta-stack", label: "Call-to-action stack", kinds: ["cta", "text", "button", "video"] },
+      ],
+    },
+    {
+      path: "/about",
+      label: "About",
+      zones: [
+        { zone: "hero", label: "Hero area", kinds: ["text", "button", "video"] },
+        { zone: "content", label: "Content section", kinds: ["text", "image", "button", "video", "pdf"] },
+        { zone: "video-section", label: "Video section", kinds: ["video", "text"] },
+        { zone: "cta-stack", label: "Call-to-action stack", kinds: ["cta", "text", "button", "video"] },
+      ],
+    },
+  ],
+};
+
+/** §6 block rows (listZoneBlocks shape) — one published text block in hero. */
+const ZONE_BLOCKS = [
+  {
+    id: "blk1",
+    pagePath: "/",
+    zone: "hero",
+    kind: "text",
+    order: 0,
+    content: { kind: "text", text: "Trusted since 2010", style: "paragraph" },
+    published: { kind: "text", text: "Trusted since 2010", style: "paragraph" },
+    pendingDelete: false,
+    updatedAt: 1735000000000,
+  },
+];
+
+/** §6 structuralsFor rows — none for "/" (untouched). */
+const STRUCTURALS: Array<Record<string, unknown>> = [];
+
+const DOWNLOADS = [
+  { id: "dl1", title: "Service Catalog", url: "https://cdn.example/catalog.pdf", format: "PDF", isActive: true },
+];
+
+const FORMS = [
+  { id: "form1", name: "Contact us", status: "published" },
+];
+
 const AUTHORITY_OK = { canPublish: true, connectionMode: "external", reason: null };
 const AUTHORITY_BLOCKED = {
   canPublish: false,
@@ -153,15 +214,30 @@ function setup({
   contentMap = CONTENT_MAP,
   authority = AUTHORITY_OK,
   revisions = REVISIONS,
+  zoneSummaries = ZONE_SUMMARIES,
+  zoneBlocks = ZONE_BLOCKS,
+  structurals = STRUCTURALS,
+  downloads = DOWNLOADS,
+  forms = FORMS,
 }: {
   contentMap?: Record<string, unknown> | null;
   authority?: Record<string, unknown> | null;
   revisions?: Record<string, unknown>[] | null;
+  zoneSummaries?: Record<string, unknown> | null;
+  zoneBlocks?: Array<Record<string, unknown>> | null;
+  structurals?: Array<Record<string, unknown>> | null;
+  downloads?: Array<Record<string, unknown>> | null;
+  forms?: Array<Record<string, unknown>> | null;
 } = {}) {
   const dispatch: Record<string, unknown> = {
     "api.contentMap.get": contentMap,
     "api.publishing.canPublish": authority,
     "api.editor.editorRevisions": revisions,
+    "api.editorZones.zoneSummaries": zoneSummaries,
+    "api.editorZones.listZoneBlocks": zoneBlocks,
+    "api.editorZones.structuralsFor": structurals,
+    "api.downloads.list": downloads,
+    "api.forms.list": forms,
   };
   mockUseQuery.mockImplementation((q: unknown) => {
     const path = typeof q === "function" ? (q as () => string)() : (q as string);
@@ -229,6 +305,7 @@ beforeEach(() => {
   mockUseMutation.mockReturnValue(vi.fn(async () => ({})));
   mockUseAction.mockReset();
   mockUseAction.mockReturnValue(vi.fn());
+  mockNavigate.mockReset();
   postMessageToFrame.mockReset();
 
   // iframe.contentWindow.postMessage — capture the parent→frame channel.
@@ -318,11 +395,12 @@ describe("VisualEditor — frame bootstrap protocol", () => {
       kind: "element-click",
       key: "home.hero.heading",
       type: "text",
+      contentKind: "heading",
       label: "h1: Live Studio Heading",
       alt: null, text: "Live Studio Heading", href: null, itemId: null,
     });
     expect(await screen.findByText(/Homepage · hero · heading/)).toBeInTheDocument();
-    expect(screen.getByText("Text")).toBeInTheDocument();
+    expect(screen.getByText("Heading")).toBeInTheDocument();
     const ta = screen.getByRole("textbox");
     expect(ta).toBeInTheDocument();
   });
@@ -489,6 +567,125 @@ describe("VisualEditor — frame bootstrap protocol", () => {
     expect(screen.queryByText(/Homepage · hero · heading/)).not.toBeInTheDocument();
     frameSends({ source: "taya-editor", kind: "unknown-kind" });
     expect(screen.queryByText(/Homepage · hero · heading/)).not.toBeInTheDocument();
+  });
+
+  it("locked-click shows the FSTS-managed notice (never silent)", async () => {
+    setup();
+    await renderEditor();
+    frameSends({ source: "taya-editor", kind: "locked-click", label: "Site header", external: false });
+    expect(
+      await screen.findByText(/managed by FSTS/i),
+    ).toBeInTheDocument();
+    // The notice is announced (role=status) — screen readers hear it.
+    expect(document.querySelector('[role="status"]')).not.toBeNull();
+  });
+
+  it("locked-click for an off-site link explains why it is not followed", async () => {
+    setup();
+    await renderEditor();
+    frameSends({ source: "taya-editor", kind: "locked-click", label: "External", external: true });
+    expect(
+      await screen.findByText(/not followed inside the editor/i),
+    ).toBeInTheDocument();
+  });
+
+  it("block-click opens the added content's edit form (no ids in copy)", async () => {
+    setup();
+    await renderEditor();
+    // The content list shows the existing block (fixture: one text block in hero).
+    expect(await screen.findByText("Trusted since 2010")).toBeInTheDocument();
+    frameSends({ source: "taya-editor", kind: "block-click", blockId: "blk1", zone: "hero", label: "Trusted since 2010" });
+    // The edit form for that block opens (client-language save button).
+    expect(await screen.findByRole("button", { name: "Save changes" })).toBeInTheDocument();
+    // No block id / zone id leaks into the client copy.
+    expect(document.body.innerHTML).not.toContain("blk1");
+    expect(document.body.innerHTML).not.toContain(">hero<");
+  });
+
+  it("block-click for an unknown id degrades to an honest message, never a crash", async () => {
+    setup();
+    await renderEditor();
+    frameSends({ source: "taya-editor", kind: "block-click", blockId: "ghost", zone: "hero", label: "x" });
+    expect(await screen.findByText(/still saving/i)).toBeInTheDocument();
+  });
+
+  it("selection-cleared (Escape in the frame) clears the selection card", async () => {
+    setup();
+    await renderEditor();
+    frameSends({
+      source: "taya-editor",
+      kind: "element-click",
+      key: "home.hero.heading",
+      type: "text",
+      contentKind: "heading",
+      label: "h1", alt: null, text: "Live Studio Heading", href: null, itemId: null,
+    });
+    expect(await screen.findByText(/Homepage · hero · heading/)).toBeInTheDocument();
+    frameSends({ source: "taya-editor", kind: "selection-cleared" });
+    await waitFor(() => {
+      expect(screen.queryByText(/Homepage · hero · heading/)).not.toBeInTheDocument();
+    });
+    expect(screen.getByText(/Click something to edit it/)).toBeInTheDocument();
+  });
+
+  it("contentKind drives the card header (Image identified as Image)", async () => {
+    setup();
+    await renderEditor();
+    frameSends({
+      source: "taya-editor",
+      kind: "element-click",
+      key: "home.about.image",
+      type: "image",
+      contentKind: "image",
+      label: "img", alt: "Studio photo", text: null, href: null, itemId: null,
+    });
+    expect(await screen.findByText("Image")).toBeInTheDocument();
+    expect(screen.queryByText("Heading")).not.toBeInTheDocument();
+  });
+
+  it("per-card Save this change persists ONLY this element (obvious Save in context)", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    frameSends({
+      source: "taya-editor",
+      kind: "element-click",
+      key: "home.hero.heading",
+      type: "text",
+      contentKind: "heading",
+      label: "h1", alt: null, text: "Live Studio Heading", href: null, itemId: null,
+    });
+    fireEvent.change(await screen.findByRole("textbox"), { target: { value: "Fresh Title" } });
+    const saveBtn = await screen.findByRole("button", { name: "Save this change" });
+    expect(saveBtn).toBeEnabled();
+    fireEvent.click(saveBtn);
+    await waitFor(() => {
+      expect(mutations["api.publishing.saveDraft"]).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entries: [{ key: "home.hero.heading", value: "Fresh Title" }],
+        }),
+      );
+    });
+  });
+
+  it("per-card Revert drops this element's unsaved edit (Cancel in context)", async () => {
+    setup();
+    await renderEditor();
+    frameSends({
+      source: "taya-editor",
+      kind: "element-click",
+      key: "home.hero.heading",
+      type: "text",
+      contentKind: "heading",
+      label: "h1", alt: null, text: "Live Studio Heading", href: null, itemId: null,
+    });
+    fireEvent.change(await screen.findByRole("textbox"), { target: { value: "Revert Me" } });
+    expect(await screen.findByText(/Unsaved edits/)).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "Revert" }));
+    // Unsaved state clears without touching the server.
+    await waitFor(() => {
+      expect(screen.queryByText(/Unsaved edits/)).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: "Revert" })).toBeDisabled();
   });
 });
 
@@ -699,16 +896,307 @@ describe("VisualEditor — workflow states", () => {
 /* ── 4. Honest editing ────────────────────────────────────────────────── */
 
 describe("VisualEditor — honest editing (no faked capabilities)", () => {
-  it("lists repeatable items for click-to-edit but offers NO remove/reorder buttons", async () => {
-    setup();
+  it("lists repeatable items with PERSISTED remove/reorder buttons (§6 structural ops)", async () => {
+    const { mutations } = setup();
     await renderEditor();
     expect(screen.getByText("Sections with repeatable items")).toBeInTheDocument();
     expect(screen.getByText(/Homepage · services · items 0/)).toBeInTheDocument();
     expect(screen.getByText(/Homepage · services · items 1/)).toBeInTheDocument();
-    // Structural ops are not persisted server-side — the UI must not offer them.
-    expect(screen.queryByRole("button", { name: "Move up" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Move down" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
+    // Structural ops ARE persisted server-side now (§6 setStructuralOps) —
+    // the UI offers them honestly and routes every op through the server.
+    expect(screen.getAllByRole("button", { name: "Move up" }).length).toBe(2);
+    expect(screen.getAllByRole("button", { name: "Move down" }).length).toBe(2);
+    expect(screen.getAllByRole("button", { name: "Remove" }).length).toBe(2);
+    // Removing item 0: ordered XOR hidden — it leaves itemOrder and lands
+    // in hiddenItems, saved as a draft via the server mutation.
+    fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
+    await waitFor(() => {
+      expect(mutations["api.editorZones.setStructuralOps"]).toHaveBeenCalledWith({
+        siteId: SITE_ID,
+        pagePath: "/",
+        itemOrder: ["home.services.items[1]"],
+        hiddenItems: ["home.services.items[0]"],
+      });
+    });
+  });
+});
+
+/* ── 5b. §1–§6 rich content: safe zones, video, PDF, forms ─────────── */
+
+describe("VisualEditor — rich content (§1–§6)", () => {
+  /** Add flow helper (what-first): open panel → pick WHAT → pick WHERE → form appears. */
+  async function addFlow(kindLabel: string, areaLabel: string) {
+    fireEvent.click(screen.getByRole("button", { name: /Add content to this page/ }));
+    fireEvent.click(await screen.findByRole("button", { name: kindLabel }));
+    await screen.findByText(/Where should it go/);
+    fireEvent.click(await screen.findByRole("button", { name: areaLabel }));
+    await screen.findByText(/It will show up/);
+  }
+
+  it("§2 unsafe destinations are REJECTED inline — javascript: never accepted", async () => {
+    setup();
+    await renderEditor();
+    frameSends({
+      source: "taya-editor",
+      kind: "element-click",
+      key: "home.hero.primaryButton.label",
+      type: "text",
+      label: "a", alt: null, text: "Book Now", href: "https://www.fstacktsolutions.com/contact", itemId: null,
+    });
+    const dest = await screen.findByPlaceholderText("https://… / /about / #pricing / tel: / mailto:");
+    fireEvent.change(dest, { target: { value: "javascript:alert(document.cookie)" } });
+    expect(await screen.findByText("That link type isn't allowed for safety.")).toBeInTheDocument();
+    expect(screen.queryByText(/video detected/i)).not.toBeInTheDocument();
+  });
+
+  it("§2 valid destinations classify inline (badge shows the kind)", async () => {
+    setup();
+    await renderEditor();
+    frameSends({
+      source: "taya-editor",
+      kind: "element-click",
+      key: "home.hero.primaryButton.label",
+      type: "text",
+      label: "a", alt: null, text: "Book Now", href: "https://www.fstacktsolutions.com/contact", itemId: null,
+    });
+    const dest = await screen.findByPlaceholderText("https://… / /about / #pricing / tel: / mailto:");
+    fireEvent.change(dest, { target: { value: "/about" } });
+    expect(await screen.findByText("Page on this site")).toBeInTheDocument();
+    fireEvent.change(dest, { target: { value: "tel:+15551234567" } });
+    expect(await screen.findByText("Phone number")).toBeInTheDocument();
+    fireEvent.change(dest, { target: { value: "mailto:studio@example.com" } });
+    expect(await screen.findByText("Email link")).toBeInTheDocument();
+    fireEvent.change(dest, { target: { value: "https://example.com/pricing" } });
+    expect(await screen.findByText("Website link")).toBeInTheDocument();
+    fireEvent.change(dest, { target: { value: "#gallery" } });
+    expect(await screen.findByText("Section on this page")).toBeInTheDocument();
+  });
+
+  it("§3 video: YouTube link parses → provider preview → addBlock with canonical video content", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    await addFlow("+ Add video", "Video area");
+    const input = screen.getByPlaceholderText("https://www.youtube.com/watch?v=…");
+    fireEvent.change(input, { target: { value: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" } });
+    expect(await screen.findByText(/youtube video detected/i)).toBeInTheDocument();
+    expect(screen.getByText("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add to page" }));
+    await waitFor(() => {
+      expect(mutations["api.editorZones.addBlock"]).toHaveBeenCalledWith(
+        expect.objectContaining({
+          siteId: SITE_ID,
+          pagePath: "/",
+          zone: "video-section",
+          content: {
+            kind: "video",
+            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            provider: "youtube",
+            videoId: "dQw4w9WgXcQ",
+            embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+            watchUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            caption: "",
+          },
+        }),
+      );
+    });
+  });
+
+  it("§3 video: Vimeo unlisted link (vimeo.com/ID/HASH) preserves the privacy hash", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    await addFlow("+ Add video", "Video area");
+    const input = screen.getByPlaceholderText("https://www.youtube.com/watch?v=…");
+    fireEvent.change(input, { target: { value: "https://vimeo.com/76979871/2ff2a25d4c" } });
+    expect(await screen.findByText(/vimeo video detected/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add to page" }));
+    await waitFor(() => {
+      expect(mutations["api.editorZones.addBlock"]).toHaveBeenCalledWith(
+        expect.objectContaining({
+          zone: "video-section",
+          content: expect.objectContaining({
+            kind: "video",
+            provider: "vimeo",
+            videoId: "76979871",
+            embedUrl: "https://player.vimeo.com/video/76979871?h=2ff2a25d4c",
+          }),
+        }),
+      );
+    });
+  });
+
+  it("§3 NO arbitrary embed HTML — iframe/script paste is rejected with the canonical reason", async () => {
+    setup();
+    await renderEditor();
+    await addFlow("+ Add video", "Video area");
+    const input = screen.getByPlaceholderText("https://www.youtube.com/watch?v=…");
+    fireEvent.change(input, { target: { value: '<iframe src="https://evil.example"></iframe>' } });
+    expect(
+      await screen.findByText("Paste the video's share link — embed code isn't allowed."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/video detected/i)).not.toBeInTheDocument();
+  });
+
+  it("§4 PDF: managed-resource picker → addBlock with resourceId (never a raw URL field)", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    await addFlow("+ Add resource", "Main content area");
+    const select = await screen.findByRole("combobox");
+    fireEvent.change(select, { target: { value: "dl1" } });
+    // The pdf form's textboxes are [title, description, buttonLabel] in order.
+    const titleInput = screen.getAllByRole("textbox")[0];
+    fireEvent.change(titleInput, { target: { value: "Our Service Catalog" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add to page" }));
+    await waitFor(() => {
+      expect(mutations["api.editorZones.addBlock"]).toHaveBeenCalledWith(
+        expect.objectContaining({
+          siteId: SITE_ID,
+          pagePath: "/",
+          zone: "content",
+          content: {
+            kind: "pdf",
+            resourceId: "dl1",
+            title: "Our Service Catalog",
+            description: "",
+            buttonLabel: "",
+          },
+        }),
+      );
+    });
+  });
+
+  it("§5 forms panel routes to the EXISTING FormBuilder — no inline form editing", async () => {
+    setup();
+    await renderEditor();
+    const formRow = await screen.findByText("Contact us");
+    fireEvent.click(formRow);
+    expect(mockNavigate).toHaveBeenCalledWith("/app/sites/site_test123/forms/form1");
+    expect(document.body.innerHTML).not.toContain("formSchema");
+  });
+
+  it("§6 AddBlockPanel (what-first) offers only areas the server's zoneSummaries list for the picked kind", async () => {
+    setup();
+    await renderEditor();
+    fireEvent.click(screen.getByRole("button", { name: /Add content to this page/ }));
+    // Pick WHAT: video.
+    fireEvent.click(await screen.findByRole("button", { name: "+ Add video" }));
+    // WHERE step lists only areas where video is allowed on this page.
+    expect(await screen.findByRole("button", { name: "Top of the page" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Main content area" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Video area" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Call-to-action area" })).toBeInTheDocument();
+    // Areas NOT on this page's map (footer/FAQ) are never offered.
+    expect(screen.queryByRole("button", { name: "Footer" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "FAQ list" })).not.toBeInTheDocument();
+  });
+
+  it("§6 kinds are filtered by ZONE_ALLOWED_KINDS — unavailable kinds show an honest explanation (flow 9)", async () => {
+    setup();
+    await renderEditor();
+    fireEvent.click(screen.getByRole("button", { name: /Add content to this page/ }));
+    // On this fixture, PDF is allowed in content/service-list, so it stays enabled;
+    // FAQ is allowed nowhere on this page — disabled + honest explanation (never hidden).
+    expect(await screen.findByRole("button", { name: "+ Add resource" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "+ Add FAQ" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "+ Add image" })).toBeInTheDocument();
+    expect(
+      await screen.findByText(/FAQ items can.t be added to this page/),
+    ).toBeInTheDocument();
+  });
+
+  it("§6 existing block rows render with persisted edit/remove/reorder controls", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    expect(await screen.findByText("Trusted since 2010")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Edit Trusted since 2010" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove Trusted since 2010" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Move Trusted since 2010 up" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Move Trusted since 2010 down" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Remove Trusted since 2010" }));
+    await waitFor(() => {
+      expect(mutations["api.editorZones.removeBlock"]).toHaveBeenCalledWith({
+        siteId: SITE_ID,
+        blockId: "blk1",
+      });
+    });
+  });
+
+  it("§6 zone drafts gate Publish/Discard exactly like map drafts", async () => {
+    // Baseline: content === published → Publish disabled (honest state).
+    setup();
+    const first = await renderEditor();
+    expect(await screen.findByText("Trusted since 2010")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Publish/ })).toBeDisabled();
+    first.unmount();
+    // A zone draft (content ≠ published) flips both gates.
+    const { mutations } = setup({
+      zoneBlocks: [
+        {
+          id: "blk1",
+          pagePath: "/",
+          zone: "hero",
+          kind: "text",
+          order: 0,
+          content: { kind: "text", text: "Trusted since 2020", style: "paragraph" },
+          published: { kind: "text", text: "Trusted since 2010", style: "paragraph" },
+          pendingDelete: false,
+          updatedAt: 1735000000000,
+        },
+      ],
+    });
+    await renderEditor();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Publish/ })).toBeEnabled();
+    });
+    expect(await screen.findByText(/Discard 1 draft change/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Discard 1 draft change/ }));
+    await waitFor(() => {
+      expect(mutations["api.editorZones.discardBlocks"]).toHaveBeenCalledWith({
+        siteId: SITE_ID,
+      });
+    });
+  });
+
+  it("§6 zone-refresh preview ops reach the frame when zone blocks change", async () => {
+    setup();
+    await renderEditor();
+    // Production contract: previews ride the frame's "ready" handshake
+    // (the mount-time effect pass no-ops — the iframe doesn't exist yet).
+    frameSends({ source: "taya-editor", kind: "ready", path: "/", slug: "test" });
+    const msgs = parentToFrameMessages();
+    const zoneRefresh = msgs.find(
+      (m) => m.kind === "op" && (m as { op?: string }).op === "zone-refresh",
+    );
+    expect(zoneRefresh).toBeDefined();
+    if (zoneRefresh) {
+      const zones = (zoneRefresh as { zones?: Array<{ zone: string; html: string }> }).zones ?? [];
+      expect(zones.some((z) => z.zone === "hero" && z.html.includes("Trusted since 2010"))).toBe(true);
+      expect(zones.some((z) => z.zone === "video-section" && z.html === "")).toBe(true);
+    }
+  });
+
+  it("§6 zone drafts go live through publishBlocks on the same Publish press", async () => {
+    const { mutations } = setup({
+      zoneBlocks: [
+        {
+          id: "blk1",
+          pagePath: "/",
+          zone: "hero",
+          kind: "text",
+          order: 0,
+          content: { kind: "text", text: "Trusted since 2020", style: "paragraph" },
+          published: { kind: "text", text: "Trusted since 2010", style: "paragraph" },
+          pendingDelete: false,
+          updatedAt: 1735000000000,
+        },
+      ],
+    });
+    await renderEditor();
+    expect(await screen.findByText(/Discard 1 draft change/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Publish/ }));
+    await waitFor(() => {
+      expect(mutations["api.editorZones.publishBlocks"]).toHaveBeenCalledWith({ siteId: SITE_ID });
+      expect(mutations["api.publishing.publishContentMap"]).not.toHaveBeenCalled();
+    });
   });
 });
 
@@ -801,8 +1289,12 @@ describe("VisualEditor — reopen with server-side drafts (Bug #2)", () => {
     // Server-side drafts ride the apply-draft channel (§16)...
     expect(entries["home.about.body"]).toEqual({ value: "Prior Session Draft Body", type: "text" });
     expect(entries["about.intro.heading"]).toEqual({ value: "Prior Session Draft Heading", type: "text" });
-    // ...and keys without a draft or local edit are not pushed.
-    expect(entries["home.hero.heading"]).toBeUndefined();
+    // ...and keys with no draft or local edit still carry their LIVE value
+    // through the full overlay - the frame route strips every site script
+    // (including the bridge that applies published values), so the parent's
+    // apply-draft is the only channel that keeps a reopened editor showing
+    // the PUBLISHED site instead of pre-TAYA discovered text.
+    expect(entries["home.hero.heading"]).toEqual({ value: "Live Studio Heading", type: "text" });
   });
 
   it("Bug #2: a local edit wins over the server draft; Save Draft UNIONS pending keys (adopted drafts are never dropped)", async () => {

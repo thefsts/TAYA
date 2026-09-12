@@ -248,7 +248,7 @@ function foldIntoContentMap(
     if (section.body && !isHomeHero) {
       map[`${roleSeg}.body`] = { type: "text", value: section.body, evidence: "section body text" };
     }
-    // Repeated items → services.items[0].title / .description / .image (§5).
+    // Repeated items → services.items[0].title / .description / .image / .price (§5).
     section.items.forEach((item, i) => {
       if (item.title) {
         map[`${roleSeg}.items[${i}].title`] = {
@@ -269,6 +269,13 @@ function foldIntoContentMap(
           type: "image",
           value: item.image,
           evidence: `item image in "${section.role}" list`,
+        };
+      }
+      if (item.price) {
+        map[`${roleSeg}.items[${i}].price`] = {
+          type: "text",
+          value: item.price,
+          evidence: `price-like value in "${section.role}" list item`,
         };
       }
     });
@@ -306,6 +313,24 @@ function foldIntoContentMap(
     if (!(h.key in map)) {
       map[h.key] = { type: "text", value: h.text, evidence: `h${h.level} text` };
     }
+  }
+
+  // Videos (§1 media signal — third-party embeds/files, page-scoped keys).
+  for (const video of model.videos ?? []) {
+    map[video.key] = {
+      type: "video",
+      value: video.src,
+      evidence: `${video.source} video${video.title ? ` "${video.title}"` : ""}`,
+    };
+  }
+
+  // Downloads (§1 downloadable-asset signal — pdf/doc/zip/csv links).
+  for (const download of model.downloads ?? []) {
+    map[download.key] = {
+      type: "download",
+      value: download.href,
+      evidence: `download link (${download.fileType}) "${download.label}"`,
+    };
   }
 
   // Footer text (the site-wide footer appears on every page; keep homepage's).

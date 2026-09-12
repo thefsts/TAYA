@@ -2,8 +2,10 @@
  * AdminRoadmap — Interactive FSTS Improvement Roadmap
  *
  * Lets FSTS staff browse improvements by wave, filter by priority / category /
- * tag / status, and track milestone progress — without opening the PDF.
- * The PDF download button is retained for offline reference.
+ * tag / status, and track milestone progress. This authenticated admin page
+ * is the canonical way to browse the roadmap; the generated PDF lives only
+ * in the repo-internal exports/roadmap/ directory and is never deployed to
+ * the unauthenticated public/ surface.
  *
  * Data is sourced from the same CATEGORIES / WAVES constants that power
  * scripts/generate-roadmap-pdf.mjs. Keep the two files in sync when adding
@@ -16,11 +18,9 @@ import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   ChevronDown,
   ChevronRight,
-  Download,
   ArrowLeft,
   Filter,
   X,
@@ -858,16 +858,6 @@ export default function AdminRoadmap() {
             {ALL_ITEMS.length} improvements across {WAVES.length} waves · FSTS internal
           </p>
         </div>
-        <a
-          href="/fsts-dashboard-roadmap.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Download className="h-4 w-4" />
-            Download PDF
-          </Button>
-        </a>
       </div>
 
       {/* Milestone progress bars */}

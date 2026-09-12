@@ -10,13 +10,16 @@
  * same protocol.
  */
 
-export const TAYA_BRIDGE_VERSION = 1;
+export const TAYA_BRIDGE_VERSION = 2;
 
 export const BRIDGE_ATTR_KEY = "data-taya-edit";
 export const BRIDGE_ATTR_TYPE = "data-taya-type";
 export const BRIDGE_ATTR_LABEL = "data-taya-label";
 export const BRIDGE_ATTR_REPEATABLE = "data-taya-repeatable";
 export const BRIDGE_ATTR_PAGE = "data-taya-page";
+
+/** v2: embed attribute marking a safe insertion zone container (§6). */
+export const BRIDGE_ATTR_ZONE = "data-taya-zone";
 
 export const BRIDGE_ENTRY_TYPES = [
   "text",
@@ -32,6 +35,10 @@ export type BridgeEntryType = (typeof BRIDGE_ENTRY_TYPES)[number];
 export const BRIDGE_EVENT_READY = "taya:bridge-ready";
 export const BRIDGE_EVENT_CLICK = "taya:element-click";
 export const BRIDGE_EVENT_PREVIEW_APPLIED = "taya:preview-applied";
+/** v2: dispatched after published zone blocks are rendered/appended. */
+export const BRIDGE_EVENT_BLOCKS_APPLIED = "taya:blocks-applied";
+/** v2: dispatched after published structural ops (hide/reorder) are applied. */
+export const BRIDGE_EVENT_STRUCTURAL_APPLIED = "taya:structural-applied";
 
 export const BRIDGE_PATH_CONTENT = "/api/bridge/content";
 export const BRIDGE_PATH_DRAFT = "/api/bridge/draft";
@@ -46,6 +53,10 @@ export const BRIDGE_FIELD_DRAFTS = "drafts";
 export const BRIDGE_FIELD_PAGES = "pages";
 export const BRIDGE_FIELD_MODE = "mode";
 export const BRIDGE_FIELD_VERSION = "bridgeVersion";
+/** v2: published zone-block HTML keyed by page path (bridge _content). */
+export const BRIDGE_FIELD_BLOCKS = "blocks";
+/** v2: published structural ops (itemOrder/hiddenItems) keyed by page path. */
+export const BRIDGE_FIELD_STRUCTURAL = "structural";
 
 export const BRIDGE_SNIPPET_PARAMS = ["slug"] as const;
 

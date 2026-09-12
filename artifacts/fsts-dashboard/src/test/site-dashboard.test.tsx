@@ -1,16 +1,28 @@
 /**
  * site-dashboard.test.tsx
  *
- * Phase 3 test suite: Simple Client Dashboard body (SiteDashboard default export).
+ * Phase 3 test suite (updated for Phase 6 adaptive dashboard): Simple Client
+ * Dashboard body (SiteDashboard default export).
  *
- * Covers three Phase 3 contracts:
+ * Covers three Phase 3 contracts, recomposed through the Phase 6 single
+ * capability model (useSiteCapabilities):
  *   1. Real-data stat cards — seven cards including the new Services card
  *      (serviceCount from getDashboardSummary), zero counts render as 0.
- *   2. Permission-aware Quick Edit — links hidden when effectiveModules says
- *      false, shown when null (loading) or true; mirrors sidebar gating.
+ *      Cards now render only when the capability model says the viewer can
+ *      see them (owner fixture: full truthful permissions map).
+ *   2. Permission-aware Quick Edit — links hidden when the capability model
+ *      hides them (module false OR permission none), shown when enabled;
+ *      unknown modules/permissions → CORE-ONLY (optional items hidden —
+ *      PM Decision 3, never guess).
  *   3. Inviting empty states — Upcoming Events / Upcoming Courses / Recent
- *      Media sections always render (card visible) with a call-to-action when
- *      empty, instead of silently disappearing.
+ *      Media sections render with a call-to-action when empty, instead of
+ *      silently disappearing.
+ *
+ * Phase 6 fixture change (deliberate): the default workspace now mocks
+ * api.accessControl.getMyPermissions with the truthful OWNER row from
+ * src/lib/roleCapabilities.ts (the mirrored enforcement matrix). Old tests
+ * relied on "modules null → show everything"; the adaptive model treats
+ * unknown permissions as core-only, so a viewer truth must be supplied.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -69,6 +81,7 @@ vi.mock("@/components/AIAssistant", () => ({ AIAssistant: () => null }));
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import SiteDashboard from "@/pages/app/SiteDashboard";
+import { ROLE_CAPABILITIES } from "@/lib/roleCapabilities";
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -79,6 +92,23 @@ const SITE = {
   name: "FSTS Test Site",
   domain: "fsts-test.example.com",
   status: "active",
+};
+
+/**
+ * Truthful getMyPermissions payloads derived from the real enforcement
+ * matrix (src/lib/roleCapabilities.ts — mirrored from convex). The dashboard
+ * composes from the capability model, so tests must supply a viewer truth
+ * instead of relying on the old "null modules shows everything" behavior.
+ */
+const OWNER_PERMISSIONS = {
+  isSuperAdmin: false,
+  role: "owner",
+  permissions: ROLE_CAPABILITIES.owner,
+};
+const READ_ONLY_PERMISSIONS = {
+  isSuperAdmin: false,
+  role: "read_only",
+  permissions: ROLE_CAPABILITIES.read_only,
 };
 
 function summary(overrides: Record<string, unknown> = {}) {
@@ -114,7 +144,10 @@ function dashboardWorkspace(overrides: Record<string, unknown> = {}) {
   const dispatch: Record<string, unknown> = {
     "api.sites.getDashboardSummary": summary(),
     "api.sites.get": SITE,
-    "api.sites.getEffectiveModules": null,
+    // Phase 6 default: known module map with no explicit decisions — the
+    // owner truth above makes optional capabilities visible. (The old null
+    // default now means CORE-ONLY under the adaptive capability model.)
+    "api.sites.getEffectiveModules": {},
     "api.healthScans.getLatestScan": null,
     "api.healthScans.getNotifications": null,
     "api.courses.listActionRequired": null,
@@ -126,6 +159,8 @@ function dashboardWorkspace(overrides: Record<string, unknown> = {}) {
     "api.media.healthStats": { broken: 0 },
     "api.agencies.get": null,
     "api.sites.list": [SITE],
+    // Phase 6: truthful viewer permissions (owner row from the matrix).
+    "api.accessControl.getMyPermissions": OWNER_PERMISSIONS,
     ...overrides,
   };
   mockUseQuery.mockImplementation((q: unknown) => {
@@ -173,8 +208,11 @@ describe("SiteDashboard — stat cards", () => {
     dashboardWorkspace();
     renderDashboard();
 
+    // Phase 6: stat-card titles come from the capability model's label
+    // (registry default — the SAME source the sidebar derives from), so
+    // Courses renders as "Courses & Classes" and articles as "Blog & Articles".
     const titles = statTitles();
-    for (const title of ["Courses", "Events", "Articles", "Services", "Published", "Drafts", "Media"]) {
+    for (const title of ["Courses & Classes", "Events", "Blog & Articles", "Services", "Published", "Drafts", "Media"]) {
       expect(titles).toContain(title);
     }
     expect(titles.filter((t) => t === "Services").length).toBe(1);
@@ -224,16 +262,7 @@ describe("SiteDashboard — stat cards", () => {
 describe("SiteDashboard — Quick Edit module gating", () => {
   const QUICK_EDIT_LABELS = ["Edit Homepage", "Write Article", "Add Event", "Add Course", "Upload Media"];
 
-  it("shows all five quick actions when modules are null (loading)", () => {
-    dashboardWorkspace({ "api.sites.getEffectiveModules": null });
-    renderDashboard();
-
-    for (const label of QUICK_EDIT_LABELS) {
-      expect(screen.queryByText(label)).not.toBeNull();
-    }
-  });
-
-  it("shows all five quick actions when all modules are true", () => {
+  it("shows all five quick actions when all modules are true (owner viewer)", () => {
     dashboardWorkspace({
       "api.sites.getEffectiveModules": {
         homepage: true, articles: true, events: true, courses: true, media: true,
@@ -244,6 +273,29 @@ describe("SiteDashboard — Quick Edit module gating", () => {
     for (const label of QUICK_EDIT_LABELS) {
       expect(screen.queryByText(label)).not.toBeNull();
     }
+  });
+
+  it("shows all five quick actions when modules are unset (owner defaults)", () => {
+    dashboardWorkspace({ "api.sites.getEffectiveModules": {} });
+    renderDashboard();
+
+    for (const label of QUICK_EDIT_LABELS) {
+      expect(screen.queryByText(label)).not.toBeNull();
+    }
+  });
+
+  it("CORE-ONLY fallback: unknown permissions (null) hide optional quick actions (PM decision 3)", () => {
+    dashboardWorkspace({ "api.accessControl.getMyPermissions": null });
+    renderDashboard();
+
+    // All five quick actions are optional-tier capabilities. While the
+    // permission truth is loading/failed, none may be guessed into
+    // existence — the workspace shows core-only affordances instead.
+    for (const label of QUICK_EDIT_LABELS) {
+      expect(screen.queryByText(label)).toBeNull();
+    }
+    // Core sidebar surfaces remain reachable.
+    expect(screen.queryByText("All Pages")).not.toBeNull();
   });
 
   it("hides Add Event and Add Course when events/courses modules are false", () => {

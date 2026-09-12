@@ -2,6 +2,11 @@
  * useSidebarUi.ts
  *
  * Phase 2: WordPress-like sidebar UI state with localStorage persistence.
+ * Phase 6: persisted group ids map FORWARD through LEGACY_GROUP_ALIASES at
+ * hydration, so a user who collapsed "edit-website" or "taya-managed" under
+ * the old 7-group layout keeps that preference on the new 8-group layout
+ * ("website" / "tools"). Unknown or junk ids are dropped; duplicates
+ * produced by aliasing are de-duplicated.
  *
  * Persists per-user (per Clerk subject) sidebar preferences:
  *   - collapsedGroups: which nav groups the user collapsed.
@@ -15,6 +20,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { LEGACY_GROUP_ALIASES } from "@/lib/capabilityRegistry";
 
 const STORAGE_PREFIX = "taya.sidebar.v1";
 
@@ -29,13 +35,30 @@ function storageKey(userId?: string | null): string {
   return userId ? `${STORAGE_PREFIX}.${userId}` : STORAGE_PREFIX;
 }
 
+/**
+ * Map stored group ids to current group ids (Phase 2 → Phase 6 layout).
+ * Unknown ids (junk, or ids from a future layout) are dropped; aliasing can
+ * produce duplicates (e.g. stored ["edit-website","site"] both → "website"),
+ * which are de-duplicated. Order is preserved (first occurrence wins).
+ */
+function mapGroupsForward(stored: string[]): string[] {
+  const out: string[] = [];
+  for (const id of stored) {
+    const mapped = LEGACY_GROUP_ALIASES[id] ?? id;
+    if (!out.includes(mapped)) out.push(mapped);
+  }
+  return out;
+}
+
 function parseStored(raw: string | null): SidebarUiState {
   if (!raw) return DEFAULT_STATE;
   try {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       const collapsed = Array.isArray(parsed.collapsedGroups)
-        ? parsed.collapsedGroups.filter((g: unknown): g is string => typeof g === "string")
+        ? mapGroupsForward(
+            parsed.collapsedGroups.filter((g: unknown): g is string => typeof g === "string"),
+          )
         : [];
       return { collapsedGroups: collapsed, compact: parsed.compact === true };
     }

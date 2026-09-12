@@ -54,7 +54,9 @@ export type ContentEntryType =
   | "list_item"
   | "button"
   | "link"
-  | "repeatable";
+  | "repeatable"
+  | "video"
+  | "download";
 
 /** Map of §5 semantic content key → persisted entry (draft/published overlays). */
 export interface ContentMapEntries {
@@ -187,6 +189,8 @@ function normalizeEntryType(type: string): ContentEntryType {
     case "button":
     case "link":
     case "repeatable":
+    case "video":
+    case "download":
       return type;
     default:
       return "text";
@@ -275,13 +279,27 @@ export interface ConformPlan {
  * Idempotent by construction: applying the same plan twice changes nothing
  * the second time.
  */
-export function conformWorkspace(snapshot: DiscoverySnapshot): ConformPlan {
+export function conformWorkspace(
+  snapshot: DiscoverySnapshot,
+  /** Inferred site type (§2 siteProfile inference) — the restaurant
+   * commerce policy gate below keys off it. Optional for pure-plan callers. */
+  inferredSiteType?: string | null,
+): ConformPlan {
   const pageMap = buildPageMap(snapshot);
   const modules: Record<string, boolean> = {};
 
+  // PM locked rule (restaurant convergence): a restaurant site NEVER gets
+  // the generic `products` module auto-enabled — even with genuine
+  // storefront evidence (/shop, /products, cart vocabulary). The route
+  // still becomes a page in the navigator; the module waits for an
+  // explicit owner/FSTS enablement decision. All other site types keep
+  // the existing universal behavior.
+  const restaurantNoProducts =
+    inferredSiteType === "restaurant" ? "products" : null;
+
   for (const route of snapshot.routes) {
     const moduleKey = moduleForRoute(route.path);
-    if (moduleKey) modules[moduleKey] = true;
+    if (moduleKey && moduleKey !== restaurantNoProducts) modules[moduleKey] = true;
   }
   const enabledModuleKeys = Object.keys(modules);
 
@@ -327,14 +345,32 @@ export function conformWorkspace(snapshot: DiscoverySnapshot): ConformPlan {
  * ENABLE-ONLY: existing true stays true, existing false stays false unless
  * the patch enables it, and unknown patch keys are dropped (never invents
  * module keys outside CONFORMABLE_MODULES).
+ *
+ * §6 override preservation: when `overrides` carries an explicit owner
+ * decision for a module key (set by sites.update with an explicit
+ * enabledModules payload), the owner's decision WINS over the conform
+ * patch — a later re-crawl can never silently re-enable a module the
+ * owner explicitly disabled (and never disable one they enabled).
  */
 export function mergeEnabledModules(
   current: Record<string, boolean> | undefined | null,
   patch: Record<string, boolean>,
+  overrides?: Record<string, boolean> | null,
 ): Record<string, boolean> {
   const merged: Record<string, boolean> = { ...(current ?? {}) };
+  const ownerDecisions = overrides ?? {};
   for (const [key, value] of Object.entries(patch)) {
+    if (value === true && CONFORMABLE_MODULES.includes(key)) {
+      // The owner's explicit decision outranks the crawl's inference.
+      if (key in ownerDecisions) continue;
+      merged[key] = true;
+    }
+  }
+  // Owner decisions are also authoritative over any pre-crawl stale value
+  // for their keys (they were set AFTER the last conform by definition).
+  for (const [key, value] of Object.entries(ownerDecisions)) {
     if (value === true && CONFORMABLE_MODULES.includes(key)) merged[key] = true;
+    else if (value === false) merged[key] = false;
   }
   return merged;
 }
