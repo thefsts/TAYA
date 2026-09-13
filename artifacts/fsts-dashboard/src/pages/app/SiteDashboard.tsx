@@ -27,6 +27,7 @@ import {
   PanelLeftOpen,
   Search,
   ShieldCheck as ShieldCheckIcon,
+  SquarePen,
   User as UserIcon,
   X,
 } from "lucide-react";
@@ -679,14 +680,28 @@ export default function SiteDashboard() {
             </a>
           )}
         </div>
-        {site?.domain && (
-          <a href={`https://${site.domain}`} target="_blank" rel="noreferrer">
-            <Button className="h-9 bg-primary text-white">
-              <ExternalLink className="mr-2 h-3.5 w-3.5" />
-              View Live Site
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {/*
+            HOTFIX (BLOCKER 3 §4): the visual editor is the client
+            workspace's PRIMARY action (owner direction: Duda-like editing).
+            Brand-magenta CTA, first in order, keyboard- and touch-reachable.
+            Route is the existing /app/sites/:siteId/editor — no new feature.
+          */}
+          <Link href={`/app/sites/${siteId}/editor`}>
+            <Button className="h-9 bg-primary text-white shadow-sm transition-shadow hover:shadow-md">
+              <SquarePen className="mr-2 h-3.5 w-3.5" />
+              Edit Website
             </Button>
-          </a>
-        )}
+          </Link>
+          {site?.domain && (
+            <a href={`https://${site.domain}`} target="_blank" rel="noreferrer">
+              <Button variant="outline" className="h-9 bg-white text-slate-600">
+                <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                View Live Site
+              </Button>
+            </a>
+          )}
+        </div>
       </div>
 
       <Link href={`/app/sites/${siteId}/health`}>
@@ -1177,6 +1192,18 @@ export default function SiteDashboard() {
                   <CardTitle className="text-sm">Quick Edit</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {/*
+                    HOTFIX (BLOCKER 3 §4): the visual editor leads Quick Edit
+                    (Duda-like editing is the workspace's core promise).
+                    visual-editor is a CORE-tier capability — always visible
+                    to clients; no module/permission gate needed.
+                  */}
+                  <Link href={`/app/sites/${siteId}/editor`}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-slate-800 hover:bg-primary/10 hover:text-primary">
+                      <SquarePen className="mr-2 h-4 w-4 text-primary" />
+                      Edit Website
+                    </Button>
+                  </Link>
                   {capabilityIsVisible("homepage") && (
                     <Link href={`/app/sites/${siteId}/homepage`}>
                       <Button variant="ghost" size="sm" className="w-full justify-start text-sm text-slate-700 hover:bg-slate-50">
