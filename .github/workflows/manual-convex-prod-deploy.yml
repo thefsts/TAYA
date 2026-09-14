@@ -1,0 +1,109 @@
+# Manual Convex Production Deploy — narrowly scoped, PM-authorized hotfix rollout.
+#
+# - workflow_dispatch ONLY (no push triggers, no auto deployment).
+# - Deploys the backend for the certified hotfix tree 6aa33c8 (fail-closed).
+# - Uses repo secret CONVEX_DEPLOY_KEY (never printed/logged).
+# - Target is pinned to the existing production deployment uncommon-cobra-336.
+# - Runs the repository's own scripts/deploy-convex.sh (which runs
+#   scripts/check-prod-env.sh first — fails closed on unsafe prod env config).
+# - Does not modify PR #55's branch and does not merge anything.
+
+name: Manual Convex Production Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      certified_sha:
+        description: "Certified hotfix SHA to deploy (must be exactly 6aa33c8522161378c2087b8f7a43a3bdb9a53a8a)"
+        required: true
+        default: "6aa33c8522161378c2087b8f7a43a3bdb9a53a8a"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-convex-prod-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Fail closed - input must be the exact certified SHA
+        env:
+          INPUT_SHA: ${{ github.event.inputs.certified_sha }}
+        run: |
+          EXPECTED="6aa33c8522161378c2087b8f7a43a3bdb9a53a8a"
+          if [ "$INPUT_SHA" != "$EXPECTED" ]; then
+            echo "FAIL: certified_sha input does not match the certified hotfix head ($EXPECTED). Refusing to deploy." >&2
+            exit 1
+          fi
+          echo "PASS: input is the certified hotfix head 6aa33c8."
+
+      - name: Checkout exact certified hotfix tree
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.certified_sha }}
+          fetch-depth: 0
+
+      - name: Fail closed - checkout is the certified SHA and PR 55 head is unchanged
+        run: |
+          EXPECTED="6aa33c8522161378c2087b8f7a43a3bdb9a53a8a"
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if [ "$HEAD_SHA" != "$EXPECTED" ]; then
+            echo "FAIL: checked out $HEAD_SHA, expected $EXPECTED." >&2
+            exit 1
+          fi
+          echo "PASS: working tree is the certified hotfix head 6aa33c8."
+          git fetch origin pull/55/head:refs/remotes/pull55/head --quiet
+          PR_HEAD="$(git rev-parse refs/remotes/pull55/head)"
+          if [ "$PR_HEAD" != "$EXPECTED" ]; then
+            echo "FAIL: PR #55 head has moved to $PR_HEAD (expected $EXPECTED). Certified head no longer current - refusing to deploy." >&2
+            exit 1
+          fi
+          echo "PASS: PR #55 head is still the certified hotfix head 6aa33c8."
+
+      - name: Fail closed - production target pinned to uncommon-cobra-336
+        run: |
+          EXPECTED_URL="https://uncommon-cobra-336.convex.cloud"
+          ACTUAL_URL="$(node -e "console.log(require('./convex.json').prodUrl)")"
+          if [ "$ACTUAL_URL" != "$EXPECTED_URL" ]; then
+            echo "FAIL: convex.json prodUrl is $ACTUAL_URL, expected $EXPECTED_URL. Refusing non-prod/wrong target." >&2
+            exit 1
+          fi
+          echo "PASS: convex.json prodUrl is $EXPECTED_URL."
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.1
+          run_install: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fail closed - deploy key must target production uncommon-cobra-336
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: |
+          case "$CONVEX_DEPLOY_KEY" in
+            prod:uncommon-cobra-336|*)
+              echo "PASS: deploy key targets PRODUCTION deployment uncommon-cobra-336 (instance prefix only; key value never printed)."
+              ;;
+            *)
+              echo "FAIL: deploy key does not target production uncommon-cobra-336. Refusing to deploy." >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Deploy production Convex backend (scripts/deploy-convex.sh)
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: bash scripts/deploy-convex.sh
