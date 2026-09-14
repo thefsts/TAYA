@@ -9,6 +9,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
 import { tayaLogoUrl } from "@/lib/tayaBrand";
 import DesignLockGuard from "@/components/DesignLockGuard";
+import SuperAdminRouteGuard from "@/components/SuperAdminRouteGuard";
 import RequireAppAuth from "@/components/RequireAppAuth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -411,6 +412,14 @@ function withDesignLock<P extends object>(Component: React.ComponentType<P>) {
   };
 }
 
+/** HOTFIX (production no-go, BLOCKER 1): wraps the Site Verification route so
+ *  only FSTS superAdmins can render it. Mirrors withDesignLock's shape. */
+function withSuperAdminGuard<P extends object>(Component: React.ComponentType<P>) {
+  return function SuperAdminGuardedComponent(props: P) {
+    return <SuperAdminRouteGuard><Component {...props} /></SuperAdminRouteGuard>;
+  };
+}
+
 const FooterEditorGuarded = withDesignLock(FooterEditor);
 const PaymentsConfigGuarded = withDesignLock(PaymentsConfig);
 const SquareCommerceGuarded = withDesignLock(SquareCommerce);
@@ -509,8 +518,16 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/help" component={HelpCenter} />
           {/* Phase 2 PR-2 — ownership verification (spec §6/§7/§15): the
               owner proves domain control; verified → TAYA_CONNECTED and the
-              server-side publish gate lifts. */}
-          <Route path="/app/sites/:siteId/verification" component={VerificationPanel} />
+              server-side publish gate lifts.
+              HOTFIX (production no-go, BLOCKER 1): verification is an FSTS
+              admin/connection-management surface, not client navigation. The
+              route itself is superAdmin-guarded — a direct client deep link
+              to /app/sites/:siteId/verification redirects to their site
+              dashboard instead of rendering the panel. The sidebar entry and
+              dashboard surfaces are hidden from clients via the capability
+              registry (scope "admin"); this guard closes the deep-link path
+              that registry hiding alone cannot. */}
+          <Route path="/app/sites/:siteId/verification" component={withSuperAdminGuard(VerificationPanel)} />
 
           {/* WOS Phase 2 — Website Settings (per-tab RBAC tiering inside the page; see WebsiteSettings.tsx) */}
           <Route path="/app/sites/:siteId/settings" component={WebsiteSettings} />

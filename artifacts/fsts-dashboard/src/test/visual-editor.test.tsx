@@ -21,6 +21,11 @@
  *   7. Repeatable items: persisted remove/restore/reorder (ordered XOR
  *      hidden) routed through §6 setStructuralOps — server-validated,
  *      never faked client-side.
+ *
+ * HOTFIX (production no-go, BLOCKER 2 §3): editorZones queries go through
+ * useClientSafeQuery (useQuery_experimental, throwOnError:false). The mock
+ * below provides useQuery_experimental so the module graph imports cleanly;
+ * dedicated degraded-state coverage lives in visual-editor-degraded.test.tsx.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -32,6 +37,13 @@ import React from "react";
 const mockUseQuery = vi.hoisted(() => vi.fn());
 const mockUseMutation = vi.hoisted(() => vi.fn());
 const mockUseAction = vi.hoisted(() => vi.fn());
+/**
+ * useQuery_experimental — powers useClientSafeQuery (HOTFIX BLOCKER 2 §3:
+ * VisualEditor's editorZones queries degrade instead of throwing).
+ */
+const mockUseQueryExperimental = vi.hoisted(() => vi.fn());
+/** Zone query paths forced to error — simulates the production drift window. */
+const zoneFailures = vi.hoisted(() => new Set<string>());
 const mockLocation = vi.hoisted(() => ({ value: "/" }));
 /** wouter navigate spy (FormsPanel routes to FormBuilder — §5). */
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -44,6 +56,7 @@ vi.mock("convex/react", () => ({
   useQuery: mockUseQuery,
   useMutation: mockUseMutation,
   useAction: mockUseAction,
+  useQuery_experimental: mockUseQueryExperimental,
   useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
 }));
 
@@ -245,6 +258,28 @@ function setup({
     return null;
   });
 
+  // useClientSafeQuery subscriptions: same dispatch table, but wrapped in the
+  // non-throwing result shape. Forced failures (zoneFailures) reproduce the
+  // production drift window: the backend is missing these functions.
+  mockUseQueryExperimental.mockImplementation(
+    (opts: { query: unknown; args?: Record<string, unknown> }) => {
+      const path =
+        typeof opts.query === "function" ? (opts.query as () => string)() : (opts.query as string);
+      if (zoneFailures.has(path)) {
+        return {
+          status: "error",
+          error: new Error(
+            `[CONVEX Q(${path.replace("api.", "")})] Server Error \u2014 function not found on the deployment`,
+          ),
+        };
+      }
+      if (Object.prototype.hasOwnProperty.call(dispatch, path)) {
+        return { status: "success", data: dispatch[path] };
+      }
+      return { status: "pending" };
+    },
+  );
+
   const mutations: Record<string, ReturnType<typeof vi.fn>> = {};
   mockUseMutation.mockImplementation((q: unknown) => {
     const path = typeof q === "function" ? (q as () => string)() : (q as string);
@@ -301,6 +336,9 @@ beforeEach(() => {
   vi.stubEnv("VITE_CONVEX_URL", "https://uncommon-cobra-336.convex.cloud");
   mockUseQuery.mockReset();
   mockUseQuery.mockReturnValue(null);
+  mockUseQueryExperimental.mockReset();
+  mockUseQueryExperimental.mockReturnValue({ status: "pending" });
+  zoneFailures.clear();
   mockUseMutation.mockReset();
   mockUseMutation.mockReturnValue(vi.fn(async () => ({})));
   mockUseAction.mockReset();

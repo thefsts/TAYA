@@ -401,9 +401,9 @@ export default function SetupOnboarding() {
                       </p>
                       <p className="mt-1 text-xs leading-5 text-amber-800">
                         TAYA has read your website (drafting and preview are enabled right now),
-                        but it will not publish to a site it does not own-proof. Open Site
-                        Verification in your workspace to add a one-line token to your site or
-                        DNS — verification lifts the publishing block immediately.
+                        but publishing is not turned on yet. Your FSTS support team completes the
+                        publishing connection for you — contact them and publishing will be
+                        enabled once the connection is set up.
                       </p>
                     </div>
                   )}

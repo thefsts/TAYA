@@ -258,9 +258,12 @@ describe("2. core-only fallback (PM decision 3) \u2014 one derivation", () => {
       expect(both.byKey[key].visible).toBe(false);
     }
     // Core surfaces stay reachable (ungated core).
-    for (const key of ["pages", "visual-editor", "website-settings", "site-verification", "my-permissions"]) {
+    for (const key of ["pages", "visual-editor", "website-settings", "my-permissions"]) {
       expect(both.byKey[key].visible).toBe(true);
     }
+    // HOTFIX (BLOCKER 1): site-verification is admin-scope — hidden from
+    // clients in the core-only fallback too (scope gate beats core tier).
+    expect(both.byKey["site-verification"].visible).toBe(false);
     // Core-tier role-gated items are reachable too \u2014 "unknown" hides only
     // the optional tier, mirroring roleGateLevel() in sidebarNav.ts.
     for (const key of ["help", "site-users"]) {

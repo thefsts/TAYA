@@ -137,6 +137,55 @@ export function useAction(apiRef: any) {
   );
 }
 
+export function useQuery_experimental(options: {
+  query: any;
+  args: any;
+  throwOnError?: boolean;
+}): { status: "pending" } | { status: "success"; data: unknown } | { status: "error"; error: Error } {
+  /*
+   * HOTFIX §5 (BLOCKER 2 §3 support): options-object form used by
+   * useClientSafeQuery.ts. Mirrors real convex/react semantics: never
+   * throws while throwOnError is falsy (the production-crash behaviour
+   * under test), pending \u2192 success|error, re-fetch on store tick.
+   */
+  const path = apiPath(options?.query);
+  const args = options?.args;
+  const throwOnError = options?.throwOnError === true;
+  const skip = args === "skip" || args === undefined;
+  const v = useStoreVersion();
+  const [state, setState] = useState<
+    | { status: "pending" }
+    | { status: "success"; data: unknown }
+    | { status: "error"; error: Error }
+  >({ status: "pending" });
+  const argsKey = JSON.stringify(args ?? null);
+  const seq = useRef(0);
+
+  useEffect(() => {
+    if (skip || !path) return;
+    const my = ++seq.current;
+    let alive = true;
+    (async () => {
+      try {
+        const result = await callHarness(path, "query", JSON.parse(argsKey));
+        if (alive && my === seq.current) {
+          setState({ status: "success", data: result === undefined ? undefined : result });
+        }
+      } catch (e) {
+        if (alive && my === seq.current) {
+          setState({ status: "error", error: e instanceof Error ? e : new Error(String(e)) });
+        }
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [path, argsKey, skip, v]);
+
+  if (throwOnError && state.status === "error") throw state.error;
+  return state;
+}
+
 export function useConvexAuth() {
   return { isAuthenticated: true, isLoading: false };
 }

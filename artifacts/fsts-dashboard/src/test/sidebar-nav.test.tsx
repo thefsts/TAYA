@@ -254,7 +254,7 @@ describe("sidebarNav model \u2014 registry groups & client language", () => {
     const items = allItems(buildSidebarGroups(ctx())).map((i) => i.label);
     for (const label of [
       "All Pages", "Visual Editor", "Homepage", "Menu Builder", "Footer", "Website Settings",
-      "Site Verification", "Blog & Articles", "FAQ", "Flyers", "Announcement Banner",
+      "Blog & Articles", "FAQ", "Flyers", "Announcement Banner",
       "CTA Buttons", "Popup", "Policy Pages", "Media Library", "Services", "Products",
       "Courses & Classes", "Events", "Square Payments", "Commerce", "Forms", "Contact Inbox",
       "Team", "Careers", "Downloads", "SEO Settings", "Reviews", "Testimonials",
@@ -293,10 +293,20 @@ describe("sidebarNav model \u2014 registry groups & client language", () => {
     expect(item!.isDesignLocked ?? false).toBe(false);
   });
 
-  it("routes every site item under /app/sites/:siteId (User Management excepted)", () => {
-    const groups = buildSidebarGroups(ctx({ isSuperAdmin: true }));    for (const item of allItems(groups)) {
+  it("routes every site item under /app/sites/:siteId (admin-scope items excepted)", () => {
+    // HOTFIX (BLOCKER 1): two admin-scope surfaces now exist. user-management
+    // lives at the platform route /app/admin/users; site-verification stays
+    // site-scoped (/app/sites/:siteId/verification) but is superAdmin-only
+    // AND route-guarded (App.tsx withSuperAdminGuard). Every other item must
+    // remain a normal client site route.
+    const groups = buildSidebarGroups(ctx({ isSuperAdmin: true }));
+    const ADMIN_HREFS: Record<string, string> = {
+      "user-management": "/app/admin/users",
+      "site-verification": `/app/sites/${SITE_ID}/verification`,
+    };
+    for (const item of allItems(groups)) {
       if (item.superAdminOnly) {
-        expect(item.href).toBe("/app/admin/users");
+        expect(ADMIN_HREFS[item.id]).toBe(item.href);
       } else {
         expect(item.href.startsWith(`/app/sites/${SITE_ID}/`)).toBe(true);
       }
@@ -379,8 +389,10 @@ describe("sidebarNav model \u2014 gating, core-only & hide-empty", () => {
     expect(modulesUnknown.map((g) => g.id)).toEqual(["website", "account"]);
     // help is core-tier (with a roleModuleKey): core surfaces render even
     // while truth is unknown — only optional surfaces hide.
+    // HOTFIX (BLOCKER 1): site-verification is admin-scope now — the
+    // scope gate denies it before tier is even considered.
     expect(allItems(modulesUnknown).map((i) => i.id).sort()).toEqual([
-      "help", "my-permissions", "pages", "site-users", "site-verification", "visual-editor", "website-settings",
+      "help", "my-permissions", "pages", "site-users", "visual-editor", "website-settings",
     ]);
     // Permissions unknown \u2192 same honest fallback for optional surfaces.
     const permsUnknown = buildSidebarGroups(ctx({ rolePermissions: null }));
