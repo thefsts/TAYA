@@ -347,11 +347,13 @@ describe("VisualEditorShell — preview iframe", () => {
     );
   });
 
-  it("sizes the preview frame to the active breakpoint", () => {
+  it("renders the preview at the preset's logical viewport and fit-scales it into the workspace (owner-approved layout)", () => {
     useSite(SITE_WITH_DOMAIN);
     renderShell();
     const iframe = screen.getByTitle("Preview — Desktop");
-    expect(iframe).toHaveStyle({ width: "1440px", height: "900px" });
+    // The iframe keeps the FULL preset viewport (real media queries fire)
+    // and is transform-scaled to fit the workspace — zoom-out, never crop.
+    expect(iframe).toHaveStyle({ width: "1440px", height: "900px", transform: "scale(1)" });
     fireEvent.click(screen.getByTitle("Mobile (390×844)"));
     const mobileFrame = screen.getByTitle("Preview — Mobile");
     expect(mobileFrame).toHaveStyle({ width: "390px", height: "844px" });
