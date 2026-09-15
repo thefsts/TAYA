@@ -3,9 +3,11 @@
  *
  * These tests confirm that the Global Design Lock™ (`requireDesignCapability`)
  * properly rejects every non-super-admin caller regardless of which client role
- * they hold, and that the five design-locked mutations (footer.update,
- * email.update, crm.updateConnection, square.updateConfig, navigation.create)
- * use that guard exclusively.
+ * they hold, and that the three design-locked mutations (email.update,
+ * crm.updateConnection, square.updateConfig) use that guard exclusively.
+ * (Chat D: footer.update and navigation.create were re-tiered to client-safe
+ * content permissions — see footer.ts / navigation.ts — so their coverage now
+ * lives in convex-unit footer-admin-login.test.ts and design-lock-rbac.test.ts.)
  *
  * The Convex `MutationCtx` is satisfied by a plain JS mock object — the guard
  * functions are ordinary async functions that call `ctx.auth` / `ctx.db`.
@@ -140,17 +142,16 @@ describe("requireDesignCapability — authorization guard", () => {
 
 // ── Tests: per-mutation role coverage ────────────────────────────────────────
 //
-// Each of the five design-locked mutations calls requireDesignCapability.
-// We verify that every common write role is blocked — including roles that
-// do have site write access (owner, manager, etc.) so we confirm the *design
-// lock tier* check (not just missing site access) is what fires.
+// Each of the three remaining design-locked mutations calls
+// requireDesignCapability. We verify that every common write role is blocked —
+// including roles that do have site write access (owner, manager, etc.) so we
+// confirm the *design lock tier* check (not just missing site access) is what
+// fires. (Chat D: footer.update / navigation.create moved to content tier.)
 
 const DESIGN_LOCKED_MUTATIONS = [
-  "footer.update",
   "email.update",
   "crm.updateConnection",
   "square.updateConfig",
-  "navigation.create",
 ] as const;
 
 const WRITE_ROLES_TO_TEST = [
@@ -257,9 +258,12 @@ function readPageSource(file: string): string {
 // calls requirePermission with the correct design-tier permission constant.
 
 describe("Source audit: mutation handlers enforce the Design Lock via requirePermission", () => {
-  it("footer.update uses requirePermission with LAYOUT_MANAGE", () => {
+  it("footer.update enforces the split-tier contract (LAYOUT_MANAGE only for adminLogin payloads)", () => {
     const src = readConvexSource("footer.ts");
     expect(src).toContain("requirePermission");
+    // Chat D contract: content-only payload → CONTENT_UPDATE (client-safe);
+    // any adminLogin* field → LAYOUT_MANAGE (superadmin-only).
+    expect(src).toContain("PERMISSIONS.CONTENT_UPDATE");
     expect(src).toContain("PERMISSIONS.LAYOUT_MANAGE");
   });
 
@@ -281,10 +285,15 @@ describe("Source audit: mutation handlers enforce the Design Lock via requirePer
     expect(src).toContain("PERMISSIONS.INTEGRATIONS_MANAGE");
   });
 
-  it("navigation.create uses requirePermission with LAYOUT_MANAGE", () => {
+  it("navigation mutations use client-safe content permissions (Chat D)", () => {
     const src = readConvexSource("navigation.ts");
     expect(src).toContain("requirePermission");
-    expect(src).toContain("PERMISSIONS.LAYOUT_MANAGE");
+    expect(src).toContain("PERMISSIONS.CONTENT_CREATE");
+    expect(src).toContain("PERMISSIONS.CONTENT_UPDATE");
+    expect(src).toContain("PERMISSIONS.CONTENT_DELETE");
+    // No design-tier guard remains in navigation.
+    expect(src).not.toContain("PERMISSIONS.LAYOUT_MANAGE");
+    expect(src).not.toContain("requireDesignCapability");
   });
 
   it("requirePermission gates design-tier permissions on isSuperAdmin", () => {
@@ -309,12 +318,15 @@ describe("Source audit: mutation handlers enforce the Design Lock via requirePer
 // UI while the backend guard remains, these tests will catch the gap.
 
 describe("Source audit: pages render DesignLockBanner and LockedField", () => {
+  // Chat D: FooterEditor and NavigationManager are now client-content pages.
+  // The only design-tier field left in FooterEditor is the Admin Login Link
+  // (adminLogin* fields → LAYOUT_MANAGE), so it still renders LockedField for
+  // that section only — NOT a page-wide DesignLockBanner. NavigationManager is
+  // fully client-managed (no locks at all).
   const LOCKED_PAGES: Array<{ page: string; file: string }> = [
-    { page: "FooterEditor", file: "FooterEditor.tsx" },
     { page: "EmailConfig", file: "EmailConfig.tsx" },
     { page: "CrmConnectionConfig", file: "CrmConnectionConfig.tsx" },
     { page: "PaymentsConfig", file: "PaymentsConfig.tsx" },
-    { page: "NavigationManager", file: "NavigationManager.tsx" },
   ];
 
   for (const { page, file } of LOCKED_PAGES) {
@@ -340,4 +352,19 @@ describe("Source audit: pages render DesignLockBanner and LockedField", () => {
       );
     });
   }
+
+  it("FooterEditor keeps LockedField only for the Admin Login Link (design-tier) and no page-wide banner", () => {
+    const src = readPageSource("FooterEditor.tsx");
+    // The adminLogin* fields are the only design-tier contract left.
+    expect(src).toContain("<LockedField");
+    expect(src).not.toContain("<DesignLockBanner");
+    // Clients must never send adminLogin fields (backend rejects anyway).
+    expect(src).toContain("canEditAdminLogin");
+  });
+
+  it("NavigationManager is fully client-managed — no design locks", () => {
+    const src = readPageSource("NavigationManager.tsx");
+    expect(src).not.toContain("LockedField");
+    expect(src).not.toContain("DesignLockBanner");
+  });
 });

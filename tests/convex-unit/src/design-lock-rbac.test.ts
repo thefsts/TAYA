@@ -6,14 +6,16 @@
  * prove that a future refactor of the RBAC enforcement path cannot silently
  * break the design-lock:
  *
- *   1. A content_editor (client role) calling a LAYOUT_MANAGE-gated mutation
- *      (api.navigation.create) receives ConvexError("Forbidden: …").
+ *   1. A content_editor (client role) CAN call content-tier mutations:
+ *      api.navigation.create (Chat D re-tier) and api.siteSettings.
+ *      updateAnalytics (GA4/GTM/Search Console) both succeed.
  *   2. A content_editor calling a DESIGN_MANAGE-gated mutation
  *      (api.siteSettings.updateBranding) receives ConvexError("Forbidden: …").
  *   3. A content_editor calling an INTEGRATIONS_MANAGE-gated mutation
  *      (api.siteSettings.updateIntegrations) receives ConvexError("Forbidden: …").
- *   4. An owner (highest client role) is still blocked by all three guards.
- *   5. A superAdmin calling the same three mutations succeeds.
+ *   4. An owner (highest client role) can create nav items (content tier) but
+ *      is still blocked by DESIGN_MANAGE and INTEGRATIONS_MANAGE guards.
+ *   5. A superAdmin calling these mutations succeeds (including updateAnalytics).
  *   6. A content_editor CAN call a CONTENT_UPDATE-gated mutation
  *      (api.siteSettings.updateSeo) — confirms non-design permissions still work.
  *
@@ -116,15 +118,26 @@ const asReadOnly = () => t.withIdentity({ subject: "read_only_user" });
 
 // ── 1. content_editor is blocked by LAYOUT_MANAGE guard ──────────────────────
 
-describe("content_editor calling LAYOUT_MANAGE-gated mutation (navigation.create)", () => {
-  it("throws ConvexError containing 'Forbidden'", async () => {
-    await expect(
-      asEditor().mutation(api.navigation.create, {
-        siteId: s.siteId,
-        label: "Home",
-        href: "/",
-      }),
-    ).rejects.toThrow(/Forbidden/);
+describe("content_editor calling CONTENT_CREATE-gated mutation (navigation.create)", () => {
+  it("succeeds — nav items are client content (Chat D re-tier)", async () => {
+    const result = await asEditor().mutation(api.navigation.create, {
+      siteId: s.siteId,
+      label: "Home",
+      href: "/",
+    });
+    expect(result).toMatchObject({ label: "Home", href: "/" });
+  });
+
+  it("content_editor can updateAnalytics (GA4/GTM/Search Console, Chat D)", async () => {
+    const result = await asEditor().mutation(api.siteSettings.updateAnalytics, {
+      siteId: s.siteId,
+      analyticsGa4: "G-CLIENTTEST01",
+      analyticsSearchConsole: "verify_token_abc",
+    });
+    expect(result).toMatchObject({
+      analyticsGa4: "G-CLIENTTEST01",
+      analyticsSearchConsole: "verify_token_abc",
+    });
   });
 });
 
@@ -157,14 +170,13 @@ describe("content_editor calling INTEGRATIONS_MANAGE-gated mutation (siteSetting
 // ── 4. owner (highest client role) is also blocked ───────────────────────────
 
 describe("owner calling design-locked mutations", () => {
-  it("is blocked by LAYOUT_MANAGE guard (navigation.create)", async () => {
-    await expect(
-      asOwner().mutation(api.navigation.create, {
-        siteId: s.siteId,
-        label: "About",
-        href: "/about",
-      }),
-    ).rejects.toThrow(/Forbidden/);
+  it("can create a navigation item (CONTENT_CREATE, Chat D re-tier)", async () => {
+    const result = await asOwner().mutation(api.navigation.create, {
+      siteId: s.siteId,
+      label: "About",
+      href: "/about",
+    });
+    expect(result).toMatchObject({ label: "About", href: "/about" });
   });
 
   it("is blocked by DESIGN_MANAGE guard (siteSettings.updateBranding)", async () => {
@@ -189,13 +201,12 @@ describe("owner calling design-locked mutations", () => {
 // ── 5. superAdmin bypasses all design-lock guards ────────────────────────────
 
 describe("superAdmin calling design-locked mutations", () => {
-  it("can create a navigation item (LAYOUT_MANAGE)", async () => {
-    const result = await asAdmin().mutation(api.navigation.create, {
+  it("can updateAnalytics too (CONTENT_UPDATE is below superadmin tier)", async () => {
+    const result = await asAdmin().mutation(api.siteSettings.updateAnalytics, {
       siteId: s.siteId,
-      label: "Home",
-      href: "/",
+      analyticsGtm: "GTM-SUPER01",
     });
-    expect(result).toMatchObject({ label: "Home", href: "/" });
+    expect(result).toMatchObject({ analyticsGtm: "GTM-SUPER01" });
   });
 
   it("can update branding (DESIGN_MANAGE)", async () => {

@@ -420,13 +420,23 @@ function withSuperAdminGuard<P extends object>(Component: React.ComponentType<P>
   };
 }
 
-const FooterEditorGuarded = withDesignLock(FooterEditor);
 const PaymentsConfigGuarded = withDesignLock(PaymentsConfig);
 const SquareCommerceGuarded = withDesignLock(SquareCommerce);
 const EmailConfigGuarded = withDesignLock(EmailConfig);
 const CrmConnectionConfigGuarded = withDesignLock(CrmConnectionConfig);
-const HealthMonitorGuarded = withDesignLock(HealthMonitor);
-const NavigationManagerGuarded = withDesignLock(NavigationManager);
+// HealthMonitor is NOT design-locked: every healthScans query/mutation is
+// client-safe (checkSiteAccess only) and the dashboard already surfaces the
+// health score + notification bell to clients. Wrapping the route in
+// withDesignLock redirected clients away from their own Site Health data —
+// a false lock. The full monitoring surface renders for any site-assigned
+// user (Chat D: client website management completion).
+//
+// FooterEditor and NavigationManager are NOT blanket design-locked either
+// (Chat D): footer content (columns/social links/copyright) and menu
+// entries (label/href/visibility/order) are client content tier on the
+// backend now. The FooterEditor page keeps its adminLogin section locked
+// in-page via LockedField; NavigationManager content is fully
+// client-editable.
 const VersionHistoryGuarded = withDesignLock(VersionHistory);
 const ActivityLogGuarded = withDesignLock(ActivityLog);
 const BackupsListGuarded = withDesignLock(BackupsList);
@@ -492,7 +502,7 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/articles" component={ArticlesList} />
           <Route path="/app/sites/:siteId/seo" component={SeoSettings} />
           <Route path="/app/sites/:siteId/media" component={MediaLibrary} />
-          <Route path="/app/sites/:siteId/footer" component={FooterEditorGuarded} />
+          <Route path="/app/sites/:siteId/footer" component={FooterEditor} />
           <Route path="/app/sites/:siteId/contact" component={ContactInfo} />
           <Route path="/app/sites/:siteId/payments" component={PaymentsConfigGuarded} />
           <Route path="/app/sites/:siteId/commerce" component={SquareCommerceGuarded} />
@@ -501,9 +511,9 @@ function AppRouter() {
           <Route path="/app/sites/:siteId/faq" component={FaqManager} />
           <Route path="/app/sites/:siteId/testimonials" component={TestimonialsManager} />
           <Route path="/app/sites/:siteId/inbox" component={FormSubmissions} />
-          <Route path="/app/sites/:siteId/health" component={HealthMonitorGuarded} />
+          <Route path="/app/sites/:siteId/health" component={HealthMonitor} />
           <Route path="/app/sites/:siteId/policies" component={PolicyEditor} />
-          <Route path="/app/sites/:siteId/nav" component={NavigationManagerGuarded} />
+          <Route path="/app/sites/:siteId/nav" component={NavigationManager} />
           <Route path="/app/sites/:siteId/announcement" component={AnnouncementBanner} />
           <Route path="/app/sites/:siteId/cta" component={CtaManager} />
           <Route path="/app/sites/:siteId/downloads" component={DownloadsManager} />

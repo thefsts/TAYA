@@ -113,14 +113,13 @@ describe("Permission enforcement — design-locked mutations block client roles"
     ).rejects.toThrow(/Forbidden/);
   });
 
-  it("content_editor is blocked from LAYOUT_MANAGE-gated mutation (navigation.create)", async () => {
-    await expect(
-      asEditor().mutation(api.navigation.create, {
-        siteId: s.siteA,
-        label: "Home",
-        href: "/",
-      }),
-    ).rejects.toThrow(/Forbidden/);
+  it("content_editor can create nav items (Chat D re-tier — CONTENT_CREATE)", async () => {
+    const result = await asEditor().mutation(api.navigation.create, {
+      siteId: s.siteA,
+      label: "Home",
+      href: "/",
+    });
+    expect(result).toMatchObject({ label: "Home", href: "/" });
   });
 
   it("content_editor is blocked from INTEGRATIONS_MANAGE-gated mutation (updateIntegrations)", async () => {
@@ -141,14 +140,13 @@ describe("Permission enforcement — design-locked mutations block client roles"
     ).rejects.toThrow(/Forbidden/);
   });
 
-  it("owner (highest client role) is also blocked by LAYOUT_MANAGE guard", async () => {
-    await expect(
-      asOwner().mutation(api.navigation.create, {
-        siteId: s.siteA,
-        label: "About",
-        href: "/about",
-      }),
-    ).rejects.toThrow(/Forbidden/);
+  it("owner (highest client role) can create nav items too (Chat D re-tier)", async () => {
+    const result = await asOwner().mutation(api.navigation.create, {
+      siteId: s.siteA,
+      label: "About",
+      href: "/about",
+    });
+    expect(result).toMatchObject({ label: "About", href: "/about" });
   });
 
   it("owner (highest client role) is also blocked by INTEGRATIONS_MANAGE guard", async () => {
@@ -168,7 +166,7 @@ describe("Permission enforcement — design-locked mutations block client roles"
     expect(result).toMatchObject({ brandColorPrimary: "#1d4ed8" });
   });
 
-  it("superAdmin bypasses LAYOUT_MANAGE guard", async () => {
+  it("superAdmin can still create nav items (CONTENT_CREATE)", async () => {
     const result = await asAdmin().mutation(api.navigation.create, {
       siteId: s.siteA,
       label: "Home",

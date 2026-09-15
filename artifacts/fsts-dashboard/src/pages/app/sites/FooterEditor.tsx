@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Copyright, ExternalLink, Link2, Lock, Plus, Save, Share2, Trash2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { LockedField, DesignLockBanner } from "@/components/LockedField";
+import { LockedField } from "@/components/LockedField";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 
 type LinkColumn = { heading: string; links: { label: string; url: string }[] };
@@ -43,6 +43,12 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
   const { toast } = useToast();
   const data = useQuery(api.footer.get, { siteId });
   const updateFooterContent = useMutation(api.footer.update);
+  // Chat D (client website management completion) — adminLogin* fields are
+  // design-tier (LAYOUT_MANAGE, Phase 1 contract). Clients edit footer content
+  // (columns/social/copyright) via CONTENT_UPDATE and never send adminLogin
+  // fields; the backend split-tier guard enforces this independently.
+  const me = useQuery(api.users.me);
+  const canEditAdminLogin = me?.isSuperAdmin === true;
 
   const [copyrightText, setCopyrightText] = useState("");
   const [columns, setColumns] = useState<LinkColumn[]>([]);
@@ -69,7 +75,14 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
   async function handleSave() {
     setIsPending(true);
     try {
-      await updateFooterContent({ siteId, copyrightText, columns, socialLinks: mergeLinks(namedPlatforms, customLinks), adminLoginEnabled, adminLoginLabel: adminLoginLabel.trim(), adminLoginUrl: adminLoginUrl.trim() });
+      await updateFooterContent({
+        siteId,
+        copyrightText,
+        columns,
+        socialLinks: mergeLinks(namedPlatforms, customLinks),
+        // adminLogin* only sent by super-admins (design-tier payload).
+        ...(canEditAdminLogin ? { adminLoginEnabled, adminLoginLabel: adminLoginLabel.trim(), adminLoginUrl: adminLoginUrl.trim() } : {}),
+      });
       toast({ title: "Footer updated" });
     } catch (err) {
       toast({ title: "Something went wrong", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
@@ -87,9 +100,11 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
     copyrightText !== (data.copyrightText ?? "") ||
     JSON.stringify(columns) !== JSON.stringify(asColumns((data.columns as unknown[]) ?? [])) ||
     JSON.stringify(mergeLinks(namedPlatforms, customLinks)) !== JSON.stringify(asSocialLinks((data.socialLinks as unknown[]) ?? [])) ||
-    adminLoginEnabled !== (data.adminLogin?.enabled ?? false) ||
-    adminLoginLabel !== (data.adminLoginLabel ?? "") ||
-    adminLoginUrl !== (data.adminLoginUrl ?? "")
+    (canEditAdminLogin && (
+      adminLoginEnabled !== (data.adminLogin?.enabled ?? false) ||
+      adminLoginLabel !== (data.adminLoginLabel ?? "") ||
+      adminLoginUrl !== (data.adminLoginUrl ?? "")
+    ))
   ));
 
   function handleDiscard() {
@@ -107,7 +122,6 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
 
   return (
     <AppLayout siteId={params.siteId}>
-      <DesignLockBanner label="Footer Layout" />
       <VisualEditorShell
         siteId={siteId}
         title="Footer Editor"
@@ -124,7 +138,7 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
       <ClientPageHeader
         eyebrow="Website Structure"
         title="Footer Editor"
-        description="Manage footer link content, social destinations, and copyright text while the approved footer layout remains protected."
+        description="Manage footer link content, social destinations, and copyright text. Link labels, destinations, and social profiles are yours to edit."
       />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
@@ -134,8 +148,7 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
       </div>
 
       <div className="space-y-6">
-        <LockedField capabilityLabel="Footer Layout">
-          <ClientSection title="Link Columns" description="Organize the footer links visitors use to reach important pages and resources." actions={<Button type="button" variant="outline" size="sm" onClick={() => setColumns([...columns, { heading: "", links: [] }])}><Plus className="mr-1.5 h-4 w-4" />Add Column</Button>}>
+        <ClientSection title="Link Columns" description="Organize the footer links visitors use to reach important pages and resources." actions={<Button type="button" variant="outline" size="sm" onClick={() => setColumns([...columns, { heading: "", links: [] }])}><Plus className="mr-1.5 h-4 w-4" />Add Column</Button>}>
             {columns.length === 0 ? (
               <ClientEmptyState icon={Link2} compact title="No footer link columns" description="Add a column for grouped footer links such as Company, Resources, or Support." action={<Button type="button" variant="outline" onClick={() => setColumns([{ heading: "", links: [] }])}><Plus className="mr-2 h-4 w-4" />Add First Column</Button>} />
             ) : (
@@ -161,9 +174,7 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
               </div>
             )}
           </ClientSection>
-        </LockedField>
 
-        <LockedField capabilityLabel="Footer Layout">
           <ClientSection title="Social Links" description="Leave a platform blank to keep it out of the public footer.">
             <div className="space-y-6 p-4 sm:p-5">
               <div>
@@ -181,13 +192,10 @@ export default function FooterEditor({ params }: { params: { siteId: string } })
               </div>
             </div>
           </ClientSection>
-        </LockedField>
 
-        <LockedField capabilityLabel="Footer Layout">
           <ClientSection title="Copyright Text" description="Set the copyright or legal line displayed in the footer.">
             <div className="p-4 sm:p-5"><Label className="flex items-center gap-2"><Copyright className="h-3.5 w-3.5 text-slate-400" />Footer copyright</Label><Textarea aria-label="Footer copyright" rows={3} className="mt-2" value={copyrightText} onChange={(e) => setCopyrightText(e.target.value)} placeholder="© 2026 Your Company. All rights reserved." /></div>
           </ClientSection>
-        </LockedField>
 
         <LockedField capabilityLabel="Admin Login Link">
           <ClientSection title="Admin Login Link" description="Show the Admin Login link in the public footer so you can reach this website's dashboard from your live site.">

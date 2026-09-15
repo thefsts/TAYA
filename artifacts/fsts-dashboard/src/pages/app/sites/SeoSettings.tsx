@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, FileSearch, Image as ImageIcon, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Download, ExternalLink, FileSearch, Image as ImageIcon, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
@@ -47,6 +47,39 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const importFromDiscovery = useMutation(api.seo.importFromDiscovery);
+
+  // Chat D — import live-site SEO from the latest discovery snapshot.
+  // Creates rows only for pages with no existing SEO entry (never
+  // overwrites owner edits) and reports exactly what happened.
+  async function handleImport() {
+    setIsImporting(true);
+    try {
+      const result = await importFromDiscovery({ siteId });
+      if (result.created > 0) {
+        toast({
+          title: `Imported SEO for ${result.created} ${result.created === 1 ? "page" : "pages"}`,
+          description: `Existing pages you already set up were left untouched${result.skippedExisting > 0 ? ` (${result.skippedExisting} skipped)` : ""}.`,
+        });
+      } else if (result.skippedExisting > 0) {
+        toast({
+          title: "Nothing to import",
+          description: `All ${result.skippedExisting} pages with live SEO data already have entries here — your edits were left untouched.`,
+        });
+      } else {
+        toast({
+          title: "No SEO data found on the live site",
+          description: "The latest site scan found no page titles or descriptions to import. You can add pages manually below.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({ title: "Import failed", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
+    } finally {
+      setIsImporting(false);
+    }
+  }
 
   function openCreate() { setEditing(null); setForm(emptyForm); setDialogOpen(true); }
   function openEdit(setting: any) {
@@ -149,7 +182,15 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
         isDirty={false}
         previewPath="/"
         showPublish={false}
-        toolbarActions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Page</Button>}
+        toolbarActions={
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Chat D — import live-site SEO (creates only missing entries). */}
+            <Button variant="outline" onClick={handleImport} disabled={isImporting} title="Import page titles and descriptions from the latest scan of your live website. Pages you already set up are never changed.">
+              <Download className="mr-2 h-4 w-4" />{isImporting ? "Importing…" : "Import from live site"}
+            </Button>
+            <Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Page</Button>
+          </div>
+        }
       >
         <ClientPageHeader
           eyebrow="Search Visibility"
@@ -173,7 +214,7 @@ export default function SeoSettings({ params }: { params: { siteId: string } }) 
               <div key={setting._id} className="flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-start sm:p-5">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50"><Search className="h-4 w-4 text-slate-500" /></div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><p className="font-mono text-xs font-semibold text-primary">{setting.pagePath}</p>{setting.noindex && <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">No-index</span>}{setting.ogImageUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">OG image</span>}{setting.canonicalUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">Canonical</span>}</div>
+                  <div className="flex flex-wrap items-center gap-2"><p className="font-mono text-xs font-semibold text-primary">{setting.pagePath}</p>{setting.noindex && <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">No-index</span>}{setting.importedFromDiscovery && <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">Imported from live site</span>}{setting.ogImageUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">OG image</span>}{setting.canonicalUrl && <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500">Canonical</span>}</div>
                   <p className="mt-1 font-semibold text-slate-900">{setting.title}</p>
                   <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">{setting.description}</p>
                   <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-slate-400"><span>{setting.title?.length ?? 0} title chars</span><span>{setting.description?.length ?? 0} description chars</span></div>

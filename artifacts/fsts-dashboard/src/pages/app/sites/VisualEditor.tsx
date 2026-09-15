@@ -383,6 +383,50 @@ function BlockForm({
   const [answer, setAnswer] = useState(s("answer"));
   const [err, setErr] = useState<string | null>(null);
 
+  // Chat D (client website management completion) — upload a PDF straight
+  // from the editor: mint an upload URL (PDF-only guard server-side), PUT
+  // the file, create the downloads resource, then auto-select it in the
+  // picker. Mirrors the Media Library upload flow (asset created on upload).
+  const generatePdfUploadUrl = useMutation(api.downloads.generateUploadUrl);
+  const createPdfFromStorage = useMutation(api.downloads.createFromStorage);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const [pdfUploadBusy, setPdfUploadBusy] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string | null>(null);
+  /** Resource created moments ago in this dialog — shown until the downloads query refreshes. */
+  const [justUploadedPdf, setJustUploadedPdf] = useState<{ id: string; title: string } | null>(null);
+
+  const handlePdfSelected = async (file: File | null | undefined) => {
+    if (!file) return;
+    setPdfUploadError(null);
+    if (file.type !== "application/pdf") {
+      setPdfUploadError("Choose a PDF file (.pdf) to upload.");
+      return;
+    }
+    setPdfUploadBusy(true);
+    try {
+      const uploadUrl = await generatePdfUploadUrl({ siteId: siteId as Id<"sites">, mimeType: file.type });
+      const response = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+      if (!response.ok) throw new Error(`Upload failed (${response.status})`);
+      const { storageId } = await response.json();
+      if (!storageId) throw new Error("Upload response did not include a storage ID.");
+      const resource = await createPdfFromStorage({
+        siteId: siteId as Id<"sites">,
+        storageId: storageId as Id<"_storage">,
+        title: file.name.replace(/\.pdf$/i, ""),
+        fileName: file.name,
+        sizeBytes: file.size,
+      });
+      setJustUploadedPdf({ id: resource.id, title: resource.title });
+      setResourceId(resource.id);
+      if (!title.trim()) setTitle(resource.title);
+    } catch (uploadErr) {
+      setPdfUploadError(uploadErr instanceof Error ? uploadErr.message : String(uploadErr));
+    } finally {
+      setPdfUploadBusy(false);
+      if (pdfInputRef.current) pdfInputRef.current.value = "";
+    }
+  };
+
   // §3 live parse — the same canonical parseVideoUrl the mutation runs.
   const video = videoUrl.trim() !== "" ? parseVideoUrl(videoUrl) : null;
 
@@ -498,17 +542,32 @@ function BlockForm({
               <Skeleton className="h-9 w-full" />
             ) : !downloads || downloads.length === 0 ? (
               <p className="rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-800">
-                No PDF resources yet — add one under Content → Downloads first, then it will appear here.
+                No PDF resources yet — add one below or under Content → Downloads, then it will appear here.
               </p>
             ) : (
               <select id={fieldId("resource")} value={resourceId} onChange={(e) => setResourceId(e.target.value)}
                 className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
                 <option value="">Pick a PDF…</option>
+                {justUploadedPdf && !downloads.some((d) => d.id === justUploadedPdf.id) && (
+                  <option value={justUploadedPdf.id}>{justUploadedPdf.title} (just uploaded)</option>
+                )}
                 {downloads.map((d) => (
                   <option key={d.id} value={d.id}>{d.title}{d.format ? ` (${d.format})` : ""}</option>
                 ))}
               </select>
             )}
+            {/* Chat D — obvious upload control: upload a PDF right here. */}
+            <input ref={pdfInputRef} type="file" accept="application/pdf,.pdf" className="hidden"
+              onChange={(e) => handlePdfSelected(e.target.files?.[0])} />
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => pdfInputRef.current?.click()} disabled={pdfUploadBusy}>
+                {pdfUploadBusy ? "Uploading…" : "Upload new PDF"}
+              </Button>
+              {justUploadedPdf && !pdfUploadBusy && (
+                <span className="text-xs text-emerald-600">Uploaded — selected above.</span>
+              )}
+            </div>
+            {pdfUploadError && <p className="text-xs text-red-600">{pdfUploadError}</p>}
           </div>
           <div className="space-y-2">
             <label className={fieldLabel} htmlFor={fieldId("title")}>Title</label>

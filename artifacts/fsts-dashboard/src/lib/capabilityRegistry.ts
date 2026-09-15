@@ -247,7 +247,9 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
     scope: "client",
     moduleKey: "navigation",
     roleModuleKey: "navigation",
-    designLocked: true,
+    // Chat D: menu entries (label/href/visibility/order) are content-tier on
+    // the backend (CONTENT_CREATE/UPDATE/DELETE) — a client manages their own
+    // navigation menu. Not design-locked.
     icon: NavIcon,
     support: "native",
   },
@@ -260,7 +262,10 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
     scope: "client",
     moduleKey: "footer",
     roleModuleKey: "footer",
-    designLocked: true,
+    // Chat D: footer content (columns/social links/copyright) is
+    // content-tier on the backend (CONTENT_UPDATE). The adminLogin section
+    // stays design-tier but is locked in-page via LockedField. Not
+    // blanket design-locked.
     icon: LayoutTemplate,
     support: "native",
   },
@@ -675,7 +680,9 @@ export const CAPABILITY_REGISTRY: CapabilityDefinition[] = [
     scope: "client",
     moduleKey: "health",
     roleModuleKey: "health",
-    designLocked: true,
+    // Chat D: health monitoring is client-safe (healthScans RBAC is
+    // checkSiteAccess-only) — a client must be able to see their own site's
+    // health. Not design-locked.
     icon: HeartPulse,
     support: "native",
   },
