@@ -15,6 +15,7 @@
  *   ✓ Blank label/url overrides fall back to platform defaults
  *   ✓ Custom label/url overrides are returned verbatim
  *   ✓ Client roles cannot set adminLogin (LAYOUT_MANAGE design-tier)
+ *   ✓ Chat D: client content-only footer updates succeed (CONTENT_UPDATE)
  *   ✓ Per-site overrides never leak across tenants (slug isolation)
  *   ✓ Unknown slug → null (public contract unchanged)
  *
@@ -96,6 +97,15 @@ beforeEach(async () => {
       isActive: true,
       roles: [{ siteId: siteA, role: "owner" }],
     });
+    // Chat D: content_editor — content CRUD role used for the split-tier test.
+    await ctx.db.insert("users", {
+      clerkUserId: "content_editor_user",
+      name: "Content Editor",
+      email: "editor@client.test",
+      isSuperAdmin: false,
+      isActive: true,
+      roles: [{ siteId: siteA, role: "content_editor" }],
+    });
   });
 });
 
@@ -105,6 +115,7 @@ afterEach(() => {
 
 const asAdmin = () => t.withIdentity({ subject: "superadmin" });
 const asOwner = () => t.withIdentity({ subject: "owner_user" });
+const asEditor = () => t.withIdentity({ subject: "content_editor_user" });
 
 // ─── 1. Superadmin configures the Admin Login link ──────────────────────
 
@@ -242,7 +253,12 @@ describe("public getFooterBySlug adminLogin contract", () => {
 
 // ─── 4. RBAC — design-tier guard ─────────────────────────────────────────
 
-describe("adminLogin fields are design-tier (LAYOUT_MANAGE)", () => {
+// Chat D split-tier contract: footer content (columns/social/copyright) is
+// client content (CONTENT_UPDATE), but any adminLogin* field still requires
+// LAYOUT_MANAGE (superadmin-only) — preserving the Phase 1 admin-login
+// contract while unblocking client footer content edits.
+
+describe("footer.update split-tier guard (Chat D)", () => {
   it("owner (highest client role) cannot set adminLogin", async () => {
     await expect(
       asOwner().mutation(api.footer.update, {
@@ -252,12 +268,36 @@ describe("adminLogin fields are design-tier (LAYOUT_MANAGE)", () => {
     ).rejects.toThrow(/Forbidden/);
   });
 
-  it("client cannot flip the link on even when the footer module is enabled", async () => {
-    // Ensure the module is genuinely enabled for the site.
+  it("owner can save content-only footer updates (CONTENT_UPDATE)", async () => {
+    const result = await asOwner().mutation(api.footer.update, {
+      siteId: siteA as Id<"sites">,
+      copyrightText: "owned by client",
+    });
+    expect(result).toMatchObject({ copyrightText: "owned by client" });
+  });
+
+  it("content_editor can save footer columns and social links", async () => {
+    const result = await asEditor().mutation(api.footer.update, {
+      siteId: siteA as Id<"sites">,
+      columns: [
+        { heading: "Services", links: [{ label: "Classes", href: "/classes" }] },
+      ],
+      socialLinks: [{ label: "Instagram", href: "https://instagram.com/client" }],
+    });
+    expect((result as any).columns).toEqual([
+      { heading: "Services", links: [{ label: "Classes", href: "/classes" }] },
+    ]);
+    expect((result as any).socialLinks).toEqual([
+      { label: "Instagram", href: "https://instagram.com/client" },
+    ]);
+  });
+
+  it("owner payload mixing content + adminLogin is rejected whole", async () => {
     await expect(
       asOwner().mutation(api.footer.update, {
         siteId: siteA as Id<"sites">,
-        copyrightText: "owned by client",
+        copyrightText: "my footer",
+        adminLoginLabel: "Client Portal",
       }),
     ).rejects.toThrow(/Forbidden/);
   });

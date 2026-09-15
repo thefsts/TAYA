@@ -33,6 +33,7 @@ const EMPTY: Record<string, unknown> = {
   analyticsGa4: null,
   analyticsGtm: null,
   analyticsPixel: null,
+  analyticsSearchConsole: null,
   cookieConsentEnabled: false,
   cookiePolicyUrl: null,
   privacyPolicyUrl: null,
@@ -42,6 +43,7 @@ const EMPTY: Record<string, unknown> = {
   contactUpdatedAt: null,
   seoUpdatedAt: null,
   integrationsUpdatedAt: null,
+  analyticsUpdatedAt: null,
   legalUpdatedAt: null,
   showCancelledEvents: false,
   eventsUpdatedAt: null,
@@ -193,6 +195,38 @@ export const updateSeo = mutation({
     const doc = (await ctx.db.get(docId))!;
     await logActivity(ctx, { siteId, actorName: user.name, action: existing ? "updated" : "created", entityType: "site_settings_seo", page: "Website Settings", previousValue: existing, newValue: doc });
     await recordVersion(ctx, { siteId, actorName: user.name, entityType: "site_settings_seo", entityId: docId, snapshot: doc });
+    return toResponse(doc);
+  },
+});
+
+// Chat D — client-safe analytics: GA4 / GTM / Search Console verification are
+// marketing-tier settings a client should be able to manage for their own site
+// without a Ninja intervention. Pixel (Meta) and cookie consent remain in the
+// superadmin-only updateIntegrations mutation below (INTEGRATIONS_MANAGE).
+export const updateAnalytics = mutation({
+  args: {
+    siteId: v.id("sites"),
+    analyticsGa4: v.optional(v.string()),
+    analyticsGtm: v.optional(v.string()),
+    analyticsSearchConsole: v.optional(v.string()),
+  },
+  handler: async (ctx, { siteId, ...fields }) => {
+    const user = await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
+    const existing = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_site", (q) => q.eq("siteId", siteId))
+      .first();
+    const patch = { ...fields, analyticsUpdatedAt: Date.now() };
+    let docId;
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+      docId = existing._id;
+    } else {
+      docId = await ctx.db.insert("siteSettings", { siteId, ...patch });
+    }
+    const doc = (await ctx.db.get(docId))!;
+    await logActivity(ctx, { siteId, actorName: user.name, action: existing ? "updated" : "created", entityType: "site_settings_analytics", page: "Website Settings", previousValue: existing, newValue: doc });
+    await recordVersion(ctx, { siteId, actorName: user.name, entityType: "site_settings_analytics", entityId: docId, snapshot: doc });
     return toResponse(doc);
   },
 });

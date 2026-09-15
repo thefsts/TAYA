@@ -647,17 +647,21 @@ describe("8. cross-tenant \u2014 per-viewer truth", () => {
 // \u2500\u2500 9. Design lock contract \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 describe("9. design lock contract", () => {
-  it("locks exactly the approved 11 optional capabilities; core never locked", () => {
+  it("locks exactly the approved 8 optional capabilities; core never locked", () => {
+    // Chat D: navigation, footer, and health were re-tiered to client-safe
+    // content permissions (CONTENT_* + checkSiteAccess), so they are no
+    // longer design-locked. The 8 that remain design-locked are listed below.
     const locked = CAPABILITY_REGISTRY.filter((c) => c.designLocked).map((c) => c.key).sort();
     expect(locked).toEqual([
-      "activity", "backups", "commerce", "crm", "email", "footer", "health",
-      "history", "navigation", "payment-providers", "payments",
+      "activity", "backups", "commerce", "crm", "email",
+      "history", "payment-providers", "payments",
     ]);
     for (const cap of CAPABILITY_REGISTRY) {
       if (cap.designLocked) expect(cap.tier).toBe("optional");
     }
-    // Core client surfaces are never locked.
-    for (const key of ["pages", "visual-editor", "website-settings", "my-permissions", "site-users", "help"]) {
+    // Core client surfaces are never locked — including the Chat D re-tiered
+    // navigation (Menu Builder), footer, and health surfaces.
+    for (const key of ["pages", "visual-editor", "website-settings", "my-permissions", "site-users", "help", "navigation", "footer", "health"]) {
       expect(CAPABILITY_REGISTRY.find((c) => c.key === key)?.designLocked).toBeUndefined();
     }
   });

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { useQuery, useMutation } from "convex/react";
+import { useAuth, useClerk } from "@clerk/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { ExternalLink, ShieldCheck, ShieldAlert, Mail as MailIcon, FileEdit, AlertTriangle } from "lucide-react";
@@ -51,6 +52,20 @@ function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
   const isSuperAdmin = me?.isSuperAdmin ?? false;
   const isInternalQa = !!me?.roles?.some((r: any) => r.role === "internal_qa");
   const clientRole = me?.roles?.find((r: any) => r.siteId === siteId)?.role;
+  const { signOut } = useClerk();
+  const { sessionId } = useAuth();
+
+  // Owner directive (00e6f90 "keep client sign-out inside TAYA"): never link
+  // out to Clerk's hosted Account Portal — sign out via the in-app session
+  // and return to the D8-branded sign-in page (same contract as SitesList).
+  const handleSignOut = async () => {
+    try {
+      await signOut({ sessionId: sessionId ?? undefined, redirectUrl: "/sign-in" });
+    } catch (error) {
+      console.error("TAYA sign-out failed", error);
+      window.alert("TAYA could not close the Clerk session. Please retry Sign Out.");
+    }
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -123,7 +138,8 @@ function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
               Help Center
             </Link>
             <Link
-              href="https://accounts.app.fstsclientsystem.com"
+              href={`/app/sites/${siteId}/settings`}
+              onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
             >
               <UserIcon className="h-4 w-4 text-slate-400" />
@@ -138,13 +154,14 @@ function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
               <ArrowLeft className="h-4 w-4 text-slate-400" />
               {isSuperAdmin || isInternalQa ? "All Websites" : "My Websites"}
             </Link>
-            <a
-              href="https://accounts.app.fstsclientsystem.com/user/logout"
-              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            <button
+              type="button"
+              onClick={() => { setOpen(false); handleSignOut(); }}
+              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
-            </a>
+            </button>
           </div>
         </div>
       )}
@@ -185,6 +202,21 @@ export function AppLayout({ children, siteId, pageContext, edgeToEdge = false }:
   const sites = useQuery(api.sites.list);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Owner directive (00e6f90 "keep client sign-out inside TAYA"): the rail's
+  // Sign Out button closes the in-app Clerk session and returns to the
+  // D8-branded sign-in page (same contract as SitesList) — never the hosted
+  // Account Portal.
+  const { signOut } = useClerk();
+  const { sessionId } = useAuth();
+  const handleSignOut = async () => {
+    try {
+      await signOut({ sessionId: sessionId ?? undefined, redirectUrl: "/sign-in" });
+    } catch (error) {
+      console.error("TAYA sign-out failed", error);
+      window.alert("TAYA could not close the Clerk session. Please retry Sign Out.");
+    }
+  };
 
   const pageTitle = location.split("/").pop()?.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Dashboard";
   const siteStatus = site?.status ?? "active";
@@ -404,7 +436,7 @@ export function AppLayout({ children, siteId, pageContext, edgeToEdge = false }:
               {!compactRail && <span className="flex-1 text-left">Help</span>}
             </Button>
           </Link>
-          <a href="https://accounts.app.fstsclientsystem.com" className="block">
+          <Link href={`/app/sites/${siteId}/settings`} onClick={() => setMobileNavOpen(false)} className="block">
             <Button
               variant="ghost"
               className={`h-10 w-full justify-start rounded-lg px-3 font-normal text-slate-600 hover:bg-slate-100 hover:text-slate-950 ${compactRail ? "justify-center px-2" : ""}`}
@@ -413,17 +445,16 @@ export function AppLayout({ children, siteId, pageContext, edgeToEdge = false }:
               <UserIcon className={`h-4 w-4 text-slate-500 ${compactRail ? "" : "mr-3"}`} />
               {!compactRail && <span className="flex-1 text-left">Account</span>}
             </Button>
-          </a>
-          <a href="https://accounts.app.fstsclientsystem.com/user/logout" className="block">
-            <Button
-              variant="ghost"
-              className={`h-10 w-full justify-start rounded-lg px-3 font-normal text-slate-600 hover:bg-red-50 hover:text-red-600 ${compactRail ? "justify-center px-2" : ""}`}
-              title={compactRail ? "Sign Out" : undefined}
-            >
-              <LogOut className={`h-4 w-4 text-slate-500 ${compactRail ? "" : "mr-3"}`} />
-              {!compactRail && <span className="flex-1 text-left">Sign Out</span>}
-            </Button>
-          </a>
+          </Link>
+          <Button
+            variant="ghost"
+            onClick={handleSignOut}
+            className={`h-10 w-full justify-start rounded-lg px-3 font-normal text-slate-600 hover:bg-red-50 hover:text-red-600 ${compactRail ? "justify-center px-2" : ""}`}
+            title={compactRail ? "Sign Out" : undefined}
+          >
+            <LogOut className={`h-4 w-4 text-slate-500 ${compactRail ? "" : "mr-3"}`} />
+            {!compactRail && <span className="flex-1 text-left">Sign Out</span>}
+          </Button>
         </div>
 
         {(site?.poweredByFsts ?? true) && !agency && !compactRail && (
