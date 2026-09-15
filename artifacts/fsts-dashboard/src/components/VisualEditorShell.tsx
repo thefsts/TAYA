@@ -5,16 +5,18 @@
  * actual website alongside editing controls. Clients SEE their site
  * while they EDIT it.
  *
- * Layout:
- *   Desktop  → split-pane (editor left | live preview right)
- *   Tablet   → resizable split-pane
- *   Mobile   → tab toggle (Edit | Preview)
+ * OWNER-APPROVED LAYOUT (Chat D — locked):
+ *   Desktop  → compact editor rail (≈28–30% of usable width, left) +
+ *              live preview consuming the remaining viewport (right).
+ *              The preview FITS the workspace — it scales down large
+ *              presets (1440×900) instead of clipping them at 1:1.
+ *   Tablet   → resizable split, preview stays usable.
+ *   Mobile   → tab toggle (Edit | Preview), never squeezed side-by-side.
  *
  * Features:
- *   - Live iframe preview of the actual client website
+ *   - Live iframe preview of the actual client website (fit-to-workspace)
  *   - Responsive preview controls (desktop / tablet / mobile)
- *   - Refresh preview
- *   - Open live site in new tab
+ *   - Refresh preview / open live site in new tab
  *   - Unsaved changes indicator
  *   - Save Draft / Publish / Discard action bar
  *   - Revision History link
@@ -37,11 +39,11 @@ import {
 } from "@/components/ui/resizable";
 import {
   Monitor, Tablet, Smartphone, RotateCw, ExternalLink,
-  History, Save, Upload, X, Eye, Pencil, Loader2, Circle,
+  History, Save, Upload, X, Eye, Pencil, Loader2, Circle, ArrowLeft,
 } from "lucide-react";
 import { Link } from "wouter";
 
-/* ── Types ──────────────────────────────────────────────── */
+/* ── Types ─────────────────────────────────────────────────────────── */
 
 type BreakpointId = "desktop" | "tablet" | "mobile";
 
@@ -70,7 +72,7 @@ const BREAKPOINTS: Record<BreakpointId, Breakpoint> = {
  * `isSaving` disables buttons during async operations.
  * `historyHref` is the revision history link.
  * `moduleId` / `entityType` are used by the click-to-edit bridge to
- *   identify which editor section a preview element maps to.
+ * identify which editor section a preview element maps to.
  */
 type VisualEditorShellProps = {
   siteId: string;
@@ -108,7 +110,7 @@ type VisualEditorShellProps = {
   toolbarActions?: React.ReactNode;
 };
 
-/* ── Mobile detection hook ──────────────────────────────── */
+/* ── Mobile detection hook ─────────────────────────────────────────── */
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -134,7 +136,76 @@ function useIsTablet() {
   return isTablet;
 }
 
-/* ── Preview iframe with postMessage bridge ─────────────── */
+/* ── Fit-to-workspace preview sizing ───────────────────────────────── */
+
+/**
+ * OWNER-APPROVED (Chat D): the preview shows as much real website as the
+ * workspace allows — never a 1:1 1440px sheet clipped into a narrow pane,
+ * never tiny with dead margins around it.
+ *
+ * Strategy (fit, not 1:1):
+ *   1. "Fit width" — the frame takes the full workspace width and the
+ *      height follows the preset's aspect ratio (desktop 1440:900 = 16:10).
+ *      This is the default for desktop/tablet presets and for the mobile
+ *      preset on narrow screens.
+ *   2. "Fit height" — when the workspace is wide and short, the frame is
+ *      height-bound: height = workspace height, width = height × aspect,
+ *      centered horizontally.
+ * The frame always renders the FULL preset width inside a transform-scaled
+ * wrapper, so the site keeps its real desktop/tablet/mobile layout (real
+ * media queries fire) and simply scales to fit — zoom-out, never crop.
+ */
+function useFitPreview(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  breakpoint: BreakpointId,
+) {
+  const [box, setBox] = useState<{ width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      setBox({ width: r.width, height: r.height });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [containerRef]);
+
+  const bp = BREAKPOINTS[breakpoint];
+  const aspect = bp.width / bp.height;
+
+  if (!box || box.width <= 0 || box.height <= 0) {
+    return { frameWidth: 0, frameHeight: 0, scale: 1 };
+  }
+
+  // Candidate A: fill the workspace width, height follows the aspect.
+  const byWidth = { width: box.width, height: box.width / aspect };
+  // Candidate B: fill the workspace height, width follows the aspect.
+  const byHeight = { width: box.height * aspect, height: box.height };
+
+  // Pick the candidate that fits BOTH dimensions (contain).
+  const fit =
+    byWidth.height <= box.height
+      ? byWidth
+      : byHeight;
+
+  // Desktop (landscape) preset: scale fills the width; the frame's visual
+  // height extends to the FULL workspace so the preview consumes all
+  // available height — no dead band under a 16:10 preset in a taller
+  // workspace (owner-approved layout, Chat D). Viewport WIDTH keeps the
+  // preset exactly (width media queries stay desktop-true); the extended
+  // height only shows more of the internally scrolling page.
+  const frameHeight =
+    breakpoint === "desktop" ? box.height : fit.height;
+
+  const scale = fit.width / bp.width;
+  return { frameWidth: fit.width, frameHeight, scale };
+}
+
+/* ── Preview iframe with postMessage bridge ────────────────────────── */
 
 type PreviewIframeProps = {
   url: string;
@@ -145,7 +216,17 @@ type PreviewIframeProps = {
 
 function PreviewIframe({ url, breakpoint, iframeKey, onElementClick }: PreviewIframeProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
+  const { frameWidth, frameHeight, scale } = useFitPreview(stageRef, breakpoint.id);
+  const bp = BREAKPOINTS[breakpoint.id];
+  // Desktop preset extends its logical height to fill the workspace (see
+  // useFitPreview) — the iframe renders that taller viewport instead of the
+  // 16:10 preset height.
+  const logicalHeight =
+    breakpoint.id === "desktop" && frameWidth > 0
+      ? Math.round((frameHeight / frameWidth) * bp.width)
+      : bp.height;
 
   // Listen for postMessage from the iframe (click-to-edit bridge)
   useEffect(() => {
@@ -189,16 +270,16 @@ function PreviewIframe({ url, breakpoint, iframeKey, onElementClick }: PreviewIf
     }
   }, []);
 
-  const bp = breakpoint;
-
   return (
-    <div className="flex h-full items-start justify-center overflow-auto bg-slate-100 p-4">
+    <div
+      ref={stageRef}
+      className="flex min-h-0 flex-1 items-start justify-center overflow-hidden bg-slate-100"
+    >
       <div
-        className="relative bg-white shadow-2xl ring-1 ring-slate-300 overflow-hidden transition-all duration-200"
+        className="relative bg-white shadow-2xl ring-1 ring-slate-300 overflow-hidden"
         style={{
-          width: bp.width,
-          height: bp.height,
-          maxWidth: "100%",
+          width: frameWidth || "100%",
+          height: frameHeight || (frameWidth || 0) / (bp.width / bp.height),
           flexShrink: 0,
         }}
       >
@@ -216,8 +297,12 @@ function PreviewIframe({ url, breakpoint, iframeKey, onElementClick }: PreviewIf
           src={url}
           onLoad={handleLoad}
           title={`Preview — ${bp.label}`}
-          className="block border-0"
-          style={{ width: bp.width, height: bp.height }}
+          className="block border-0 origin-top-left"
+          style={{
+            width: bp.width,
+            height: logicalHeight,
+            transform: `scale(${scale || 1})`,
+          }}
           sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
         />
       </div>
@@ -225,7 +310,7 @@ function PreviewIframe({ url, breakpoint, iframeKey, onElementClick }: PreviewIf
   );
 }
 
-/* ── Bridge script injected into the preview iframe ─────── */
+/* ── Bridge script injected into the preview iframe ────────────────── */
 // This script runs inside the client website's iframe. It:
 // 1. Finds elements with [data-taya-edit] attributes
 // 2. Adds hover highlight
@@ -268,7 +353,7 @@ const BRIDGE_SCRIPT = `
   document.addEventListener("mouseout", function(e) {
     var el = e.target;
     while (el && el !== document.body) {
-      if (el.getAttribute && el.getAttribute("data-taya-edit")) {
+      if ( el.getAttribute && el.getAttribute("data-taya-edit")) {
         el.classList.remove("taya-edit-hover");
         break;
       }
@@ -284,7 +369,7 @@ const BRIDGE_STYLES = `
 .taya-edit-flash { outline: 3px solid #8b5cf6 !important; outline-offset: 2px !important; }
 `;
 
-/* ── Action bar ─────────────────────────────────────────── */
+/* ── Action bar ────────────────────────────────────────────────────── */
 
 type ActionBarProps = {
   isDirty: boolean;
@@ -341,26 +426,44 @@ function ActionBar({ isDirty, isSaving, onSave, onPublish, onDiscard, showPublis
   );
 }
 
-/* ── Preview toolbar ────────────────────────────────────── */
+/* ── Compact single-row toolbar (owner-approved) ───────────────────── */
 
 type PreviewToolbarProps = {
   breakpoint: BreakpointId;
   onBreakpointChange: (bp: BreakpointId) => void;
   onRefresh: () => void;
   liveUrl: string | null;
+  /** Back-to-dashboard href (owner-approved chrome, first control) */
+  backHref?: string;
+  /** Editor context label (e.g. "Website Editor") */
+  editorContext?: string;
 };
 
-function PreviewToolbar({ breakpoint, onBreakpointChange, onRefresh, liveUrl }: PreviewToolbarProps) {
+function PreviewToolbar({ breakpoint, onBreakpointChange, onRefresh, liveUrl, backHref, editorContext }: PreviewToolbarProps) {
   return (
-    <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-3 py-2">
-      <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Preview</span>
+    <div className="flex items-center gap-1 border-b border-slate-200 bg-white px-2 py-1.5">
+      {backHref && (
+        <Link href={backHref}>
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-slate-600 hover:bg-slate-100">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Back to Dashboard</span>
+          </Button>
+        </Link>
+      )}
+      {editorContext && (
+        <span className="hidden truncate text-sm font-semibold text-slate-900 sm:block">
+          {editorContext}
+        </span>
+      )}
+
+      <span className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Preview</span>
       {/* Honest label: the preview pane shows the LIVE published site. */}
       <Badge variant="outline" className="border-green-200 bg-green-50 text-[10px] font-medium text-green-700">
         Live site
       </Badge>
 
       {/* Breakpoint controls */}
-      <div className="flex items-center gap-0.5 rounded-md bg-white p-0.5 ring-1 ring-slate-200">
+      <div className="flex items-center gap-0.5 rounded-md bg-slate-50 p-0.5 ring-1 ring-slate-200">
         {(Object.keys(BREAKPOINTS) as BreakpointId[]).map((id) => {
           const bp = BREAKPOINTS[id];
           const Icon = bp.icon;
@@ -410,7 +513,7 @@ function PreviewToolbar({ breakpoint, onBreakpointChange, onRefresh, liveUrl }: 
   );
 }
 
-/* ── Main Visual Editor Shell ───────────────────────────── */
+/* ── Main Visual Editor Shell ──────────────────────────────────────── */
 
 export function VisualEditorShell({
   siteId,
@@ -476,9 +579,9 @@ export function VisualEditorShell({
     );
   }, [moduleId]);
 
-  /* ── Header ── */
+  /* ── Header (compact, single row — title + actions only) ── */
   const header = (
-    <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3">
+    <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-2">
       <div className="min-w-0">
         <h1 className="truncate text-lg font-bold text-slate-900">{title}</h1>
         {subtitle && <p className="truncate text-xs text-slate-500">{subtitle}</p>}
@@ -523,7 +626,7 @@ export function VisualEditorShell({
   /* ── Mobile: tab toggle ── */
   if (isMobile) {
     return (
-      <div className="flex flex-col">
+      <div className="flex h-full min-h-0 flex-col">
         {header}
         <Tabs value={mobileTab} onValueChange={(v) => setMobileTab(v as "edit" | "preview")}>
           <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-slate-200 bg-white">
@@ -542,7 +645,7 @@ export function VisualEditorShell({
             {children}
           </div>
         ) : (
-          <div className="flex flex-col" style={{ height: "calc(100vh - 180px)" }}>
+          <div className="flex min-h-0 flex-1 flex-col">
             <PreviewToolbar
               breakpoint={breakpoint}
               onBreakpointChange={setBreakpoint}
@@ -561,23 +664,23 @@ export function VisualEditorShell({
     );
   }
 
-  /* ── Desktop / Tablet: split-pane ── */
+  /* ── Desktop / Tablet: split-pane (owner-approved: rail ≈28–30%, preview fills the rest) ── */
   return (
-    <div className="flex flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {header}
-      <ResizablePanelGroup direction="horizontal" className="min-h-[calc(100vh-140px)]">
-        {/* Editor panel */}
-        <ResizablePanel defaultSize={isTablet ? 45 : 40} minSize={25} maxSize={70}>
-          <div className="h-full overflow-y-auto bg-slate-50 p-4">
+      <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
+        {/* Editor panel — compact rail */}
+        <ResizablePanel defaultSize={isTablet ? 42 : 29} minSize={22} maxSize={55}>
+          <div className="h-full overflow-y-auto bg-slate-50 p-3">
             {children}
           </div>
         </ResizablePanel>
 
         <ResizableHandle withHandle />
 
-        {/* Preview panel */}
-        <ResizablePanel defaultSize={isTablet ? 55 : 60} minSize={30}>
-          <div className="flex h-full flex-col">
+        {/* Preview panel — consumes the remaining viewport */}
+        <ResizablePanel defaultSize={isTablet ? 58 : 71} minSize={38}>
+          <div className="flex h-full min-h-0 flex-col">
             <PreviewToolbar
               breakpoint={breakpoint}
               onBreakpointChange={setBreakpoint}

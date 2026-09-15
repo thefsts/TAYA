@@ -152,7 +152,7 @@ function AccountMenu({ me, siteId }: { me: any; siteId: string }) {
   );
 }
 
-export function AppLayout({ children, siteId, pageContext }: { children: React.ReactNode, siteId: string, pageContext?: string }) {
+export function AppLayout({ children, siteId, pageContext, edgeToEdge = false }: { children: React.ReactNode, siteId: string, pageContext?: string, edgeToEdge?: boolean }) {
   const site = useQuery(api.sites.get, { siteId: siteId as Id<"sites"> });
   const me = useQuery(api.users.me);
   const [location] = useLocation();
@@ -192,7 +192,7 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
   const compactRail = sidebarUi.compact;
 
   return (
-    <div className="relative flex min-h-screen bg-slate-50">
+    <div className={edgeToEdge ? "relative flex h-dvh bg-slate-50" : "relative flex min-h-screen bg-slate-50"}>
       {mobileNavOpen && (
         <button
           type="button"
@@ -537,10 +537,24 @@ export function AppLayout({ children, siteId, pageContext }: { children: React.R
             <AccountMenu me={me} siteId={siteId} />
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-6xl">
-            {children}
-          </div>
+        {/*
+          edgeToEdge (owner-approved editor layout, Chat D): full-bleed work
+          surfaces (Visual Editor) drop the 1152px content cap and page
+          padding so the live preview can consume the remaining viewport.
+          Default false keeps every other dashboard page byte-identical.
+        */}
+        <div
+          className={
+            edgeToEdge
+              ? "flex h-full min-h-0 flex-1 flex-col overflow-hidden"
+              : "flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
+          }
+        >
+          {edgeToEdge ? (
+            children
+          ) : (
+            <div className="mx-auto max-w-6xl">{children}</div>
+          )}
         </div>
       </main>
       <AIAssistant siteId={siteId} pageContext={pageContext} />

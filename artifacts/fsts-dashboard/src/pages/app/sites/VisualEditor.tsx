@@ -61,7 +61,7 @@ import { pageKeySegment } from "@convex/lib/discovery/html";
 import {
   ExternalLink, Eye, History, Loader2, Lock,
   Monitor, Pencil, RefreshCw, Save, Send, Smartphone, Tablet,
-  Undo2,
+  Undo2, ArrowLeft,
   Plus, Trash2, RotateCcw, ArrowUp, ArrowDown,
   Video, FileText, Type, Megaphone, HelpCircle, FileDown, Link2, ClipboardList,
 } from "lucide-react";
@@ -92,11 +92,9 @@ type ElementInfo = {
 
 type DeviceMode = "desktop" | "tablet" | "mobile";
 
-const DEVICE_WIDTHS: Record<DeviceMode, string> = {
-  desktop: "100%",
-  tablet: "768px",
-  mobile: "390px",
-};
+/* OWNER-APPROVED (Chat D): device presets are logical viewports the preview
+   renders at full size, then contain-fits to the workspace (see FrameStage).
+   desktop = 100% of the workspace is handled by FrameStage's fit logic. */
 
 type WorkflowState =
   | "saved" | "unsaved" | "draft" | "publishing" | "published" | "blocked";
@@ -876,7 +874,7 @@ export default function VisualEditor() {
   // args could trip server-side validators — see useClientSafeQuery header.)
   const [attempt, setAttempt] = useState(0);
   return (
-    <AppLayout siteId={siteId} pageContext="Visual Editor">
+    <AppLayout siteId={siteId} pageContext="Visual Editor" edgeToEdge>
       <VisualEditorInner
         key={attempt}
         siteId={siteId}
@@ -895,6 +893,7 @@ function VisualEditorInner({
   siteId: string;
   retryEditor: () => void;
 }) {
+  const [, navigate] = useLocation();
   const contentMap = useQuery(api.contentMap.get, { siteId: siteId as Id<"sites"> });
   const authority = useQuery(api.publishing.canPublish, { siteId: siteId as Id<"sites"> });
   const revisions = useQuery(api.editor.editorRevisions, { siteId: siteId as Id<"sites"> });
@@ -1649,89 +1648,71 @@ function VisualEditorInner({
   }
 
   return (
-    <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col gap-4 p-4 md:p-6">
-      {/* header row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">Visual Editor</h1>
-          <p className="text-sm text-slate-500">
+    <div className="flex h-full min-h-0 flex-col">
+      {/* ── compact top toolbar (owner-approved, single row) ── */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-3 py-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1.5 px-2 text-slate-600 hover:bg-slate-100"
+          onClick={() => navigate(`/app/sites/${siteId}`)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Back to Dashboard</span>
+        </Button>
+        <div className="hidden min-w-0 md:block">
+          <h1 className="truncate text-sm font-bold text-slate-900">Website Editor</h1>
+          <p className="truncate text-[11px] text-slate-500">
             Click any element on your website to edit it{siteDomain ? ` — ${siteDomain}` : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setShowHistory((v) => !v)} className="gap-2">
-            <History className="h-4 w-4" /> History
+
+        <div className="mx-auto flex min-w-0 flex-wrap items-center justify-center gap-1.5">
+          {pages.map((p) => (
+            <button
+              key={p.path}
+              type="button"
+              onClick={() => {
+                setPagePath(p.path);
+                setSelected(null);
+                void loadFrame(p.path);
+              }}
+              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                pagePath === p.path
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600"
+              }`}
+            >
+              {p.label || p.path}
+            </button>
+          ))}
+          <span className="hidden text-[10px] text-slate-400 xl:inline">
+            {pages.length} page{pages.length === 1 ? "" : "s"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={() => setShowHistory((v) => !v)}>
+            <History className="h-4 w-4" /> <span className="hidden lg:inline">History</span>
           </Button>
           {siteDomain && (
             <a href={`https://${siteDomain}${pagePath ?? ""}`} target="_blank" rel="noreferrer noopener">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ExternalLink className="h-4 w-4" /> View live site
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 px-2.5">
+                <ExternalLink className="h-4 w-4" /> <span className="hidden lg:inline">View live site</span>
               </Button>
             </a>
           )}
         </div>
       </div>
 
-      {/* page navigator */}
-      <div className="flex flex-wrap items-center gap-2">
-        {pages.map((p) => (
-          <button
-            key={p.path}
-            type="button"
-            onClick={() => {
-              setPagePath(p.path);
-              setSelected(null);
-              void loadFrame(p.path);
-            }}
-            className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-              pagePath === p.path
-                ? "border-blue-600 bg-blue-600 text-white"
-                : "border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600"
-            }`}
-          >
-            {p.label || p.path}
-          </button>
-        ))}
-        <span className="ml-auto text-xs text-slate-400">
-          {pages.length} page{pages.length === 1 ? "" : "s"} available
-        </span>
-      </div>
-
-      {/* workflow banner */}
-      <WorkflowBanner
-        state={workflow}
-        reason={blockedReason ?? notice}
-        canPublish={authority?.canPublish ?? null}
-      />
-      {notice && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {notice}
-        </div>
-      )}
-      {lockedNotice && !notice && (
-        <div role="status" className="flex items-start gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600">
-          <Lock className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-400" />
-          <span>{lockedNotice}</span>
-        </div>
-      )}
-
-      {/* history panel */}
-      {showHistory && (
-        <RevisionHistory
-          revisions={revisions as RevisionSummary[] | null}
-          onRestore={onRestore}
-          busy={busy}
-        />
-      )}
-
-      {/* mobile tabs */}
-      <div className="flex gap-2 lg:hidden">
+      {/* mobile Edit/Preview toggle — never squeezed side-by-side (owner-approved) */}
+      <div className="flex gap-2 border-b border-slate-200 bg-white px-3 py-1.5 lg:hidden">
         {(["edit", "preview"] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setMobileTab(t)}
-            className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium capitalize ${
+            className={`flex-1 rounded-md border px-3 py-1.5 text-sm font-medium capitalize ${
               mobileTab === t ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white text-slate-600"
             }`}
           >
@@ -1740,10 +1721,37 @@ function VisualEditorInner({
         ))}
       </div>
 
-      {/* main split: controls (left) + preview (right) */}
-      <div className="flex flex-1 min-h-0 flex-col gap-4 lg:flex-row">
+      {/* main split: controls (left rail) + preview (fills remaining viewport) */}
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {/* controls */}
-        <div className={`${mobileTab === "edit" ? "flex" : "hidden"} w-full flex-col gap-4 lg:flex lg:w-[380px] lg:flex-shrink-0`}>
+        <div className={`${mobileTab === "edit" ? "flex" : "hidden"} w-full min-h-0 flex-col gap-3 overflow-y-auto bg-slate-50 p-3 lg:flex lg:w-[clamp(280px,29%,440px)] lg:flex-shrink-0 lg:border-r lg:border-slate-200`}>
+          {/* workflow banner — compact, in the rail */}
+          <WorkflowBanner
+            state={workflow}
+            reason={blockedReason ?? notice}
+            canPublish={authority?.canPublish ?? null}
+          />
+          {notice && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              {notice}
+            </div>
+          )}
+          {lockedNotice && !notice && (
+            <div role="status" className="flex items-start gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600">
+              <Lock className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-400" />
+              <span>{lockedNotice}</span>
+            </div>
+          )}
+
+          {/* history panel */}
+          {showHistory && (
+            <RevisionHistory
+              revisions={revisions as RevisionSummary[] | null}
+              onRestore={onRestore}
+              busy={busy}
+            />
+          )}
+
           {selected ? (
             <Card>
               <CardHeader className="pb-2">
@@ -1899,8 +1907,8 @@ function VisualEditorInner({
           {/* §5 forms — routed to the EXISTING form builder (no bypass) */}
           <FormsPanel siteId={siteId} forms={forms as FormRow[] | undefined} />
 
-          {/* action bar */}
-          <div className="mt-auto space-y-2 rounded-lg border border-slate-200 bg-white p-3">
+          {/* action bar — always reachable at the rail's bottom */}
+          <div className="sticky bottom-0 z-10 mt-auto space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -1945,9 +1953,10 @@ function VisualEditorInner({
           </div>
         </div>
 
-        {/* preview */}
-        <div className={`${mobileTab === "preview" ? "flex" : "hidden"} min-h-0 flex-1 flex-col rounded-xl border border-slate-200 bg-slate-100 lg:flex`}>
-          <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2">
+        {/* preview — fits the workspace (owner-approved: as much real
+            website as the remaining viewport allows, never 1:1 clipped) */}
+        <div className={`${mobileTab === "preview" ? "flex" : "hidden"} min-h-0 flex-1 flex-col bg-slate-100 lg:flex`}>
+          <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-2 py-1.5">
             <div className="flex items-center gap-1">
               {([["desktop", Monitor], ["tablet", Tablet], ["mobile", Smartphone]] as const).map(([mode, Icon]) => (
                 <button
@@ -1961,8 +1970,8 @@ function VisualEditorInner({
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span>{pagePath ?? ""}</span>
+            <div className="flex min-w-0 items-center gap-2 text-xs text-slate-400">
+              <span className="truncate">{pagePath ?? ""}</span>
               <button
                 type="button"
                 aria-label="Reload preview"
@@ -1973,26 +1982,122 @@ function VisualEditorInner({
               </button>
             </div>
           </div>
-          <div className="flex min-h-0 flex-1 items-start justify-center overflow-auto p-3">
-            {frameUrl ? (
-              <iframe
-                ref={iframeRef}
-                key={frameUrl}
-                src={frameUrl}
-                title="Website preview"
-                className="rounded-lg border border-slate-300 bg-white shadow-sm"
-                style={{ width: DEVICE_WIDTHS[device], height: "100%", minHeight: "480px" }}
-                sandbox="allow-same-origin allow-scripts"
-                referrerPolicy="no-referrer"
-                onLoad={() => sendToFrame({ kind: "ping" })}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-              </div>
-            )}
-          </div>
+          <FrameStage
+            frameUrl={frameUrl}
+            device={device}
+            busy={busy}
+            iframeRef={iframeRef}
+            onFrameLoad={() => sendToFrame({ kind: "ping" })}
+          />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── fit-to-workspace preview stage (owner-approved layout, Chat D) ── */
+
+const PREVIEW_PRESETS: Record<DeviceMode, { width: number; height: number }> = {
+  desktop: { width: 1440, height: 900 },
+  tablet: { width: 768, height: 1024 },
+  mobile: { width: 390, height: 844 },
+};
+
+function FrameStage({
+  frameUrl,
+  device,
+  busy,
+  iframeRef,
+  onFrameLoad,
+}: {
+  frameUrl: string | null;
+  device: DeviceMode;
+  busy: boolean;
+  iframeRef: React.MutableRefObject<HTMLIFrameElement | null>;
+  onFrameLoad: () => void;
+}) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{ width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      setBox({ width: r.width, height: r.height });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const preset = PREVIEW_PRESETS[device];
+  const aspect = preset.width / preset.height;
+
+  let frameWidth = 0;
+  let frameHeight = 0;
+  let logicalWidth = preset.width;
+  let logicalHeight = preset.height;
+  if (box && box.width > 0 && box.height > 0) {
+    // contain-fit: the frame shows the FULL preset viewport, scaled to the
+    // largest size that fits the workspace — zoom-out, never crop, never
+    // dead margins.
+    const byWidth = { width: box.width, height: box.width / aspect };
+    if (byWidth.height <= box.height) {
+      frameWidth = byWidth.width;
+      frameHeight = byWidth.height;
+    } else {
+      frameHeight = box.height;
+      frameWidth = box.height * aspect;
+    }
+    // Desktop preset (landscape): scale fills the width; extend the frame's
+    // visual HEIGHT to the full workspace so the preview consumes all
+    // available height too — no dead band under a 16:10 preset in a taller
+    // workspace (owner-approved layout, Chat D). Viewport WIDTH keeps the
+    // preset exactly, so every width media query stays desktop-true; the
+    // extended height only shows more of the (internally scrolling) page.
+    if (device === "desktop" && frameWidth > 0) {
+      frameHeight = box.height;
+      logicalHeight = Math.round((box.height / frameWidth) * logicalWidth);
+    }
+  }
+  const scale = frameWidth > 0 ? frameWidth / preset.width : 1;
+
+  if (!frameUrl) {
+    return (
+      <div ref={stageRef} className="flex min-h-0 flex-1 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div ref={stageRef} className="flex min-h-0 flex-1 items-start justify-center overflow-hidden bg-slate-100 p-0">
+      <div
+        className="relative overflow-hidden bg-white shadow-xl ring-1 ring-slate-300"
+        style={{ width: frameWidth || "100%", height: frameHeight || "100%" }}
+      >
+        <iframe
+          ref={iframeRef}
+          key={frameUrl}
+          src={frameUrl}
+          title="Website preview"
+          className="block border-0 origin-top-left"
+          style={{
+            width: logicalWidth,
+            height: logicalHeight,
+            transform: `scale(${scale})`,
+          }}
+          sandbox="allow-same-origin allow-scripts"
+          referrerPolicy="no-referrer"
+          onLoad={onFrameLoad}
+        />
+        {busy && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-white/60">
+            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          </div>
+        )}
       </div>
     </div>
   );

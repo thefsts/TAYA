@@ -362,7 +362,9 @@ describe("VisualEditor — client-safe rendering (§26)", () => {
   it("renders the editor with a human subtitle and the site domain", async () => {
     setup();
     await renderEditor();
-    expect(screen.getByText("Visual Editor")).toBeInTheDocument();
+    // Owner-approved compact toolbar (Chat D): the editor context reads
+    // "Website Editor" instead of the old stacked "Visual Editor" heading.
+    expect(screen.getByText("Website Editor")).toBeInTheDocument();
     expect(
       screen.getByText(/Click any element on your website to edit it — www\.fstacktsolutions\.com/),
     ).toBeInTheDocument();
@@ -397,7 +399,8 @@ describe("VisualEditor — client-safe rendering (§26)", () => {
     await renderEditor();
     expect(screen.getByRole("button", { name: "Home" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "About" })).toBeInTheDocument();
-    expect(screen.getByText("2 pages available")).toBeInTheDocument();
+    // Compact toolbar counter (owner-approved layout): "2 pages".
+    expect(screen.getByText("2 pages")).toBeInTheDocument();
   });
 });
 
