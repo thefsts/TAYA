@@ -87,7 +87,7 @@ async function editorFrame(page: Page): Promise<Frame> {
 
 async function openEditor(page: Page): Promise<Frame> {
   await page.goto(EDITOR_URL, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Visual Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Website Editor", exact: true })).toBeVisible({ timeout: 20_000 });
   const frame = await editorFrame(page);
   await frame.waitForSelector("[data-taya-edit]", { timeout: 20_000 });
   return frame;
@@ -322,10 +322,13 @@ test("flow 9 — locked areas and unsupported insertions are explained", async (
   // (a) Click a non-annotated area of the nav bar itself - the FAR RIGHT of
   // the bar, past the last link, so the hit target is the bar (design-locked
   // layout chrome), never one of the inline links at the left edge.
+  // The editor iframe is CSS-scaled (contain-fit), so the nav's page-space
+  // box can be under 12px tall — position INSIDE its real height, never y:12.
   const navBar = frame.locator("nav.site-nav").first();
   const navBox = await navBar.boundingBox();
   const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
-  await navBar.click({ position: { x: navRight, y: 12 } });
+  const navY = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
+  await navBar.click({ position: { x: navRight, y: navY } });
   await expect(
     page.getByText("That part of the page is managed by FSTS. Contact your TAYA representative to make changes."),
   ).toBeVisible({ timeout: 10_000 });
@@ -456,7 +459,7 @@ test("flow 12+13 — Publish → reload → published values persist everywhere"
 
   // FLOW 13 — reload the editor: the published value persists.
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Visual Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Website Editor", exact: true })).toBeVisible({ timeout: 20_000 });
   const frame2 = await editorFrame(page);
   await frame2.waitForSelector('[data-taya-edit="home.hero.heading"]', { timeout: 20_000 });
   await expect(frame2.locator('[data-taya-edit="home.hero.heading"]')).toHaveText("Published Heading (Alice)");

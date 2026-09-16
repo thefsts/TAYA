@@ -6,6 +6,14 @@
  * endpoint for the tenant-isolation proof, flow 15), and the dispatcher
  * that routes string api paths ("editorZones.addBlock") to the SAME store
  * functions that mirror the production convex/*.ts contracts.
+ *
+ * Chat D owner-acceptance parity: the dispatcher now covers the full api.*
+ * surface the four driver components (AppLayout/SiteDashboard,
+ * VisualEditor, WebsiteSettings, HealthMonitor) consume — every query with
+ * its production response shape, every mutation with its EXACT permission
+ * gate (store.mustHavePermission + store.P.*), so the read_only forbidden
+ * proof (§9) fails with the same "Forbidden: your role does not grant
+ * '<permission>' on this site." message production throws.
  */
 import https from "node:https";
 import { readFileSync, existsSync } from "node:fs";
@@ -29,6 +37,17 @@ const { siteServer, convexServer } = booted;
  * bootCore): one callable surface for the dispatcher below. */
 const store = booted.store;
 
+/* Public storage URLs (downloads/media rows) must point at THIS convex
+ * origin — the same origin /harness/storage/:id serves from. */
+store.setConvexOriginForStorage(CONVEX_ORIGIN);
+
+/* Presentation names for sites.get/sites.list (production sites docs carry
+ * the business name; the harness seeds only slugs). */
+const SITE_NAMES = {
+  harborview: "Harborview Dental",
+  riverside: "Riverside Family Dental",
+};
+
 /* ══ Acting user (harness-only login layer) */
 let actingUser = "user_alice"; // Alice — Harborview (flow 15 switches to Bob)
 
@@ -38,12 +57,30 @@ function requireAccess(siteId) {
   }
 }
 
+/* Production permission gate for the dispatcher-level mutations (the store
+ * mirrors of publishing/editorZones only check site access — the convex
+ * functions gate on requirePermission, so the dispatcher adds it here). */
+function requirePermission(siteId, permission) {
+  store.mustHavePermission(store.users, actingUser, siteId, permission);
+}
+
+/* Strip siteId (and undefined-valued keys — JSON never carries them, but a
+ * direct dispatch call could) from a mutation arg object. */
+function fieldsOf(args) {
+  const out = {};
+  for (const [k, v] of Object.entries(args ?? {})) {
+    if (k === "siteId" || v === undefined) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
 /* ══ Queries — each entry mirrors a production convex function */
 /* Production parity: QUERIES return null/[] when the caller lacks site
  * access (checkSiteAccess in convex/contentMap.ts, publishing.ts,
  * editor.ts, editorZones.ts, downloads.ts); only MUTATIONS throw
  * Forbidden. The dispatcher therefore lets each store query apply its
- * own access check -- requireAccess is for mutations only. */
+ * own access check — requireAccess is for mutations only. */
 const queries = {
   "contentMap.get": (args) => store.getContentMap(store.sites, actingUser, args.siteId),
   "publishing.canPublish": (args) => store.canPublish(store.sites, actingUser, args.siteId),
@@ -53,12 +90,12 @@ const queries = {
   "editorZones.structuralsFor": (args) => store.structuralsFor(store.sites, actingUser, args.siteId),
   "downloads.list": (args) => store.listDownloads(store.sites, actingUser, args.siteId),
   "forms.list": () => [],
-  "users.me": () => ({
-    _id: actingUser,
-    name: store.users.find((u) => u.clerkUserId === actingUser)?.name ?? actingUser,
-    roles: [],
-    isSuperAdmin: false,
-  }),
+  /* convex/users.ts me → toUserResponse (…spread + id/createdAt/
+   * roleAssignments; the dashboard also reads _id/roles/email/isSuperAdmin). */
+  "users.me": () => store.getMe(store.users, store.sites, actingUser),
+  /* convex/sites.ts get → toSiteResponse (AppLayout chrome reads
+   * name/logoUrl/status/domain/poweredByFsts; the connection-mode chip
+   * reads connectionMode off the raw doc). */
   "sites.get": (args) => {
     if (!store.userHasAccess(store.sites, actingUser, args.siteId)) return null;
     const s = store.sites.find((x) => x.siteId === args.siteId);
@@ -67,21 +104,55 @@ const queries = {
       siteId: s.siteId,
       slug: s.slug,
       domain: s.domain,
-      name: s.slug === "harborview" ? "Harborview Dental" : "Riverside Family Dental",
+      name: SITE_NAMES[s.slug] ?? s.slug,
       status: "active",
+      logoUrl: null,
+      faviconUrl: null,
+      poweredByFsts: true,
+      whiteLabelEnabled: false,
+      connectionMode: s.connectionMode,
     };
   },
   "sites.list": () =>
     store.sites
       .filter((s) => store.userHasAccess(store.sites, actingUser, s.siteId))
-      .map((s) => ({ siteId: s.siteId, slug: s.slug, domain: s.domain, name: s.slug })),
-  /* AppLayout chrome (REAL sidebar/SiteDashboard) */
+      .map((s) => ({ siteId: s.siteId, slug: s.slug, domain: s.domain, name: SITE_NAMES[s.slug] ?? s.slug })),
+  /* convex/sites.ts getEffectiveModules: FLAT Record<string, boolean>
+   * (site.enabledModules ?? {}) — null when the caller lacks access. */
   "sites.getEffectiveModules": (args) => {
     if (!store.userHasAccess(store.sites, actingUser, args.siteId)) return null;
-    return { siteId: args.siteId, modules: [] };
+    const s = store.sites.find((x) => x.siteId === args.siteId);
+    if (!s) return null;
+    return { ...(s.enabledModules ?? {}) };
   },
-  "healthScans.getUnreadNotificationCount": () => 0,
-  "media.healthStats": () => ({ totalAssets: 0, totalBytes: 0, untagged: 0, missingAlt: 0, broken: 0 }),
+  /* convex/sites.ts getDashboardSummary (zero-count seed + mediaCount +
+   * recentMedia + seoPagesConfigured). */
+  "sites.getDashboardSummary": (args) => store.getDashboardSummary(store.users, store.sites, actingUser, args.siteId),
+  /* convex/accessControl.ts getMyPermissions ({isSuperAdmin, role,
+   * permissions} over the dashboard modules). */
+  "accessControl.getMyPermissions": (args) => store.getMyPermissions(store.users, store.sites, actingUser, args.siteId),
+  /* convex/seo.ts list (seoSettings rows; gated on the seo module inside
+   * the store mirror). */
+  "seo.list": (args) => store.listSeo(store.users, store.sites, actingUser, args.siteId),
+  /* convex/siteSettings.ts get (EMPTY defaults, {…doc, id}). */
+  "siteSettings.get": (args) => store.getSiteSettings(store.users, store.sites, actingUser, args.siteId),
+  /* convex/healthScans.ts */
+  "healthScans.getLatestScan": (args) => store.getLatestScan(store.sites, actingUser, args.siteId),
+  "healthScans.getScanHistory": (args) => store.getScanHistory(store.sites, actingUser, args.siteId, args.limit),
+  "healthScans.getNotifications": (args) => store.getHealthNotifications(store.sites, actingUser, args.siteId),
+  "healthScans.getUnreadNotificationCount": (args) => store.getUnreadNotificationCount(store.sites, actingUser, args.siteId),
+  /* convex/media.ts healthStats ({total, healthy, broken}). */
+  "media.healthStats": (args) => store.mediaHealthStats(store.sites, actingUser, args.siteId),
+  /* Modules not enabled in the harness seeds (enabledModules {}): the
+   * production queries return [] when checkModuleEnabled fails. */
+  "courses.listActionRequired": () => [],
+  "events.listActionRequired": () => [],
+  "flyers.listExpiringSoon": () => [],
+  /* convex/crm.ts getSyncStats: no crmConnections row → null (the health
+   * page renders the "No Operon CRM connection configured" card). */
+  "crm.getSyncStats": () => null,
+  /* AppLayout only queries agencies.get when site.agencyId exists; the
+   * harness seeds have no agency. Keep the mirror for completeness. */
   "agencies.get": () => null,
 };
 
@@ -89,48 +160,60 @@ const queries = {
 const mutations = {
   "publishing.saveDraft": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.saveDraft(store.sites, actingUser, args.siteId, args.entries);
   },
   "publishing.publishContentMap": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.publishContentMap(store.sites, actingUser, args.siteId);
   },
   "publishing.discardDraft": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.discardDraft(store.sites, actingUser, args.siteId, args.keys ?? []);
   },
   "editor.restoreAsDraft": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.restoreAsDraft(store.sites, actingUser, args.siteId, args.revisionId);
   },
+  /* convex/editor.ts createFrameToken: site-access ONLY (no permission) —
+   * the frame link is the read path into the editor. */
   "editor.createFrameToken": (args) => {
     requireAccess(args.siteId);
     return store.createFrameToken(store.sites, actingUser, args.siteId, args.path ?? "/");
   },
   "editorZones.addBlock": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_CREATE);
     return store.addBlock(store.sites, actingUser, args.siteId, args.pagePath, args.zone, args.content);
   },
   "editorZones.updateBlock": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.updateBlock(store.sites, actingUser, args.siteId, args.blockId, args.content);
   },
   "editorZones.removeBlock": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_DELETE);
     return store.removeBlock(store.sites, actingUser, args.siteId, args.blockId);
   },
   "editorZones.restoreBlock": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.restoreBlock(store.sites, actingUser, args.siteId, args.blockId);
   },
   "editorZones.reorderBlock": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     // Production parity (convex/editorZones.ts reorderBlock): the caller
     // sends {siteId, pagePath, zone, orderedIds} - an EXACT-SET reorder.
     return store.reorderBlock(store.sites, actingUser, args.siteId, args.pagePath, args.zone, args.orderedIds ?? []);
   },
   "editorZones.setStructuralOps": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     // Production parity (convex/editorZones.ts setStructuralOps): FLAT
     // args {siteId, pagePath, itemOrder, hiddenItems} - never a nested
     // .ops object (undefined kills the store call, no preview fires).
@@ -141,31 +224,97 @@ const mutations = {
   },
   "editorZones.publishBlocks": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.publishBlocks(store.sites, actingUser, args.siteId);
   },
   "editorZones.discardBlocks": (args) => {
     requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.discardBlocks(store.sites, actingUser, args.siteId);
   },
-  "media.generateUploadUrl": () => ({ uploadUrl: `${CONVEX_ORIGIN}/harness/upload` }),
-  "healthScans.markAllNotificationsRead": () => null,
-  "media.create": (args) => {
-    requireAccess(args.siteId);
-    return {
-      id: "media_" + (args.fileName ?? "image").replace(/[^a-z0-9]+/gi, "_").slice(0, 20),
-      url: args.url ?? null,
-      fileName: args.fileName,
-      mimeType: args.mimeType,
-      sizeBytes: args.sizeBytes ?? 0,
-      altText: args.altText ?? null,
-      storageId: args.storageId ?? null,
-    };
+  /* convex/seo.ts create/update (CONTENT_CREATE/CONTENT_UPDATE + seo
+   * module gate — inside the store mirror). */
+  "seo.create": (args) =>
+    store.createSeo(store.users, store.sites, actingUser, args.siteId, fieldsOf(args)),
+  "seo.update": (args) =>
+    store.updateSeo(store.users, store.sites, actingUser, args.siteId, {
+      seoSettingId: args.seoSettingId,
+      ...fieldsOf(args),
+    }),
+  /* convex/siteSettings.ts updateAnalytics (CONTENT_UPDATE — the Chat D
+   * client-safe GA4/GTM/Search Console save). */
+  "siteSettings.updateAnalytics": (args) =>
+    store.updateAnalytics(store.users, store.sites, actingUser, args.siteId, fieldsOf(args)),
+  /* convex/siteSettings.ts section mutations: identity/branding gate on
+   * design.manage, integrations on integrations.manage (both SuperAdmin-
+   * only in production), contact/seo/legal/events on content.update. The
+   * gates live inside the store mirror (updateSiteSettingsSection). */
+  "siteSettings.updateIdentity": (args) =>
+    store.updateSiteSettingsSection(store.users, store.sites, actingUser, args.siteId, "identity", fieldsOf(args)),
+  "siteSettings.updateBranding": (args) =>
+    store.updateSiteSettingsSection(store.users, store.sites, actingUser, args.siteId, "branding", fieldsOf(args)),
+  "siteSettings.updateContact": (args) =>
+    store.updateSiteSettingsSection(store.users, store.sites, actingUser, args.siteId, "contact", fieldsOf(args)),
+  "siteSettings.updateSeo": (args) =>
+    store.updateSiteSettingsSection(store.users, store.sites, actingUser, args.siteId, "seo", fieldsOf(args)),
+  "siteSettings.updateIntegrations": (args) =>
+    store.updateSiteSettingsSection(store.users, store.sites, actingUser, args.siteId, "integrations", fieldsOf(args)),
+  "siteSettings.updateLegal": (args) =>
+    store.updateSiteSettingsSection(store.users, store.sites, actingUser, args.siteId, "legal", fieldsOf(args)),
+  "siteSettings.updateEventDisplay": (args) =>
+    store.updateSiteSettingsSection(store.users, store.sites, actingUser, args.siteId, "events", fieldsOf(args)),
+  /* convex/sites.ts update: SuperAdmin ONLY ("Forbidden") — the Modules
+   * tab design lock. Mirrors the production patch (enabledModules etc.). */
+  "sites.update": (args) => {
+    const user = store.users.find((u) => u.clerkUserId === actingUser);
+    if (!user?.isSuperAdmin) throw new Error("Forbidden");
+    const site = store.sites.find((s) => s.siteId === args.siteId);
+    if (!site) throw new Error("Site not found");
+    const fields = fieldsOf(args);
+    Object.assign(site, fields);
+    return { ...site, id: site.siteId };
   },
+  /* convex/downloads.ts generateUploadUrl (CONTENT_CREATE + downloads
+   * module + PDF-only) / createFromStorage (storageId must exist). */
+  "downloads.generateUploadUrl": (args) =>
+    store.generatePdfUploadUrl(store.users, store.sites, actingUser, args.siteId, args.mimeType, CONVEX_ORIGIN),
+  "downloads.createFromStorage": (args) =>
+    store.createDownloadFromStorage(store.users, store.sites, actingUser, args.siteId, fieldsOf(args)),
+  /* convex/healthScans.ts dismiss/mark (DEPLOYMENT_MANAGE — SuperAdmin-
+   * only in production; the harness owner will be Forbidden, which is the
+   * production parity the health page's catch-and-ignore handlers expect). */
+  "healthScans.dismissNotification": (args) =>
+    store.dismissHealthNotification(store.users, store.sites, actingUser, args.notificationId),
+  "healthScans.markNotificationRead": (args) =>
+    store.markNotificationRead(store.users, store.sites, actingUser, args.notificationId),
+  "healthScans.markAllNotificationsRead": (args) =>
+    store.markAllNotificationsRead(store.users, store.sites, actingUser, args.siteId),
+  /* convex/media.ts generateUploadUrl (MEDIA_UPLOAD + media module +
+   * image/* only) / create (buildResponse parity). */
+  "media.generateUploadUrl": (args) =>
+    store.generateMediaUploadUrl(store.users, store.sites, actingUser, args.siteId, args.mimeType, CONVEX_ORIGIN),
+  "media.create": (args) =>
+    store.createMediaAsset(store.users, store.sites, actingUser, args.siteId, fieldsOf(args)),
 };
 
 /* ══ Actions */
 const actions = {
-  "ai.generateAltText": () => "A friendly dental office reception area.",
+  /* convex/ai.ts actions — production return shapes ({altText},
+   * {description}, {content}, {configured, model}). No AI provider in
+   * this environment: status reports unconfigured (truthful), while the
+   * generate actions return canned text so the editor UX flows work. */
+  "ai.generateAltText": () => ({ altText: "A friendly dental office reception area with a warm welcome desk." }),
+  "ai.generateMetaDescription": (args) => ({
+    description: `Learn more about ${args.pageTitle ?? "our practice"} — friendly care, flexible scheduling, and a team that puts you first.`,
+  }),
+  "ai.chat": (args) => ({
+    content:
+      "I can help you edit this page. Try updating your headline, swapping the hero image, or changing a button's label — click any element in the preview to start.",
+  }),
+  "ai.status": () => ({ configured: false, model: null }),
+  /* convex/healthScans.ts triggerScan: site-access only (an ACTION), runs
+   * the scan, returns { success: true }. */
+  "healthScans.triggerScan": (args) => store.triggerScan(store.sites, actingUser, args.siteId),
 };
 
 function setActingUser(userId) {
@@ -180,7 +329,7 @@ function getActingUser() {
 
 const dispatch = { queries, mutations, actions };
 
-/* ══ Dashboard origin: driver page + Playwright control API ═════════════ */
+/* ══ Dashboard origin: driver page + Playwright control API ════════════ */
 const dashboardServer = https.createServer(
   { key: readFileSync(KEY_FILE), cert: readFileSync(CERT_FILE) },
   async (req, res) => {
@@ -235,7 +384,7 @@ const dashboardServer = https.createServer(
     }
 
     /* Convex-API dispatcher for the store-backed convex/react shim in the
-     * REAL VisualEditor driver page. POST /harness/api { path, args, kind } */
+     * REAL dashboard driver page. POST /harness/api { path, args, kind } */
     if (url.pathname === "/harness/api" && req.method === "POST") {
       let body = "";
       req.on("data", (c) => (body += c));
@@ -261,7 +410,7 @@ const dashboardServer = https.createServer(
       }
     }
 
-    /* Driver page: the REAL VisualEditor component + convex/react shim */
+    /* Driver page: the REAL dashboard components + convex/react shim */
     if (url.pathname === "/" || url.pathname === "/index.html"
         || url.pathname.startsWith("/app/")) {
       const html = readFileSync(join(dist, "parent.html"), "utf-8")
@@ -292,7 +441,7 @@ const dashboardServer = https.createServer(
     json(res, 404, { error: "not found" });
   },
 );
-/* ══ Boot ═════════════════════════════════════════════════════════════════ */
+/* ══ Boot ══════════════════════════════════════════════════════════════ */
 /* Boot: site+convex already listening via bootCore(); dashboard here. */
 const DASHBOARD_PORT = 4173;
 await new Promise((r) => dashboardServer.listen(DASHBOARD_PORT, "127.0.0.1", r));

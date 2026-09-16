@@ -246,6 +246,17 @@ describe("web-bridge snippet — universality and determinism", () => {
     expect(snippet).toContain("parent.insertBefore(anchors[a],");
   });
 
+  it("v2.1: folds companion destination entries onto label-bearing anchors", () => {
+    // ".label" keys derive their sibling companion (\u2026label \u2192 \u2026href);
+    // plain section keys derive key+".href"; only <a> elements, never an
+    // empty destination (an empty href would blank the link on the live site).
+    expect(snippet).toContain("key.slice(-6)==='.label'");
+    expect(snippet).toContain("key.slice(0,-6)+'.href'");
+    expect(snippet).toContain("key+'.href'");
+    expect(snippet).toContain("els[i].tagName==='A'");
+    expect(snippet).toContain("hv!==''");
+  });
+
   it("stabilizes against URL-joiner variants of the base", () => {
     expect(
       generateBridgeSnippet({ convexHttpUrl: "https://x.example/", slug }),
@@ -732,6 +743,144 @@ describe("web-bridge snippet — executes in a DOM world (selector regression)",
   });
 
   // ── v2 execution: zone blocks + structural ops in the DOM world ──────
+  // \u2500\u2500 v2.1 companion destination folding (Chat D \u00a73) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // Real frame shape (verified against the live harness frame document):
+  //   <a data-taya-edit="home.hero.primaryButton.label" data-taya-type="text" href="/contact">
+  //   <a data-taya-edit="home.section5.buttons[0]" data-taya-type="list_item" href="/contact">
+  // The crawl stores the destination as a companion "*.href" map entry that
+  // rides the SAME element (the companion has no element of its own). The
+  // bridge folds it onto the anchor's href so published/draft destination
+  // edits actually apply on the live site (\u00a73 fix #2).
+  function companionDom(w: ReturnType<typeof makeWorld>) {
+    // Browsers report tagName UPPERCASE ("A") \u2014 the fold guards on it,
+    // so the mock must be browser-accurate here.
+    const heroBtn = makeElement("A", {
+      [ATTR]: "home.hero.primaryButton.label",
+      "data-taya-type": "text",
+      href: "/discovered",
+    });
+    heroBtn.textContent = "Book an appointment";
+    const sectionBtn = makeElement("A", {
+      [ATTR]: "home.section5.buttons[0]",
+      "data-taya-type": "list_item",
+      href: "/discovered",
+    });
+    sectionBtn.textContent = "Contact us";
+    const plainLink = makeElement("A", {
+      [ATTR]: "home.section5.links[0]",
+      "data-taya-type": "link",
+      href: "/discovered",
+    });
+    plainLink.textContent = "Read more";
+    // Non-anchor control whose companion IS in the map: the fold must
+    // never touch it (buttons carry no href attribute).
+    const btnEl = makeElement("BUTTON", {
+      [ATTR]: "home.section5.buttons[1]",
+      "data-taya-type": "list_item",
+    });
+    btnEl.textContent = "Not a link";
+    for (const el of [heroBtn, sectionBtn, plainLink, btnEl]) {
+      w.doc.main.appendChild(el);
+      w.doc._nodes.push(el);
+    }
+    return { heroBtn, sectionBtn, plainLink, btnEl };
+  }
+
+  it("v2.1: folds companion .href onto a .label-bearing anchor (hero button)", async () => {
+    const w = makeWorld({
+      published: {
+        "home.hero.primaryButton.label": "Book a free consult",
+        "home.hero.primaryButton.href": "/book",
+      },
+    });
+    const dom = companionDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    // The label applies as text (data-taya-type "text")\u2026
+    expect(dom.heroBtn.textContent).toBe("Book a free consult");
+    // \u2026and the sibling companion (label key minus ".label" plus ".href")
+    // re-points the SAME anchor's destination.
+    expect(dom.heroBtn.getAttribute("href")).toBe("/book");
+  });
+
+  it("v2.1: folds companion .href onto plain-key anchors (section buttons/links)", async () => {
+    const w = makeWorld({
+      published: {
+        "home.section5.buttons[0]": "Call us today",
+        "home.section5.buttons[0].href": "tel:+15551234567",
+        "home.section5.links[0].href": "/team",
+      },
+    });
+    const dom = companionDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    // Plain key + ".href" companion rides the same element.
+    expect(dom.sectionBtn.textContent).toBe("Call us today");
+    expect(dom.sectionBtn.getAttribute("href")).toBe("tel:+15551234567");
+    // links[0] has no label entry (type "link" applies href directly when
+    // the key itself is present); the companion still re-points it and the
+    // anchor's label text is untouched.
+    expect(dom.plainLink.getAttribute("href")).toBe("/team");
+    expect(dom.plainLink.textContent).toBe("Read more");
+  });
+
+  it("v2.1: never folds onto non-anchor elements and skips empty companions", async () => {
+    const w = makeWorld({
+      published: {
+        // Companion present, but the element is a <button>, not an <a>.
+        "home.section5.buttons[1]": "Not a link",
+        "home.section5.buttons[1].href": "/nowhere",
+        // Empty-string destination must NOT blank the anchor's href.
+        "home.section5.links[0].href": "",
+      },
+    });
+    const dom = companionDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(dom.btnEl.getAttribute("href")).toBeNull(); // untouched
+    expect(dom.plainLink.getAttribute("href")).toBe("/discovered"); // guard held
+  });
+
+  it("v2.1: draft-preview companions fold too (owner preview shows the new destination)", async () => {
+    const w = makeWorld({
+      published: {
+        "home.hero.primaryButton.label": "Book an appointment",
+        "home.hero.primaryButton.href": "/contact",
+      },
+      drafts: {
+        "home.hero.primaryButton.href": "/book",
+      },
+      search: "?taya_preview=abcdef123456abcdef123456",
+    });
+    const dom = companionDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    // The draft companion overlays the published destination (run(merged)
+    // folds drafts exactly like published values).
+    expect(dom.heroBtn.getAttribute("href")).toBe("/book");
+    expect(dom.heroBtn.textContent).toBe("Book an appointment");
+  });
+
+  it("v2.1: a companion that does not exist in the map is a safe no-op", async () => {
+    const w = makeWorld({
+      published: {
+        "home.hero.primaryButton.label": "Book an appointment",
+        // NOTE: no "home.hero.primaryButton.href" entry at all \u2014 the map
+        // may simply not carry a destination for this control.
+      },
+    });
+    const dom = companionDom(w);
+    execute(generateBridgeSnippet({ convexHttpUrl, slug }), w);
+    await flushMicrotasks();
+
+    expect(dom.heroBtn.textContent).toBe("Book an appointment");
+    expect(dom.heroBtn.getAttribute("href")).toBe("/discovered"); // untouched
+  });
+
   const ZONE_ATTR = "data-taya-zone";
 
   function zoneDom(w: ReturnType<typeof makeWorld>) {

@@ -518,16 +518,25 @@ describe("refresh crawl — overlay preservation + stale marking (§5/§7/§16)"
 
     // keyCount is the NEW map's size — stale keys ride along in entries
     // (the reference baseline is never silently deleted) but are NOT
-    // counted as live content keys. 14 fresh + 11 preserved-stale = 25.
+    // counted as live content keys. 14 fresh + 14 preserved-stale = 28.
+    // (The §3 companion ".href" fix adds a url entry per crawled button/link;
+    // the vanished /gallery page's three links therefore contribute three
+    // extra preserved-stale companions — 11 → 14 stale, 25 → 28 total.)
     expect(mapRow.keyCount).toBeLessThan(Object.keys(mapRow.entries).length);
     expect(mapRow.keyCount).toBe(14);
-    expect(Object.keys(mapRow.entries).length).toBe(25);
+    expect(Object.keys(mapRow.entries).length).toBe(28);
     const staleKeys = Object.entries(mapRow.entries)
       .filter(([, e]: any) => e.stale === true)
       .map(([k]) => k);
     expect(staleKeys).toContain("gallery.intro.heading");
     expect(staleKeys).toContain("services.items[0].title");
     expect(staleKeys).toContain("services.items[1].title");
+    // The §3 companion ".href" entries are preserved-stale alongside their
+    // labels when the page vanishes — the destination is never silently lost.
+    expect(staleKeys).toContain("gallery.intro.links[0].href");
+    expect(staleKeys).toContain("gallery.intro.links[1].href");
+    expect(staleKeys).toContain("gallery.intro.links[2].href");
+    expect(mapRow.entries["gallery.intro.links[0].href"].type).toBe("url");
     // The site is TAYA_CONNECTED and publishing still works after refresh.
     const authority: any = await asOwner().query(api.publishing.canPublish, { siteId });
     expect(authority.canPublish).toBe(true);

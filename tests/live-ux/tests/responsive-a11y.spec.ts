@@ -31,7 +31,7 @@ async function editorFrameLocator(page: Page) {
 
 async function openEditor(page: Page) {
   await page.goto(EDITOR_URL, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Visual Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Website Editor", exact: true })).toBeVisible({ timeout: 20_000 });
   const frame = await editorFrameLocator(page);
   await frame.waitForSelector("[data-taya-edit]", { timeout: 20_000 });
   return frame;
@@ -91,7 +91,14 @@ test("responsive — 1440 / 1024 / 768 / 390 viewports keep Save/Publish reachab
     });
     const page = await ctx.newPage();
     await page.goto(EDITOR_URL, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Visual Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+    // Readiness signal depends on width: below md (768px) the owner-approved
+    // compact toolbar HIDES the "Website Editor" h1 to save space — at those
+    // widths Save Draft (always rendered) is the readiness signal instead.
+    if (vp.width < 768) {
+      await expect(page.getByRole("button", { name: "Save Draft" })).toBeVisible({ timeout: 20_000 });
+    } else {
+      await expect(page.getByRole("heading", { name: "Website Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+    }
 
     // Save Draft + Publish live in the controls pane, which is the DEFAULT
     // tab at every width (mobileTab starts "edit") - so at every size the
@@ -164,7 +171,11 @@ test("a11y — locked-content notice is a status region (announced), alt-text wo
   const navBar = frame.locator("nav.site-nav").first();
   const navBox = await navBar.boundingBox();
   const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
-  await navBar.click({ position: { x: navRight, y: 12 } });
+  // The editor iframe is CSS-scaled (contain-fit), so the nav's page-space
+  // box can be under 12px tall — position INSIDE its real height, never y:12
+  // (same clamp as flow 9; y:12 lands on <body> and the click is intercepted).
+  const navY = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
+  await navBar.click({ position: { x: navRight, y: navY } });
   const notice = page.locator('[role="status"]').filter({ hasText: "managed by FSTS" });
   await expect(notice).toBeVisible({ timeout: 10_000 });
   await shot(page, "a11y-locked-notice-status");

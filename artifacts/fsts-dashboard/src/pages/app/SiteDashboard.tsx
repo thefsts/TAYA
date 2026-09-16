@@ -1297,7 +1297,13 @@ export default function SiteDashboard() {
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center text-slate-500 shadow-sm">Failed to load dashboard summary.</div>
       )}
-      <WelcomeTour siteId={siteId as unknown as string} userId={me?._id} me={me} />
+      {/* Render the tour only once `me` has loaded: WelcomeTour reads its
+          dismissal key at mount, so mounting before `me` resolves would read
+          the anonymous key while "Close" writes the per-user key — making the
+          tour re-appear on every visit. Gating keeps read + write consistent. */}
+      {me !== undefined && (
+        <WelcomeTour siteId={siteId as unknown as string} userId={me?._id} me={me} />
+      )}
     </AppLayout>
   );
 }
