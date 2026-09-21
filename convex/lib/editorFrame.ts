@@ -206,6 +206,7 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
   function kindOf(el){
     var type=el.getAttribute("data-taya-type");
     var tag=el.tagName;
+    if(type==="background")return "image";
     if(type==="image"||tag==="IMG")return "image";
     if(tag==="H1"||tag==="H2"||tag==="H3"||tag==="H4"||tag==="H5"||tag==="H6")return "heading";
     var key=el.getAttribute("data-taya-edit")||"";
@@ -321,6 +322,7 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
 
   function applyValue(el,val,type){
     if(val==null)return false;
+    if(type==="background"){el.style.backgroundImage='url("'+val+'")';return true;}
     if(type==="image"||el.tagName==="IMG"){el.setAttribute("src",val);return true;}
     if(type==="url"||type==="link"||type==="button"){el.setAttribute("href",val);return true;}
     el.textContent=val;return true;
@@ -338,6 +340,7 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
       if(!e)continue;
       if(applyValue(els[i],e.value,e.type!==undefined?e.type:els[i].getAttribute("data-taya-type")))applied++;
       if(e.href!==undefined&&els[i].tagName==="A"){els[i].setAttribute("href",e.href);}
+      if(e.alt!==undefined&&els[i].tagName==="IMG"){els[i].setAttribute("alt",e.alt);}
     }
     post({kind:"preview-applied",applied:applied});
   }

@@ -28,6 +28,7 @@ import VisualEditor from "@/pages/app/sites/VisualEditor";
 import SiteDashboard from "@/pages/app/SiteDashboard";
 import WebsiteSettings from "@/pages/app/sites/WebsiteSettings";
 import HealthMonitor from "@/pages/app/sites/HealthMonitor";
+import FormBuilder from "@/pages/app/sites/FormBuilder";
 
 const rootEl = document.getElementById("root")!;
 createRoot(rootEl).render(
@@ -43,6 +44,9 @@ createRoot(rootEl).render(
         <Route path="/app/sites/:siteId/editor" component={VisualEditor} />
         <Route path="/app/sites/:siteId/settings" component={WebsiteSettings} />
         <Route path="/app/sites/:siteId/health" component={HealthMonitor} />
+        {/* §5 forms — the EXISTING FormBuilder the VisualEditor Forms panel
+            routes to (same registration as production App.tsx). */}
+        <Route path="/app/sites/:siteId/forms/:formId" component={FormBuilder} />
       </Switch>
       <Toaster />
     </TooltipProvider>

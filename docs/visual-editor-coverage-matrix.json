@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-09-21T14:41:47.893Z",
+  "site": "site_harborview",
+  "totalKeys": 95,
+  "editableSamples": [
+    "home.hero.heading",
+    "home.hero.subheading",
+    "home.hero.image",
+    "home.hero.image.alt",
+    "home.hero.backgroundImage",
+    "home.hero.primaryButton.label",
+    "home.hero.secondaryButton.label",
+    "home.services.heading",
+    "home.services.items[0].title",
+    "home.services.items[0].image.alt",
+    "home.about.body",
+    "home.faq.items[0].title",
+    "home.section5.buttons[0]",
+    "home.footer.text"
+  ],
+  "classification": {
+    "EDITABLE": [
+      "home.hero.heading",
+      "home.hero.subheading",
+      "home.hero.image",
+      "home.hero.image.alt",
+      "home.hero.backgroundImage",
+      "home.hero.primaryButton.label",
+      "home.hero.secondaryButton.label",
+      "home.services.heading",
+      "home.services.items[0].title",
+      "home.services.items[0].image.alt",
+      "home.about.body",
+      "home.faq.items[0].title",
+      "home.section5.buttons[0]",
+      "home.footer.text"
+    ],
+    "FSTS DESIGN LOCKED": [
+      "nav.site-nav (layout chrome)",
+      "site header/footer layout"
+    ],
+    "UNSUPPORTED": [
+      "/faq image insertion",
+      "/faq PDF insertion"
+    ],
+    "BUG": []
+  }
+}

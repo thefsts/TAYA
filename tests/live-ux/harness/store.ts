@@ -68,6 +68,9 @@ export interface StoreSite {
   /* convex/downloads.ts toResponse rows ({...doc, id}) — full DownloadRow
    * shape the VisualEditor PDF picker consumes: id/title/url/format/isActive. */
   downloads: Array<Record<string, any>>;
+  /* convex/forms.ts toResponse rows ({...doc, id}) — the VisualEditor Forms
+   * panel consumes id/name/status and routes to the EXISTING FormBuilder. */
+  forms: Array<Record<string, any>>;
   /** mediaAssets rows (convex/media.ts buildResponse: {...doc, id, url}). */
   mediaAssets: Array<Record<string, any>>;
   /* ── Chat D owner-acceptance extensions (mirror convex tables) ── */
@@ -122,6 +125,11 @@ export async function createHarnessStore(siteDomain: string): Promise<{ users: S
      * Forbidden). Kept OFF Harborview so flow 15's tenant-isolation
      * assertions (members == ["user_alice"]) stay intact. */
     { clerkUserId: "user_carol", name: "Carol Diaz", email: "carol@riversidefamily.com", isActive: true, isSuperAdmin: false, roles: [{ siteId: "site_riverside", role: "read_only" }] },
+    /* Chat 2 §10 role matrix: a manager and a content_editor on Riverside
+     * (both hold CONTENT_UPDATE, so both may edit ordinary content). Kept
+     * OFF Harborview so flow 15's members == ["user_alice"] stays intact. */
+    { clerkUserId: "user_dave", name: "Dave Ellis", email: "dave@riversidefamily.com", isActive: true, isSuperAdmin: false, roles: [{ siteId: "site_riverside", role: "manager" }] },
+    { clerkUserId: "user_erin", name: "Erin Fox", email: "erin@riversidefamily.com", isActive: true, isSuperAdmin: false, roles: [{ siteId: "site_riverside", role: "content_editor" }] },
   ];
 
   const harborview: StoreSite = {
@@ -161,6 +169,28 @@ export async function createHarnessStore(siteDomain: string): Promise<{ users: S
         order: 0,
         fileName: "new-patient-form.pdf",
         filename: "new-patient-form.pdf",
+      },
+    ],
+    /* convex/forms.ts toResponse rows: the VisualEditor Forms panel lists
+     * these and routes to the EXISTING FormBuilder (/forms/:formId). */
+    forms: [
+      {
+        id: "form_contact",
+        siteId: "site_harborview",
+        name: "Contact us",
+        slug: "contact-us",
+        status: "published",
+        fields: [],
+        settings: {},
+      },
+      {
+        id: "form_appointment",
+        siteId: "site_harborview",
+        name: "Appointment request",
+        slug: "appointment-request",
+        status: "draft",
+        fields: [],
+        settings: {},
       },
     ],
     /* mediaAssets rows (convex/media.ts buildResponse parity). Empty seed:
@@ -244,7 +274,7 @@ export async function createHarnessStore(siteDomain: string): Promise<{ users: S
     domain: siteDomain,
     connectionMode: "BRIDGE",
     ownershipVerification: { token: "b2c3d4e5f6a7b8c9", method: "bridge_token", state: "verified" },
-    members: ["user_bob", "user_carol"],
+    members: ["user_bob", "user_carol", "user_dave", "user_erin"],
     map: {
       version: 1,
       domain: pageMap.domain,
@@ -273,6 +303,9 @@ export async function createHarnessStore(siteDomain: string): Promise<{ users: S
         filename: "riverside-brochure.pdf",
       },
     ],
+    /* Riverside has no forms configured — the VisualEditor Forms panel must
+     * render its empty state here (production parity with convex/forms.ts). */
+    forms: [],
     mediaAssets: [],
     /* Riverside: owner (Bob) can edit; read_only (Carol) must be blocked on
      * every CONTENT_* / MEDIA_UPLOAD / seo / analytics mutation — the §9
@@ -709,6 +742,40 @@ export function listDownloads(sites: StoreSite[], clerkUserId: string, siteId: s
   return [...site.downloads]
     .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
     .map((d: any) => ({ ...d, id: d.id }));
+}
+
+export function listForms(sites: StoreSite[], clerkUserId: string, siteId: string) {
+  if (!userHasAccess(sites, clerkUserId, siteId)) return []; // production parity (convex/forms.ts list)
+  const site = sites.find((s) => s.siteId === siteId)!;
+  /* Production parity: convex/forms.ts toResponse rows ({...doc, id}) — the
+   * VisualEditor Forms panel consumes id/name/status and routes to the
+   * EXISTING FormBuilder (/app/sites/:siteId/forms/:formId). */
+  return [...site.forms].map((f: any) => ({ ...f, id: f.id }));
+}
+
+export function getForm(sites: StoreSite[], clerkUserId: string, siteId: string, formId: string) {
+  if (!userHasAccess(sites, clerkUserId, siteId)) return null; // production parity (convex/forms.ts get)
+  const site = sites.find((s) => s.siteId === siteId)!;
+  const form = site.forms.find((f: any) => f.id === formId);
+  if (!form) return null;
+  return { ...form, id: form.id };
+}
+
+export function updateForm(
+  sites: StoreSite[],
+  clerkUserId: string,
+  siteId: string,
+  formId: string,
+  patch: Record<string, any>,
+) {
+  const site = mustHaveSite(sites, clerkUserId, siteId); // throws Forbidden when no access
+  const form = site.forms.find((f: any) => f.id === formId);
+  if (!form) throw new Error("Form not found.");
+  if (patch.name !== undefined) form.name = patch.name;
+  if (patch.fields !== undefined) form.fields = patch.fields;
+  if (patch.settings !== undefined) form.settings = patch.settings;
+  if (patch.status !== undefined) form.status = patch.status;
+  return { ...form, id: form.id };
 }
 
 export function canPublish(sites: StoreSite[], clerkUserId: string, siteId: string) {
@@ -1248,7 +1315,10 @@ export function generatePdfUploadUrl(users: StoreUser[], sites: StoreSite[], cle
   if (mimeType !== undefined && mimeType !== "application/pdf") {
     throw new Error(`MIME type "${mimeType}" is not permitted for downloads uploads (PDF only)`);
   }
-  return { uploadUrl: `${convexOrigin}/harness/upload` };
+  /* Production parity (convex/downloads.ts): ctx.storage.generateUploadUrl()
+   * resolves to a BARE URL STRING, not an object. The client does
+   * `fetch(uploadUrl, {method:"PUT"})` directly. */
+  return `${convexOrigin}/harness/upload`;
 }
 
 export function createDownloadFromStorage(
@@ -1316,7 +1386,9 @@ export function generateMediaUploadUrl(users: StoreUser[], sites: StoreSite[], c
   if (mimeType && !mimeType.startsWith("image/")) {
     throw new Error(`MIME type "${mimeType}" is not permitted for media uploads`);
   }
-  return { uploadUrl: `${convexOrigin}/harness/upload` };
+  /* Production parity (convex/media.ts): ctx.storage.generateUploadUrl()
+   * resolves to a BARE URL STRING. */
+  return `${convexOrigin}/harness/upload`;
 }
 
 /* ── api.media.create / healthStats parity (convex/media.ts) ── */

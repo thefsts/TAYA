@@ -47,6 +47,7 @@ import {
   absoluteUrl,
   pageKeySegment,
   sectionKeyRoot,
+  heroBoundaryOffset,
   MAX_LIST_ITEMS,
   MAX_SECTION_ELEMENTS,
   MAX_IMAGES,
@@ -175,7 +176,7 @@ export interface ElementBinding {
   /** §5 semantic content key (identical grammar to the durable map). */
   key: string;
   /** Map entry type: text | image | url | list_item. */
-  type: "text" | "image" | "url" | "list_item";
+  type: "text" | "image" | "url" | "list_item" | "background";
   /** Absolute offset (into the ORIGINAL html) where the attribute goes. */
   at: number;
 }
@@ -248,7 +249,8 @@ export function collectBindings(html: string, path: string, url: string): Elemen
     const candidates = matchAll(
       body,
       /<(a|button)\s[^>]*>((?:(?!<\/(a|button)>)[\s\S])*?)<\/\1>/gi,
-    );
+    ).filter((c) => c.index < heroBoundaryOffset(body));
+    let heroButtons = 0;
     for (const c of candidates.slice(0, 24)) {
       const tag = c[0].slice(0, c[0].indexOf(">") + 1);
       const label = stripTags(c[2]).slice(0, 60);
@@ -259,8 +261,31 @@ export function collectBindings(html: string, path: string, url: string): Elemen
           label,
         );
       if (looksLikeButton) {
-        add(attrInsertAt(bodyOff, c), `${pageSeg}.hero.primaryButton.label`, "text");
-        break;
+        if (heroButtons === 0) {
+          add(attrInsertAt(bodyOff, c), `${pageSeg}.hero.primaryButton.label`, "text");
+        } else {
+          add(attrInsertAt(bodyOff, c), `${pageSeg}.hero.secondaryButton.label`, "text");
+          break;
+        }
+        heroButtons++;
+      }
+    }
+
+    // Hero background image: a CSS background-image url(...) on the first
+    // <section> block. Annotated on the section's opening tag (type
+    // "background") ONLY when a background-image is actually present — no
+    // fake control when the hero has no background image.
+    const firstSection = /<section\b[^>]*>/i.exec(body);
+    if (firstSection) {
+      const sectionEnd = body.indexOf("</section>", firstSection.index);
+      const sectionHtml = body.slice(
+        firstSection.index,
+        sectionEnd === -1 ? body.length : sectionEnd,
+      );
+      const bgMatch =
+        /background(?:-image)?\s*:\s*[^;"']*url\(\s*['"]?([^'")]+)['"]?\s*\)/i.exec(sectionHtml);
+      if (bgMatch && bgMatch[1].trim() && !isJunkImage(bgMatch[1].trim())) {
+        add(attrInsertAt(bodyOff, firstSection), `${pageSeg}.hero.backgroundImage`, "background");
       }
     }
   }

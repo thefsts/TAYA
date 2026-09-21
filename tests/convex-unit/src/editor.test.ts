@@ -152,9 +152,15 @@ async function phase2Keys(html: string, path: string): Promise<Set<string>> {
   const pageSeg = pageKeySegment(path);
   if (model.hero.heading) map[`${pageSeg}.hero.heading`] = 1;
   if (model.hero.subheading) map[`${pageSeg}.hero.subheading`] = 1;
-  if (model.hero.image) map[`${pageSeg}.hero.image`] = 1;
+  if (model.hero.image) {
+    map[`${pageSeg}.hero.image`] = 1;
+    map[`${pageSeg}.hero.image.alt`] = 1;
+  }
+  if (model.hero.backgroundImage) map[`${pageSeg}.hero.backgroundImage`] = 1;
   if (model.hero.primaryButton?.label) map[`${pageSeg}.hero.primaryButton.label`] = 1;
   if (model.hero.primaryButton?.href) map[`${pageSeg}.hero.primaryButton.href`] = 1;
+  if (model.hero.secondaryButton?.label) map[`${pageSeg}.hero.secondaryButton.label`] = 1;
+  if (model.hero.secondaryButton?.href) map[`${pageSeg}.hero.secondaryButton.href`] = 1;
 
   for (const s of model.sections) {
     const roleSeg = sectionKeyRoot(path, s.role);
@@ -164,11 +170,17 @@ async function phase2Keys(html: string, path: string): Promise<Set<string>> {
     s.items.forEach((it: any, i: number) => {
       if (it.title) map[`${roleSeg}.items[${i}].title`] = 1;
       if (it.description) map[`${roleSeg}.items[${i}].description`] = 1;
-      if (it.image) map[`${roleSeg}.items[${i}].image`] = 1;
+      if (it.image) {
+        map[`${roleSeg}.items[${i}].image`] = 1;
+        map[`${roleSeg}.items[${i}].image.alt`] = 1;
+      }
     });
     // Section-scoped element keys live on the TOP-LEVEL model arrays (key
     // already carries the roleSeg) — mirror the fold's startsWith filter.
-    for (const im of model.images) if (im.key.startsWith(`${roleSeg}.`)) map[im.key] = 1;
+    for (const im of model.images) if (im.key.startsWith(`${roleSeg}.`)) {
+      map[im.key] = 1;
+      map[`${im.key}.alt`] = 1;
+    }
     for (const b of model.buttons) if (b.key.startsWith(`${roleSeg}.`)) map[b.key] = 1;
     for (const l of model.links) if (l.key.startsWith(`${roleSeg}.`)) map[l.key] = 1;
   }
