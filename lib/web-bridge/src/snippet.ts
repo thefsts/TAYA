@@ -73,6 +73,7 @@ export function generateBridgeSnippet(options: SnippetOptions): string {
   function apply(el,val){
     if(val==null)return;
     var t=el.getAttribute('${BRIDGE_ATTR_TYPE}');
+    if(t==='background'){el.style.backgroundImage='url("'+val+'")';return;}
     if(t==='image'){el.setAttribute('src',val);return;}
     if(t==='url'||t==='link'||t==='button'){el.setAttribute('href',val);return;}
     el.textContent=val;
@@ -116,6 +117,18 @@ export function generateBridgeSnippet(options: SnippetOptions): string {
       var hv=published[hk];
       if(hv!=null&&hv!==''&&els[i].tagName==='A'){
         try{els[i].setAttribute('href',hv);applied++;}catch(e){}
+      }
+      // v2.2: companion alt-text folding. The content map stores the alt
+      // text for an image as a companion "*.alt" entry that rides the SAME
+      // <img> element (the companion has no element of its own). The editor
+      // frame folds these into its overlay payload; the bridge folds them
+      // here so published/draft alt-text edits actually apply on the live
+      // site (hero image "…hero.image" pairs with "…hero.image.alt";
+      // section images "…images[n]" pair with "…images[n].alt").
+      var ak=key+'.alt';
+      var av=published[ak];
+      if(av!=null&&els[i].tagName==='IMG'){
+        try{els[i].setAttribute('alt',av);applied++;}catch(e){}
       }
     }
     return applied;

@@ -28,6 +28,9 @@
 const heroImage =
   "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1200&q=70";
 
+const heroBackground =
+  "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&q=60";
+
 /** Rendered home page (path "/"). */
 export function homePage(): string {
   return `<!DOCTYPE html>
@@ -48,11 +51,12 @@ export function homePage(): string {
   </nav>
 </header>
 <main>
-  <section class="hero">
+  <section class="hero" style="background-image:url('${heroBackground}');padding:48px">
     <h1>Welcome to Harborview Dental</h1>
     <p>Gentle, modern family dentistry in the heart of Harbor City — cleanings, whitening, and same-day emergency appointments for patients of every age.</p>
     <img src="${heroImage}" alt="Bright modern dental clinic reception" width="1200" height="600">
     <a class="btn btn-primary" href="/contact">Book an appointment</a>
+    <a class="btn btn-secondary" href="/services">See our services</a>
   </section>
 
   <section class="services">

@@ -89,7 +89,8 @@ const queries = {
   "editorZones.zoneSummaries": (args) => store.zoneSummaries(store.sites, actingUser, args.siteId),
   "editorZones.structuralsFor": (args) => store.structuralsFor(store.sites, actingUser, args.siteId),
   "downloads.list": (args) => store.listDownloads(store.sites, actingUser, args.siteId),
-  "forms.list": () => [],
+  "forms.list": (args) => store.listForms(store.sites, actingUser, args.siteId),
+  "forms.get": (args) => store.getForm(store.sites, actingUser, args.siteId, args.formId),
   /* convex/users.ts me → toUserResponse (…spread + id/createdAt/
    * roleAssignments; the dashboard also reads _id/roles/email/isSuperAdmin). */
   "users.me": () => store.getMe(store.users, store.sites, actingUser),
@@ -226,6 +227,18 @@ const mutations = {
     requireAccess(args.siteId);
     requirePermission(args.siteId, store.P.CONTENT_UPDATE);
     return store.publishBlocks(store.sites, actingUser, args.siteId);
+  },
+  /* convex/forms.ts update — the EXISTING FormBuilder save path. The
+   * VisualEditor never edits form internals; it only routes here. */
+  "forms.update": (args) => {
+    requireAccess(args.siteId);
+    requirePermission(args.siteId, store.P.CONTENT_UPDATE);
+    return store.updateForm(store.sites, actingUser, args.siteId, args.formId, {
+      name: args.name,
+      fields: args.fields,
+      settings: args.settings,
+      status: args.status,
+    });
   },
   "editorZones.discardBlocks": (args) => {
     requireAccess(args.siteId);

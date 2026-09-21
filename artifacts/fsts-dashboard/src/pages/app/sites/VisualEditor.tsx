@@ -263,29 +263,52 @@ function EditControl({
   info,
   current,
   companionValue,
+  altValue,
   onTextChange,
   onImageChange,
   onLinkChange,
+  onAltChange,
 }: {
   siteId: string;
   info: ElementInfo;
   current: string;
   companionValue: string | null;
+  altValue: string | null;
   onTextChange: (value: string) => void;
   onImageChange: (value: string) => void;
   onLinkChange: (value: string) => void;
+  onAltChange: (value: string) => void;
 }) {
   const t = info.type;
 
-  if (t === "image") {
+  if (t === "image" || t === "background") {
     return (
-      <ImagePickerField
-        siteId={siteId}
-        label="Image"
-        value={current}
-        onChange={onImageChange}
-        hint="The preview updates immediately; the image goes live only when you publish."
-      />
+      <div className="space-y-3">
+        <ImagePickerField
+          siteId={siteId}
+          label={t === "background" ? "Background image" : "Image"}
+          value={current}
+          onChange={onImageChange}
+          onAltChange={onAltChange}
+          hint="The preview updates immediately; the image goes live only when you publish."
+        />
+        {altValue !== null && (
+          <div className="space-y-2">
+            <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              Alt text
+            </label>
+            <Input
+              value={altValue}
+              onChange={(e) => onAltChange(e.target.value)}
+              placeholder="Describe the image for screen readers"
+              className="text-sm"
+            />
+            <p className="text-xs text-slate-400">
+              A short description of the image for visitors using screen readers.
+            </p>
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -1324,7 +1347,7 @@ function VisualEditorInner({
     // §5 grammar + bootstrap applyOverlay contract: companion destination
     // keys are deliberately NOT annotated on their own element — they ride
     // the base label key's entry as `href` (entries:{key:{value,type,href?}}).
-    const payload: Record<string, { value: string; type: string; href?: string }> = {};
+    const payload: Record<string, { value: string; type: string; href?: string; alt?: string }> = {};
     const editAt = (k: string) =>
       localEditsRef.current.get(k) ?? entryValue(entries, k) ?? "";
     const baseOfCompanion = (ck: string): string | null => {
@@ -1339,6 +1362,12 @@ function VisualEditorInner({
         if (swapped in entries) return swapped;
       }
       const direct = `${bk}.href`;
+      return direct in entries ? direct : null;
+    };
+    // Alt-text companion: the image's ".alt" entry rides the SAME <img>
+    // element as the image key (the companion has no element of its own).
+    const altCompanionOfBase = (bk: string): string | null => {
+      const direct = `${bk}.alt`;
       return direct in entries ? direct : null;
     };
     // FULL OVERLAY: the frame route strips every site script (including
@@ -1369,11 +1398,30 @@ function VisualEditorInner({
         // A destination with no annotated base element rides nothing.
         return;
       }
+      if (key.endsWith(".alt")) {
+        const base = key.slice(0, -".alt".length);
+        if (base in entries) {
+          const prev = payload[base];
+          payload[base] = {
+            value: prev ? prev.value : editAt(base),
+            type: entries[base]?.type ?? "image",
+            ...(prev?.href !== undefined ? { href: prev.href } : {}),
+            alt: value,
+          };
+          return;
+        }
+        // An alt with no annotated base element rides nothing.
+        return;
+      }
       const type = entries[key]?.type ?? "text";
       const ck = companionOfBase(key);
-      payload[key] = ck && pending.has(ck)
-        ? { value, type, href: pending.get(ck) }
-        : { value, type };
+      const ak = altCompanionOfBase(key);
+      payload[key] = {
+        value,
+        type,
+        ...(ck && pending.has(ck) ? { href: pending.get(ck) } : {}),
+        ...(ak && pending.has(ak) ? { alt: pending.get(ak) } : {}),
+      };
     });
     sendToFrame({ kind: "apply-draft", entries: payload });
   }, [entries, sendToFrame]);
@@ -1911,6 +1959,25 @@ function VisualEditorInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companionKey, entries, draftCount]);
 
+  // Alt-text companion key — the image's sibling "<key>.alt" entry that
+  // rides the same <img> element. Only offered when the map carries one
+  // (never faked): hero image → "<…>.hero.image.alt"; section images →
+  // "<…>.images[n].alt"; item images → "<…>.items[i].image.alt".
+  const altCompanionKey = useMemo(() => {
+    if (!selected) return null;
+    if (selected.type !== "image" && selected.type !== "background") return null;
+    const direct = `${selected.key}.alt`;
+    return direct in entries ? direct : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, entries, draftCount]);
+
+  const altCompanionValue = useMemo(() => {
+    if (!altCompanionKey || !(altCompanionKey in entries)) return null;
+    return localEditsRef.current.get(altCompanionKey)
+      ?? entryValue(entries, altCompanionKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [altCompanionKey, entries, draftCount]);
+
   /* HOTFIX (BLOCKER 2 §3): degraded state for the zone-truth queries.
      Production 542d340 vs backend 20260909T184550Z: editorZones functions
      missing → these queries error. The editor cannot render truthfully
@@ -2085,22 +2152,38 @@ function VisualEditorInner({
                   info={selected}
                   current={selectedDisplay}
                   companionValue={companionValue}
+                  altValue={altCompanionValue}
                   onTextChange={(v) => setLocalEdit(selected.key, v)}
-                   onImageChange={(v) => setLocalEdit(selected.key, v)}
+                  onImageChange={(v) => setLocalEdit(selected.key, v)}
                   onLinkChange={(v) => {
                     if (companionKey) setLocalEdit(companionKey, v);
                     else setLocalEdit(selected.key, v);
                   }}
+                  onAltChange={(v) => {
+                    if (altCompanionKey) setLocalEdit(altCompanionKey, v);
+                  }}
                 />
                 <div className="mt-3 flex gap-2">
                   <Button size="sm" variant="outline" className="flex-1 gap-1.5"
-                    disabled={busy || draftCount === 0 || !localEditsRef.current.has(selected.key)}
+                    disabled={busy || draftCount === 0 || !(
+                      localEditsRef.current.has(selected.key) ||
+                      (companionKey != null && localEditsRef.current.has(companionKey)) ||
+                      (altCompanionKey != null && localEditsRef.current.has(altCompanionKey))
+                    )}
                     onClick={() => void onSaveDraft()}>
                     <Save className="h-3.5 w-3.5" /> Save this change
                   </Button>
                   <Button size="sm" variant="ghost" className="flex-1 gap-1.5 text-slate-500"
-                    disabled={!localEditsRef.current.has(selected.key)}
-                    onClick={() => revertEdit(selected.key)}>
+                    disabled={!(
+                      localEditsRef.current.has(selected.key) ||
+                      (companionKey != null && localEditsRef.current.has(companionKey)) ||
+                      (altCompanionKey != null && localEditsRef.current.has(altCompanionKey))
+                    )}
+                    onClick={() => {
+                      revertEdit(selected.key);
+                      if (companionKey) revertEdit(companionKey);
+                      if (altCompanionKey) revertEdit(altCompanionKey);
+                    }}>
                     <Undo2 className="h-3.5 w-3.5" /> Revert
                   </Button>
                 </div>
