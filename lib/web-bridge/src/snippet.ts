@@ -104,6 +104,19 @@ export function generateBridgeSnippet(options: SnippetOptions): string {
     for(var i=0;i<els.length;i++){
       var key=els[i].getAttribute('${BRIDGE_ATTR_KEY}');
       if(published[key]!=null){apply(els[i],published[key]);applied++;}
+      // v2.1: companion destination folding. The content map stores the
+      // destination for a label-bearing <a> as a companion "*.href" entry
+      // that rides the SAME element (the companion has no element of its
+      // own). The editor frame folds these into its overlay payload; the
+      // bridge folds them here so published/draft destination edits
+      // actually apply on the live site (label key "...primaryButton.label"
+      // pairs with "...primaryButton.href"; plain section entries
+      // "...buttons[0]" pair with "...buttons[0].href").
+      var hk=(key.length>6&&key.slice(-6)==='.label')?key.slice(0,-6)+'.href':key+'.href';
+      var hv=published[hk];
+      if(hv!=null&&hv!==''&&els[i].tagName==='A'){
+        try{els[i].setAttribute('href',hv);applied++;}catch(e){}
+      }
     }
     return applied;
   }

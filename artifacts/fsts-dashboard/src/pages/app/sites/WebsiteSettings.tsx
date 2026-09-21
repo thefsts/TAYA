@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   CalendarX2,
   LayoutGrid,
+  BarChart3,
   Lock,
 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
@@ -180,6 +181,9 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
   const saveBranding = useMutation(api.siteSettings.updateBranding);
   const saveContact = useMutation(api.siteSettings.updateContact);
   const saveSeo = useMutation(api.siteSettings.updateSeo);
+  // Chat D — GA4/GTM/Search Console are client-safe (CONTENT_UPDATE); Pixel
+  // and cookie consent stay in the superadmin-only updateIntegrations.
+  const saveAnalytics = useMutation(api.siteSettings.updateAnalytics);
   const saveIntegrations = useMutation(api.siteSettings.updateIntegrations);
   const saveLegal = useMutation(api.siteSettings.updateLegal);
   const saveEventDisplay = useMutation(api.siteSettings.updateEventDisplay);
@@ -234,6 +238,7 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
 
   const [analyticsGa4, setAnalyticsGa4] = useState("");
   const [analyticsGtm, setAnalyticsGtm] = useState("");
+  const [analyticsSearchConsole, setAnalyticsSearchConsole] = useState("");
   const [analyticsPixel, setAnalyticsPixel] = useState("");
   const [cookieConsentEnabled, setCookieConsentEnabled] = useState(false);
   const [cookiePolicyUrl, setCookiePolicyUrl] = useState("");
@@ -362,8 +367,8 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                 representative to request edit access.
               </p>
               <p>
-                Brand identity, colors, fonts, integrations, and module setup are always
-                managed by TAYA administrators.
+                Brand identity, colors, fonts, Meta Pixel, cookie consent, and module
+                setup are always managed by TAYA administrators.
               </p>
             </div>
           </div>
@@ -380,15 +385,15 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
         <h1 className="text-2xl font-bold text-slate-900">Website Settings™</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           {isSuperAdmin
-            ? "Manage site identity, branding, contact details, SEO defaults, integrations, and legal pages."
-            : "Manage your contact details, SEO defaults, legal links, and event display settings."}
+            ? "Manage site identity, branding, contact details, SEO defaults, analytics, integrations, and legal pages."
+            : "Manage your contact details, SEO defaults, analytics tools, legal links, and event display settings."}
         </p>
       </div>
 
       {/* Client notice for the design-tier sections that stay TAYA-managed
-          (Identity, Branding, Integrations, Modules). Renders nothing for
-          SuperAdmins. */}
-      <DesignLockBanner label="Brand identity, colors, fonts, integrations, and module setup" />
+          (Identity, Branding, Pixel & cookie consent via Integrations,
+          Modules). Renders nothing for SuperAdmins. */}
+      <DesignLockBanner label="Brand identity, colors, fonts, Meta Pixel, cookie consent, and module setup" />
 
       {/* Default tab must match a trigger that exists for this role —
           "identity" is SuperAdmin-only, so clients land on "contact". */}
@@ -413,6 +418,13 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
           <TabsTrigger value="seo" className="flex items-center gap-1.5 text-xs font-medium">
             <Search className="h-3.5 w-3.5" />
             SEO
+          </TabsTrigger>
+          {/* Chat D — Analytics tab is always visible (GA4 / GTM / Search
+              Console are client-safe via siteSettings.updateAnalytics at
+              CONTENT_UPDATE tier; no LAYOUT/INTEGRATIONS gate). */}
+          <TabsTrigger value="analytics" className="flex items-center gap-1.5 text-xs font-medium">
+            <BarChart3 className="h-3.5 w-3.5" />
+            Analytics
           </TabsTrigger>
           {isSuperAdmin && (
             <TabsTrigger value="integrations" className="flex items-center gap-1.5 text-xs font-medium">
@@ -796,6 +808,71 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
           </div>
         </TabsContent>
 
+        {/* ── Analytics (Chat D — client-safe GA4/GTM/Search Console) ── */}
+        <TabsContent value="analytics">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 max-w-2xl">
+            <SectionHeader
+              title="Analytics"
+              description="Connect your site to the analytics tools you already use — saved IDs start tracking on your live site."
+              ts={d.analyticsUpdatedAt}
+            >
+              <Button
+                size="sm"
+                disabled={pending === "analytics"}
+                onClick={() =>
+                  handleSave("analytics", () =>
+                    saveAnalytics({
+                      siteId,
+                      analyticsGa4: analyticsGa4 || undefined,
+                      analyticsGtm: analyticsGtm || undefined,
+                      analyticsSearchConsole: analyticsSearchConsole || undefined,
+                    })
+                  )
+                }
+              >
+                {pending === "analytics" ? "Saving…" : "Save Analytics"}
+              </Button>
+            </SectionHeader>
+
+            <div className="space-y-5">
+              <div className="space-y-1.5">
+                <Label>Google Analytics 4 (GA4) Measurement ID</Label>
+                <Input
+                  aria-label="Google Analytics 4 (GA4) Measurement ID"
+                  value={analyticsGa4}
+                  onChange={(e) => setAnalyticsGa4(e.target.value)}
+                  placeholder="G-XXXXXXXXXX"
+                  className="font-mono"
+                />
+                <p className="text-xs text-slate-400">Find it in Google Analytics → Admin → Data streams.</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Google Tag Manager (GTM) Container ID</Label>
+                <Input
+                  aria-label="Google Tag Manager (GTM) Container ID"
+                  value={analyticsGtm}
+                  onChange={(e) => setAnalyticsGtm(e.target.value)}
+                  placeholder="GTM-XXXXXXX"
+                  className="font-mono"
+                />
+                <p className="text-xs text-slate-400">Optional — only needed if you manage tags through GTM.</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Google Search Console Verification Token</Label>
+                <Input
+                  aria-label="Google Search Console Verification Token"
+                  value={analyticsSearchConsole}
+                  onChange={(e) => setAnalyticsSearchConsole(e.target.value)}
+                  placeholder="Paste the verification token from Google Search Console"
+                />
+                <p className="text-xs text-slate-400">
+                  In Search Console, choose “HTML tag” verification and copy just the content value.
+                </p>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
         {/* ── Integrations ── */}
         {isSuperAdmin && (
           <TabsContent value="integrations">
@@ -812,8 +889,6 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
                     handleSave("integrations", () =>
                       saveIntegrations({
                         siteId,
-                        analyticsGa4: analyticsGa4 || undefined,
-                        analyticsGtm: analyticsGtm || undefined,
                         analyticsPixel: analyticsPixel || undefined,
                         cookieConsentEnabled,
                         cookiePolicyUrl: cookiePolicyUrl || undefined,
@@ -827,28 +902,8 @@ export default function WebsiteSettings({ params }: { params: { siteId: string }
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Analytics</h3>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">Meta Pixel</h3>
                   <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label>Google Analytics 4 (GA4) Measurement ID</Label>
-                      <Input
-                        aria-label="Google Analytics 4 (GA4) Measurement ID"
-                        value={analyticsGa4}
-                        onChange={(e) => setAnalyticsGa4(e.target.value)}
-                        placeholder="G-XXXXXXXXXX"
-                        className="font-mono"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Google Tag Manager (GTM) Container ID</Label>
-                      <Input
-                        aria-label="Google Tag Manager (GTM) Container ID"
-                        value={analyticsGtm}
-                        onChange={(e) => setAnalyticsGtm(e.target.value)}
-                        placeholder="GTM-XXXXXXX"
-                        className="font-mono"
-                      />
-                    </div>
                     <div className="space-y-1.5">
                       <Label>Meta (Facebook) Pixel ID</Label>
                       <Input

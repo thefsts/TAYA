@@ -62,6 +62,16 @@ vi.mock("@convex/_generated/api", () => {
 
 vi.mock("@convex/_generated/dataModel", () => ({}));
 
+vi.mock("@clerk/react", () => ({
+  useUser: () => ({ user: null, isLoaded: true }),
+  useAuth: () => ({ isSignedIn: true, isLoaded: true, sessionId: "sess_test" }),
+  useClerk: () => ({ signOut: vi.fn() }),
+  SignedIn: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SignedOut: () => null,
+  UserButton: () => <button>User</button>,
+  ClerkProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 vi.mock("wouter", () => ({
   useLocation: () => [mockLocation.value, vi.fn()],
   useSearch: () => mockLocation.value.split("?")[1] ?? "",

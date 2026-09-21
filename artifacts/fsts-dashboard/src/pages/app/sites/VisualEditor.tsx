@@ -41,6 +41,8 @@ import type { Id } from "@convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import {
@@ -64,6 +66,7 @@ import {
   Undo2, ArrowLeft,
   Plus, Trash2, RotateCcw, ArrowUp, ArrowDown,
   Video, FileText, Type, Megaphone, HelpCircle, FileDown, Link2, ClipboardList,
+  Search,
 } from "lucide-react";
 
 // Convex site origin (convex.cloud → convex.site), same derivation as
@@ -383,6 +386,50 @@ function BlockForm({
   const [answer, setAnswer] = useState(s("answer"));
   const [err, setErr] = useState<string | null>(null);
 
+  // Chat D (client website management completion) — upload a PDF straight
+  // from the editor: mint an upload URL (PDF-only guard server-side), PUT
+  // the file, create the downloads resource, then auto-select it in the
+  // picker. Mirrors the Media Library upload flow (asset created on upload).
+  const generatePdfUploadUrl = useMutation(api.downloads.generateUploadUrl);
+  const createPdfFromStorage = useMutation(api.downloads.createFromStorage);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const [pdfUploadBusy, setPdfUploadBusy] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string | null>(null);
+  /** Resource created moments ago in this dialog — shown until the downloads query refreshes. */
+  const [justUploadedPdf, setJustUploadedPdf] = useState<{ id: string; title: string } | null>(null);
+
+  const handlePdfSelected = async (file: File | null | undefined) => {
+    if (!file) return;
+    setPdfUploadError(null);
+    if (file.type !== "application/pdf") {
+      setPdfUploadError("Choose a PDF file (.pdf) to upload.");
+      return;
+    }
+    setPdfUploadBusy(true);
+    try {
+      const uploadUrl = await generatePdfUploadUrl({ siteId: siteId as Id<"sites">, mimeType: file.type });
+      const response = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+      if (!response.ok) throw new Error(`Upload failed (${response.status})`);
+      const { storageId } = await response.json();
+      if (!storageId) throw new Error("Upload response did not include a storage ID.");
+      const resource = await createPdfFromStorage({
+        siteId: siteId as Id<"sites">,
+        storageId: storageId as Id<"_storage">,
+        title: file.name.replace(/\.pdf$/i, ""),
+        fileName: file.name,
+        sizeBytes: file.size,
+      });
+      setJustUploadedPdf({ id: resource.id, title: resource.title });
+      setResourceId(resource.id);
+      if (!title.trim()) setTitle(resource.title);
+    } catch (uploadErr) {
+      setPdfUploadError(uploadErr instanceof Error ? uploadErr.message : String(uploadErr));
+    } finally {
+      setPdfUploadBusy(false);
+      if (pdfInputRef.current) pdfInputRef.current.value = "";
+    }
+  };
+
   // §3 live parse — the same canonical parseVideoUrl the mutation runs.
   const video = videoUrl.trim() !== "" ? parseVideoUrl(videoUrl) : null;
 
@@ -498,17 +545,32 @@ function BlockForm({
               <Skeleton className="h-9 w-full" />
             ) : !downloads || downloads.length === 0 ? (
               <p className="rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-800">
-                No PDF resources yet — add one under Content → Downloads first, then it will appear here.
+                No PDF resources yet — add one below or under Content → Downloads, then it will appear here.
               </p>
             ) : (
               <select id={fieldId("resource")} value={resourceId} onChange={(e) => setResourceId(e.target.value)}
                 className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
                 <option value="">Pick a PDF…</option>
+                {justUploadedPdf && !downloads.some((d) => d.id === justUploadedPdf.id) && (
+                  <option value={justUploadedPdf.id}>{justUploadedPdf.title} (just uploaded)</option>
+                )}
                 {downloads.map((d) => (
                   <option key={d.id} value={d.id}>{d.title}{d.format ? ` (${d.format})` : ""}</option>
                 ))}
               </select>
             )}
+            {/* Chat D — obvious upload control: upload a PDF right here. */}
+            <input ref={pdfInputRef} type="file" accept="application/pdf,.pdf" className="hidden"
+              onChange={(e) => handlePdfSelected(e.target.files?.[0])} />
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => pdfInputRef.current?.click()} disabled={pdfUploadBusy}>
+                {pdfUploadBusy ? "Uploading…" : "Upload new PDF"}
+              </Button>
+              {justUploadedPdf && !pdfUploadBusy && (
+                <span className="text-xs text-emerald-600">Uploaded — selected above.</span>
+              )}
+            </div>
+            {pdfUploadError && <p className="text-xs text-red-600">{pdfUploadError}</p>}
           </div>
           <div className="space-y-2">
             <label className={fieldLabel} htmlFor={fieldId("title")}>Title</label>
@@ -732,10 +794,13 @@ function BlocksPanel({ siteId, blocks, downloads, busy, onEdit, onRemove, onRest
                 );
               }
               return (
-                <div key={b.id} className={`flex items-center gap-2 rounded-md border px-2.5 py-2 ${
+                <div key={b.id} className={`flex flex-wrap items-center gap-2 rounded-md border px-2.5 py-2 ${
                   b.pendingDelete ? "border-red-200 bg-red-50/60" : draft ? "border-amber-200 bg-amber-50/50" : "border-slate-200 bg-white"}`}>
                   <Icon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                  <span className={`min-w-0 flex-1 truncate text-sm ${b.pendingDelete ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                  {/* flex-wrap + min-w keeps the block name readable in the
+                      narrow full-screen rail: the action buttons no longer
+                      starve it to 0px (found during owner acceptance). */}
+                  <span className={`min-w-28 flex-1 basis-40 truncate text-sm ${b.pendingDelete ? "text-slate-400 line-through" : "text-slate-700"}`}>
                     {blockSummary(b)}
                   </span>
                   {draft && !b.pendingDelete && (
@@ -818,6 +883,253 @@ function FormsPanel({ siteId, forms }: {
           Form fields, settings, and routing are edited in the form builder.
         </p>
       </CardContent>
+    </Card>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/* §7 PAGE SEO — per-page search & social settings INSIDE the editor rail. */
+/* Reads/writes the EXISTING seoSettings table via api.seo.* (no duplicate  */
+/* storage, no new schema). The panel tracks the SELECTED pagePath so meta   */
+/* title/description/canonical/noindex/social fields are editable exactly   */
+/* where the client is editing that page's content.                          */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+type SeoRow = {
+  id: string;
+  siteId: string;
+  pagePath: string;
+  title: string;
+  description: string;
+  ogImageUrl?: string;
+  canonicalUrl?: string;
+  noindex?: boolean;
+  ogTitle?: string;
+  ogDescription?: string;
+  twitterCardType?: string;
+  updatedAt?: string;
+};
+
+function PageSeoPanel({
+  siteId,
+  pagePath,
+  seoRows,
+}: {
+  siteId: string;
+  pagePath: string | null;
+  seoRows: SeoRow[] | undefined;
+}) {
+  const [, navigate] = useLocation();
+  const createSeo = useMutation(api.seo.create);
+  const updateSeo = useMutation(api.seo.update);
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    canonicalUrl: "",
+    ogImageUrl: "",
+    ogTitle: "",
+    ogDescription: "",
+    noindex: false,
+  });
+
+  const row = useMemo<SeoRow | null>(() => {
+    if (!seoRows || !pagePath) return null;
+    return seoRows.find((r) => r.pagePath === pagePath) ?? null;
+  }, [seoRows, pagePath]);
+
+  // Sync the form when the selected page (or its saved row) changes.
+  useEffect(() => {
+    setForm({
+      title: row?.title ?? "",
+      description: row?.description ?? "",
+      canonicalUrl: row?.canonicalUrl ?? "",
+      ogImageUrl: row?.ogImageUrl ?? "",
+      ogTitle: row?.ogTitle ?? "",
+      ogDescription: row?.ogDescription ?? "",
+      noindex: row?.noindex ?? false,
+    });
+    setError(null);
+    setSavedAt(null);
+  }, [row?.id, pagePath]);
+
+  if (seoRows === undefined || pagePath === null) return null; // loading / no page yet
+
+  const dirty =
+    (form.title ?? "") !== (row?.title ?? "") ||
+    (form.description ?? "") !== (row?.description ?? "") ||
+    (form.canonicalUrl ?? "") !== (row?.canonicalUrl ?? "") ||
+    (form.ogImageUrl ?? "") !== (row?.ogImageUrl ?? "") ||
+    (form.ogTitle ?? "") !== (row?.ogTitle ?? "") ||
+    (form.ogDescription ?? "") !== (row?.ogDescription ?? "") ||
+    form.noindex !== (row?.noindex ?? false);
+
+  const save = async () => {
+    if (!pagePath) return;
+    try {
+      setSaving(true);
+      setError(null);
+      if (row) {
+        await updateSeo({
+          siteId: siteId as Id<"sites">,
+          seoSettingId: row.id as Id<"seoSettings">,
+          pagePath: row.pagePath,
+          title: form.title,
+          description: form.description,
+          canonicalUrl: form.canonicalUrl || undefined,
+          ogImageUrl: form.ogImageUrl || undefined,
+          ogTitle: form.ogTitle || undefined,
+          ogDescription: form.ogDescription || undefined,
+          noindex: form.noindex,
+        });
+      } else {
+        await createSeo({
+          siteId: siteId as Id<"sites">,
+          pagePath,
+          title: form.title,
+          description: form.description,
+          canonicalUrl: form.canonicalUrl || undefined,
+          ogImageUrl: form.ogImageUrl || undefined,
+          ogTitle: form.ogTitle || undefined,
+          ogDescription: form.ogDescription || undefined,
+          noindex: form.noindex,
+        });
+      }
+      setSavedAt(new Date().toLocaleTimeString());
+    } catch (e: any) {
+      setError(e?.message ?? "The SEO settings couldn't be saved. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between gap-2 text-base">
+          <span className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-blue-600" />
+            Search &amp; social settings
+          </span>
+          <button
+            type="button"
+            aria-label={open ? "Hide SEO settings" : "Show SEO settings"}
+            onClick={() => setOpen((o) => !o)}
+            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          >
+            {open ? "Hide" : "Show"}
+          </button>
+        </CardTitle>
+        <p className="text-xs text-slate-400">
+          For this page ({pagePath === "/" ? "home" : pagePath}).
+        </p>
+      </CardHeader>
+      {open && (
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-meta-title">Meta title</Label>
+            <Input
+              id="seo-meta-title"
+              aria-label="Meta title"
+              value={form.title}
+              maxLength={200}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="The title search engines show for this page"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="seo-meta-description">Meta description</Label>
+              <span
+                className={`text-xs ${
+                  form.description.length > 160 ? "text-amber-600" : "text-slate-400"
+                }`}
+              >
+                {form.description.length}/160
+              </span>
+            </div>
+            <Textarea
+              id="seo-meta-description"
+              aria-label="Meta description"
+              rows={3}
+              value={form.description}
+              maxLength={320}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="A concise description of this page for search engines."
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-canonical">Canonical URL</Label>
+            <Input
+              id="seo-canonical"
+              aria-label="Canonical URL"
+              value={form.canonicalUrl}
+              onChange={(e) => setForm({ ...form, canonicalUrl: e.target.value })}
+              placeholder="https://example.com/page (optional — the official address of this page)"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-og-title">Social title</Label>
+            <Input
+              id="seo-og-title"
+              aria-label="Social title"
+              value={form.ogTitle}
+              maxLength={200}
+              onChange={(e) => setForm({ ...form, ogTitle: e.target.value })}
+              placeholder="Optional. Override the title in social sharing previews."
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-og-description">Social description</Label>
+            <Textarea
+              id="seo-og-description"
+              aria-label="Social description"
+              rows={2}
+              value={form.ogDescription}
+              maxLength={320}
+              onChange={(e) => setForm({ ...form, ogDescription: e.target.value })}
+              placeholder="Optional. Override the description shown in social sharing previews."
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="seo-og-image">Social image URL</Label>
+            <Input
+              id="seo-og-image"
+              aria-label="Social image URL"
+              value={form.ogImageUrl}
+              onChange={(e) => setForm({ ...form, ogImageUrl: e.target.value })}
+              placeholder="Optional. Image shown when this page is shared."
+            />
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              aria-label="Hide this page from search engines"
+              checked={form.noindex}
+              onChange={(e) => setForm({ ...form, noindex: e.target.checked })}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            Hide this page from search engines (noindex)
+          </label>
+          <div className="flex items-center gap-2">
+            <Button size="sm" className="gap-2" disabled={saving || !dirty} onClick={save}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save search settings
+            </Button>
+            {savedAt && !dirty && (
+              <span className="text-xs text-green-600">Saved at {savedAt}</span>
+            )}
+            {error && <span className="text-xs text-red-600">{error}</span>}
+          </div>
+          <p className="text-xs text-slate-400">
+            These settings control how this page appears in search results and
+            social shares. Full SEO tools live in Site SEO.
+          </p>
+        </CardContent>
+      )}
     </Card>
   );
 }
@@ -920,6 +1232,9 @@ function VisualEditorInner({
      header note 3. No retry object exists here by design. */
   const downloads = useQuery(api.downloads.list, { siteId: siteId as Id<"sites"> });
   const forms = useQuery(api.forms.list, { siteId: siteId as Id<"sites"> });
+  // §7 page SEO — reads the EXISTING seoSettings rows for this site (the
+  // same rows the Site SEO page edits; no duplicate storage).
+  const seoRows = useQuery(api.seo.list, { siteId: siteId as Id<"sites"> });
   const addBlock = useMutation(api.editorZones.addBlock);
   const updateBlock = useMutation(api.editorZones.updateBlock);
   const removeBlock = useMutation(api.editorZones.removeBlock);
@@ -1906,6 +2221,10 @@ function VisualEditorInner({
 
           {/* §5 forms — routed to the EXISTING form builder (no bypass) */}
           <FormsPanel siteId={siteId} forms={forms as FormRow[] | undefined} />
+
+          {/* §7 page SEO — meta/social settings for the SELECTED page,
+              backed by the EXISTING seoSettings table via api.seo.* */}
+          <PageSeoPanel siteId={siteId} pagePath={pagePath} seoRows={seoRows as SeoRow[] | undefined} />
 
           {/* action bar — always reachable at the rail's bottom */}
           <div className="sticky bottom-0 z-10 mt-auto space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">

@@ -42,7 +42,21 @@ export const update = mutation({
     adminLoginUrl: v.optional(v.string()),
   },
   handler: async (ctx, { siteId, ...fields }) => {
-    const user = await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE);
+    // Chat D (client website management completion) — split-tier footer:
+    //   columns / socialLinks / copyrightText are CONTENT (client-editable,
+    //   CONTENT_UPDATE — same tier as nav menu entries).
+    //   adminLogin* stays DESIGN-TIER (LAYOUT_MANAGE): the Admin Login link
+    //   is the locked client-journey entry point (Phase 1 contract —
+    //   "Client roles cannot set adminLogin (LAYOUT_MANAGE design-tier)"),
+    //   so any adminLogin field in the payload requires LAYOUT_MANAGE and a
+    //   client caller sending content-only fields simply cannot touch it.
+    const wantsAdminLogin =
+      fields.adminLoginEnabled !== undefined ||
+      fields.adminLoginLabel !== undefined ||
+      fields.adminLoginUrl !== undefined;
+    const user = wantsAdminLogin
+      ? await requirePermission(ctx, siteId, PERMISSIONS.LAYOUT_MANAGE)
+      : await requirePermission(ctx, siteId, PERMISSIONS.CONTENT_UPDATE);
     await requireModuleEnabled(ctx, siteId, "footer");
     const existing = await ctx.db.query("footerContent").withIndex("by_site", (q) => q.eq("siteId", siteId)).first();
     let docId;

@@ -65,7 +65,10 @@ function json(res, status, body, headers = {}) {
 
 const CORS = {
   "Access-Control-Allow-Origin": DASHBOARD_ORIGIN,
-  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+  /* PUT is the convex storage upload verb: generateUploadUrl hands the
+   * client an uploadUrl it PUTs the file bytes to (cross-origin dashboard
+   * -> convex), so the preflight must allow it. */
+  "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
@@ -234,6 +237,45 @@ function makeConvexServer(store) {
       if (req.method === "GET" && url.pathname === "/api/bridge/click") {
         res.writeHead(204, CORS);
         res.end();
+        return;
+      }
+
+      /* -- PUT /harness/upload - convex storage upload parity -- */
+      /* generateUploadUrl (downloads + media mirrors) hands the client
+       * ${CONVEX_ORIGIN}/harness/upload; the client PUTs the raw file
+       * bytes there (Content-Type preserved) and reads {storageId} out
+       * of the JSON body - exactly the production
+       * ctx.storage.generateUploadUrl -> fetch(uploadUrl, {method:"PUT"})
+       * -> {storageId} contract (VisualEditor PDF flow, SmartImageUploader). */
+      if (req.method === "PUT" && url.pathname === "/harness/upload") {
+        const chunks = [];
+        req.on("data", (c) => chunks.push(c));
+        await new Promise((r) => req.on("end", r));
+        const bytes = Buffer.concat(chunks);
+        const storageId = `stor_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+        store.storageBlobs.set(storageId, {
+          contentType: req.headers["content-type"] ?? "application/octet-stream",
+          bytes,
+          uploadedAt: Date.now(),
+        });
+        return json(res, 200, { storageId }, CORS);
+      }
+
+      /* -- GET /harness/storage/:id - convex storage getUrl parity -- */
+      /* Serves stored blob bytes with the preserved content-type. Seeded
+       * ids (seed_new_patient / seed_riverside_brochure) resolve from the
+       * seed PDF blobs createHarnessStore plants at boot. */
+      if (req.method === "GET" && url.pathname.startsWith("/harness/storage/")) {
+        const id = url.pathname.slice("/harness/storage/".length);
+        const blob = store.storageBlobs.get(id);
+        if (!blob) return json(res, 404, { error: "storage object not found" }, CORS);
+        res.writeHead(200, {
+          "Content-Type": blob.contentType,
+          "Content-Length": blob.bytes.length,
+          "Access-Control-Allow-Origin": DASHBOARD_ORIGIN,
+          "Cache-Control": "no-store",
+        });
+        res.end(blob.bytes);
         return;
       }
 

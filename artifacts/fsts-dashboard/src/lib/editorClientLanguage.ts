@@ -20,6 +20,7 @@ export const ADD_ACTIONS: ReadonlyArray<{ kind: string; label: string }> = [
   { kind: "faq_item", label: "+ Add FAQ" },
   { kind: "cta", label: "+ Add CTA" },
   { kind: "button", label: "+ Add button" },
+  { kind: "link", label: "+ Add link" },
 ];
 
 /** Plain-language WHERE phrases — never engine ids or engine labels. */

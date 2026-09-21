@@ -295,6 +295,17 @@ function foldIntoContentMap(
           value: button.label,
           evidence: `button to ${button.href || "(no href)"}`,
         };
+        // Companion .href entry (url) rides the same element as the label
+        // (§5 grammar: destination editable alongside the label — mirrors
+        // home.hero.primaryButton.href). Without it the editor shows
+        // "destination can't be edited yet" for ordinary client buttons.
+        if (button.href) {
+          map[`${button.key}.href`] = {
+            type: "url",
+            value: button.href,
+            evidence: `button destination (${button.href})`,
+          };
+        }
       }
     }
     for (const link of model.links) {
@@ -304,6 +315,14 @@ function foldIntoContentMap(
           value: link.label,
           evidence: `link to ${link.href}`,
         };
+        // Companion .href entry (url) — same rationale as buttons above.
+        if (link.href) {
+          map[`${link.key}.href`] = {
+            type: "url",
+            value: link.href,
+            evidence: `link destination (${link.href})`,
+          };
+        }
       }
     }
   }
