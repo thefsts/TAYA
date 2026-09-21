@@ -15,7 +15,7 @@ import {
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled } from "./lib/requireSiteAccess";
 import { requirePermission } from "./lib/requirePermission";
 import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
@@ -93,6 +93,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!(await checkSiteAccess(ctx, siteId))) return [];
+    if (!(await checkModuleEnabled(ctx, siteId, "automation"))) return [];
     const rules = await ctx.db
       .query("automationRules")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -105,6 +106,7 @@ export const listRunLogs = query({
   args: { siteId: v.id("sites"), ruleId: v.optional(v.id("automationRules")), limit: v.optional(v.number()) },
   handler: async (ctx, { siteId, ruleId, limit }) => {
     if (!(await checkSiteAccess(ctx, siteId))) return [];
+    if (!(await checkModuleEnabled(ctx, siteId, "automation"))) return [];
     const rows = ruleId
       ? await ctx.db
           .query("automationRunLog")
@@ -124,6 +126,7 @@ export const getFailedRuns = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!(await checkSiteAccess(ctx, siteId))) return [];
+    if (!(await checkModuleEnabled(ctx, siteId, "automation"))) return [];
     return ctx.db
       .query("automationRunLog")
       .withIndex("by_site_status", (q) => q.eq("siteId", siteId).eq("status", "failure"))

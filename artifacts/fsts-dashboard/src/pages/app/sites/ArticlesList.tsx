@@ -55,6 +55,7 @@ import { LivePreviewPanel } from "@/components/LivePreviewPanel";
 import { PublishValidationModal } from "@/components/PublishValidationModal";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
+import { useCanEditCapability } from "@/hooks/useCanEdit";
 
 type ArticleStatus = "draft" | "published" | "archived";
 
@@ -154,6 +155,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function ArticlesList({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  // D5 read_only UX: hide every write control the backend would reject.
+  const canEdit = useCanEditCapability(siteId, "articles");
   const { toast } = useToast();
   const data = useQuery(api.articles.list, { siteId });
   const createArticle = useMutation(api.articles.create);
@@ -340,10 +343,12 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
             {draftCount > 0 && <span className="text-slate-400"> · {draftCount} draft</span>}
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Article
-        </Button>
+        {canEdit && (
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Article
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -385,7 +390,7 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
           <p className="text-slate-500 mt-1">
             {data.length === 0 ? "Publish your first article to populate the website." : "Try adjusting your search or filters."}
           </p>
-          {data.length === 0 && (
+          {data.length === 0 && canEdit && (
             <Button className="mt-4" onClick={openCreate}>
               <Plus className="h-4 w-4 mr-2" />
               New Article
@@ -436,12 +441,18 @@ export default function ArticlesList({ params }: { params: { siteId: string } })
                       : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
-                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(a)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(a)}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                    {canEdit ? (
+                      <>
+                        <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(a)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(a)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-400">View only</span>
+                    )}
                   </td>
                 </tr>
               ))}

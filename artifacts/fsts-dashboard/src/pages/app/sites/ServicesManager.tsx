@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Briefcase, Pencil, Plus, Trash2, GripVertical, Search, History } from "lucide-react";
 import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { Link } from "wouter";
+import { useCanEditCapability } from "@/hooks/useCanEdit";
 
 type ServiceForm = {
   title: string;
@@ -69,6 +70,8 @@ function slugify(str: string) {
 
 export default function ServicesManager({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  // D5 read_only UX: hide every write control the backend would reject.
+  const canEdit = useCanEditCapability(siteId, "services");
   const { toast } = useToast();
 
   const items = useQuery(api.services.list, { siteId });
@@ -221,9 +224,11 @@ export default function ServicesManager({ params }: { params: { siteId: string }
         moduleId="services"
         previewPath="/services"
         toolbarActions={
-          <Button size="sm" onClick={openCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Add Service
-          </Button>
+          canEdit ? (
+            <Button size="sm" onClick={openCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Add Service
+            </Button>
+          ) : undefined
         }
       >
         {items.length > 0 && (
@@ -250,24 +255,28 @@ export default function ServicesManager({ params }: { params: { siteId: string }
             <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 font-medium">No services yet</p>
             <p className="text-slate-400 text-sm mt-1">Add the services you offer to showcase them on your website.</p>
-            <Button className="mt-4" onClick={openCreate}>
-              <Plus className="w-4 h-4 mr-2" /> Add Your First Service
-            </Button>
+            {canEdit && (
+              <Button className="mt-4" onClick={openCreate}>
+                <Plus className="w-4 h-4 mr-2" /> Add Your First Service
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
           {filteredItems.map((service: NonNullable<typeof items>[number], index: number) => (
             <div
               key={service.id}
-              draggable
+              draggable={canEdit}
               onDragStart={() => setDragIndex(index)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(index)}
-              className="bg-white border border-slate-200 rounded-xl p-4 flex gap-4 items-start cursor-grab active:cursor-grabbing hover:border-slate-300 transition-colors"
+              className={`bg-white border border-slate-200 rounded-xl p-4 flex gap-4 items-start hover:border-slate-300 transition-colors ${canEdit ? "cursor-grab active:cursor-grabbing" : ""}`}
             >
-              <div className="mt-1 text-slate-300 hover:text-slate-500 cursor-grab flex-shrink-0">
-                <GripVertical className="w-4 h-4" />
-              </div>
+              {canEdit && (
+                <div className="mt-1 text-slate-300 hover:text-slate-500 cursor-grab flex-shrink-0">
+                  <GripVertical className="w-4 h-4" />
+                </div>
+              )}
               {service.imageUrl ? (
                 <img
                   src={service.imageUrl}
@@ -304,12 +313,18 @@ export default function ServicesManager({ params }: { params: { siteId: string }
                 )}
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <Button size="sm" variant="outline" onClick={() => openEdit(service)}>
-                  <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
-                </Button>
-                <Button aria-label="Delete" size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(service.id)}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
+                {canEdit ? (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => openEdit(service)}>
+                      <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
+                    </Button>
+                    <Button aria-label="Delete" size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(service.id)}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </>
+                ) : (
+                  <span className="text-xs text-slate-400 self-center">View only</span>
+                )}
               </div>
             </div>
           ))}
@@ -324,7 +339,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
             <DialogTitle>{editing ? "Edit Service" : "New Service"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Title *</Label>
                 <Input
@@ -367,7 +382,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
                 placeholder="Detailed description of this service…"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <Label>Price</Label>
                 <Input
@@ -409,7 +424,7 @@ export default function ServicesManager({ params }: { params: { siteId: string }
                 placeholder="https://…"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>CTA Button Label</Label>
                 <Input

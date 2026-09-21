@@ -19,7 +19,7 @@ import {
 } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled } from "./lib/requireSiteAccess";
 import { requirePermission } from "./lib/requirePermission";
 import { PERMISSIONS } from "./lib/permissions";
 import { logActivity } from "./lib/logActivity";
@@ -79,6 +79,7 @@ export const listSources = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "reviews")) return [];
     const docs = await ctx.db
       .query("reviewSources")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -96,6 +97,7 @@ export const listReviews = query({
   },
   handler: async (ctx, { siteId, status, provider, pinned }) => {
     if (!await checkSiteAccess(ctx, siteId)) return [];
+    if (!await checkModuleEnabled(ctx, siteId, "reviews")) return [];
     let docs = await ctx.db
       .query("importedReviews")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))
@@ -115,6 +117,7 @@ export const getDisplaySettings = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return DEFAULT_DISPLAY_SETTINGS;
+    if (!await checkModuleEnabled(ctx, siteId, "reviews")) return DEFAULT_DISPLAY_SETTINGS;
     const doc = await ctx.db
       .query("reviewDisplaySettings")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))

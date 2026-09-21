@@ -87,7 +87,13 @@ export const DEFAULT_MODULES_BY_WEBSITE_TYPE: Record<string, EnabledModules> = {
   property_management: modules({ courses: false, events: false, products: false }),
   medical: modules({ courses: false, events: false, products: true }),
   legal: modules({ courses: false, events: false, products: true }),
-  restaurant: modules({ courses: false, articles: false, products: true }),
+  // PM-locked rule: a restaurant site must NOT auto-enable Products. The
+  // Square catalog fields (name/price/description/image) do not constitute a
+  // real restaurant menu contract (no sections, modifiers, availability,
+  // dietary/allergen info, or ordering relationship), and Products must NOT be
+  // relabeled "Menu Items". An explicit owner enable still wins (see
+  // capabilityTerminology.ts restaurant hiddenByDefault + isHiddenByBusinessFit).
+  restaurant: modules({ courses: false, articles: false, products: false }),
   membership: modules({ products: true }),
   professional_services: modules({ courses: false, events: false, products: true }),
   construction: modules({ courses: false, events: false, products: true }),
