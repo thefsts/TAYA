@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Pencil, Plus, Trash2, Star, Eye, EyeOff, GripVertical, X, Sparkles, Search } from "lucide-react";
+import { useCanEditCapability } from "@/hooks/useCanEdit";
 
 type ProductFormState = {
   title: string;
@@ -77,6 +78,8 @@ function formatPrice(priceCents?: number, priceLabel?: string) {
 
 export default function ProductsManager({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  // D5 read_only UX: hide every write control the backend would reject.
+  const canEdit = useCanEditCapability(siteId, "products");
   const { toast } = useToast();
 
   const data = useQuery(api.products.list, { siteId });
@@ -285,10 +288,12 @@ export default function ProductsManager({ params }: { params: { siteId: string }
         moduleId="products"
         previewPath="/products"
         toolbarActions={
-          <Button size="sm" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+          canEdit ? (
+            <Button size="sm" onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          ) : undefined
         }
       >
         {data !== undefined && data !== null && data.length > 0 && (
@@ -348,10 +353,12 @@ export default function ProductsManager({ params }: { params: { siteId: string }
           <Package className="mx-auto h-10 w-10 text-slate-300 mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No products yet</h3>
           <p className="text-slate-500 mt-1">Add your first product or offering to get started.</p>
-          <Button className="mt-4" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+          {canEdit && (
+            <Button className="mt-4" onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          )}
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-x-auto">
@@ -414,36 +421,56 @@ export default function ProductsManager({ params }: { params: { siteId: string }
                     {formatPrice(p.priceCents, p.priceLabel)}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleToggleFeatured(p)}
-                      className="inline-flex items-center justify-center"
-                      title={p.isFeatured ? "Remove featured" : "Mark featured"}
-                    >
+                    {canEdit ? (
+                      <button
+                        onClick={() => handleToggleFeatured(p)}
+                        className="inline-flex items-center justify-center"
+                        title={p.isFeatured ? "Remove featured" : "Mark featured"}
+                      >
+                        <Star
+                          className={`h-4 w-4 transition-colors ${p.isFeatured ? "text-amber-400 fill-amber-400" : "text-slate-300"}`}
+                        />
+                      </button>
+                    ) : (
                       <Star
-                        className={`h-4 w-4 transition-colors ${p.isFeatured ? "text-amber-400 fill-amber-400" : "text-slate-300"}`}
+                        className={`h-4 w-4 ${p.isFeatured ? "text-amber-400 fill-amber-400" : "text-slate-200"}`}
                       />
-                    </button>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleToggleVisible(p)}
-                      className="inline-flex items-center justify-center"
-                      title={p.isVisible ? "Hide product" : "Show product"}
-                    >
-                      {p.isVisible ? (
+                    {canEdit ? (
+                      <button
+                        onClick={() => handleToggleVisible(p)}
+                        className="inline-flex items-center justify-center"
+                        title={p.isVisible ? "Hide product" : "Show product"}
+                      >
+                        {p.isVisible ? (
+                          <Eye className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <EyeOff className="h-4 w-4 text-slate-300" />
+                        )}
+                      </button>
+                    ) : (
+                      p.isVisible ? (
                         <Eye className="h-4 w-4 text-green-500" />
                       ) : (
                         <EyeOff className="h-4 w-4 text-slate-300" />
-                      )}
-                    </button>
+                      )
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right space-x-1">
-                    <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(p)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(p)}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                    {canEdit ? (
+                      <>
+                        <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(p)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button aria-label="Delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(p)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-400">View only</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -461,7 +488,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
             <DialogTitle>{editing ? "Edit Product" : "New Product"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Title *</Label>
                 <Input
@@ -506,7 +533,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Price (cents)</Label>
                 <Input
@@ -558,7 +585,7 @@ export default function ProductsManager({ params }: { params: { siteId: string }
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>CTA Button Label</Label>
                 <Input

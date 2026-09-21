@@ -273,7 +273,7 @@ function MediaFilterBar({
       {/* Expanded: more filters */}
       {expanded && (
         <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Category */}
             <div className="space-y-1.5">
               <Label className="text-xs text-slate-600 flex items-center gap-1">
@@ -1152,7 +1152,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
 
       {/* Stats */}
       {data && data.length > 0 && (
-        <div className="grid grid-cols-4 gap-4 mb-6 mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 mt-6">
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <p className="text-xs text-slate-500 font-medium mb-1">Total Assets</p>
             <p className="text-2xl font-bold text-slate-900">{data.length}</p>
@@ -1243,7 +1243,7 @@ export default function MediaLibrary({ params }: { params: { siteId: string } })
 
       {/* Grid or List */}
       {data === undefined ? (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
         </div>
       ) : data === null ? (

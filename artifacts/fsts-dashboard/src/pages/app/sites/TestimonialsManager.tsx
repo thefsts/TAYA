@@ -17,6 +17,7 @@ import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 import { VisualEditorShell } from "@/components/VisualEditorShell";
+import { useCanEditCapability } from "@/hooks/useCanEdit";
 
 type TestimonialFormState = {
   name: string;
@@ -34,6 +35,8 @@ const emptyForm: TestimonialFormState = {
 
 export default function TestimonialsManager({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  // D5 read_only UX: hide every write control the backend would reject.
+  const canEdit = useCanEditCapability(siteId, "testimonials");
   const { toast } = useToast();
   const items = useQuery(api.testimonials.list, { siteId });
   const create = useMutation(api.testimonials.create);
@@ -98,7 +101,7 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
         historyHref={`/app/sites/${params.siteId}/history`}
         moduleId="testimonials"
         previewPath="/testimonials"
-        toolbarActions={<Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Testimonial</Button>}
+        toolbarActions={canEdit ? <Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Testimonial</Button> : undefined}
       >
       <ClientPageHeader
         eyebrow="Social Proof"
@@ -123,7 +126,7 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
         {filteredItems.length === 0 && items.length > 0 ? (
           <ClientEmptyState icon={Search} title="No testimonials match your search" description="Try a different name, company, or keyword." action={<Button variant="link" size="sm" onClick={() => setSearchQuery("")}>Clear search</Button>} />
         ) : items.length === 0 ? (
-          <ClientEmptyState icon={MessageSquareQuote} title="No testimonials yet" description="Add approved customer feedback to build trust and social proof on your website." action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First Testimonial</Button>} />
+          <ClientEmptyState icon={MessageSquareQuote} title="No testimonials yet" description="Add approved customer feedback to build trust and social proof on your website." action={canEdit ? <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First Testimonial</Button> : undefined} />
         ) : (
           <div className="grid gap-4 p-4 md:grid-cols-2 sm:p-5">
             {filteredItems.map((item: NonNullable<typeof items>[number]) => (
@@ -134,7 +137,7 @@ export default function TestimonialsManager({ params }: { params: { siteId: stri
                 </div>
                 {item.rating != null && <div className="mt-4 flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-4 w-4 ${i < item.rating! ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />)}</div>}
                 <blockquote className="mt-3 flex-1 text-sm leading-6 text-slate-600">“{item.text}”</blockquote>
-                <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-4"><Button size="sm" variant="outline" onClick={() => openEdit(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button><Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button></div>
+                <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-4">{canEdit ? (<><Button size="sm" variant="outline" onClick={() => openEdit(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button><Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button></>) : (<span className="text-xs text-slate-400">View only</span>)}</div>
               </article>
             ))}
           </div>

@@ -32,6 +32,7 @@ import { Users, Pencil, Plus, Trash2 } from "lucide-react";
 import { ImagePickerField } from "@/components/ImagePickerField";
 import { SITE_PRESETS } from "@/config/imagePresets";
 import { VisualEditorShell } from "@/components/VisualEditorShell";
+import { useCanEditCapability } from "@/hooks/useCanEdit";
 
 type MemberForm = {
   name: string;
@@ -48,6 +49,8 @@ const emptyForm: MemberForm = {
 
 export default function TeamManager({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  // D5 read_only UX: hide every write control the backend would reject.
+  const canEdit = useCanEditCapability(siteId, "team");
   const { toast } = useToast();
 
   const items = useQuery(api.team.list, { siteId });
@@ -138,9 +141,11 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
         moduleId="team"
         previewPath="/team"
         toolbarActions={
-          <Button size="sm" onClick={openCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Add Member
-          </Button>
+          canEdit ? (
+            <Button size="sm" onClick={openCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Add Member
+            </Button>
+          ) : undefined
         }
       >
       {items.length === 0 ? (
@@ -178,12 +183,18 @@ export default function TeamManager({ params }: { params: { siteId: string } }) 
                 <p className="text-sm text-slate-600 line-clamp-2 mb-3">{member.bio}</p>
               )}
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => openEdit(member)}>
-                  <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
-                </Button>
-                <Button aria-label="Delete" size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(member.id)}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
+                {canEdit ? (
+                  <>
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => openEdit(member)}>
+                      <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
+                    </Button>
+                    <Button aria-label="Delete" size="sm" variant="outline" className="text-red-500 hover:text-red-700" onClick={() => setDeleteId(member.id)}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </>
+                ) : (
+                  <span className="text-xs text-slate-400">View only</span>
+                )}
               </div>
             </div>
           ))}
