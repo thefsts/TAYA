@@ -81,7 +81,12 @@ export function defaultModules(websiteType: string): Record<string, boolean> {
     property_management: ["courses", "events"],
     medical: ["courses", "events"],
     legal: ["courses", "events"],
-    restaurant: ["courses", "articles"],
+    // PM-locked rule: a restaurant site must NOT auto-enable Products. The
+    // Square catalog fields do not constitute a real restaurant menu contract,
+    // and Products must NOT be relabeled "Menu Items". An explicit owner
+    // enable (enabledModules payload) still wins — see sites.create/update,
+    // which honor an explicit payload over these defaults.
+    restaurant: ["courses", "articles", "products"],
     professional_services: ["courses", "events"],
     construction: ["courses", "events"],
     real_estate: ["courses", "events"],

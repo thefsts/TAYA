@@ -15,12 +15,15 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronUp, Eye, EyeOff, HelpCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 import { VisualEditorShell } from "@/components/VisualEditorShell";
+import { useCanEditCapability } from "@/hooks/useCanEdit";
 
 type FaqFormState = { question: string; answer: string; isActive: boolean };
 const emptyForm: FaqFormState = { question: "", answer: "", isActive: true };
 
 export default function FaqManager({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  // D5 read_only UX: hide every write control the backend would reject.
+  const canEdit = useCanEditCapability(siteId, "faq");
   const { toast } = useToast();
   const faqs = useQuery(api.faq.list, { siteId });
   const createFaq = useMutation(api.faq.create);
@@ -75,7 +78,7 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
         historyHref={`/app/sites/${params.siteId}/history`}
         moduleId="faq"
         previewPath="/faq"
-        toolbarActions={<Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add FAQ</Button>}
+        toolbarActions={canEdit ? <Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add FAQ</Button> : undefined}
       >
       <ClientPageHeader eyebrow="Website Content" title="Frequently Asked Questions" description="Answer common customer questions and control the order they appear on your website." />
 
@@ -86,22 +89,32 @@ export default function FaqManager({ params }: { params: { siteId: string } }) {
 
       <ClientSection title="Website FAQ Order" description="Use the arrows to arrange questions. Hidden questions stay saved but do not appear publicly.">
         {faqs.length === 0 ? (
-          <ClientEmptyState icon={HelpCircle} title="No FAQs yet" description="Add your first frequently asked question to help visitors find answers faster." action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First FAQ</Button>} />
+          <ClientEmptyState icon={HelpCircle} title="No FAQs yet" description="Add your first frequently asked question to help visitors find answers faster." action={canEdit ? <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First FAQ</Button> : undefined} />
         ) : (
           <div className="divide-y divide-slate-100">
             {faqs.map((faq: NonNullable<typeof faqs>[number], i: number) => (
               <div key={faq.id} className="group flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-start sm:p-5">
                 <div className="flex gap-1 sm:flex-col">
-                  <button aria-label="Move FAQ up" onClick={() => move(i, -1)} disabled={i === 0} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button>
-                  <button aria-label="Move FAQ down" onClick={() => move(i, 1)} disabled={i === faqs.length - 1} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronDown className="h-4 w-4" /></button>
+                  {canEdit && (
+                    <>
+                      <button aria-label="Move FAQ up" onClick={() => move(i, -1)} disabled={i === 0} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button>
+                      <button aria-label="Move FAQ down" onClick={() => move(i, 1)} disabled={i === faqs.length - 1} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronDown className="h-4 w-4" /></button>
+                    </>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-1.5 flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-900">{faq.question}</p>{faq.isActive ? <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700"><Eye className="mr-1 h-3 w-3" />Visible</Badge> : <Badge variant="secondary"><EyeOff className="mr-1 h-3 w-3" />Hidden</Badge>}</div>
                   <p className="text-sm leading-6 text-slate-600 line-clamp-3">{faq.answer}</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  <Button size="sm" variant="outline" onClick={() => openEdit(faq)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
-                  <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(faq.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  {canEdit ? (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(faq)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
+                      <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(faq.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-slate-400 self-center">View only</span>
+                  )}
                 </div>
               </div>
             ))}

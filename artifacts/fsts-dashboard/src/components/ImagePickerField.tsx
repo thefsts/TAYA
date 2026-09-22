@@ -42,6 +42,12 @@ type Props = {
   value: string;
   /** Called with the resolved CDN URL (or external URL) after a successful save */
   onChange: (url: string) => void;
+  /**
+   * Optional: called with the alt text the client typed in the Media Library
+   * dialog, so the caller can persist it to the content map's alt companion
+   * key (the dialog's alt is otherwise only stored on the media asset).
+   */
+  onAltChange?: (alt: string) => void;
   /** Aspect-ratio preset to pre-select in the editor. Defaults to "Original". */
   initialPreset?: AspectPreset;
   /** Optional helper text shown below the field */
@@ -59,6 +65,7 @@ export function ImagePickerField({
   label,
   value,
   onChange,
+  onAltChange,
   initialPreset,
   hint,
   className,
@@ -93,6 +100,11 @@ export function ImagePickerField({
     // buildResponse in media.ts resolves the storage URL — use it directly.
     if (result.url) {
       onChange(result.url);
+    }
+    // Propagate the alt text the client typed in the Media Library dialog so
+    // the caller can persist it to the content map's alt companion key.
+    if (onAltChange && data.altText !== undefined) {
+      onAltChange(data.altText);
     }
   }
 

@@ -187,7 +187,14 @@ async function loadContentMapDoc(ctx: MutationCtx, siteId: any) {
  */
 function guardLinkValue(key: string, value: string, entryType: string | undefined): string {
   const type = entryType ?? "text";
-  if (type !== "url" && type !== "image" && type !== "button" && type !== "link") return value;
+  if (
+    type !== "url" &&
+    type !== "image" &&
+    type !== "background" &&
+    type !== "button" &&
+    type !== "link"
+  )
+    return value;
   if (value === "") return value; // clearing is always allowed
   const verdict = classifyLink(value);
   if (!verdict.ok) {

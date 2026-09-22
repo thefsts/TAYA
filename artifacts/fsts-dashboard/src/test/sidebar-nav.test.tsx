@@ -38,6 +38,8 @@ import React from "react";
 const mockUseQuery = vi.hoisted(() => vi.fn());
 const mockUseMutation = vi.hoisted(() => vi.fn());
 const mockUseAction = vi.hoisted(() => vi.fn());
+/** In-app Clerk sign-out spy (G1 — bottom rail Sign Out fires this, never a hosted URL). */
+const mockSignOut = vi.hoisted(() => vi.fn());
 /** Mutable current location shared by the wouter mock (wouter 3: includes query). */
 const mockLocation = vi.hoisted(() => ({ value: "/" }));
 
@@ -88,7 +90,8 @@ vi.mock("wouter", () => ({
 
 vi.mock("@clerk/react", () => ({
   useUser: () => ({ user: null, isLoaded: true }),
-  useAuth: () => ({ isSignedIn: true, isLoaded: true }),
+  useAuth: () => ({ isSignedIn: true, isLoaded: true, sessionId: "sess_test" }),
+  useClerk: () => ({ signOut: mockSignOut }),
   SignedIn: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   SignedOut: () => null,
   UserButton: () => <button>User</button>,
@@ -339,12 +342,13 @@ describe("sidebarNav model \u2014 registry groups & client language", () => {
     const lockedLabels = allItems(groups)
       .filter((i) => i.isDesignLocked === true)
       .map((i) => i.label);
-    // The full locked set from the registry (Menu Builder, Footer, Square
-    // Payments, Commerce, Marketing & CRM, Email Configuration, Payment
-    // Providers, Health Monitor, Version History, Activity Log, Backups).
+    // Chat D: Menu Builder, Footer, and Health Monitor are client-content
+    // surfaces now (CONTENT tier) — they are never locked. The locked set from
+    // the registry is Square Payments, Commerce, Marketing & CRM, Email
+    // Configuration, Payment Providers, Version History, Activity Log, Backups.
     expect(lockedLabels.sort()).toEqual([
-      "Activity Log", "Backups", "Commerce", "Email Configuration", "Footer",
-      "Health Monitor", "Marketing & CRM", "Menu Builder", "Payment Providers",
+      "Activity Log", "Backups", "Commerce", "Email Configuration",
+      "Marketing & CRM", "Payment Providers",
       "Square Payments", "Version History",
     ]);
     // P3 per-tab RBAC: Website Settings is a working client link (never
@@ -694,12 +698,19 @@ describe("SidebarNav \u2014 design lock, badges, module gating", () => {
     const locked = screen.getByText("Version History").closest('[aria-disabled="true"]');
     expect(locked).not.toBeNull();
     expect(document.querySelector(`a[href="/app/sites/${SITE_ID}/history"]`)).toBeNull();
-    // Every locked destination is a disabled affordance for clients.
+    // Chat D: Menu Builder, Footer, and Health Monitor are client-content
+    // surfaces (CONTENT tier) — they render as clickable links for clients,
+    // so they must NOT appear in the disabled affordance set.
     for (const label of [
-      "Menu Builder", "Footer", "Square Payments", "Commerce", "Marketing & CRM",
-      "Email Configuration", "Payment Providers", "Health Monitor", "Backups",
+      "Square Payments", "Commerce", "Marketing & CRM",
+      "Email Configuration", "Payment Providers", "Backups",
     ]) {
       expect(screen.getByText(label).closest('[aria-disabled="true"]')).not.toBeNull();
+    }
+    // …and the Chat D re-tiered surfaces are live links for clients.
+    for (const label of ["Menu Builder", "Footer", "Health Monitor"]) {
+      expect(screen.getByText(label).closest('[aria-disabled="true"]')).toBeNull();
+      expect(screen.getByText(label).closest("a")).not.toBeNull();
     }
   });
 
@@ -818,19 +829,39 @@ describe("AppLayout \u2014 Phase 6 client workspace integration", () => {
     expect(screen.getByText("Help")).toBeInTheDocument();
   });
 
-  it("renders the bottom action area: View Live Site / Help / Account / Sign Out", () => {
+  it("renders the bottom action area: View Live Site / Help / Account / Sign Out (no hosted Clerk URLs)", () => {
     useClientWorkspace();
     renderAppLayout();
     expect(document.querySelector('a[href="https://fsts-test.example.com"]')).not.toBeNull();
     expect(screen.getByRole("button", { name: "View live site (opens in a new tab)" })).toBeInTheDocument();
     expect(document.querySelector('a[href="/app/sites/site_test123/help"]')).not.toBeNull();
     expect(screen.getByText("Help")).toBeInTheDocument();
-    expect(document.querySelector('a[href="https://accounts.app.fstsclientsystem.com"]')).not.toBeNull();
+    // G1 (Chat D): Account and Sign Out stay INSIDE TAYA — in-app routes and
+    // an in-app sign-out button. The hosted Clerk Account Portal URLs must
+    // never come back.
+    expect(document.querySelector('a[href="/app/sites/site_test123/settings"]')).not.toBeNull();
     // "Account" matches both the sidebar's Account group header and the
     // bottom-action link — assert at least one bottom action renders it.
     expect(screen.getAllByText("Account").length).toBeGreaterThanOrEqual(1);
-    expect(document.querySelector('a[href="https://accounts.app.fstsclientsystem.com/user/logout"]')).not.toBeNull();
+    expect(document.querySelector('a[href="https://accounts.app.fstsclientsystem.com"]')).toBeNull();
+    expect(document.querySelector('a[href="https://accounts.app.fstsclientsystem.com/user/logout"]')).toBeNull();
     expect(screen.getByText("Sign Out")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Sign Out" }),
+    ).toBeInTheDocument();
+  });
+
+  it("Sign Out button fires the in-app Clerk signOut (G1 — no hosted logout URL)", async () => {
+    useClientWorkspace();
+    renderAppLayout();
+    const signOutBtn = screen.getByRole("button", { name: "Sign Out" });
+    fireEvent.click(signOutBtn);
+    await act(async () => { await Promise.resolve(); });
+    expect(mockSignOut).toHaveBeenCalledWith(
+      expect.objectContaining({ redirectUrl: "/sign-in" }),
+    );
+    // The hosted logout URL must never be used.
+    expect(document.querySelector('a[href="https://accounts.app.fstsclientsystem.com/user/logout"]')).toBeNull();
   });
 
   it("toggles the compact rail and persists it per user", () => {

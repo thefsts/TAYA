@@ -81,7 +81,11 @@ async function callHarness(path: string, kind: "query" | "mutation" | "action", 
 /* ── hooks ───────────────────────────────────────────────────────────── */
 export function useQuery(apiRef: any, args: any) {
   const path = apiPath(apiRef);
-  const skip = args === "skip" || args === undefined;
+  /* Production parity (convex 1.42.1 react/client.js): skip ONLY on the
+   * literal "skip" — an undefined second arg means {} (AppLayout and
+   * SiteDashboard call useQuery(api.users.me) with no args; treating
+   * undefined as skip left `me` forever undefined). */
+  const skip = args === "skip";
   const v = useStoreVersion();
   const [data, setData] = useState<unknown>(undefined);
   const [loading, setLoading] = useState(!skip);
@@ -151,7 +155,8 @@ export function useQuery_experimental(options: {
   const path = apiPath(options?.query);
   const args = options?.args;
   const throwOnError = options?.throwOnError === true;
-  const skip = args === "skip" || args === undefined;
+  /* Production parity: skip only on the literal "skip" (see useQuery). */
+  const skip = args === "skip";
   const v = useStoreVersion();
   const [state, setState] = useState<
     | { status: "pending" }

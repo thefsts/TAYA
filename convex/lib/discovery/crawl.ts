@@ -216,6 +216,21 @@ function foldIntoContentMap(
       value: model.hero.image,
       evidence: "first content image",
     };
+    // Companion .alt entry (text) rides the same <img> element — the
+    // client-owned accessibility copy for the hero image (§5 grammar:
+    // alt editable alongside the image, mirrors the .href companion).
+    map[`${pageSeg}.hero.image.alt`] = {
+      type: "text",
+      value: model.hero.imageAlt ?? "",
+      evidence: "hero image alt text",
+    };
+  }
+  if (model.hero.backgroundImage) {
+    map[`${pageSeg}.hero.backgroundImage`] = {
+      type: "image",
+      value: model.hero.backgroundImage,
+      evidence: "hero background-image",
+    };
   }
   if (model.hero.primaryButton?.label) {
     map[`${pageSeg}.hero.primaryButton.label`] = {
@@ -229,6 +244,20 @@ function foldIntoContentMap(
       type: "url",
       value: model.hero.primaryButton.href,
       evidence: "first button-styled control",
+    };
+  }
+  if (model.hero.secondaryButton?.label) {
+    map[`${pageSeg}.hero.secondaryButton.label`] = {
+      type: "text",
+      value: model.hero.secondaryButton.label,
+      evidence: "second button-styled control",
+    };
+  }
+  if (model.hero.secondaryButton?.href) {
+    map[`${pageSeg}.hero.secondaryButton.href`] = {
+      type: "url",
+      value: model.hero.secondaryButton.href,
+      evidence: "second button-styled control",
     };
   }
 
@@ -270,6 +299,13 @@ function foldIntoContentMap(
           value: item.image,
           evidence: `item image in "${section.role}" list`,
         };
+        // Companion .alt entry (text) — client-owned alt text for the item
+        // image, editable alongside the image (§5 grammar).
+        map[`${roleSeg}.items[${i}].image.alt`] = {
+          type: "text",
+          value: item.imageAlt ?? "",
+          evidence: `item image alt text in "${section.role}" list`,
+        };
       }
       if (item.price) {
         map[`${roleSeg}.items[${i}].price`] = {
@@ -286,6 +322,13 @@ function foldIntoContentMap(
           value: image.src,
           evidence: image.alt ? `img alt="${image.alt}"` : "img",
         };
+        // Companion .alt entry (text) — client-owned alt text for the
+        // section image, editable alongside the image (§5 grammar).
+        map[`${image.key}.alt`] = {
+          type: "text",
+          value: image.alt ?? "",
+          evidence: `img alt text (${image.key})`,
+        };
       }
     }
     for (const button of model.buttons) {
@@ -295,6 +338,17 @@ function foldIntoContentMap(
           value: button.label,
           evidence: `button to ${button.href || "(no href)"}`,
         };
+        // Companion .href entry (url) rides the same element as the label
+        // (§5 grammar: destination editable alongside the label — mirrors
+        // home.hero.primaryButton.href). Without it the editor shows
+        // "destination can't be edited yet" for ordinary client buttons.
+        if (button.href) {
+          map[`${button.key}.href`] = {
+            type: "url",
+            value: button.href,
+            evidence: `button destination (${button.href})`,
+          };
+        }
       }
     }
     for (const link of model.links) {
@@ -304,6 +358,14 @@ function foldIntoContentMap(
           value: link.label,
           evidence: `link to ${link.href}`,
         };
+        // Companion .href entry (url) — same rationale as buttons above.
+        if (link.href) {
+          map[`${link.key}.href`] = {
+            type: "url",
+            value: link.href,
+            evidence: `link destination (${link.href})`,
+          };
+        }
       }
     }
   }

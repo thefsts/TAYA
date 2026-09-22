@@ -35,6 +35,7 @@ export default defineConfig({
       "convex/react": path.join(harnessDir, "shims", "convex-react.tsx"),
       "@convex/_generated/api": path.join(harnessDir, "shims", "api-shim.ts"),
       "@convex/_generated/dataModel": path.join(harnessDir, "shims", "dataModel-shim.ts"),
+      "@clerk/react": path.join(harnessDir, "shims", "clerk-react.tsx"),
       "@": path.join(dashDir, "src"),
       "@assets": path.join(repoRoot, "attached_assets"),
       "@convex": path.join(repoRoot, "convex"),

@@ -277,6 +277,8 @@ export default defineSchema({
     ogTitle: v.optional(v.string()),
     ogDescription: v.optional(v.string()),
     twitterCardType: v.optional(v.string()),
+    /** Chat D — set when this row was created by the live-site SEO import. */
+    importedFromDiscovery: v.optional(v.boolean()),
   })
     .index("by_site", ["siteId"])
     .index("by_site_path", ["siteId", "pagePath"]),
@@ -627,6 +629,8 @@ export default defineSchema({
     title: v.string(),
     description: v.optional(v.string()),
     url: v.string(),
+    /** Set when the resource file was uploaded to Convex storage (Chat D PDF upload). */
+    storageId: v.optional(v.id("_storage")),
     format: v.optional(v.string()),
     sizeLabel: v.optional(v.string()),
     category: v.optional(v.string()),
@@ -697,6 +701,8 @@ export default defineSchema({
     analyticsGa4: v.optional(v.string()),
     analyticsGtm: v.optional(v.string()),
     analyticsPixel: v.optional(v.string()),
+    // Chat D — Search Console verification is client-safe analytics config
+    analyticsSearchConsole: v.optional(v.string()),
     cookieConsentEnabled: v.optional(v.boolean()),
     cookiePolicyUrl: v.optional(v.string()),
     // Legal
@@ -708,6 +714,8 @@ export default defineSchema({
     contactUpdatedAt: v.optional(v.number()),
     seoUpdatedAt: v.optional(v.number()),
     integrationsUpdatedAt: v.optional(v.number()),
+    // Chat D — timestamp for the client-safe updateAnalytics mutation
+    analyticsUpdatedAt: v.optional(v.number()),
     legalUpdatedAt: v.optional(v.number()),
     // Events display preferences
     showCancelledEvents: v.optional(v.boolean()),

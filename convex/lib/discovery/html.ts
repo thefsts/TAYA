@@ -218,7 +218,13 @@ export interface PageModel {
     heading: string | null;
     subheading: string | null;
     image: string | null;
+    /** Alt text of the hero image (client-owned accessibility copy). */
+    imageAlt: string | null;
+    /** Hero background image (CSS background-image on the hero block). */
+    backgroundImage: string | null;
     primaryButton: { label: string | null; href: string | null } | null;
+    /** Second hero CTA (secondary button), when the hero has two controls. */
+    secondaryButton: { label: string | null; href: string | null } | null;
   };
   headings: Array<{ level: number; text: string; key: string }>;
   sections: Array<{
@@ -231,6 +237,8 @@ export interface PageModel {
       title: string | null;
       description: string | null;
       image: string | null;
+      /** Alt text of the item image (client-owned accessibility copy). */
+      imageAlt: string | null;
       /** A price-like value found on the card ("$49.00"), null when absent. */
       price: string | null;
     }>;
@@ -533,6 +541,25 @@ function isJunkImage(src: string): boolean {
  * first h2), the first substantial paragraph, first content image, and the
  * first button-styled control.
  */
+/**
+ * Offset in the body at which the hero region ends — the first content
+ * section heading (<h2>) after the hero heading. Used to scope hero button
+ * detection so a later section's CTA is never mistaken for the hero's
+ * secondary button. Returns bodyHtml.length when no boundary is found.
+ */
+export function heroBoundaryOffset(bodyHtml: string): number {
+  const h1 = /<h1\b[^>]*>[\s\S]*?<\/h1>/i.exec(bodyHtml);
+  if (h1) {
+    const idx = bodyHtml.indexOf("<h2", h1.index + h1[0].length);
+    return idx === -1 ? bodyHtml.length : idx;
+  }
+  // No h1: the hero heading is the first h2; the boundary is the second.
+  const first = bodyHtml.indexOf("<h2");
+  if (first === -1) return bodyHtml.length;
+  const second = bodyHtml.indexOf("<h2", first + 3);
+  return second === -1 ? bodyHtml.length : second;
+}
+
 function extractHero(bodyHtml: string): PageModel["hero"] {
   const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(bodyHtml);
   const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/i.exec(bodyHtml);
@@ -551,13 +578,20 @@ function extractHero(bodyHtml: string): PageModel["hero"] {
     }
   }
 
-  // Primary button: first <a>/<button> with button-ish styling or an
-  // action-word label.
+  // Primary + secondary buttons: the first two <a>/<button> controls with
+  // button-ish styling or an action-word label. The first is the primary
+  // CTA; the second (when present) is the secondary CTA — both are
+  // client-owned label + destination pairs (§5 hero grammar).
   let primaryButton: PageModel["hero"]["primaryButton"] = null;
+  let secondaryButton: PageModel["hero"]["secondaryButton"] = null;
+  // Scope button detection to the hero region (before the first content
+  // section heading) so a later section's CTA is never mistaken for the
+  // hero's secondary button.
+  const heroBoundary = heroBoundaryOffset(bodyHtml);
   const candidates = matchAll(
     bodyHtml,
     /<(a|button)\s[^>]*>((?:(?!<\/(a|button)>)[\s\S])*?)<\/\1>/gi,
-  );
+  ).filter((c) => c.index < heroBoundary);
   for (const c of candidates.slice(0, 24)) {
     const tag = c[0].slice(0, c[0].indexOf(">") + 1);
     const label = stripTags(c[2]).slice(0, 60);
@@ -569,23 +603,43 @@ function extractHero(bodyHtml: string): PageModel["hero"] {
         label,
       );
     if (looksLikeButton) {
-      primaryButton = { label, href };
-      break;
+      if (!primaryButton) {
+        primaryButton = { label, href };
+      } else {
+        secondaryButton = { label, href };
+        break;
+      }
     }
   }
 
   // Hero image: first non-junk content image in the body.
   let image: string | null = null;
+  let imageAlt: string | null = null;
   const imgs = matchAll(bodyHtml, /<img\b[^>]*>/gi);
   for (const img of imgs.slice(0, 24)) {
     const src = tagAttr(img[0], "src") ?? tagAttr(img[0], "data-src");
     if (!src) continue;
     if (isJunkImage(src)) continue;
     image = src;
+    const alt = tagAttr(img[0], "alt");
+    imageAlt = alt && alt.trim() ? alt.trim().slice(0, 200) : null;
     break;
   }
 
-  return { heading, subheading, image, primaryButton };
+  // Hero background image: a CSS background-image url(...) declared on the
+  // hero block (inline style or a style attribute on the first section).
+  // Bounded to the first section block so a later section's background is
+  // never mistaken for the hero's.
+  let backgroundImage: string | null = null;
+  const firstSection = /<section\b[^>]*>[\s\S]*?<\/section>/i.exec(bodyHtml);
+  const bgScope = firstSection ? firstSection[0] : bodyHtml;
+  const bgMatch = /background(?:-image)?\s*:\s*[^;"']*url\(\s*['"]?([^'")]+)['"]?\s*\)/i.exec(bgScope);
+  if (bgMatch) {
+    const bg = bgMatch[1].trim();
+    if (bg && !isJunkImage(bg)) backgroundImage = bg;
+  }
+
+  return { heading, subheading, image, imageAlt, backgroundImage, primaryButton, secondaryButton };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -679,7 +733,7 @@ function extractRepeatableItems(block: string): PageModel["sections"][number]["i
 }
 
 /** Parse one card-like element into { title, description, image, price }. */
-function parseCardish(inner: string): { title: string | null; description: string | null; image: string | null; price: string | null } {
+function parseCardish(inner: string): { title: string | null; description: string | null; image: string | null; imageAlt: string | null; price: string | null } {
   const headingMatch = /<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/i.exec(inner);
   const title = hasText(group(headingMatch, 2)) ? stripTags(group(headingMatch, 2)!) : null;
   const paraMatch = /<p\b[^>]*>([\s\S]*?)<\/p>/i.exec(inner);
@@ -687,8 +741,10 @@ function parseCardish(inner: string): { title: string | null; description: strin
   const imgMatch = /<img\b[^>]*>/i.exec(inner);
   const imgTag = imgMatch ? imgMatch[0] : null;
   const image = imgTag ? tagAttr(imgTag, "src") ?? tagAttr(imgTag, "data-src") : null;
+  const altRaw = imgTag ? tagAttr(imgTag, "alt") : null;
+  const imageAlt = altRaw && altRaw.trim() ? altRaw.trim().slice(0, 200) : null;
   const price = extractPrice(inner);
-  return { title, description, image, price };
+  return { title, description, image, imageAlt, price };
 }
 
 /** Price patterns found on cards/products: "$49.99", "$1,200", "USD 25".
@@ -922,7 +978,15 @@ export function extractPageModel(html: string, path: string, url: string): PageM
   const hero =
     path === "/"
       ? extractHero(body)
-      : { heading: null, subheading: null, image: null, primaryButton: null };
+      : {
+          heading: null,
+          subheading: null,
+          image: null,
+          imageAlt: null,
+          backgroundImage: null,
+          primaryButton: null,
+          secondaryButton: null,
+        };
 
   // ── Headings ────────────────────────────────────────────────────────────
   const headings: PageModel["headings"] = [];

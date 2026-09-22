@@ -87,7 +87,7 @@ async function editorFrame(page: Page): Promise<Frame> {
 
 async function openEditor(page: Page): Promise<Frame> {
   await page.goto(EDITOR_URL, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Visual Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Website Editor", exact: true })).toBeVisible({ timeout: 20_000 });
   const frame = await editorFrame(page);
   await frame.waitForSelector("[data-taya-edit]", { timeout: 20_000 });
   return frame;
@@ -322,10 +322,13 @@ test("flow 9 — locked areas and unsupported insertions are explained", async (
   // (a) Click a non-annotated area of the nav bar itself - the FAR RIGHT of
   // the bar, past the last link, so the hit target is the bar (design-locked
   // layout chrome), never one of the inline links at the left edge.
+  // The editor iframe is CSS-scaled (contain-fit), so the nav's page-space
+  // box can be under 12px tall — position INSIDE its real height, never y:12.
   const navBar = frame.locator("nav.site-nav").first();
   const navBox = await navBar.boundingBox();
   const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
-  await navBar.click({ position: { x: navRight, y: 12 } });
+  const navY = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
+  await navBar.click({ position: { x: navRight, y: navY } });
   await expect(
     page.getByText("That part of the page is managed by FSTS. Contact your TAYA representative to make changes."),
   ).toBeVisible({ timeout: 10_000 });
@@ -456,7 +459,7 @@ test("flow 12+13 — Publish → reload → published values persist everywhere"
 
   // FLOW 13 — reload the editor: the published value persists.
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Visual Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Website Editor", exact: true })).toBeVisible({ timeout: 20_000 });
   const frame2 = await editorFrame(page);
   await frame2.waitForSelector('[data-taya-edit="home.hero.heading"]', { timeout: 20_000 });
   await expect(frame2.locator('[data-taya-edit="home.hero.heading"]')).toHaveText("Published Heading (Alice)");
@@ -549,4 +552,71 @@ test("flow 15 — another tenant (Bob) cannot access Harborview's editor", async
 
   // Restore Alice for subsequent tests.
   await setActingUser("user_alice");
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * FLOW 16 — hero completion: secondary CTA, background image, image alt text
+ * ══════════════════════════════════════════════════════════════════════════ */
+test("flow 16 — hero completion: secondary CTA, background image, alt text", async ({ page }) => {
+  const frame = await openEditor(page);
+
+  // ── (a) Hero image alt text is editable through the MAIN editor ──
+  const img = frame.locator('[data-taya-edit="home.hero.image"]');
+  await expect(img).toHaveAttribute("alt", "Bright modern dental clinic reception");
+  await img.click();
+  await expect(page.getByText("Image", { exact: true }).first()).toBeVisible({ timeout: 10_000 });
+
+  const altInput = page.getByPlaceholder("Describe the image for screen readers");
+  await expect(altInput).toBeVisible({ timeout: 10_000 });
+  await expect(altInput).toHaveValue("Bright modern dental clinic reception");
+  await altInput.fill("A bright, welcoming dental clinic reception desk");
+  await shot(page, "flow16-hero-alt-edit");
+  // The REAL rendered page reflects the new alt text (draft preview).
+  await expect(img).toHaveAttribute("alt", "A bright, welcoming dental clinic reception desk", { timeout: 10_000 });
+
+  // ── (b) Secondary hero CTA: label + destination ──
+  const secondary = frame.locator('[data-taya-edit="home.hero.secondaryButton.label"]');
+  await expect(secondary).toHaveText("See our services");
+  await secondary.click();
+  await expect(page.getByText("Button", { exact: true }).first()).toBeVisible({ timeout: 10_000 });
+  const labelInput = page.locator("input").first();
+  await labelInput.fill("Explore treatments");
+  await shot(page, "flow16-hero-secondary-cta");
+  await expect(secondary).toHaveText("Explore treatments", { timeout: 10_000 });
+
+  // ── (c) Hero background image is editable ──
+  const bg = frame.locator('[data-taya-edit="home.hero.backgroundImage"]');
+  await expect(bg).toHaveCount(1);
+  await bg.click({ position: { x: 3, y: 3 } });
+  await expect(page.getByText("Background image", { exact: true }).first()).toBeVisible({ timeout: 10_000 });
+  await shot(page, "flow16-hero-background");
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * FLOW 17 — form placement UX: choose an existing form → open the EXISTING
+ * FormBuilder → clean return to the editor (Req 5)
+ * ══════════════════════════════════════════════════════════════════════════ */
+test("flow 17 — form placement: choose existing form → FormBuilder → clean return", async ({ page }) => {
+  const frame = await openEditor(page);
+
+  // ── (a) The Forms panel lists the site's EXISTING forms ──
+  await expect(page.getByText("Forms on this site", { exact: true })).toBeVisible({ timeout: 10_000 });
+  const contactBtn = page.getByRole("button", { name: /Contact us/ });
+  const apptBtn = page.getByRole("button", { name: /Appointment request/ });
+  await expect(contactBtn).toBeVisible();
+  await expect(apptBtn).toBeVisible();
+  await shot(page, "flow17-forms-panel");
+
+  // ── (b) Choosing a form opens the EXISTING FormBuilder (no bypass) ──
+  await contactBtn.click();
+  await expect(page).toHaveURL(/\/app\/sites\/site_harborview\/forms\/form_contact/, { timeout: 10_000 });
+  // The FormBuilder renders the real form name + a Save control.
+  await expect(page.getByRole("button", { name: /Save/ }).first()).toBeVisible({ timeout: 10_000 });
+  await shot(page, "flow17-formbuilder-open");
+
+  // ── (c) Clean return to the editor ──
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Website Editor", exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Forms on this site", { exact: true })).toBeVisible({ timeout: 10_000 });
+  await shot(page, "flow17-clean-return");
 });

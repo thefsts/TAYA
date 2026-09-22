@@ -126,6 +126,7 @@ const SETTINGS_DOC = {
   seoOgImageUrl: "",
   analyticsGa4: "",
   analyticsGtm: "",
+  analyticsSearchConsole: "",
   analyticsPixel: "",
   cookieConsentEnabled: false,
   cookiePolicyUrl: "",
@@ -211,6 +212,7 @@ const TAB_LABELS = [
   "Branding",
   "Contact",
   "SEO",
+  "Analytics",
   "Integrations",
   "Legal",
   "Events",
@@ -228,7 +230,7 @@ function expectTabHidden(label: string) {
 // ── Suite ────────────────────────────────────────────────────────────────────
 
 describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
-  it("SuperAdmin sees all 8 tabs and lands on Identity", () => {
+  it("SuperAdmin sees all 9 tabs (Chat D: +Analytics) and lands on Identity", () => {
     render(<WebsiteSettings params={PARAMS} />);
     for (const label of TAB_LABELS) expectTabVisible(label);
     expectTabVisible("Identity");
@@ -238,7 +240,7 @@ describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
     ).toBeInTheDocument();
   });
 
-  it("client owner sees only the 4 client tabs + DesignLockBanner, and Contact Save works", async () => {
+  it("client owner sees only the 5 client tabs + DesignLockBanner, and Contact Save works", async () => {
     setQueryDispatch({
       "api.siteSettings.get": SETTINGS_DOC,
       "api.users.me": OWNER_USER,
@@ -246,9 +248,11 @@ describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
     });
     render(<WebsiteSettings params={PARAMS} />);
 
-    // Client-editable tabs remain.
+    // Client-editable tabs remain (Chat D: Analytics is now client-safe at
+    // CONTENT_UPDATE tier — GA4, GTM, Search Console).
     expectTabVisible("Contact");
     expectTabVisible("SEO");
+    expectTabVisible("Analytics");
     expectTabVisible("Legal");
     expectTabVisible("Events");
 
@@ -262,7 +266,7 @@ describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
     // queries api.users.me → OWNER_USER, isSuperAdmin false).
     expect(screen.getByText(/is controlled by TAYA administrators/)).toBeInTheDocument();
     expect(
-      screen.getByText(/Brand identity, colors, fonts, integrations, and module setup/),
+      screen.getByText(/Brand identity, colors, fonts, Meta Pixel, cookie consent, and module setup/),
     ).toBeInTheDocument();
 
     // Clients land on the Contact tab by default (defaultValue must match a
@@ -288,7 +292,7 @@ describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
     expect(mockToast).toHaveBeenCalledWith({ title: "Saved successfully" });
   });
 
-  it("client content_editor (Corsair second seat) gets the same 4 client tabs", () => {
+  it("client content_editor (Corsair second seat) gets the same 5 client tabs", () => {
     setQueryDispatch({
       "api.siteSettings.get": SETTINGS_DOC,
       "api.users.me": CONTENT_EDITOR_USER,
@@ -298,6 +302,7 @@ describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
 
     expectTabVisible("Contact");
     expectTabVisible("SEO");
+    expectTabVisible("Analytics");
     expectTabVisible("Legal");
     expectTabVisible("Events");
     expectTabHidden("Identity");
@@ -321,7 +326,7 @@ describe("WebsiteSettings — per-tab RBAC tiering (P3)", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Brand identity, colors, fonts, integrations, and module setup are always/,
+        /Brand identity, colors, fonts, Meta Pixel, cookie consent, and module setup are always/,
       ),
     ).toBeInTheDocument();
 

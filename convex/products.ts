@@ -1,7 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import { checkSiteAccess } from "./lib/requireSiteAccess";
+import { checkSiteAccess, checkModuleEnabled } from "./lib/requireSiteAccess";
 import { requirePermission } from "./lib/requirePermission";
 import { PERMISSIONS } from "./lib/permissions";
 import { recordVersion } from "./lib/recordVersion";
@@ -109,6 +109,7 @@ export const list = query({
   args: { siteId: v.id("sites") },
   handler: async (ctx, { siteId }) => {
     if (!await checkSiteAccess(ctx, siteId)) return null;
+    if (!await checkModuleEnabled(ctx, siteId, "products")) return null;
     return ctx.db
       .query("siteProducts")
       .withIndex("by_site", (q) => q.eq("siteId", siteId))

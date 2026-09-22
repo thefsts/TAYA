@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation, Pencil, Plus, Trash2, ChevronUp, ChevronDown, ExternalLink, Eye, EyeOff } from "lucide-react";
-import { LockedField, DesignLockBanner } from "@/components/LockedField";
 import { VisualEditorShell } from "@/components/VisualEditorShell";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 
@@ -68,7 +67,6 @@ export default function NavigationManager({ params }: { params: { siteId: string
 
   return (
     <AppLayout siteId={params.siteId}>
-      <DesignLockBanner label="Navigation Structure" />
       <VisualEditorShell
         siteId={siteId}
         title="Navigation Manager"
@@ -76,12 +74,12 @@ export default function NavigationManager({ params }: { params: { siteId: string
         moduleId="navigation"
         isDirty={false}
         previewPath="/"
-        toolbarActions={<LockedField capabilityLabel="Navigation Structure"><Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Navigation Item</Button></LockedField>}
+        toolbarActions={<Button onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Add Navigation Item</Button>}
       >
         <ClientPageHeader
           eyebrow="Website Structure"
           title="Navigation Manager"
-          description="Review your website menu, visibility, destinations, and link order while FSTS protects the approved navigation structure."
+          description="Edit your website menu — labels, destinations, visibility, and link order are yours to manage."
         />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:max-w-xl">
@@ -91,15 +89,15 @@ export default function NavigationManager({ params }: { params: { siteId: string
 
       <ClientSection title="Website Menu" description="Use the arrows to change menu order. Hidden links stay saved but are not shown publicly.">
         {items.length === 0 ? (
-          <ClientEmptyState icon={Navigation} title="No navigation links yet" description="Add your first website menu link to begin building the visitor navigation." action={<LockedField capabilityLabel="Navigation Structure"><Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First Link</Button></LockedField>} />
+          <ClientEmptyState icon={Navigation} title="No navigation links yet" description="Add your first website menu link to begin building the visitor navigation." action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add First Link</Button>} />
         ) : (
           <div className="divide-y divide-slate-100">
             {items.map((item: NonNullable<typeof items>[number], index: number) => (
               <div key={item.id} className="flex flex-col gap-4 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-center sm:p-5">
-                <LockedField capabilityLabel="Navigation Structure" className="flex gap-1 sm:flex-col">
+                <div className="flex gap-1 sm:flex-col">
                   <button aria-label="Move navigation item up" onClick={() => move(index, -1)} disabled={index === 0} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button>
                   <button aria-label="Move navigation item down" onClick={() => move(index, 1)} disabled={index === items.length - 1} className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:text-slate-700 disabled:opacity-30"><ChevronDown className="h-4 w-4" /></button>
-                </LockedField>
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-slate-900">{item.label}</p>
@@ -108,10 +106,10 @@ export default function NavigationManager({ params }: { params: { siteId: string
                   </div>
                   <p className="mt-1 truncate font-mono text-xs text-slate-400">{item.href}</p>
                 </div>
-                <LockedField capabilityLabel="Navigation Structure" className="flex flex-shrink-0 gap-2">
+                <div className="flex flex-shrink-0 gap-2">
                   <Button size="sm" variant="outline" onClick={() => openEdit(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
                   <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                </LockedField>
+                </div>
               </div>
             ))}
           </div>

@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Briefcase, Eye, EyeOff, ExternalLink, MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { ClientEmptyState, ClientLoadingList, ClientPageHeader, ClientSection } from "@/components/ClientPage";
 import { VisualEditorShell } from "@/components/VisualEditorShell";
+import { useCanEditCapability } from "@/hooks/useCanEdit";
 
 const JOB_TYPES = ["Full-Time", "Part-Time", "Contract", "Internship", "Volunteer"];
 
@@ -33,6 +34,8 @@ const emptyForm: JobForm = {
 
 export default function CareersManager({ params }: { params: { siteId: string } }) {
   const siteId = params.siteId as Id<"sites">;
+  // D5 read_only UX: hide every write control the backend would reject.
+  const canEdit = useCanEditCapability(siteId, "careers");
   const { toast } = useToast();
   const items = useQuery(api.careers.list, { siteId });
   const create = useMutation(api.careers.create);
@@ -124,7 +127,7 @@ export default function CareersManager({ params }: { params: { siteId: string } 
         historyHref={`/app/sites/${params.siteId}/history`}
         moduleId="careers"
         previewPath="/careers"
-        toolbarActions={<Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Post Job</Button>}
+        toolbarActions={canEdit ? <Button size="sm" onClick={openCreate} className="shadow-sm"><Plus className="mr-2 h-4 w-4" />Post Job</Button> : undefined}
       >
       <ClientPageHeader
         eyebrow="Hiring"
@@ -144,7 +147,7 @@ export default function CareersManager({ params }: { params: { siteId: string } 
             icon={Briefcase}
             title="No job postings yet"
             description="Post your first open position when you are ready to recruit candidates."
-            action={<Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Post First Job</Button>}
+            action={canEdit ? <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Post First Job</Button> : undefined}
           />
         ) : (
           <div className="divide-y divide-slate-100">
@@ -172,8 +175,14 @@ export default function CareersManager({ params }: { params: { siteId: string } 
                   )}
                 </div>
                 <div className="flex flex-shrink-0 gap-2">
-                  <Button size="sm" variant="outline" onClick={() => openEdit(job)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
-                  <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(job.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  {canEdit ? (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(job)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
+                      <Button aria-label="Delete" size="sm" variant="ghost" className="text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleteId(job.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-slate-400">View only</span>
+                  )}
                 </div>
               </article>
             ))}

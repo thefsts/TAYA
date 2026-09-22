@@ -1139,8 +1139,11 @@ describe("VisualEditor — rich content (§1–§6)", () => {
     expect(await screen.findByRole("button", { name: "+ Add resource" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "+ Add FAQ" }).hasAttribute("disabled")).toBe(true);
     expect(screen.getByRole("button", { name: "+ Add image" })).toBeInTheDocument();
+    // `link` is only allowed in footer-content, which this fixture's page map
+    // does not include — so the honest explanation now names BOTH unavailable
+    // kinds (FAQ items + Links), in ADD_ACTIONS order. Asserted strictly.
     expect(
-      await screen.findByText(/FAQ items can.t be added to this page/),
+      await screen.findByText(/FAQ items, Links can.t be added to this page/),
     ).toBeInTheDocument();
   });
 
