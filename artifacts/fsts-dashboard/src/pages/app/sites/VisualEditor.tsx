@@ -45,6 +45,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImagePickerField } from "@/components/ImagePickerField";
+import { MediaLibraryInsert, type MediaInsertPayload, type MediaInsertKind } from "@/components/MediaLibraryInsert";
 import {
   // §6 zone contract + §2/§3 validation — the CANONICAL pure libs the
   // server uses (same functions, same verdicts; the @convex alias maps to
@@ -66,7 +67,7 @@ import {
   Undo2, ArrowLeft,
   Plus, Trash2, RotateCcw, ArrowUp, ArrowDown,
   Video, FileText, Type, Megaphone, HelpCircle, FileDown, Link2, ClipboardList,
-  Search, ChevronDown,
+  Search, ChevronDown, FolderOpen,
 } from "lucide-react";
 
 // Convex site origin (convex.cloud → convex.site), same derivation as
@@ -409,6 +410,24 @@ function BlockForm({
   const [answer, setAnswer] = useState(s("answer"));
   const [err, setErr] = useState<string | null>(null);
 
+  // E6/A5 — one browse-and-insert surface spanning images, PDFs, and videos.
+  // The modal reads the site's existing Media Library / Downloads and hands
+  // back a plain payload that pre-fills the matching field below.
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const mediaKinds: MediaInsertKind[] =
+    kind === "image" ? ["image"] : kind === "pdf" ? ["pdf"] : kind === "video" ? ["video"] : [];
+  const handleMediaInsert = (payload: MediaInsertPayload) => {
+    if (payload.kind === "image") {
+      setImageUrl(payload.url);
+      if (payload.alt) setAlt(payload.alt);
+    } else if (payload.kind === "pdf") {
+      setResourceId(payload.resourceId);
+      if (!title.trim()) setTitle(payload.title);
+    } else if (payload.kind === "video") {
+      setVideoUrl(payload.watchUrl);
+    }
+  };
+
   // Chat D (client website management completion) — upload a PDF straight
   // from the editor: mint an upload URL (PDF-only guard server-side), PUT
   // the file, create the downloads resource, then auto-select it in the
@@ -489,6 +508,14 @@ function BlockForm({
       <p className="rounded-md bg-slate-50 px-2 py-1.5 text-xs text-slate-500">
         It will show up {wherePhrase(zone)} — it appears in the preview immediately and goes live only when you publish.
       </p>
+
+      {/* E6/A5 — one browse-and-insert surface for the kinds this form edits. */}
+      {mediaKinds.length > 0 && (
+        <Button type="button" variant="outline" size="sm" className="w-full gap-2"
+          onClick={() => setMediaOpen(true)}>
+          <FolderOpen className="h-4 w-4" /> Browse Media Library
+        </Button>
+      )}
 
       {kind === "text" && (
         <>
@@ -653,6 +680,15 @@ function BlockForm({
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>Cancel</Button>
       </div>
+
+      <MediaLibraryInsert
+        siteId={siteId}
+        open={mediaOpen}
+        onClose={() => setMediaOpen(false)}
+        onInsert={handleMediaInsert}
+        availableKinds={mediaKinds}
+        initialTab={mediaKinds[0]}
+      />
     </div>
   );
 }
@@ -1221,6 +1257,16 @@ export default function VisualEditor() {
 
 type FrameState = "loading" | "ready";
 
+/* E5 — resizable left rail bounds (owner-approved). The rail can be dragged
+ * (pointer) or nudged with the keyboard; width is clamped so the live preview
+ * always keeps usable space. */
+const RAIL_MIN_WIDTH = 280;
+const RAIL_MAX_WIDTH = 600;
+const RAIL_DEFAULT_WIDTH = 360;
+function clampRailWidth(w: number): number {
+  return Math.min(RAIL_MAX_WIDTH, Math.max(RAIL_MIN_WIDTH, Math.round(w)));
+}
+
 function VisualEditorInner({
   siteId,
   retryEditor,
@@ -1286,10 +1332,39 @@ function VisualEditorInner({
   const [showHistory, setShowHistory] = useState(false);
   const [pendingDraftKeys, setPendingDraftKeys] = useState<string[]>([]);
   const [draftCount, setDraftCount] = useState(0); // re-render tick for ref-backed edits
+  // E5: resizable left rail. Width is session state; the separator handle
+  // drags it (pointer) and nudges it (keyboard), clamped to a safe range.
+  const [railWidth, setRailWidth] = useState(RAIL_DEFAULT_WIDTH);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const localEditsRef = useRef<Map<string, string>>(new Map());
   const pagePathRef = useRef<string | null>(null);
+  const railDragRef = useRef<{ startX: number; startW: number } | null>(null);
+
+  const onRailPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    railDragRef.current = { startX: e.clientX, startW: railWidth };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }, [railWidth]);
+
+  const onRailPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = railDragRef.current;
+    if (!drag) return;
+    setRailWidth(clampRailWidth(drag.startW + (e.clientX - drag.startX)));
+  }, []);
+
+  const endRailDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    railDragRef.current = null;
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  }, []);
+
+  const onRailKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const step = e.shiftKey ? 40 : 16;
+    setRailWidth((w) => clampRailWidth(w + (e.key === "ArrowRight" ? step : -step)));
+  }, []);
 
   const entries = (contentMap?.entries ?? {}) as EntryMap;
   const pages = (contentMap?.pages ?? []) as PageSummary[];
@@ -2148,9 +2223,12 @@ function VisualEditorInner({
       </div>
 
       {/* main split: controls (left rail) + preview (fills remaining viewport) */}
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div
+        className="flex min-h-0 flex-1 flex-col lg:flex-row"
+        style={{ ["--rail-w" as string]: `${railWidth}px` } as React.CSSProperties}
+      >
         {/* controls */}
-        <div className={`${mobileTab === "edit" ? "flex" : "hidden"} w-full min-h-0 flex-col gap-3 overflow-y-auto bg-slate-50 p-3 lg:flex lg:w-[clamp(280px,29%,440px)] lg:flex-shrink-0 lg:border-r lg:border-slate-200`}>
+        <div className={`${mobileTab === "edit" ? "flex" : "hidden"} w-full min-h-0 flex-col gap-3 overflow-y-auto bg-slate-50 p-3 lg:flex lg:w-[var(--rail-w)] lg:flex-shrink-0 lg:border-r lg:border-slate-200`}>
           {/* workflow banner — compact, in the rail */}
           <WorkflowBanner
             state={workflow}
@@ -2397,6 +2475,26 @@ function VisualEditorInner({
               </Button>
             )}
           </div>
+        </div>
+
+        {/* E5 — drag handle: resize the left rail (desktop only). Keyboard
+            accessible: ← / → nudge, Shift for a larger step. */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize editing panel"
+          aria-valuenow={railWidth}
+          aria-valuemin={RAIL_MIN_WIDTH}
+          aria-valuemax={RAIL_MAX_WIDTH}
+          tabIndex={0}
+          onPointerDown={onRailPointerDown}
+          onPointerMove={onRailPointerMove}
+          onPointerUp={endRailDrag}
+          onPointerCancel={endRailDrag}
+          onKeyDown={onRailKeyDown}
+          className="group hidden w-1.5 cursor-col-resize items-center justify-center bg-slate-200 transition-colors hover:bg-blue-400 focus:bg-blue-400 focus:outline-none lg:flex"
+        >
+          <span className="h-8 w-0.5 rounded-full bg-slate-400 group-hover:bg-white" />
         </div>
 
         {/* preview — fits the workspace (owner-approved: as much real

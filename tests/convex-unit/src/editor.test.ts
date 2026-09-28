@@ -267,6 +267,23 @@ describe("editor-annotate — §5 parity with the Phase 2 extractor", () => {
     expect(about).toContain('data-taya-edit="about.footer.text"');
   });
 
+  it("A4 audit lock — section bodies + footer text ARE click-to-edit (1:1); aggregate/href keys are never faked", async () => {
+    const homeHtml = await annotate(HOME_HTML, "/");
+    const aboutHtml = await annotate(ABOUT_HTML, "/about");
+    // PHASE-1 A4: the audit confirmed these genuine 1:1 elements ARE stamped,
+    // so clients click the thing they want to change instead of the entry list.
+    expect(homeHtml).toContain('data-taya-edit="home.about.body"'); // single <p> section body
+    expect(homeHtml).toContain('data-taya-edit="home.footer.text"'); // footer element itself
+    expect(aboutHtml).toContain('data-taya-edit="about.intro.body"');
+    expect(aboutHtml).toContain('data-taya-edit="about.footer.text"');
+    // ...and the honest non-stamps remain (never a fake binding):
+    const homeKeys = keysIn(homeHtml);
+    const aboutKeys = keysIn(aboutHtml);
+    expect(homeKeys.has("home.services.body")).toBe(false); // composed list text → no 1:1 element
+    expect(homeKeys.has("home.hero.primaryButton.href")).toBe(false); // href rides the label element
+    expect(aboutKeys.has("about.team.body")).toBe(false);
+  });
+
   it("honestly leaves ALIAS and COMPOSED keys unstamped — one element carries exactly one key", async () => {
     const home = keysIn(await annotate(HOME_HTML, "/"));
     // The hero <a class="btn"> already carries primaryButton.label; its .href

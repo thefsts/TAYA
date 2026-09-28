@@ -32,12 +32,21 @@
  *     (the embedded TAYA Web Bridge tags) are NEVER double-annotated —
  *     their existing key wins.
  *
- * DELIBERATELY NOT annotated (no 1:1 DOM element; the extractor folds
- * them as aggregate text): section `.body` keys, `.footer.text`, and the
- * button/link `.href` companion keys (they ride the same element as
- * their label key — the editing control edits both, the bridge applies
- * both). They stay editable through the map's entry list; the editor
- * never fakes a binding.
+ * Honest-binding policy (PHASE-1 A4 audit): a key is stamped ONLY when a
+ * genuine 1:1 DOM element exists, and one element carries exactly one key.
+ *   - section `.body` IS stamped when the block's body text lives in a
+ *     single <p> outside item containers and chrome (a real 1:1 element);
+ *   - `.footer.text` IS stamped on the <footer> element itself (the bridge
+ *     applies footer.text via textContent on that exact element);
+ *   - button/link `.href` companion keys are NOT separately stamped — they
+ *     ride the same element as their label key (the Destination control
+ *     edits both, the bridge applies both);
+ *   - composed `.body` keys (list/scattered text) and ALIAS keys
+ *     (images[n]/headings[n] over an element that already carries a
+ *     semantic key) are NOT stamped — no 1:1 element, so the editor never
+ *     fakes a binding; they stay editable through the map's entry list.
+ * The protected-structure exclusions (nav/header/footer chrome in the lead
+ * block; site-embedded data-taya-edit tags) are unchanged.
  */
 
 import {
