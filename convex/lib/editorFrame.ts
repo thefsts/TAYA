@@ -269,7 +269,14 @@ export function buildEditorBootstrap(opts: FrameDocumentOptions): string {
         }
       }
     }
-    // Anything else (locked layout, decorative area): say so, never silent.
+    // Anything else: only genuinely protected structure should raise the
+    // "managed by FSTS" notice. Clicking site chrome (nav/header/footer
+    // containers, logos, non-link nav areas) is NOT design-locked content —
+    // firing the notice there made the whole site nav read as locked, which
+    // the client reported as "the nav feels locked". For chrome areas, do
+    // nothing: no message, no preventDefault.
+    var chrome=ev.target&&ev.target.closest?ev.target.closest("nav,header,footer"):null;
+    if(chrome)return;
     ev.preventDefault();
     post({kind:"locked-click",label:labelFor(ev.target),external:false});
   },true);

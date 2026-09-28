@@ -91,16 +91,30 @@ export const ZONE_SECTION_ROLES: Record<ZoneId, readonly string[]> = {
   "footer-content": ["footer"],
 };
 
-/** Allowed insertion kinds per zone (§6: each zone defines allowed types). */
+/**
+ * Allowed insertion kinds per zone (§6: each zone defines allowed types).
+ *
+ * PHASE-1 WIDENING (client editor completion): ordinary content must be
+ * addable wherever that content genuinely belongs, on every page — not only
+ * in the single generic `content` zone. Before this change `image` was
+ * whitelisted ONLY in `content`, so a Knowledge Center page (which resolves
+ * to `article-feed`/`resource-grid`) rendered "+ Add image" disabled even
+ * though the feature existed. `link` was footer-only, hiding "+ Add link"
+ * everywhere else. This widens the ordinary-content kinds (image, link) into
+ * every content-bearing zone while leaving the protected boundary untouched
+ * (no arbitrary HTML/scripts; structure/layout still Design-Locked). The
+ * structured, section-specific kinds (faq_item, cta) stay scoped to the zones
+ * whose sections actually host them.
+ */
 export const ZONE_ALLOWED_KINDS: Record<ZoneId, readonly InsertKind[]> = {
-  hero: ["text", "button", "video"],
-  content: ["text", "image", "button", "video", "pdf"],
-  "article-feed": ["text", "button", "pdf"],
-  "resource-grid": ["text", "button", "pdf"],
-  "service-list": ["text", "button", "pdf"],
-  "product-grid": ["text", "button", "pdf"],
+  hero: ["text", "image", "button", "video"],
+  content: ["text", "image", "button", "video", "pdf", "link"],
+  "article-feed": ["text", "image", "button", "pdf", "link"],
+  "resource-grid": ["text", "image", "button", "pdf", "link"],
+  "service-list": ["text", "image", "button", "pdf", "link"],
+  "product-grid": ["text", "image", "button", "pdf", "link"],
   "video-section": ["video", "text"],
-  "testimonial-list": ["text", "button"],
+  "testimonial-list": ["text", "image", "button", "link"],
   "faq-list": ["text", "faq_item", "button"],
   "cta-stack": ["cta", "text", "button", "video"],
   "footer-content": ["text", "button", "link"],

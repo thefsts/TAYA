@@ -66,7 +66,7 @@ import {
   Undo2, ArrowLeft,
   Plus, Trash2, RotateCcw, ArrowUp, ArrowDown,
   Video, FileText, Type, Megaphone, HelpCircle, FileDown, Link2, ClipboardList,
-  Search,
+  Search, ChevronDown,
 } from "lucide-react";
 
 // Convex site origin (convex.cloud → convex.site), same derivation as
@@ -1271,6 +1271,12 @@ function VisualEditorInner({
   const [frameUrl, setFrameUrl] = useState<string | null>(null);
   const [selected, setSelected] = useState<ElementInfo | null>(null);
   const [lockedNotice, setLockedNotice] = useState<string | null>(null);
+  // E3: keep the busy overlay visible from the FIRST moment of a page change
+  // (not only once a frame already exists), and clear it when the new page
+  // finishes loading. Without this the iframe remount produced a white gap.
+  const [frameLoading, setFrameLoading] = useState(true);
+  // E2: the page list is a fallback picker, not the primary navigation.
+  const [showPages, setShowPages] = useState(false);
   const [editing, setEditing] = useState<ZoneBlockRow | null>(null);
   const [device, setDevice] = useState<DeviceMode>("desktop");
   const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
@@ -1296,11 +1302,15 @@ function VisualEditorInner({
   const loadFrame = useCallback(async (path: string) => {
     try {
       setBusy(true);
+      // E3: show the busy overlay from the first moment of the page change,
+      // and keep it up until the new page's iframe fires onLoad.
+      setFrameLoading(true);
       const r = await mintToken({ siteId: siteId as Id<"sites">, path });
       setFrameUrl(
         `${convexSiteOrigin()}/api/editor/frame?token=${encodeURIComponent(r.token)}&path=${encodeURIComponent(r.path)}`,
       );
     } catch (e: any) {
+      setFrameLoading(false);
       setNotice(e?.message ?? "The editor couldn't open. Please try again.");
     } finally {
       setBusy(false);
@@ -1745,7 +1755,15 @@ function VisualEditorInner({
           if (match) {
             setPagePath(next);
             setSelected(null);
+            setLockedNotice(null);
             void loadFrame(next);
+          } else {
+            // E2: never a silent no-op. The link is same-site, but TAYA has
+            // not discovered this page, so it cannot be opened in the editor
+            // yet. Say so honestly instead of doing nothing.
+            setLockedNotice(
+              `"${next}" isn't one of your editable pages yet. If it's a page on your site, ask your TAYA representative to add it to discovery.`,
+            );
           }
         }
         return;
@@ -2049,28 +2067,54 @@ function VisualEditorInner({
           </p>
         </div>
 
-        <div className="mx-auto flex min-w-0 flex-wrap items-center justify-center gap-1.5">
-          {pages.map((p) => (
-            <button
-              key={p.path}
-              type="button"
-              onClick={() => {
-                setPagePath(p.path);
-                setSelected(null);
-                void loadFrame(p.path);
-              }}
-              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
-                pagePath === p.path
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600"
-              }`}
+        {/* E2: the page list is a FALLBACK picker, not the primary navigation.
+            The in-frame site nav is the primary way to move between pages; this
+            compact "Choose a page" menu is kept for accessibility/recovery. */}
+        <div className="relative mx-auto flex min-w-0 items-center justify-center">
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={showPages}
+            aria-label="Choose a page"
+            onClick={() => setShowPages((v) => !v)}
+            className="flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+          >
+            <span className="max-w-[10rem] truncate">
+              {pages.find((p) => p.path === pagePath)?.label || pagePath || "Choose a page"}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+          {showPages && (
+            <div
+              role="menu"
+              aria-label="Pages"
+              className="absolute top-full z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg"
             >
-              {p.label || p.path}
-            </button>
-          ))}
-          <span className="hidden text-[10px] text-slate-400 xl:inline">
-            {pages.length} page{pages.length === 1 ? "" : "s"}
-          </span>
+              {pages.map((p) => (
+                <button
+                  key={p.path}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setShowPages(false);
+                    setPagePath(p.path);
+                    setSelected(null);
+                    setLockedNotice(null);
+                    void loadFrame(p.path);
+                  }}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs transition hover:bg-slate-100 ${
+                    pagePath === p.path ? "font-semibold text-blue-700" : "text-slate-600"
+                  }`}
+                >
+                  <span className="truncate">{p.label || p.path}</span>
+                  {pagePath === p.path && <span className="text-[10px] text-blue-600">current</span>}
+                </button>
+              ))}
+              <span className="block px-3 pt-1 pb-0.5 text-[10px] text-slate-400">
+                {pages.length} page{pages.length === 1 ? "" : "s"}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1">
@@ -2387,9 +2431,13 @@ function VisualEditorInner({
           <FrameStage
             frameUrl={frameUrl}
             device={device}
-            busy={busy}
+            busy={busy || frameLoading}
             iframeRef={iframeRef}
-            onFrameLoad={() => sendToFrame({ kind: "ping" })}
+            onFrameLoad={() => {
+              // E3: the new page has painted — clear the page-change overlay.
+              setFrameLoading(false);
+              sendToFrame({ kind: "ping" });
+            }}
           />
         </div>
       </div>
@@ -2482,7 +2530,6 @@ function FrameStage({
       >
         <iframe
           ref={iframeRef}
-          key={frameUrl}
           src={frameUrl}
           title="Website preview"
           className="block border-0 origin-top-left"
@@ -2496,8 +2543,9 @@ function FrameStage({
           onLoad={onFrameLoad}
         />
         {busy && (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-white/60">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/70">
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <span className="text-sm font-medium text-slate-500">Loading page…</span>
           </div>
         )}
       </div>

@@ -394,12 +394,21 @@ describe("VisualEditor — client-safe rendering (§26)", () => {
     expect(document.querySelector("iframe[title='Website preview']")).toBeNull();
   });
 
-  it("renders page navigator pills with client-language labels", async () => {
+  it("demotes the page list to a fallback 'Choose a page' picker (nav is primary)", async () => {
     setup();
     await renderEditor();
-    expect(screen.getByRole("button", { name: "Home" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "About" })).toBeInTheDocument();
-    // Compact toolbar counter (owner-approved layout): "2 pages".
+    // E2: the duplicate pill strip is gone — the in-frame site nav is the
+    // primary way to move between pages. A single compact fallback picker
+    // remains for accessibility/recovery.
+    const picker = screen.getByRole("button", { name: "Choose a page" });
+    expect(picker).toBeInTheDocument();
+    // Page labels are NOT always-visible pills any more.
+    expect(screen.queryByRole("button", { name: "About" })).toBeNull();
+    fireEvent.click(picker);
+    // The picker reveals client-language page labels as menu items.
+    expect(screen.getByRole("menuitem", { name: /Home/ })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /About/ })).toBeInTheDocument();
+    // Compact counter lives inside the picker menu.
     expect(screen.getByText("2 pages")).toBeInTheDocument();
   });
 });
@@ -599,6 +608,19 @@ describe("VisualEditor — frame bootstrap protocol", () => {
       expect(iframe.getAttribute("src")).toContain("path=%2Fabout");
     });
     expect(mutations["api.editor.createFrameToken"].mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("shows an honest notice when a same-site link isn't a discovered page (never a silent no-op)", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    const before = mutations["api.editor.createFrameToken"].mock.calls.length;
+    // E2: a same-site link TAYA hasn't discovered must NOT do nothing.
+    frameSends({ source: "taya-editor", kind: "navigate", path: "/not-discovered" });
+    expect(
+      await screen.findByText(/isn't one of your editable pages yet/i),
+    ).toBeInTheDocument();
+    // No new frame was loaded for an undiscovered page.
+    expect(mutations["api.editor.createFrameToken"].mock.calls.length).toBe(before);
   });
 
   it("ignores messages from other sources and kinds (protocol hygiene)", async () => {
@@ -1139,11 +1161,12 @@ describe("VisualEditor — rich content (§1–§6)", () => {
     expect(await screen.findByRole("button", { name: "+ Add resource" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "+ Add FAQ" }).hasAttribute("disabled")).toBe(true);
     expect(screen.getByRole("button", { name: "+ Add image" })).toBeInTheDocument();
-    // `link` is only allowed in footer-content, which this fixture's page map
-    // does not include — so the honest explanation now names BOTH unavailable
-    // kinds (FAQ items + Links), in ADD_ACTIONS order. Asserted strictly.
+    // PHASE-1 widening (E1): `link` is now allowed in the content-bearing zones
+    // (content/service-list), both of which this fixture's page map includes — so
+    // `link` is addable and only FAQ items remain unavailable. The honest
+    // explanation therefore names FAQ items alone.
     expect(
-      await screen.findByText(/FAQ items, Links can.t be added to this page/),
+      await screen.findByText(/FAQ items can.t be added to this page/),
     ).toBeInTheDocument();
   });
 
