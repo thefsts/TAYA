@@ -1,0 +1,21 @@
+{
+  "name": "sample-site-snapshot",
+  "description": "A deterministic 3-page marketing site used by the Phase-1 acceptance harness (E9). The crawl runs against these static pages offline (fetch is stubbed) so the full discovery → content-map → zone-resolution pipeline is exercised end-to-end with no network.",
+  "domain": "northwindstudio.example",
+  "origin": "https://northwindstudio.example",
+  "pages": [
+    { "path": "/", "file": "pages/home.html", "label": "Home" },
+    { "path": "/about", "file": "pages/about.html", "label": "About" },
+    { "path": "/knowledge-center", "file": "pages/knowledge-center.html", "label": "Knowledge Center" }
+  ],
+  "routes": [
+    { "path": "/", "source": "nav", "label": "Home" },
+    { "path": "/about", "source": "nav", "label": "About" },
+    { "path": "/knowledge-center", "source": "nav", "label": "Knowledge Center" }
+  ],
+  "expectedZones": {
+    "/": ["hero", "service-list", "footer-content", "video-section", "cta-stack"],
+    "/about": ["content", "video-section", "cta-stack"],
+    "/knowledge-center": ["content", "faq-list", "video-section", "cta-stack"]
+  }
+}

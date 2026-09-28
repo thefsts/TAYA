@@ -1,0 +1,45 @@
+{
+  "capturedAt": "2026-09-28T18:35:10.173Z",
+  "domain": "northwindstudio.example",
+  "keyCount": 30,
+  "pages": [
+    {
+      "path": "/",
+      "label": "Home",
+      "title": "Northwind Studio — Home",
+      "keyCount": 15
+    },
+    {
+      "path": "/about",
+      "label": "About",
+      "title": "About — Northwind Studio",
+      "keyCount": 9
+    },
+    {
+      "path": "/knowledge-center",
+      "label": "Knowledge Center",
+      "title": "Knowledge Center — Northwind Studio",
+      "keyCount": 6
+    }
+  ],
+  "zonesByPage": {
+    "/": [
+      "cta-stack",
+      "footer-content",
+      "hero",
+      "service-list",
+      "video-section"
+    ],
+    "/about": [
+      "content",
+      "cta-stack",
+      "video-section"
+    ],
+    "/knowledge-center": [
+      "content",
+      "cta-stack",
+      "faq-list",
+      "video-section"
+    ]
+  }
+}
