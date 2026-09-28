@@ -101,11 +101,14 @@ async function shot(page: Page, name: string) {
   await page.screenshot({ path: path.join(EVIDENCE_DIR, `${name}.png`), fullPage: true });
 }
 
-/** Switch the editor to a page by its client-visible pill label. The pill
- * click REMOUNTS the iframe (its React key is frameUrl) so captured frame
- * handles go stale — poll the LIVE frame by its percent-encoded path. */
+/** Switch the editor to a page via the "Choose a page" fallback picker.
+ * E2 made the in-frame site nav the PRIMARY page switcher and demoted the
+ * old always-visible pill strip to a compact menu (aria-haspopup="menu").
+ * The menu click REMOUNTS the iframe so captured frame handles go stale —
+ * poll the LIVE frame by its percent-encoded path. */
 async function switchToPage(page: Page, label: "Home" | "Services" | "FAQ"): Promise<Frame> {
-  await page.getByRole("main").getByRole("button", { name: label, exact: true }).click();
+  await page.getByRole("button", { name: "Choose a page" }).click();
+  await page.getByRole("menuitem", { name: label }).click();
   const pathMark = label === "Home" ? "path=%2F" : label === "Services" ? "path=%2Fservices" : "path=%2Ffaq";
   const probeKey = label === "Home" ? "home.section5.body" : label === "Services" ? "services.heading" : "faq.heading";
   await expect
@@ -131,6 +134,34 @@ async function saveDraft(page: Page) {
 async function publish(page: Page) {
   await page.getByRole("button", { name: "Publish", exact: true }).click();
   await expect(page.getByText("Published to the live website")).toBeVisible({ timeout: 15_000 });
+}
+
+/** Click nav-bar chrome (far right, past the last link). The editor iframe is
+ * CSS-scaled (contain-fit) so the nav's page-space box can be under 12px
+ * tall — position INSIDE the box's real height, never a fixed y. */
+async function clickNavChrome(frame: Frame) {
+  const navBar = frame.locator("nav.site-nav").first();
+  const navBox = await navBar.boundingBox();
+  const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
+  const navY = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
+  await navBar.click({ position: { x: navRight, y: navY } });
+}
+
+/** E2 CONTRACT: clicking nav/header/footer CHROME (never a real link) is
+ * SILENT — no "managed by FSTS" Design Lock notice, no false edit affordance,
+ * and no navigation. Only an actual <a href> link navigates. The Design Lock
+ * notice is reserved for genuinely protected structure (see G2). */
+async function expectNavChromeSilent(page: Page, frame: Frame) {
+  const urlBefore = frame.url();
+  const selectedBefore = await frame.locator(".taya-selected").count();
+  await clickNavChrome(frame);
+  await page.waitForTimeout(400); // let any (unexpected) frame message land
+  await expect(page.getByText(LOCKED_NOTICE)).toHaveCount(0);
+  await expect(
+    page.getByText("Links to other websites open on the live site", { exact: false }),
+  ).toHaveCount(0);
+  expect(frame.url()).toBe(urlBefore); // no navigation
+  expect(await frame.locator(".taya-selected").count()).toBe(selectedBefore); // no false edit affordance
 }
 
 /* Reset both sites to pristine before every test (harness state persists
@@ -444,15 +475,12 @@ test("F — coverage matrix: every sampled item is EDITABLE or honestly classifi
     ).toHaveCount(1);
   }
 
-  // FSTS DESIGN LOCKED: the nav bar chrome is protected — clicking it explains
-  // (never silent, never a fake control).
-  const navBar = frame.locator("nav.site-nav").first();
-  const navBox = await navBar.boundingBox();
-  const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
-  const navY = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
-  await navBar.click({ position: { x: navRight, y: navY } });
-  await expect(page.getByText(LOCKED_NOTICE)).toBeVisible({ timeout: 10_000 });
-  await shot(page, "ah-F-locked-nav");
+  // E2 CONTRACT: the in-frame site nav is the PRIMARY page switcher; clicking
+  // nav chrome (far right, past the last link) is SILENT — no "managed by
+  // FSTS" notice, no false edit affordance, no navigation. Only a real link
+  // navigates. (Genuinely protected structure still explains itself — see G2.)
+  await expectNavChromeSilent(page, frame);
+  await shot(page, "ah-F-nav-chrome-silent");
 
   // UNSUPPORTED (honest, not a bug): on /faq, images + PDFs have no allowed
   // zone → the chips are disabled with a plain-language sentence.
@@ -487,7 +515,11 @@ test("F — coverage matrix: every sampled item is EDITABLE or honestly classifi
     editableSamples: EDITABLE_SAMPLES,
     classification: {
       EDITABLE: EDITABLE_SAMPLES,
-      "FSTS DESIGN LOCKED": ["nav.site-nav (layout chrome)", "site header/footer layout"],
+      // E2: nav/header/footer CHROME is the PRIMARY page switcher, not locked
+      // content — clicking it is silent. Genuinely protected structure is the
+      // design tier (branding/identity/integrations/layout), server-enforced
+      // and proven by G2.
+      "FSTS DESIGN LOCKED": ["design-tier capabilities (branding/identity/integrations/layout) — server-enforced"],
       UNSUPPORTED: ["/faq image insertion", "/faq PDF insertion"],
       BUG: [],
     },
@@ -529,15 +561,56 @@ test("G — design lock: ordinary content succeeds AND protected design changes 
   // Module/layout config → sites.update (SuperAdmin-only).
   expect(await forbidden("sites.update", { siteId: "site_harborview", enabledModules: [] })).toBe(true);
 
-  // ── Protected layout chrome is explained in the editor (never silent) ──
+  // ── Nav chrome is NOT locked content (E2): clicking it is silent ──
   const frame2 = await openEditor(page);
-  const navBar = frame2.locator("nav.site-nav").first();
-  const navBox = await navBar.boundingBox();
-  await navBar.click({
-    position: { x: Math.max(60, (navBox?.width ?? 200) - 10), y: Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2))) },
-  });
+  await expectNavChromeSilent(page, frame2);
+  await shot(page, "ah-G-nav-chrome-silent");
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * G2 — POSITIVE DESIGN LOCK (Req 9): genuinely protected structure still
+ * explains itself — server-side AND in the editor. (Companion to G, which
+ * proves ordinary content succeeds; this proves the lock is intact.)
+ * ══════════════════════════════════════════════════════════════════════════ */
+test("G2 — positive Design Lock: protected structure is refused with the client-safe explanation", async ({ page }) => {
+  // A client OWNER (not a super-admin) attempts FSTS-controlled design
+  // structure. The Design Lock is SERVER-ENFORCED: every attempt is refused
+  // with a client-safe explanation — never a silent success, never a raw crash.
+  await setActingUser("user_alice");
+
+  const attempt = async (pathName: string, args: Record<string, unknown>): Promise<string | null> => {
+    try {
+      await dispatch(pathName, args);
+      return null; // succeeded — the lock FAILED
+    } catch (e: any) {
+      return String(e);
+    }
+  };
+
+  // Branding → design.manage (SuperAdmin-only).
+  const branding = await attempt("siteSettings.updateBranding", { siteId: "site_harborview", brandColorPrimary: "#000000" });
+  expect(branding, "branding is design-locked for a client owner").not.toBeNull();
+  expect(branding).toMatch(/Forbidden/i);
+  // Identity → design.manage.
+  const identity = await attempt("siteSettings.updateIdentity", { siteId: "site_harborview", businessName: "Hacked" });
+  expect(identity).toMatch(/Forbidden/i);
+  // Integrations → integrations.manage.
+  const integrations = await attempt("siteSettings.updateIntegrations", { siteId: "site_harborview", ga4: "G-X" });
+  expect(integrations).toMatch(/Forbidden/i);
+  // Module/layout config → sites.update (SuperAdmin-only).
+  const layout = await attempt("sites.update", { siteId: "site_harborview", enabledModules: [] });
+  expect(layout).toMatch(/Forbidden/i);
+
+  // In the editor, a genuinely protected structural area (outside nav/header/
+  // footer chrome) still explains itself with the client-safe notice — the
+  // notice is NARROWED, not removed. The services list CONTAINER (ul.card-list)
+  // is a structural wrapper whose children are editable but which is not
+  // itself an editable element — clicking its own padding is refused.
+  const frame = await openEditor(page);
+  const listContainer = frame.locator("ul.card-list").first();
+  await listContainer.click({ position: { x: 5, y: 5 } }); // the container's own padding
   await expect(page.getByText(LOCKED_NOTICE)).toBeVisible({ timeout: 10_000 });
-  await shot(page, "ah-G-design-locked-explained");
+  await shot(page, "ah-G2-design-lock-positive");
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
