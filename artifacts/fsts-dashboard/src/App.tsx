@@ -8,6 +8,7 @@ import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@convex/_generated/api";
 import { tayaLogoUrl } from "@/lib/tayaBrand";
+import { evaluateClerkKey } from "@/lib/clerkDeployConfig";
 import DesignLockGuard from "@/components/DesignLockGuard";
 import SuperAdminRouteGuard from "@/components/SuperAdminRouteGuard";
 import RequireAppAuth from "@/components/RequireAppAuth";
@@ -128,7 +129,7 @@ const PortalRegisterPage = withPortalConvex(PortalRegister);
 const PortalDashboardPage = withPortalConvex(PortalDashboard);
 const PortalRootPage = withPortalConvex(PortalRootRedirect);
 
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
+const clerkPubKey = (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string) ?? "";
 
 // TAYA production uses Clerk's verified custom domain and hosted Account
 // Portal directly. The retired Clerk proxy integration is intentionally not
@@ -142,12 +143,19 @@ function stripBase(path: string): string {
     : path;
 }
 
-if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
-}
-
-const clerkKeyIsTestInProd =
-  import.meta.env.PROD === true && clerkPubKey.startsWith("pk_test_");
+// Vercel bakes its deployment target into the bundle at build time (see
+// vite.config.ts). "preview" marks a Vercel Preview deployment; anything else
+// ("" locally, "production" on Vercel Production) is treated as a real
+// production build.
+//
+// The preview/production key rules live in clerkDeployConfig.ts so they can be
+// exercised directly in tests (see src/test/clerk-preview-auth-config.test.ts).
+const clerkKeyStatus = evaluateClerkKey({
+  publishableKey: clerkPubKey,
+  deployEnv: (import.meta.env.VITE_TAYA_DEPLOY_ENV as string) ?? "",
+  isProdBuild: import.meta.env.PROD === true,
+  hostname: typeof window !== "undefined" ? window.location.hostname : "",
+});
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
 
@@ -577,7 +585,61 @@ function AppRouter() {
 }
 
 function App() {
-  if (clerkKeyIsTestInProd) {
+  if (clerkKeyStatus.kind === "missing") {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-lg rounded-lg border border-red-200 bg-red-50 p-8 shadow-sm">
+          <h1 className="mb-2 text-xl font-semibold text-red-800">
+            Missing Clerk Publishable Key
+          </h1>
+          <p className="mb-4 text-sm text-red-700">
+            <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CLERK_PUBLISHABLE_KEY</code> is not set, so authentication cannot start and the app would otherwise show a blank page.
+          </p>
+          <p className="text-sm font-medium text-red-800">
+            Fix: Set <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CLERK_PUBLISHABLE_KEY</code> in your Vercel project settings. Production and Preview deployments require their own keys — see Clerk Dashboard → API Keys.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (clerkKeyStatus.kind === "proxy-encoded") {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-lg rounded-lg border border-red-200 bg-red-50 p-8 shadow-sm">
+          <h1 className="mb-2 text-xl font-semibold text-red-800">
+            Invalid Clerk Publishable Key (proxy-encoded)
+          </h1>
+          <p className="mb-4 text-sm text-red-700">
+            <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CLERK_PUBLISHABLE_KEY</code> decodes to a local path (<code className="rounded bg-red-100 px-1 font-mono text-xs">{clerkKeyStatus.host}</code>) instead of a Clerk frontend-API domain. The retired Clerk proxy flow is not supported and would silently break authentication.
+          </p>
+          <p className="text-sm font-medium text-red-800">
+            Fix: Set <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CLERK_PUBLISHABLE_KEY</code> to a normal Clerk publishable key (<code className="rounded bg-red-100 px-1 font-mono text-xs">pk_live_…</code> or <code className="rounded bg-red-100 px-1 font-mono text-xs">pk_test_…</code>) from Clerk Dashboard → API Keys.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (clerkKeyStatus.kind === "live-key-on-vercel-preview") {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-lg rounded-lg border border-red-200 bg-red-50 p-8 shadow-sm">
+          <h1 className="mb-2 text-xl font-semibold text-red-800">
+            Clerk Production Key Cannot Authenticate From a Vercel Preview
+          </h1>
+          <p className="mb-4 text-sm text-red-700">
+            A production key (<code className="rounded bg-red-100 px-1 font-mono text-xs">pk_live_…</code>) is set on a Vercel preview domain (<code className="rounded bg-red-100 px-1 font-mono text-xs">{clerkKeyStatus.hostname}</code>). Clerk production keys are domain-locked, so the sign-in form would appear but never advance past the email step.
+          </p>
+          <p className="text-sm font-medium text-red-800">
+            Fix: Set a Preview-scoped <code className="rounded bg-red-100 px-1 font-mono text-xs">VITE_CLERK_PUBLISHABLE_KEY</code> to a Clerk <strong>development</strong> key (<code className="rounded bg-red-100 px-1 font-mono text-xs">pk_test_…</code>) in Vercel → Project → Settings → Environment Variables (Preview only). Keep the live key for Production.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (clerkKeyStatus.kind === "test-key-in-production") {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4">
         <div className="w-full max-w-lg rounded-lg border border-red-200 bg-red-50 p-8 shadow-sm">

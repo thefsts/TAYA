@@ -163,19 +163,15 @@ test("a11y — keyboard: tab into the preview, Enter selects a real heading, Esc
 test("a11y — locked-content notice is a status region (announced), alt-text workflow is labeled", async ({ page }) => {
   const frame = await openEditor(page);
 
-  // Locked notice (nav bar click) renders inside a role="status" region so
-  // screen readers announce it — never a silent fail. Click the FAR RIGHT
-  // of the bar, past the last link, so the hit target is the design-locked
-  // bar itself (same technique as flow 9; x:12 would hit the Home link and
-  // navigate instead).
-  const navBar = frame.locator("nav.site-nav").first();
-  const navBox = await navBar.boundingBox();
-  const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
-  // The editor iframe is CSS-scaled (contain-fit), so the nav's page-space
-  // box can be under 12px tall — position INSIDE its real height, never y:12
-  // (same clamp as flow 9; y:12 lands on <body> and the click is intercepted).
-  const navY = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
-  await navBar.click({ position: { x: navRight, y: navY } });
+  // The locked-content notice renders inside a role="status" region so screen
+  // readers announce it — never a silent fail. E2 narrowed the notice: nav/
+  // header/footer CHROME is SILENT (the in-frame nav is the primary page
+  // switcher now), so we exercise the notice on a GENUINELY protected
+  // structural area — the services list CONTAINER (ul.card-list), a structural
+  // wrapper whose children are editable but which is not itself editable.
+  // The notice is narrowed, not removed (companion: acceptance-ah G2).
+  const listContainer = frame.locator("ul.card-list").first();
+  await listContainer.click({ position: { x: 5, y: 5 } }); // the container's own padding
   const notice = page.locator('[role="status"]').filter({ hasText: "managed by FSTS" });
   await expect(notice).toBeVisible({ timeout: 10_000 });
   await shot(page, "a11y-locked-notice-status");

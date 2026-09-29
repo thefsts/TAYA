@@ -92,14 +92,16 @@ async function shot(page: Page, name: string) {
 }
 
 /**
- * Switch the editor to a page by its client-visible pill label. The pill is
- * scoped to `main` (the sidebar has same-named nav items). The pill click
- * REMOUNTS the iframe (its React key is frameUrl) so captured frame handles
- * go stale — poll the LIVE frame by its percent-encoded path and wait for a
- * ground-truth key on that page to be stamped (flow 9's pattern).
+ * Switch the editor to a page via the "Choose a page" fallback picker. E2 made
+ * the in-frame site nav the PRIMARY page switcher and demoted the old
+ * always-visible pill strip to a compact menu (aria-haspopup="menu"). The menu
+ * click REMOUNTS the iframe (its React key is frameUrl) so captured frame
+ * handles go stale — poll the LIVE frame by its percent-encoded path and wait
+ * for a ground-truth key on that page to be stamped (flow 9's pattern).
  */
 async function switchToPage(page: Page, label: "Home" | "Services" | "FAQ"): Promise<Frame> {
-  await page.getByRole("main").getByRole("button", { name: label, exact: true }).click();
+  await page.getByRole("button", { name: "Choose a page" }).click();
+  await page.getByRole("menuitem", { name: label }).click();
   const pathMark = label === "Home" ? "path=%2F" : label === "Services" ? "path=%2Fservices" : "path=%2Ffaq";
   const probeKey = label === "Home" ? "home.section5.body" : label === "Services" ? "services.heading" : "faq.heading";
   await expect
@@ -117,15 +119,32 @@ async function switchToPage(page: Page, label: "Home" | "Services" | "FAQ"): Pro
   return page.frames().filter((f) => f.url().includes(pathMark))[0];
 }
 
-/** Click locked nav-bar chrome (far right, past the last link). The editor
- * iframe is CSS-scaled (contain-fit), so the nav's page-space box can be
- * under 12px tall — position INSIDE the box's real height, never a fixed y. */
-async function clickLockedNavArea(frame: Frame) {
+/** Click nav-bar chrome (far right, past the last link). The editor iframe is
+ * CSS-scaled (contain-fit), so the nav's page-space box can be under 12px
+ * tall — position INSIDE the box's real height, never a fixed y. */
+async function clickNavChrome(frame: Frame) {
   const navBar = frame.locator("nav.site-nav").first();
   const navBox = await navBar.boundingBox();
   const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
   const y = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
   await navBar.click({ position: { x: navRight, y } });
+}
+
+/** E2 CONTRACT: clicking nav/header/footer CHROME (never a real link) is
+ * SILENT — no "managed by FSTS" Design Lock notice, no false edit affordance,
+ * and no navigation. Only an actual <a href> link navigates. The Design Lock
+ * notice is reserved for genuinely protected structure (see acceptance-ah G2). */
+async function expectNavChromeSilent(page: Page, frame: Frame) {
+  const urlBefore = frame.url();
+  const selectedBefore = await frame.locator(".taya-selected").count();
+  await clickNavChrome(frame);
+  await page.waitForTimeout(400); // let any (unexpected) frame message land
+  await expect(page.getByText(LOCKED_NOTICE)).toHaveCount(0);
+  await expect(
+    page.getByText("Links to other websites open on the live site", { exact: false }),
+  ).toHaveCount(0);
+  expect(frame.url()).toBe(urlBefore); // no navigation
+  expect(await frame.locator(".taya-selected").count()).toBe(selectedBefore); // no false edit affordance
 }
 
 async function saveDraft(page: Page) {
@@ -382,19 +401,21 @@ test("A7 — /services: heading/paragraph/image/button editable + honest classif
   await expect(item).toHaveText("Cosmetic whitening", { timeout: 10_000 });
   await shot(page, "a7-services-item");
 
-  // Add-content chip availability on /services: zones are service-list,
-  // footer-content, video-section, cta-stack → image + FAQ chips disabled
-  // (no zone allows them); link ENABLED (footer-content allows link);
-  // PDF resource ENABLED (service-list allows pdf).
+  // Add-content chip availability on /services. E1 widened the ordinary
+  // content kinds (image, link) into every content-bearing zone, so on
+  // /services (zones: service-list, footer-content, video-section, cta-stack)
+  // image + link + PDF resource are ENABLED (service-list allows image/link/
+  // pdf); the FAQ chip stays DISABLED (service-list is not a faq-list zone).
   await page.getByRole("button", { name: "Add content to this page" }).click();
-  await expect(page.getByRole("button", { name: "+ Add image", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "+ Add image", exact: true })).toBeEnabled();
   await expect(page.getByRole("button", { name: "+ Add FAQ", exact: true })).toBeDisabled();
   await expect(page.getByRole("button", { name: "+ Add link", exact: true })).toBeEnabled();
   await expect(page.getByRole("button", { name: "+ Add resource", exact: true })).toBeEnabled();
   await shot(page, "a7-services-add-panel");
 
-  // Classification is HONEST (no matching zone, not a bug): the sentence
-  // explains why without promising other pages.
+  // Classification is HONEST (no matching zone, not a bug): the FAQ chip has
+  // no allowed zone on /services, so the sentence explains why without
+  // promising other pages.
   await expect(page.getByText(/can't be added to this page/).first()).toBeVisible();
 
   // /services IS a services page: a PDF resource adds to the services list.
@@ -410,7 +431,7 @@ test("A7 — /services: heading/paragraph/image/button editable + honest classif
 /* ═════════════════════════════════════════════════════════════════════════
  * A7 — page coverage spot check: /faq
  * ════════════════════════════════════════════════════════════════════════ */
-test("A7 — /faq: heading/paragraph/items editable + FSTS-locked explanation", async ({ page }) => {
+test("A7 — /faq: heading/paragraph/items editable + nav chrome silent", async ({ page }) => {
   await setActingUser("user_alice");
   await openEditor(page);
   const frameFaq = await switchToPage(page, "FAQ");
@@ -438,18 +459,18 @@ test("A7 — /faq: heading/paragraph/items editable + FSTS-locked explanation", 
   await expect(a).toHaveText("Yes — we usually see first visits within two weeks.", { timeout: 10_000 });
   await shot(page, "a7-faq-item");
 
-  // NON-EDITABLE classification: nav links on /faq NAVIGATE the editor
-  // (same-site links are page switches, not edits) — the LOCKED area is the
-  // nav bar chrome itself (far right, past the last link).
-  await clickLockedNavArea(frameFaq);
-  await expect(page.getByText(LOCKED_NOTICE)).toBeVisible({ timeout: 10_000 });
-  await shot(page, "a7-faq-locked-nav");
+  // NON-EDITABLE classification (E2): nav links on /faq NAVIGATE the editor
+  // (same-site links are page switches, not edits). Clicking nav-bar CHROME
+  // (far right, past the last link) is SILENT — no "managed by FSTS" notice,
+  // no false edit affordance, no navigation. Only a real link navigates.
+  await expectNavChromeSilent(page, frameFaq);
+  await shot(page, "a7-faq-nav-chrome-silent");
 });
 
 /* ═════════════════════════════════════════════════════════════════════════
  * A7 — home page spot check (button/link coverage summary record)
  * ════════════════════════════════════════════════════════════════════════ */
-test("A7 — home: hero destination + locked nav classified", async ({ page }) => {
+test("A7 — home: hero destination + nav chrome silent", async ({ page }) => {
   await setActingUser("user_alice");
   const frame = await openEditor(page);
 
@@ -463,8 +484,8 @@ test("A7 — home: hero destination + locked nav classified", async ({ page }) =
   await expect(dest).toHaveValue("/contact");
   await shot(page, "a7-home-hero-destination");
 
-  // Locked header nav chrome (far right of the bar, no link hit target).
-  await clickLockedNavArea(frame);
-  await expect(page.getByText(LOCKED_NOTICE)).toBeVisible({ timeout: 10_000 });
-  await shot(page, "a7-home-locked-nav");
+  // Nav chrome (far right of the bar, no link hit target) is SILENT (E2):
+  // no "managed by FSTS" notice, no false edit affordance, no navigation.
+  await expectNavChromeSilent(page, frame);
+  await shot(page, "a7-home-nav-chrome-silent");
 });

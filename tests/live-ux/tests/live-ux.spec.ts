@@ -316,23 +316,30 @@ test("flow 8 — add permitted text block to a safe location", async ({ page }) 
 /* ══════════════════════════════════════════════════════════════════════
  * FLOW 9 — locked/unsupported insertion → clear explanation (never silent)
  * ════════════════════════════════════════════════════════════════════ */
-test("flow 9 — locked areas and unsupported insertions are explained", async ({ page }) => {
+test("flow 9 — nav chrome is silent; locked/unsupported insertions are explained", async ({ page }) => {
   const frame = await openEditor(page);
 
-  // (a) Click a non-annotated area of the nav bar itself - the FAR RIGHT of
-  // the bar, past the last link, so the hit target is the bar (design-locked
-  // layout chrome), never one of the inline links at the left edge.
+  // (a) E2 CONTRACT: clicking nav-bar CHROME (the FAR RIGHT of the bar, past
+  // the last link) is SILENT — no "managed by FSTS" Design Lock notice, no
+  // false edit affordance, and no navigation. The nav is the PRIMARY page
+  // switcher now; only a real <a href> link navigates. The Design Lock notice
+  // is reserved for genuinely protected structure (see acceptance-ah G2).
   // The editor iframe is CSS-scaled (contain-fit), so the nav's page-space
   // box can be under 12px tall — position INSIDE its real height, never y:12.
   const navBar = frame.locator("nav.site-nav").first();
   const navBox = await navBar.boundingBox();
   const navRight = Math.max(60, (navBox?.width ?? 200) - 10);
   const navY = Math.max(2, Math.min(12, Math.floor((navBox?.height ?? 24) / 2)));
+  const urlBefore = frame.url();
+  const selectedBefore = await frame.locator(".taya-selected").count();
   await navBar.click({ position: { x: navRight, y: navY } });
+  await page.waitForTimeout(400); // let any (unexpected) frame message land
   await expect(
     page.getByText("That part of the page is managed by FSTS. Contact your TAYA representative to make changes."),
-  ).toBeVisible({ timeout: 10_000 });
-  await shot(page, "flow09-locked-nav");
+  ).toHaveCount(0);
+  expect(frame.url()).toBe(urlBefore); // no navigation
+  expect(await frame.locator(".taya-selected").count()).toBe(selectedBefore); // no false edit affordance
+  await shot(page, "flow09-nav-chrome-silent");
 
   // (b) An external link click is explained, never silently ignored.
   await frame.locator('nav.site-nav a[href^="https://facebook.com"]').click();
@@ -343,11 +350,12 @@ test("flow 9 — locked areas and unsupported insertions are explained", async (
 
   // (c) Unsupported insertion on /faq: images and PDFs have no allowed zone
   // on that page → the chips are disabled + the honest sentence shows.
-  // Scope to main: the sidebar also has a "FAQ" nav item, but the page
-  // pill is the one inside the editor body (button.rounded-full).
-  await page.getByRole("main").getByRole("button", { name: "FAQ", exact: true }).click(); // page pill
+  // E2 demoted the always-visible page pill to a compact "Choose a page"
+  // menu (aria-haspopup="menu"); switch via that picker.
+  await page.getByRole("button", { name: "Choose a page" }).click();
+  await page.getByRole("menuitem", { name: "FAQ" }).click();
 
-  // The page-pill click REMOUNTS the iframe (its key is frameUrl, which
+  // The picker click REMOUNTS the iframe (its key is frameUrl, which
   // changes with the path) so the captured handle goes stale. Poll for the
   // LIVE /faq frame (the iframe src is /api/editor/frame?token=...&path=%2Ffaq)
   // and wait for its real heading binding to be stamped. Ground-truth key on

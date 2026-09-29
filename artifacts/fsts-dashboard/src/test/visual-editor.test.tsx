@@ -211,6 +211,18 @@ const DOWNLOADS = [
   { id: "dl1", title: "Service Catalog", url: "https://cdn.example/catalog.pdf", format: "PDF", isActive: true },
 ];
 
+/** §6/A5 Media Library insert surface — the site's existing image assets. */
+const MEDIA = [
+  {
+    id: "m1",
+    fileName: "hero.jpg",
+    url: "https://cdn.example/hero.jpg",
+    thumbUrl: "https://cdn.example/hero-thumb.jpg",
+    altText: "A hero shot",
+    mimeType: "image/jpeg",
+  },
+];
+
 const FORMS = [
   { id: "form1", name: "Contact us", status: "published" },
 ];
@@ -232,6 +244,7 @@ function setup({
   structurals = STRUCTURALS,
   downloads = DOWNLOADS,
   forms = FORMS,
+  media = MEDIA,
 }: {
   contentMap?: Record<string, unknown> | null;
   authority?: Record<string, unknown> | null;
@@ -241,6 +254,7 @@ function setup({
   structurals?: Array<Record<string, unknown>> | null;
   downloads?: Array<Record<string, unknown>> | null;
   forms?: Array<Record<string, unknown>> | null;
+  media?: Array<Record<string, unknown>> | null;
 } = {}) {
   const dispatch: Record<string, unknown> = {
     "api.contentMap.get": contentMap,
@@ -251,6 +265,7 @@ function setup({
     "api.editorZones.structuralsFor": structurals,
     "api.downloads.list": downloads,
     "api.forms.list": forms,
+    "api.media.list": media,
   };
   mockUseQuery.mockImplementation((q: unknown) => {
     const path = typeof q === "function" ? (q as () => string)() : (q as string);
@@ -394,13 +409,63 @@ describe("VisualEditor — client-safe rendering (§26)", () => {
     expect(document.querySelector("iframe[title='Website preview']")).toBeNull();
   });
 
-  it("renders page navigator pills with client-language labels", async () => {
+  it("demotes the page list to a fallback 'Choose a page' picker (nav is primary)", async () => {
     setup();
     await renderEditor();
-    expect(screen.getByRole("button", { name: "Home" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "About" })).toBeInTheDocument();
-    // Compact toolbar counter (owner-approved layout): "2 pages".
+    // E2: the duplicate pill strip is gone — the in-frame site nav is the
+    // primary way to move between pages. A single compact fallback picker
+    // remains for accessibility/recovery.
+    const picker = screen.getByRole("button", { name: "Choose a page" });
+    expect(picker).toBeInTheDocument();
+    // Page labels are NOT always-visible pills any more.
+    expect(screen.queryByRole("button", { name: "About" })).toBeNull();
+    fireEvent.click(picker);
+    // The picker reveals client-language page labels as menu items.
+    expect(screen.getByRole("menuitem", { name: /Home/ })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /About/ })).toBeInTheDocument();
+    // Compact counter lives inside the picker menu.
     expect(screen.getByText("2 pages")).toBeInTheDocument();
+  });
+});
+
+describe("VisualEditor — resizable rail (E5)", () => {
+  it("exposes a keyboard-accessible separator that resizes the rail within clamped bounds", async () => {
+    setup();
+    await renderEditor();
+    const handle = screen.getByRole("separator", { name: "Resize editing panel" });
+    expect(handle).toHaveAttribute("aria-orientation", "vertical");
+    expect(handle).toHaveAttribute("aria-valuenow", "360");
+    expect(handle).toHaveAttribute("aria-valuemin", "280");
+    expect(handle).toHaveAttribute("aria-valuemax", "600");
+    // Keyboard nudge right widens the rail.
+    fireEvent.keyDown(handle, { key: "ArrowRight" });
+    expect(handle).toHaveAttribute("aria-valuenow", "376");
+    // Keyboard nudge left narrows it back.
+    fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    expect(handle).toHaveAttribute("aria-valuenow", "360");
+    // Clamp: many left nudges never go below the minimum.
+    for (let i = 0; i < 40; i++) fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    expect(handle).toHaveAttribute("aria-valuenow", "280");
+    // Clamp: many right nudges never exceed the maximum.
+    for (let i = 0; i < 60; i++) fireEvent.keyDown(handle, { key: "ArrowRight" });
+    expect(handle).toHaveAttribute("aria-valuenow", "600");
+  });
+
+  it("drags the rail via pointer events and clamps to the safe range", async () => {
+    setup();
+    await renderEditor();
+    const handle = screen.getByRole("separator", { name: "Resize editing panel" });
+    // Drag right by 100px → 360 + 100 = 460.
+    fireEvent.pointerDown(handle, { clientX: 300, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientX: 400, pointerId: 1 });
+    expect(handle).toHaveAttribute("aria-valuenow", "460");
+    // Drag far left → clamped to the minimum.
+    fireEvent.pointerMove(handle, { clientX: 0, pointerId: 1 });
+    expect(handle).toHaveAttribute("aria-valuenow", "280");
+    fireEvent.pointerUp(handle, { pointerId: 1 });
+    // After release, further moves are ignored.
+    fireEvent.pointerMove(handle, { clientX: 999, pointerId: 1 });
+    expect(handle).toHaveAttribute("aria-valuenow", "280");
   });
 });
 
@@ -599,6 +664,19 @@ describe("VisualEditor — frame bootstrap protocol", () => {
       expect(iframe.getAttribute("src")).toContain("path=%2Fabout");
     });
     expect(mutations["api.editor.createFrameToken"].mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("shows an honest notice when a same-site link isn't a discovered page (never a silent no-op)", async () => {
+    const { mutations } = setup();
+    await renderEditor();
+    const before = mutations["api.editor.createFrameToken"].mock.calls.length;
+    // E2: a same-site link TAYA hasn't discovered must NOT do nothing.
+    frameSends({ source: "taya-editor", kind: "navigate", path: "/not-discovered" });
+    expect(
+      await screen.findByText(/isn't one of your editable pages yet/i),
+    ).toBeInTheDocument();
+    // No new frame was loaded for an undiscovered page.
+    expect(mutations["api.editor.createFrameToken"].mock.calls.length).toBe(before);
   });
 
   it("ignores messages from other sources and kinds (protocol hygiene)", async () => {
@@ -1139,12 +1217,57 @@ describe("VisualEditor — rich content (§1–§6)", () => {
     expect(await screen.findByRole("button", { name: "+ Add resource" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "+ Add FAQ" }).hasAttribute("disabled")).toBe(true);
     expect(screen.getByRole("button", { name: "+ Add image" })).toBeInTheDocument();
-    // `link` is only allowed in footer-content, which this fixture's page map
-    // does not include — so the honest explanation now names BOTH unavailable
-    // kinds (FAQ items + Links), in ADD_ACTIONS order. Asserted strictly.
+    // PHASE-1 widening (E1): `link` is now allowed in the content-bearing zones
+    // (content/service-list), both of which this fixture's page map includes — so
+    // `link` is addable and only FAQ items remain unavailable. The honest
+    // explanation therefore names FAQ items alone.
     expect(
-      await screen.findByText(/FAQ items, Links can.t be added to this page/),
+      await screen.findByText(/FAQ items can.t be added to this page/),
     ).toBeInTheDocument();
+  });
+
+  it("§6/A5 Media Library insert: browse existing images and prefill the image field", async () => {
+    setup();
+    await renderEditor();
+    fireEvent.click(screen.getByRole("button", { name: /Add content to this page/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "+ Add image" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Main content area" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Browse Media Library/ }));
+    // Tabs are real tab controls (a11y).
+    expect(await screen.findByRole("tab", { name: "Images" })).toBeInTheDocument();
+    // The existing asset is offered with a descriptive insert label.
+    const insertBtn = await screen.findByRole("button", { name: "Insert image hero.jpg" });
+    fireEvent.click(insertBtn);
+    // Picking it prefills the image field (the ImagePickerField test double
+    // records the chosen URL on data-value).
+    await waitFor(() => {
+      expect(document.querySelector('[data-testid="image-picker"]')?.getAttribute("data-value"))
+        .toBe("https://cdn.example/hero.jpg");
+    });
+  });
+
+  it("§6/A5+A6 Media Library insert: video-by-URL validates and prefills (no channel picker)", async () => {
+    setup();
+    await renderEditor();
+    fireEvent.click(screen.getByRole("button", { name: /Add content to this page/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "+ Add video" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Main content area" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Browse Media Library/ }));
+    // The modal's video field is #media-video-url (the form's own video field
+    // shares the same label text, so query by id).
+    const urlInput = await waitFor(() => {
+      const el = document.getElementById("media-video-url") as HTMLInputElement | null;
+      expect(el).not.toBeNull();
+      return el as HTMLInputElement;
+    });
+    fireEvent.change(urlInput, { target: { value: "https://youtu.be/dQw4w9WgXcQ" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Use this video" }));
+    // The canonical watch URL prefills the form's video field.
+    await waitFor(() => {
+      expect(
+        screen.getByDisplayValue("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+      ).toBeInTheDocument();
+    });
   });
 
   it("§6 existing block rows render with persisted edit/remove/reorder controls", async () => {

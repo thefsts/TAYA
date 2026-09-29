@@ -1,9 +1,12 @@
 const key = process.env.VITE_CLERK_PUBLISHABLE_KEY ?? "";
 const nodeEnv = process.env.NODE_ENV ?? "";
+const vercelEnv = process.env.VERCEL_ENV ?? "";
 
 if (nodeEnv !== "production") {
   process.exit(0);
 }
+
+const isVercelPreview = vercelEnv === "preview";
 
 if (!key) {
   console.error(
@@ -14,6 +17,14 @@ if (!key) {
 }
 
 if (key.startsWith("pk_test_")) {
+  // Vercel Preview deployments cannot authenticate with a domain-locked
+  // production key, so a development key is the supported configuration there.
+  if (isVercelPreview) {
+    console.log(
+      "✅  Vercel Preview build: development Clerk key (pk_test_…) accepted for preview deployments.",
+    );
+    process.exit(0);
+  }
   console.error(
     "❌  VITE_CLERK_PUBLISHABLE_KEY is a development key (pk_test_…).\n" +
       "    Production builds require a live key starting with pk_live_.\n" +

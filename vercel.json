@@ -18,7 +18,6 @@
     }
   ],
   "routes": [
-    { "src": "/api/clerk-proxy/(.*)", "dest": "https://frontend-api.clerk.dev/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

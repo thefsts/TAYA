@@ -185,7 +185,40 @@ describe("editorZones — zone resolution (server-side, map-driven)", () => {
     const services = r.pages.find((p: any) => p.path === "/services");
     expect(services.zones.map((z: any) => z.zone)).toContain("content");
     // Kinds are carried per zone from the registry.
-    expect(home.zones.find((z: any) => z.zone === "hero").kinds).toEqual(["text", "button", "video"]);
+    expect(home.zones.find((z: any) => z.zone === "hero").kinds).toEqual(["text", "image", "button", "video"]);
+  });
+
+  it("PHASE-1 widening: ordinary content kinds are addable in every content-bearing zone", async () => {
+    await seed();
+    const r = await asOwner().query(api.editorZones.zoneSummaries, { siteId: fstsSiteId });
+    const home = r.pages.find((p: any) => p.path === "/");
+    const kindsFor = (zone: string) =>
+      (home.zones.find((z: any) => z.zone === zone)?.kinds ?? []) as string[];
+
+    // The Knowledge Center unlock: image + link reachable beyond `content`.
+    expect(kindsFor("service-list")).toContain("image");
+    expect(kindsFor("service-list")).toContain("link");
+    expect(kindsFor("hero")).toContain("image");
+    expect(kindsFor("content")).toContain("link");
+    // Structured, section-specific kinds stay scoped (no over-widening).
+    expect(kindsFor("content")).not.toContain("cta");
+    expect(kindsFor("hero")).not.toContain("pdf");
+  });
+
+  it("PHASE-1 widening: every widened zone accepts a representative image and link block", async () => {
+    await seed();
+    // service-list resolves from home.services.items[i].* keys in the map.
+    for (const kind of ["image", "link"] as const) {
+      const content =
+        kind === "image"
+          ? { kind: "image", url: "https://cdn.example.com/x.jpg", alt: "x" }
+          : { kind: "link", label: "Read more", href: "https://example.com/more" };
+      await expect(
+        asOwner().mutation(api.editorZones.addBlock, {
+          siteId: fstsSiteId, pagePath: "/", zone: "service-list", content,
+        }),
+      ).resolves.toBeTruthy();
+    }
   });
 
   it("returns { connected: false } when the site has no map", async () => {

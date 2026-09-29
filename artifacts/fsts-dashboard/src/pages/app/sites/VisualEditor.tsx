@@ -45,6 +45,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImagePickerField } from "@/components/ImagePickerField";
+import { MediaLibraryInsert, type MediaInsertPayload, type MediaInsertKind } from "@/components/MediaLibraryInsert";
 import {
   // §6 zone contract + §2/§3 validation — the CANONICAL pure libs the
   // server uses (same functions, same verdicts; the @convex alias maps to
@@ -66,7 +67,7 @@ import {
   Undo2, ArrowLeft,
   Plus, Trash2, RotateCcw, ArrowUp, ArrowDown,
   Video, FileText, Type, Megaphone, HelpCircle, FileDown, Link2, ClipboardList,
-  Search,
+  Search, ChevronDown, FolderOpen,
 } from "lucide-react";
 
 // Convex site origin (convex.cloud → convex.site), same derivation as
@@ -409,6 +410,24 @@ function BlockForm({
   const [answer, setAnswer] = useState(s("answer"));
   const [err, setErr] = useState<string | null>(null);
 
+  // E6/A5 — one browse-and-insert surface spanning images, PDFs, and videos.
+  // The modal reads the site's existing Media Library / Downloads and hands
+  // back a plain payload that pre-fills the matching field below.
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const mediaKinds: MediaInsertKind[] =
+    kind === "image" ? ["image"] : kind === "pdf" ? ["pdf"] : kind === "video" ? ["video"] : [];
+  const handleMediaInsert = (payload: MediaInsertPayload) => {
+    if (payload.kind === "image") {
+      setImageUrl(payload.url);
+      if (payload.alt) setAlt(payload.alt);
+    } else if (payload.kind === "pdf") {
+      setResourceId(payload.resourceId);
+      if (!title.trim()) setTitle(payload.title);
+    } else if (payload.kind === "video") {
+      setVideoUrl(payload.watchUrl);
+    }
+  };
+
   // Chat D (client website management completion) — upload a PDF straight
   // from the editor: mint an upload URL (PDF-only guard server-side), PUT
   // the file, create the downloads resource, then auto-select it in the
@@ -489,6 +508,14 @@ function BlockForm({
       <p className="rounded-md bg-slate-50 px-2 py-1.5 text-xs text-slate-500">
         It will show up {wherePhrase(zone)} — it appears in the preview immediately and goes live only when you publish.
       </p>
+
+      {/* E6/A5 — one browse-and-insert surface for the kinds this form edits. */}
+      {mediaKinds.length > 0 && (
+        <Button type="button" variant="outline" size="sm" className="w-full gap-2"
+          onClick={() => setMediaOpen(true)}>
+          <FolderOpen className="h-4 w-4" /> Browse Media Library
+        </Button>
+      )}
 
       {kind === "text" && (
         <>
@@ -653,6 +680,15 @@ function BlockForm({
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>Cancel</Button>
       </div>
+
+      <MediaLibraryInsert
+        siteId={siteId}
+        open={mediaOpen}
+        onClose={() => setMediaOpen(false)}
+        onInsert={handleMediaInsert}
+        availableKinds={mediaKinds}
+        initialTab={mediaKinds[0]}
+      />
     </div>
   );
 }
@@ -1221,6 +1257,16 @@ export default function VisualEditor() {
 
 type FrameState = "loading" | "ready";
 
+/* E5 — resizable left rail bounds (owner-approved). The rail can be dragged
+ * (pointer) or nudged with the keyboard; width is clamped so the live preview
+ * always keeps usable space. */
+const RAIL_MIN_WIDTH = 280;
+const RAIL_MAX_WIDTH = 600;
+const RAIL_DEFAULT_WIDTH = 360;
+function clampRailWidth(w: number): number {
+  return Math.min(RAIL_MAX_WIDTH, Math.max(RAIL_MIN_WIDTH, Math.round(w)));
+}
+
 function VisualEditorInner({
   siteId,
   retryEditor,
@@ -1271,6 +1317,12 @@ function VisualEditorInner({
   const [frameUrl, setFrameUrl] = useState<string | null>(null);
   const [selected, setSelected] = useState<ElementInfo | null>(null);
   const [lockedNotice, setLockedNotice] = useState<string | null>(null);
+  // E3: keep the busy overlay visible from the FIRST moment of a page change
+  // (not only once a frame already exists), and clear it when the new page
+  // finishes loading. Without this the iframe remount produced a white gap.
+  const [frameLoading, setFrameLoading] = useState(true);
+  // E2: the page list is a fallback picker, not the primary navigation.
+  const [showPages, setShowPages] = useState(false);
   const [editing, setEditing] = useState<ZoneBlockRow | null>(null);
   const [device, setDevice] = useState<DeviceMode>("desktop");
   const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
@@ -1280,10 +1332,39 @@ function VisualEditorInner({
   const [showHistory, setShowHistory] = useState(false);
   const [pendingDraftKeys, setPendingDraftKeys] = useState<string[]>([]);
   const [draftCount, setDraftCount] = useState(0); // re-render tick for ref-backed edits
+  // E5: resizable left rail. Width is session state; the separator handle
+  // drags it (pointer) and nudges it (keyboard), clamped to a safe range.
+  const [railWidth, setRailWidth] = useState(RAIL_DEFAULT_WIDTH);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const localEditsRef = useRef<Map<string, string>>(new Map());
   const pagePathRef = useRef<string | null>(null);
+  const railDragRef = useRef<{ startX: number; startW: number } | null>(null);
+
+  const onRailPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    railDragRef.current = { startX: e.clientX, startW: railWidth };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }, [railWidth]);
+
+  const onRailPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = railDragRef.current;
+    if (!drag) return;
+    setRailWidth(clampRailWidth(drag.startW + (e.clientX - drag.startX)));
+  }, []);
+
+  const endRailDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    railDragRef.current = null;
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  }, []);
+
+  const onRailKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const step = e.shiftKey ? 40 : 16;
+    setRailWidth((w) => clampRailWidth(w + (e.key === "ArrowRight" ? step : -step)));
+  }, []);
 
   const entries = (contentMap?.entries ?? {}) as EntryMap;
   const pages = (contentMap?.pages ?? []) as PageSummary[];
@@ -1296,11 +1377,15 @@ function VisualEditorInner({
   const loadFrame = useCallback(async (path: string) => {
     try {
       setBusy(true);
+      // E3: show the busy overlay from the first moment of the page change,
+      // and keep it up until the new page's iframe fires onLoad.
+      setFrameLoading(true);
       const r = await mintToken({ siteId: siteId as Id<"sites">, path });
       setFrameUrl(
         `${convexSiteOrigin()}/api/editor/frame?token=${encodeURIComponent(r.token)}&path=${encodeURIComponent(r.path)}`,
       );
     } catch (e: any) {
+      setFrameLoading(false);
       setNotice(e?.message ?? "The editor couldn't open. Please try again.");
     } finally {
       setBusy(false);
@@ -1745,7 +1830,15 @@ function VisualEditorInner({
           if (match) {
             setPagePath(next);
             setSelected(null);
+            setLockedNotice(null);
             void loadFrame(next);
+          } else {
+            // E2: never a silent no-op. The link is same-site, but TAYA has
+            // not discovered this page, so it cannot be opened in the editor
+            // yet. Say so honestly instead of doing nothing.
+            setLockedNotice(
+              `"${next}" isn't one of your editable pages yet. If it's a page on your site, ask your TAYA representative to add it to discovery.`,
+            );
           }
         }
         return;
@@ -2049,28 +2142,54 @@ function VisualEditorInner({
           </p>
         </div>
 
-        <div className="mx-auto flex min-w-0 flex-wrap items-center justify-center gap-1.5">
-          {pages.map((p) => (
-            <button
-              key={p.path}
-              type="button"
-              onClick={() => {
-                setPagePath(p.path);
-                setSelected(null);
-                void loadFrame(p.path);
-              }}
-              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
-                pagePath === p.path
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600"
-              }`}
+        {/* E2: the page list is a FALLBACK picker, not the primary navigation.
+            The in-frame site nav is the primary way to move between pages; this
+            compact "Choose a page" menu is kept for accessibility/recovery. */}
+        <div className="relative mx-auto flex min-w-0 items-center justify-center">
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={showPages}
+            aria-label="Choose a page"
+            onClick={() => setShowPages((v) => !v)}
+            className="flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+          >
+            <span className="max-w-[10rem] truncate">
+              {pages.find((p) => p.path === pagePath)?.label || pagePath || "Choose a page"}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+          {showPages && (
+            <div
+              role="menu"
+              aria-label="Pages"
+              className="absolute top-full z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg"
             >
-              {p.label || p.path}
-            </button>
-          ))}
-          <span className="hidden text-[10px] text-slate-400 xl:inline">
-            {pages.length} page{pages.length === 1 ? "" : "s"}
-          </span>
+              {pages.map((p) => (
+                <button
+                  key={p.path}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setShowPages(false);
+                    setPagePath(p.path);
+                    setSelected(null);
+                    setLockedNotice(null);
+                    void loadFrame(p.path);
+                  }}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs transition hover:bg-slate-100 ${
+                    pagePath === p.path ? "font-semibold text-blue-700" : "text-slate-600"
+                  }`}
+                >
+                  <span className="truncate">{p.label || p.path}</span>
+                  {pagePath === p.path && <span className="text-[10px] text-blue-600">current</span>}
+                </button>
+              ))}
+              <span className="block px-3 pt-1 pb-0.5 text-[10px] text-slate-400">
+                {pages.length} page{pages.length === 1 ? "" : "s"}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1">
@@ -2104,9 +2223,12 @@ function VisualEditorInner({
       </div>
 
       {/* main split: controls (left rail) + preview (fills remaining viewport) */}
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div
+        className="flex min-h-0 flex-1 flex-col lg:flex-row"
+        style={{ ["--rail-w" as string]: `${railWidth}px` } as React.CSSProperties}
+      >
         {/* controls */}
-        <div className={`${mobileTab === "edit" ? "flex" : "hidden"} w-full min-h-0 flex-col gap-3 overflow-y-auto bg-slate-50 p-3 lg:flex lg:w-[clamp(280px,29%,440px)] lg:flex-shrink-0 lg:border-r lg:border-slate-200`}>
+        <div className={`${mobileTab === "edit" ? "flex" : "hidden"} w-full min-h-0 flex-col gap-3 overflow-y-auto bg-slate-50 p-3 lg:flex lg:w-[var(--rail-w)] lg:flex-shrink-0 lg:border-r lg:border-slate-200`}>
           {/* workflow banner — compact, in the rail */}
           <WorkflowBanner
             state={workflow}
@@ -2355,6 +2477,26 @@ function VisualEditorInner({
           </div>
         </div>
 
+        {/* E5 — drag handle: resize the left rail (desktop only). Keyboard
+            accessible: ← / → nudge, Shift for a larger step. */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize editing panel"
+          aria-valuenow={railWidth}
+          aria-valuemin={RAIL_MIN_WIDTH}
+          aria-valuemax={RAIL_MAX_WIDTH}
+          tabIndex={0}
+          onPointerDown={onRailPointerDown}
+          onPointerMove={onRailPointerMove}
+          onPointerUp={endRailDrag}
+          onPointerCancel={endRailDrag}
+          onKeyDown={onRailKeyDown}
+          className="group hidden w-1.5 cursor-col-resize items-center justify-center bg-slate-200 transition-colors hover:bg-blue-400 focus:bg-blue-400 focus:outline-none lg:flex"
+        >
+          <span className="h-8 w-0.5 rounded-full bg-slate-400 group-hover:bg-white" />
+        </div>
+
         {/* preview — fits the workspace (owner-approved: as much real
             website as the remaining viewport allows, never 1:1 clipped) */}
         <div className={`${mobileTab === "preview" ? "flex" : "hidden"} min-h-0 flex-1 flex-col bg-slate-100 lg:flex`}>
@@ -2387,9 +2529,13 @@ function VisualEditorInner({
           <FrameStage
             frameUrl={frameUrl}
             device={device}
-            busy={busy}
+            busy={busy || frameLoading}
             iframeRef={iframeRef}
-            onFrameLoad={() => sendToFrame({ kind: "ping" })}
+            onFrameLoad={() => {
+              // E3: the new page has painted — clear the page-change overlay.
+              setFrameLoading(false);
+              sendToFrame({ kind: "ping" });
+            }}
           />
         </div>
       </div>
@@ -2482,7 +2628,6 @@ function FrameStage({
       >
         <iframe
           ref={iframeRef}
-          key={frameUrl}
           src={frameUrl}
           title="Website preview"
           className="block border-0 origin-top-left"
@@ -2496,8 +2641,9 @@ function FrameStage({
           onLoad={onFrameLoad}
         />
         {busy && (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-white/60">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/70">
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <span className="text-sm font-medium text-slate-500">Loading page…</span>
           </div>
         )}
       </div>
