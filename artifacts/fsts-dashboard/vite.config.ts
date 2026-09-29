@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { buildViteDefine } from "./viteDefine";
 
 const isVercelBuild = process.env.VERCEL === "1";
 
@@ -20,10 +21,10 @@ export default defineConfig({
   // TAYA production uses Clerk's verified custom domain directly. This
   // intentionally neutralizes the retired proxy variable even if an old value
   // still exists in Vercel, preventing the client bundle from re-enabling the
-  // legacy proxy flow.
-  define: {
-    "import.meta.env.VITE_CLERK_PROXY_URL": "undefined",
-  },
+  // legacy proxy flow. It also bakes Vercel's deployment target (VERCEL_ENV)
+  // into the bundle so the runtime can distinguish Preview from Production.
+  // The exact values live in ./viteDefine.ts so they are testable.
+  define: buildViteDefine({ VERCEL_ENV: process.env.VERCEL_ENV }),
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
